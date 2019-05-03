@@ -26,29 +26,40 @@
 #fi
 
 echo 'Pulling Linux imports...'
-go get -v -d ./...
+go get -v -d -t ./...
 echo 'Pulling Windows imports...'
-GOOS=windows go get -v -d ./...
+GOOS=windows go get -v -d -t ./...
 
-GOBUILD_OUT=0
-#cd /
+# We dont run golint on Windows only code as style often matches win32 api 
+# style, not golang style
+golint -set_exit_status ./...
+GOLINT_RET=$?
 
-echo "Building for Linux"
-go build .
+GOFMT_OUT=$(gofmt -d $(find . -type f -name "*.go") 2>&1)
+
+go vet --structtag=false ./...
+GOVET_RET=$?
+GOOS=windows go vet --structtag=false ./...
 RET=$?
 if [ $RET != 0 ]; then
-  GOBUILD_OUT=$RET
-  echo "'go build' exited with ${GOBUILD_OUT}"
+  GOVET_RET=$RET
 fi
 
-echo "Building for Windows"
-GOOS=windows go build .
-RET=$?
-if [ $RET != 0 ]; then
-  GOBUILD_OUT=$RET
-  echo "'GOOS=windows go build' exited with ${GOBUILD_OUT}"
+# Print results and return.
+if [ ${GOLINT_RET} != 0 ]; then
+  echo "'golint ./...' returned ${GOLINT_RET}"
 fi
-
-sync
-exit $GOBUILD_OUT
-
+if [ ! -z "${GOFMT_OUT}" ]; then
+  echo "'gofmt -d \$(find . -type f -name \"*.go\")' returned:"
+  echo ${GOFMT_OUT}
+  GOFMT_RET=1
+else
+  GOFMT_RET=0
+fi
+if [ ${GOVET_RET} != 0 ]; then
+  echo "'go vet ./...' returned ${GOVET_RET}"
+fi
+if [ ${GOLINT_RET} != 0 ] || [ ${GOFMT_RET} != 0 ] || [ ${GOVET_RET} != 0 ]; then
+  exit 1
+fi
+exit 0
