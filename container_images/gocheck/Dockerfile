@@ -19,5 +19,7 @@ RUN apt-get update && apt-get install -y git && \
     rm -rf /var/cache/apt/archives
 RUN go get -u golang.org/x/lint/golint
 
+# Copy this Dockerfile for debugging.
+COPY Dockerfile Dockerfile
 COPY main.sh main.sh
 ENTRYPOINT ["./main.sh"]

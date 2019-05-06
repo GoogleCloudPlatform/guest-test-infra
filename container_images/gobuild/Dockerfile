@@ -18,5 +18,7 @@ ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test-service-account
 RUN apt-get update && apt-get install -y git && \
     rm -rf /var/cache/apt/archives
 
+# Copy this Dockerfile for debugging.
+COPY Dockerfile Dockerfile
 COPY main.sh main.sh
 ENTRYPOINT ["./main.sh"]

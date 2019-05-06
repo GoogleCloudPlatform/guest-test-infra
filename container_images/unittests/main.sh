@@ -19,8 +19,13 @@ echo "Pulling imports"
 go get -d -t ./...
 
 echo "Running go test"
-go test -coverprofile $GOCOVPATH -v ./... 2>&1 | go-junit-report > ${ARTIFACTS}/junit.xml
+go test -coverprofile $GOCOVPATH -v ./... >/go-test.txt 2>&1
 RET=$?
+echo "go test returned $RET"
+
+# $ARTIFACTS is provided by prow decoration containers
+echo "Create ${ARTIFACTS}/junit.xml"
+cat /go-test.txt | go-junit-report > $ARTIFACTS/junit.xml
 
 # Upload coverage results to Codecov.
 #CODEV_COV_ARGS="-v -t $(cat ${CODECOV_TOKEN}) -B master -C $(git rev-parse HEAD)"
@@ -33,5 +38,4 @@ RET=$?
 #  bash <(curl -s https://codecov.io/bash) -f ${GOCOVPATH} -F go_unittests ${CODEV_COV_ARGS}
 #fi
 
-echo "go test returned ${RET}."
 exit "$RET"
