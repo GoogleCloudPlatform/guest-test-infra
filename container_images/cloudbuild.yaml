@@ -5,6 +5,8 @@ steps:
   args: ['build', '--tag=gcr.io/$PROJECT_ID/gobuild:latest', '--tag=gcr.io/$PROJECT_ID/gobuild:$COMMIT_SHA', './container_images/gobuild']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/gotest:latest', '--tag=gcr.io/$PROJECT_ID/gotest:$COMMIT_SHA', './container_images/gotest']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/osconfig-agent-packaging:latest', '--tag=gcr.io/$PROJECT_ID/osconfig-agent-packaging:$COMMIT_SHA', './container_images/osconfig-agent-packaging']
 
 images:
   - 'gcr.io/$PROJECT_ID/gocheck:latest'
@@ -13,3 +15,5 @@ images:
   - 'gcr.io/$PROJECT_ID/gobuild:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/gotest:latest'
   - 'gcr.io/$PROJECT_ID/gotest:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/osconfig-agent-packaging:latest'
+  - 'gcr.io/$PROJECT_ID/osconfig-agent-packaging:$COMMIT_SHA'
