@@ -15,17 +15,23 @@
 
 set -e
 
-PROJECT=gcp-guest
-ZONE=us-central1-c
-DAISY_OUTS_BKT="$PROJECT-daisy-bkt"
+mkdir -p /go/src
+echo "fetch repo"
+go get -d github.com/${BASE_REPO}/${REPOSITORY}
+echo $PWD
+cd /go/src/github.com/${BASE_REPO}/${REPOSITORY}
 
 echo "Pulling imports"
 go get -d -t ./...
 
 echo "Running daisy workflow for package build"
 
-/daisy -project ${PROJECT} -zone us-central1-c -var:gcs_path=gs://${PKG_GCS_OUT_DIR} ./packaging/build_packages.wf.json
+/daisy -project ${PROJECT} -zone ${ZONE} $1
 
 # copy daisy logs and artifacts to artifacts folder for prow
-gsutil cp gs://${PKG_GCS_OUT_DIR} ${ARTIFACTS}/
-gsutil cp gs://${DAISY_OUTS_BKT} ${ARTIFACTS}/
+DAISY_BUCKET="${PROJECT}-daisy-bkt"
+gsutil cp ${DAISY_BUCKET} ${ARTIFACTS}/
+
+if [ "POST_SUBMIT_JOB" = "True" ]; then
+  gsutil cp ${DAISY_OUTS_PATH} ${FINAL_OUTS_PATH}
+fi
