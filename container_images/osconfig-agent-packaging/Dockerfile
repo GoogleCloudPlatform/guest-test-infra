@@ -21,10 +21,12 @@ RUN apk add --update bash git
 
 FROM golang
 
-RUN mkdir -p /go/src
-RUN go get -d github.com/GoogleCloudPlatform/osconfig
-COPY . /go/src
+ENV BASE_REPO GoogleCloudPlatform
+ENV PKG_GCS_OUT_DIR osconfig-agent-package
 
+RUN mkdir -p /go/src
+RUN go get -d github.com/${BASE_REPO}/osconfig
+COPY . /go/src
 
 ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test/creds.json
 ENV GOPATH /go
@@ -34,7 +36,7 @@ COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.
 WORKDIR /
 COPY --from=1 /daisy daisy
 
-WORKDIR /go/src/github.com/GoogleCloudPlatform/osconfig
+WORKDIR /go/src/github.com/${BASE_REPO}/osconfig
 
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile
