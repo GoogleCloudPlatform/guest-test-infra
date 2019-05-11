@@ -11,23 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:alpine
-
 FROM gcr.io/compute-image-tools/daisy:latest
-
-FROM alpine
-
-RUN apk add --update bash git
 
 FROM golang
 
 ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test/creds.json
 ENV GOPATH /go
 
-COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
 WORKDIR /
-COPY --from=1 /daisy daisy
+COPY --from=0 /daisy daisy
 
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile

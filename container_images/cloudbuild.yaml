@@ -6,7 +6,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/gotest:latest', '--tag=gcr.io/$PROJECT_ID/gotest:$COMMIT_SHA', './container_images/gotest']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=gcr.io/$PROJECT_ID/osconfig-agent-packaging:latest', '--tag=gcr.io/$PROJECT_ID/osconfig-agent-packaging:$COMMIT_SHA', './container_images/osconfig-agent-packaging']
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/daisy_build_upload:latest', '--tag=gcr.io/$PROJECT_ID/daisy_build_upload:$COMMIT_SHA', './container_images/daisy_build_upload']
 
 images:
   - 'gcr.io/$PROJECT_ID/gocheck:latest'
@@ -15,5 +15,5 @@ images:
   - 'gcr.io/$PROJECT_ID/gobuild:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/gotest:latest'
   - 'gcr.io/$PROJECT_ID/gotest:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/osconfig-agent-packaging:latest'
-  - 'gcr.io/$PROJECT_ID/osconfig-agent-packaging:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/daisy_build_upload:latest'
+  - 'gcr.io/$PROJECT_ID/daisy_build_upload:$COMMIT_SHA'
