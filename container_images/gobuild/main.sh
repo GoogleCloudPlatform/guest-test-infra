@@ -34,7 +34,7 @@ GOBUILD_OUT=0
 #cd /
 
 echo "Building for Linux"
-go build .
+go build ./...
 RET=$?
 if [ $RET != 0 ]; then
   GOBUILD_OUT=$RET
@@ -42,7 +42,7 @@ if [ $RET != 0 ]; then
 fi
 
 echo "Building for Windows"
-GOOS=windows go build .
+GOOS=windows go build ./...
 RET=$?
 if [ $RET != 0 ]; then
   GOBUILD_OUT=$RET
