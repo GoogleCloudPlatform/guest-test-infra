@@ -15,16 +15,20 @@
 
 export GOCOVPATH=/gocov.txt
 
-echo "Pulling imports"
-go get -d -t ./...
+go version
 
-echo "Running go test"
-go test -coverprofile $GOCOVPATH -v ./... >/go-test.txt 2>&1
+echo "Pulling Linux imports..."
+go get -d -t ./...
+echo "Pulling Windows imports..."
+GOOS=windows go get -d -t ./...
+
+go test -coverprofile $GOCOVPATH -v ./... >/go-test.txt
 RET=$?
-echo "go test returned $RET"
+if [[ $RET -ne 0 ]]; then
+  echo "go test -coverprofile $GOCOVPATH -v ./... returned ${RET}"
+fi
 
 # $ARTIFACTS is provided by prow decoration containers
-echo "Create ${ARTIFACTS}/junit.xml"
 cat /go-test.txt | go-junit-report > $ARTIFACTS/junit.xml
 
 # Upload coverage results to Codecov.

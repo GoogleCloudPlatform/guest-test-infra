@@ -25,6 +25,8 @@
 #  git checkout ${PULL_NUMBER}
 #fi
 
+go version
+
 echo 'Pulling Linux imports...'
 go get -d -t ./...
 echo 'Pulling Windows imports...'
