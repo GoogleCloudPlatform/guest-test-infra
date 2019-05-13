@@ -25,7 +25,14 @@ set -e
 echo "Running daisy workflow for package build"
 
 ## repo_owner, repo_name and pill_base_ref is set by prow
-DAISY_CMD="/daisy -project $1 -zone $2 -var:base_repo=$REPO_OWNER -var:repo=$REPO_NAME -var:pull_ref=$PULL_BASE_REF $3"
+DAISY_CMD="/daisy -project $1 -zone $2 -var:base_repo=$REPO_OWNER"
+
+## only add pull reference in case of presubmit jobs
+if [ "$JOB_TYPE" = "presubmit" ]; then
+  DAISY_CMD+=" -var:pull_ref=pull/$PULL_NUMBER/head:pr-$PULL_NUMBER"
+fi
+
+DAISY_CMD+=" $3"
 
 if ! out=$(DAISY_CMD); then
   echo "error running daisy..." && exit 1
