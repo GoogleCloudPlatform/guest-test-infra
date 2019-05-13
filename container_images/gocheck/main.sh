@@ -26,40 +26,44 @@
 #fi
 
 echo 'Pulling Linux imports...'
-go get -v -d -t ./...
+go get -d -t ./...
 echo 'Pulling Windows imports...'
-GOOS=windows go get -v -d -t ./...
+GOOS=windows go get -d -t ./...
 
 # We dont run golint on Windows only code as style often matches win32 api 
 # style, not golang style
 golint -set_exit_status ./...
-GOLINT_RET=$?
-
-GOFMT_OUT=$(gofmt -d $(find . -type f -name "*.go") 2>&1)
-
-go vet --structtag=false ./...
-GOVET_RET=$?
-GOOS=windows go vet --structtag=false ./...
 RET=$?
-if [ $RET != 0 ]; then
-  GOVET_RET=$RET
-fi
-
-# Print results and return.
-if [ ${GOLINT_RET} != 0 ]; then
+if [[ $RET -ne 0 ]]; then
+  GOFMT_RET=$RET
   echo "'golint ./...' returned ${GOLINT_RET}"
 fi
-if [ ! -z "${GOFMT_OUT}" ]; then
+
+GOFMT_OUT=$(gofmt -d $(find . -type f -name "*.go") 2>&1)
+if [[ -z "${GOFMT_OUT}" ]]; then
+  GOFMT_RET=0
+else
+  GOFMT_RET=1
   echo "'gofmt -d \$(find . -type f -name \"*.go\")' returned:"
   echo ${GOFMT_OUT}
-  GOFMT_RET=1
-else
-  GOFMT_RET=0
 fi
-if [ ${GOVET_RET} != 0 ]; then
-  echo "'go vet ./...' returned ${GOVET_RET}"
+
+go vet --structtag=false ./...
+RET=$?
+if [[ $RET -ne 0 ]]; then
+  GOVET_RET=$RET
+  echo "'go vet --structtag=false ./...' returned ${GOVET_RET}"
 fi
-if [ ${GOLINT_RET} != 0 ] || [ ${GOFMT_RET} != 0 ] || [ ${GOVET_RET} != 0 ]; then
+
+GOOS=windows go vet --structtag=false ./...
+RET=$?
+if [[ $RET -ne 0 ]]; then
+  GOVET_RET=$RET
+  echo "'GOOS=windows go vet --structtag=false ./...' returned ${GOVET_RET}"
+fi
+
+if [[ ${GOLINT_RET} -ne 0 ]] || [[ ${GOFMT_RET} -ne 0 ]] || [[ ${GOVET_RET} -ne 0 ]]; then
   exit 1
 fi
+
 exit 0
