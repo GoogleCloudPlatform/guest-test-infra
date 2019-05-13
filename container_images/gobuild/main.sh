@@ -36,7 +36,7 @@ GOBUILD_OUT=0
 echo "Building for Linux"
 go build ./...
 RET=$?
-if [ $RET != 0 ]; then
+if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET
   echo "'go build' exited with ${GOBUILD_OUT}"
 fi
@@ -44,11 +44,11 @@ fi
 echo "Building for Windows"
 GOOS=windows go build ./...
 RET=$?
-if [ $RET != 0 ]; then
+if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET
   echo "'GOOS=windows go build' exited with ${GOBUILD_OUT}"
 fi
 
 sync
+echo Done
 exit $GOBUILD_OUT
-

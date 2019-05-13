@@ -38,4 +38,5 @@ cat /go-test.txt | go-junit-report > $ARTIFACTS/junit.xml
 #  bash <(curl -s https://codecov.io/bash) -f ${GOCOVPATH} -F go_unittests ${CODEV_COV_ARGS}
 #fi
 
+echo Done
 exit "$RET"

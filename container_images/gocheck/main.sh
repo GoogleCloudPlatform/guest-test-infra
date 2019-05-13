@@ -62,6 +62,8 @@ if [[ $RET -ne 0 ]]; then
   echo "'GOOS=windows go vet --structtag=false ./...' returned ${GOVET_RET}"
 fi
 
+echo Done
+
 if [[ ${GOLINT_RET} -ne 0 ]] || [[ ${GOFMT_RET} -ne 0 ]] || [[ ${GOVET_RET} -ne 0 ]]; then
   exit 1
 fi
