@@ -15,6 +15,8 @@ FROM gcr.io/compute-image-tools/daisy:latest
 
 FROM alpine
 
+RUN apk add --no-cache bash
+
 ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test/creds.json
 ENV GOPATH /go
 
