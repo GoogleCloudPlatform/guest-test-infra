@@ -13,41 +13,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Takes following inputs
-## project($1): gcp project where daisy will spin up vms
-## region($2): gcp region where daisy will spin up vms
-## workflow($3): dasiy workflow file
-## final_output_path($4): gcs bucket path, where the final artifacts need to be uploaded
-
-
 set -e
+
+PROJECT="$1"
+ZONE="$2"
+WORKFLOW_FILE="$3"      # Workflow to run
+GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts (used in postsubmit only).
 
 echo "Running daisy workflow for package build"
 
-## repo_owner, repo_name and pill_base_ref is set by prow
-DAISY_CMD="/daisy -project $1 -zone $2 -var:base_repo=$REPO_OWNER"
+## REPO_OWNER and PULL_NUMBER are set by prow
+DAISY_CMD="/daisy -project ${PROJECT} -zone ${ZONE}"
+DAISY_VARS="base_repo=${REPO_OWNER}"
 
 ## only add pull reference in case of presubmit jobs
-if [ "$JOB_TYPE" = "presubmit" ]; then
-  DAISY_CMD+=" -var:pull_ref=pull/$PULL_NUMBER/head:pr-$PULL_NUMBER"
+if [[ "$JOB_TYPE" == "presubmit" ]]; then
+  DAISY_VARS+=",pull_ref=pull/${PULL_NUMBER}/head"
 fi
 
-DAISY_CMD+=" $3"
+DAISY_CMD+="-variables ${DAISY_VARS} ${WORKFLOW_FILE}"
 
-if ! out=$(DAISY_CMD); then
-  echo "error running daisy..." && exit 1
+if ! out="$("$DAISY_CMD" 2>&1)"; then
+  echo "error running daisy: ${out}"
+  exit 1
 fi
 
 pattern="https://console.cloud.google.com/storage/browser/"
-bucket_name=$(echo "$out"| sed -En "s|(^.*)$pattern| |p")
+DAISY_BUCKET="gs://$(echo "$out"| sed -En "s|(^.*)$pattern| |p")"
 
 # copy daisy logs and artifacts to artifacts folder for prow
 # $ARTIFACTS is set by prow
-DAISY_BUCKET="gs://$bucket_name"
 echo "copying daisy outputs from $DAISY_BUCKET"
-gsutil cp DAISY_BUCKET ${ARTIFACTS}/
+gsutil cp "${DAISY_BUCKET}/*" ${ARTIFACTS}/
 
-if [ "$JOB_TYPE" = "postsubmit" ]; then
-  echo ""
-  gsutil cp ${DAISY_OUTS_PATH} $4
+if [[ "$JOB_TYPE" == "postsubmit" ]]; then
+  gsutil cp "${DAISY_OUTS_PATH}/*" $GCS_OUTPUT_BUCKET
 fi

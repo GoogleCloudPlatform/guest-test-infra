@@ -13,7 +13,7 @@
 # limitations under the License.
 FROM gcr.io/compute-image-tools/daisy:latest
 
-FROM golang
+FROM alpine
 
 ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test/creds.json
 ENV GOPATH /go
@@ -23,5 +23,5 @@ COPY --from=0 /daisy daisy
 
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile
-COPY daisy_build_upload.sh daisy_build_upload.sh
-ENTRYPOINT ["./daisy_build_upload.sh"]
+COPY main.sh main.sh
+ENTRYPOINT ["./main.sh"]
