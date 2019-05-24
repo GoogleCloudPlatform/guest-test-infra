@@ -17,8 +17,7 @@ FROM alpine
 
 RUN apk add --no-cache bash
 
-ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test/creds.json
-ENV GOPATH /go
+ENV GOOGLE_APPLICATION_CREDENTIALS /etc/daisy-service-account/creds.json
 
 WORKDIR /
 COPY --from=0 /daisy daisy
