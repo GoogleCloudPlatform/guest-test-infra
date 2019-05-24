@@ -31,9 +31,9 @@ if [[ "$JOB_TYPE" == "presubmit" ]]; then
   DAISY_VARS+=",pull_ref=pull/${PULL_NUMBER}/head"
 fi
 
-DAISY_CMD+="-variables ${DAISY_VARS} ${WORKFLOW_FILE}"
+DAISY_CMD+=" -variables ${DAISY_VARS} ${WORKFLOW_FILE}"
 
-if ! out="$("$DAISY_CMD" 2>&1)"; then
+if ! out="$($DAISY_CMD 2>&1)"; then
   echo "error running daisy: ${out}"
   exit 1
 fi
