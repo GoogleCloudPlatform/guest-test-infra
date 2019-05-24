@@ -33,13 +33,13 @@ fi
 
 DAISY_CMD+=" -variables ${DAISY_VARS} ${WORKFLOW_FILE}"
 
-if ! out="$($DAISY_CMD 2>&1)"; then
-  echo "error running daisy: ${out}"
+if ! $DAISY_CMD 2>err | tee out; then
+  echo "error running daisy: $(<err)"
   exit 1
 fi
 
 pattern="https://console.cloud.google.com/storage/browser/"
-DAISY_BUCKET="gs://$(echo "$out"| sed -En "s|(^.*)$pattern| |p")"
+DAISY_BUCKET="gs://$(sed -En "s|(^.*)$pattern| |p" out)"
 
 # copy daisy logs and artifacts to artifacts folder for prow
 # $ARTIFACTS is set by prow
