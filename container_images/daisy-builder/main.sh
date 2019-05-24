@@ -18,7 +18,7 @@ set -e
 PROJECT="$1"
 ZONE="$2"
 WORKFLOW_FILE="$3"      # Workflow to run
-GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts (used in postsubmit only).
+GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
 echo "Running daisy workflow for package build"
 
@@ -33,19 +33,29 @@ fi
 
 DAISY_CMD+=" -variables ${DAISY_VARS} ${WORKFLOW_FILE}"
 
-if ! $DAISY_CMD 2>err | tee out; then
-  echo "error running daisy: $(<err)"
+$DAISY_CMD 2>err | tee out 
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+  echo "error running daisy: stderr: $(<err)"
   exit 1
 fi
 
 pattern="https://console.cloud.google.com/storage/browser/"
-DAISY_BUCKET="gs://$(sed -En "s|(^.*)$pattern| |p" out)"
+DAISY_BUCKET="gs://$(sed -En "s|(^.*)$pattern||p" out)"
+
+# If GOOGLE_APPLICATION_CREDENTIALS is set, use that instead of trying to use
+# the service account associated with VM or k8s Node.
+if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
+  gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+fi
 
 # copy daisy logs and artifacts to artifacts folder for prow
 # $ARTIFACTS is set by prow
-echo "copying daisy outputs from $DAISY_BUCKET"
-gsutil cp "${DAISY_BUCKET}/*" ${ARTIFACTS}/
+if [[ -n $ARTIFACTS ]]; then
+  echo "copying daisy outputs from $DAISY_BUCKET to prow artifacts dir"
+  gsutil cp "${DAISY_BUCKET}/outs/*" ${ARTIFACTS}/
+fi
 
-if [[ "$JOB_TYPE" == "postsubmit" ]]; then
-  gsutil cp "${DAISY_OUTS_PATH}/*" $GCS_OUTPUT_BUCKET
+# If invoked as periodic, postsubmit, or manually, upload the results.
+if [[ "$JOB_TYPE" != "presubmit" ]]; then
+  gsutil cp "${DAISY_BUCKET}/outs/*" $GCS_OUTPUT_BUCKET
 fi

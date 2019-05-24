@@ -13,7 +13,9 @@
 # limitations under the License.
 FROM gcr.io/compute-image-tools/daisy:latest
 
-FROM alpine
+#FROM alpine
+# Needed for gsutil.
+FROM google/cloud-sdk:alpine
 
 RUN apk add --no-cache bash
 # Should this be set by the prow config? Creds are provided by it.
