@@ -20,6 +20,12 @@ ZONE="$2"
 WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
+# Sets service account used for daisy and gsutil commands below. Will use
+# default service account for VM or k8s node if not set.
+if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
+  gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+fi
+
 echo "Running daisy workflow for package build"
 
 ## REPO_OWNER and PULL_NUMBER are set by prow
@@ -41,12 +47,6 @@ fi
 
 pattern="https://console.cloud.google.com/storage/browser/"
 DAISY_BUCKET="gs://$(sed -En "s|(^.*)$pattern||p" out)"
-
-# If GOOGLE_APPLICATION_CREDENTIALS is set, use that instead of trying to use
-# the service account associated with VM or k8s Node.
-if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
-  gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-fi
 
 # copy daisy logs and artifacts to artifacts folder for prow
 # $ARTIFACTS is set by prow
