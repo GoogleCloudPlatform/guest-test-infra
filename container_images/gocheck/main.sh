@@ -35,9 +35,8 @@ GOOS=windows go get -d -t ./...
 # We dont run golint on Windows only code as style often matches win32 api 
 # style, not golang style
 golint -set_exit_status ./...
-RET=$?
-if [[ $RET -ne 0 ]]; then
-  GOFMT_RET=$RET
+GOLINT_RET=$?
+if [[ $GOLINT_RET -ne 0 ]]; then
   echo "'golint ./...' returned ${GOLINT_RET}"
 fi
 
@@ -46,19 +45,17 @@ if [[ -z "${GOFMT_OUT}" ]]; then
   GOFMT_RET=0
 else
   GOFMT_RET=1
-  echo "'gofmt -d \$(find . -type f -name \"*.go\")' returned:"
-  echo ${GOFMT_OUT}
+  echo "'gofmt -d \$(find . -type f -name \"*.go\")' output: ${GOFMT_OUT}"
 fi
 
 go vet --structtag=false ./...
-RET=$?
-if [[ $RET -ne 0 ]]; then
-  GOVET_RET=$RET
+GOVET_RET=$?
+if [[ $GOVET_RET -ne 0 ]]; then
   echo "'go vet --structtag=false ./...' returned ${GOVET_RET}"
 fi
 
 GOOS=windows go vet --structtag=false ./...
-RET=$?
+RET=$?  # Don't overwrite GOVET_RET in case this is 0 but it was not.
 if [[ $RET -ne 0 ]]; then
   GOVET_RET=$RET
   echo "'GOOS=windows go vet --structtag=false ./...' returned ${GOVET_RET}"
