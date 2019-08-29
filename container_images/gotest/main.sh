@@ -22,13 +22,14 @@ go get -d -t ./...
 echo "Pulling Windows imports..."
 GOOS=windows go get -d -t ./...
 
-go test -coverprofile $GOCOVPATH -v ./... >/go-test.txt
+go test -coverpkg=./... -coverprofile=/coverage.out ./... >/go-test.txt
 RET=$?
 if [[ $RET -ne 0 ]]; then
-  echo "go test -coverprofile $GOCOVPATH -v ./... returned ${RET}"
+  echo "go test -coverpkg=./... -coverprofile=/coverage.out ./... returned ${RET}"
 fi
 
 # $ARTIFACTS is provided by prow decoration containers
+go tool cover -html=/coverage.out -o $ARTIFACTS/coverage.html
 cat /go-test.txt | go-junit-report > $ARTIFACTS/junit.xml
 
 # Upload coverage results to Codecov.

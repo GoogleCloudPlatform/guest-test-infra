@@ -21,6 +21,7 @@ RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wg
 
 # Go test junit xml output
 RUN go get -u github.com/jstemmer/go-junit-report
+RUN go get -u golang.org/x/tools/cover
 
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile
