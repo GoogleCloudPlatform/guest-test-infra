@@ -23,7 +23,6 @@ var (
 	// ErrInvalidCharacters is returned when invalid characters are found as
 	// part of a version
 	ErrInvalidCharacters = errors.New("Invalid characters in version")
-
 )
 
 // NewSemanticVer parses a given version and returns an instance of version

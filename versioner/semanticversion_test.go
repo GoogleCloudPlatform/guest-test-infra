@@ -6,10 +6,10 @@ import (
 )
 
 func TestNewSemanticVer(t *testing.T) {
-  testCases := []struct {
+	testCases := []struct {
 		desc, semanticVersion, expect string
-		isErrorExpected bool
-		expectedError string
+		isErrorExpected               bool
+		expectedError                 string
 	}{
 		{"Happy case, pilot test", "1.2.3", "1.2.3", false, ""},
 		{"Happy case, 2 digit field", "12.32.5", "12.32.5", false, ""},
@@ -23,29 +23,29 @@ func TestNewSemanticVer(t *testing.T) {
 		{"invalid version, empty string", "", "", true, ErrEmptyString.Error()},
 	}
 
-  for _, tc := range testCases {
-  	actual,err := NewSemanticVer(tc.semanticVersion)
-  	if tc.isErrorExpected {
-  		if err == nil || strings.Compare(err.Error(), tc.expectedError) != 0 {
+	for _, tc := range testCases {
+		actual, err := NewSemanticVer(tc.semanticVersion)
+		if tc.isErrorExpected {
+			if err == nil || strings.Compare(err.Error(), tc.expectedError) != 0 {
 				t.Errorf("Desc:(%s): unexpected error type! expected(%s), got(%v)", tc.desc, tc.expectedError, err)
 			}
-  		continue
+			continue
 		}
 
-  	if actual.String() != tc.expect {
-  		t.Errorf("Desc:(%s): test case failed! expected(%s), got(%s)", tc.desc, tc.expect, actual)
+		if actual.String() != tc.expect {
+			t.Errorf("Desc:(%s): test case failed! expected(%s), got(%s)", tc.desc, tc.expect, actual)
 		}
 	}
 }
 
-func TestSemanticVer_IncrementMajor(t *testing.T) {
-	testCases := []struct{
-		desc string
+func TestSemanticVerIncrementMajor(t *testing.T) {
+	testCases := []struct {
+		desc           string
 		intput, expect SemanticVer
 	}{
-		{"normal case", SemanticVer{1,2,3}, SemanticVer{2, 0,0}},
-		{"back to back major release", SemanticVer{2,0,0}, SemanticVer{3,0,0}},
-		{"major release after a feature release", SemanticVer{1, 2, 0}, SemanticVer{2,  0, 0}},
+		{"normal case", SemanticVer{1, 2, 3}, SemanticVer{2, 0, 0}},
+		{"back to back major release", SemanticVer{2, 0, 0}, SemanticVer{3, 0, 0}},
+		{"major release after a feature release", SemanticVer{1, 2, 0}, SemanticVer{2, 0, 0}},
 	}
 
 	for _, tc := range testCases {
@@ -56,13 +56,13 @@ func TestSemanticVer_IncrementMajor(t *testing.T) {
 	}
 }
 
-func TestSemanticVer_IncrementMinor(t *testing.T) {
-	testCases := []struct{
-		desc string
+func TestSemanticVerIncrementMinor(t *testing.T) {
+	testCases := []struct {
+		desc           string
 		intput, expect SemanticVer
 	}{
-		{"back to back feature release", SemanticVer{2,4,0}, SemanticVer{2,5,0}},
-		{"minor release after a patch release", SemanticVer{1, 2, 123}, SemanticVer{1,  3, 0}},
+		{"back to back feature release", SemanticVer{2, 4, 0}, SemanticVer{2, 5, 0}},
+		{"minor release after a patch release", SemanticVer{1, 2, 123}, SemanticVer{1, 3, 0}},
 	}
 
 	for _, tc := range testCases {
@@ -73,13 +73,13 @@ func TestSemanticVer_IncrementMinor(t *testing.T) {
 	}
 }
 
-func TestSemanticVer_IncrementPatch(t *testing.T) {
-	testCases := []struct{
-		desc string
+func TestSemanticVerIncrementPatch(t *testing.T) {
+	testCases := []struct {
+		desc           string
 		intput, expect SemanticVer
 	}{
-		{"back to back patch release", SemanticVer{2,4,1}, SemanticVer{2,4, 2}},
-		{"patch release after a major release", SemanticVer{12, 0, 0}, SemanticVer{12,  0, 1}},
+		{"back to back patch release", SemanticVer{2, 4, 1}, SemanticVer{2, 4, 2}},
+		{"patch release after a major release", SemanticVer{12, 0, 0}, SemanticVer{12, 0, 1}},
 	}
 
 	for _, tc := range testCases {
