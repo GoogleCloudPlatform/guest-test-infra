@@ -8,12 +8,9 @@ import (
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
-
 )
 
 const (
-	botUserName = "guesttestinfra-bot"
-	botEmail = "guesttestinfra-bot@google.com"
 	TagObjectTypeCommit = "commit"
 )
 
@@ -52,28 +49,20 @@ func (c *Client) CreateRef(ctx context.Context, owner, repo, ref, sha string) (*
 
 // CreateTag creates a tag in github repo
 // https://developer.github.com/v3/git/tags/#create-a-tag-object
-func (c *Client) CreateTag(ctx context.Context, org, repo, tag, sha, message string) (github.Tag, error) {
-
+func (c *Client) CreateTag(ctx context.Context, org, repo, tag, sha, message, botUser, botEmail string) (github.Tag, error) {
 	objectType := TagObjectTypeCommit
 	t := github.Tag{
 		Tag: &tag,
-		Tagger: getBotUser(),
+		Tagger: &github.CommitAuthor{
+			Name:  &botUser,
+			Email: &botEmail,
+		},
 		Object: &github.GitObject{
-			SHA: &sha,
+			SHA:  &sha,
 			Type: &objectType,
 		},
 		Message: &message,
 	}
-	retTag, _ , err := c.gc.Git.CreateTag(ctx, org, repo, &t)
+	retTag, _, err := c.gc.Git.CreateTag(ctx, org, repo, &t)
 	return *retTag, err
-}
-
-
-func getBotUser() *github.CommitAuthor {
-	username := botUserName
-	useremail := botEmail
-	return &github.CommitAuthor{
-		Name: &username,
-		Email: &useremail,
-	}
 }

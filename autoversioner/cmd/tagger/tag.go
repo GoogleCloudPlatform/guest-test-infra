@@ -7,16 +7,18 @@ import (
 	"os"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/autoversioner/tagger"
+	"github.com/google/go-github/github"
 )
 
 var (
 	tokenFile = flag.String("token-file-path", "", "path to github token file")
-	tag = flag.String("tag", "", "tag string to tag")
-	org = flag.String("org", "", "organization name")
-	repo = flag.String("repo", "", "repository name")
-	sha = flag.String("sha", "", "sha of the github object to be tagged")
-	message = flag.String("message", "", "message in the tag")
-
+	tag       = flag.String("tag", "", "tag string to tag")
+	org       = flag.String("org", "", "organization name")
+	repo      = flag.String("repo", "", "repository name")
+	sha       = flag.String("sha", "", "sha of the github object to be tagged")
+	message   = flag.String("message", "", "message in the tag")
+	botUser   = flag.String("bot-user-name", "guesttestinfra-bot", "github bot account id")
+	botEmail  = flag.String("bot-email", "guesttestinfra-bot@google.com", "github bot account email id")
 )
 
 func main() {
@@ -28,26 +30,33 @@ func main() {
 		os.Exit(1)
 	}
 
+	ref, err := AddTag(ctx)
+	if err != nil {
+		fmt.Printf("Error creating tag: %+v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("added ref for tag: %+v\n", *ref)
+}
+
+// AddTag creates a ref to a github tag
+// create ref /refs/tags/<tagname>; createtag just creates a tag object
+// refer https://developer.github.com/v3/git/tags/#create-a-tag-object
+func AddTag(ctx context.Context) (*github.Reference, error) {
 	tagger, err := tagger.NewClient(ctx, *tokenFile)
 	if err != nil {
-		fmt.Printf("Error running tagger: %+v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Error creating tagger: %+v\n", err)
 	}
-	tag, err := tagger.CreateTag(ctx, *org, *repo, *tag, *sha, *message)
+	tag, err := tagger.CreateTag(ctx, *org, *repo, *tag, *sha, *message, *botUser, *botEmail)
 	if err != nil {
-		fmt.Printf("Error while tagging: %+v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Error while tagging: %+v\n", err)
 	}
 	fmt.Printf("Added tag correctly: %+v\n", tag)
-	// create ref /refs/tags/<tagname>; createtag just creates a tag object
-	// refer https://developer.github.com/v3/git/tags/#create-a-tag-object
 	ref, err := tagger.CreateRef(ctx, *org, *repo, fmt.Sprintf("refs/tags/%s", *tag.Tag), *tag.SHA)
 	if err != nil {
-		fmt.Printf("Error while creating ref: %+v", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Error while creating ref: %+v", err)
 	}
-	fmt.Printf("added ref for tag: %+v\n", ref)
 
+	return ref, nil
 }
 
 func validateFlags() error {
