@@ -71,6 +71,13 @@ func (c *Client) CreateTag(ctx context.Context, org, repo, tag, sha, message, bo
 	return *retTag, err
 }
 
+// ListTag fetches all tags for a github repo
+// refer https://developer.github.com/v3/repos/#list-tags
+func (c *Client) ListTags(ctx context.Context, org, repo string) ([]*github.RepositoryTag, error) {
+	tags, _, err := c.gc.Repositories.ListTags(ctx, org, repo, nil)
+	return tags, err
+}
+
 // ListCommitsBetween fetches commits from a repository after a specific date
 //refer: https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository
 func (c *Client) ListCommitsBetween(ctx context.Context, org, repo string, since, until time.Time) ([]*github.RepositoryCommit, error) {
