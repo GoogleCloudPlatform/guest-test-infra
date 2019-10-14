@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	// ErrInvalidNonSemanticVer is returned if a version is found to be invalid when
+	// ErrInvalidVersion is returned if a versionString is found to be invalid when
 	// being parsed.
-	ErrInvalidNonSemanticVer = errors.New("Invalid NonSemantic Version")
+	ErrInvalidVersion = errors.New("Invalid Version")
 
 	// ErrInvalidDate is returned if the date being parsed is in a different
 	// format than expected.
@@ -35,8 +35,8 @@ var (
 	ErrEmptyString = errors.New("Version string empty")
 
 	// ErrInvalidCharacters is returned when invalid characters are found as
-	// part of a version
-	ErrInvalidCharacters = errors.New("Invalid characters in version")
+	// part of a versionString
+	ErrInvalidCharacters = errors.New("Invalid characters in versionString")
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 	DateFormat = "20060102"
 )
 
-// Version is for packages that follow nonsemantic version release
+// Version is version of a package released
 type Version struct {
 	// in yyyyMMdd format
 	date     string
@@ -73,7 +73,7 @@ func (a Sorter) Less(i, j int) bool {
 	return tj.After(ti)
 }
 
-// NewVersion returns a new non semantic version object
+// NewVersion returns a new non semantic versionString object
 func NewVersion(v string) (*Version, error) {
 	if len(v) == 0 {
 		return nil, ErrEmptyString
@@ -81,14 +81,14 @@ func NewVersion(v string) (*Version, error) {
 
 	parts := strings.Split(v, ".")
 	if len(parts) != 2 {
-		return nil, ErrInvalidNonSemanticVer
+		return nil, ErrInvalidVersion
 	}
 
 	// we do not check if it is a valid date in yyyyMMdd format
 	// because we never use it for any computation
 	_, err := strconv.Atoi(parts[0])
 	if err != nil || len(parts[0]) != 8 {
-		return nil, ErrInvalidNonSemanticVer
+		return nil, ErrInvalidVersion
 	}
 
 	bn, err := strconv.Atoi(parts[1])
@@ -99,8 +99,8 @@ func NewVersion(v string) (*Version, error) {
 	return &Version{parts[0], bn}, nil
 }
 
-// IncrementVersion increases takes the current version and
-// returns the next release version
+// IncrementVersion increases takes the current versionString and
+// returns the next release versionString
 func (v Version) IncrementVersion() Version {
 	today := time.Now().Format(DateFormat)
 	if strings.Compare(today, v.date) == 0 {
@@ -118,7 +118,7 @@ func (v Version) deepEquals(a Version) bool {
 	return strings.Compare(v.date, a.date) == 0 && v.buildNum == a.buildNum
 }
 
-// IsLesser checks if a version was generated earlier than a given version
+// IsLesser checks if a versionString was generated earlier than a given versionString
 func (v Version) IsLesser(a Version) bool {
 	if v.date == a.date {
 		return v.buildNum < a.buildNum

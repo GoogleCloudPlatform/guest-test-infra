@@ -63,7 +63,7 @@ func generateVersion(ctx context.Context) (string, error) {
 	return lastVersion.IncrementVersion().String(), nil
 }
 
-// converts the github tag objects to nonsemanticver objects
+// converts the github tag objects to Version objects
 func getVersions(tags []*github.RepositoryTag) ([]version.Version, error) {
 	if tags == nil || len(tags) == 0 {
 		return nil, fmt.Errorf("invalid input")

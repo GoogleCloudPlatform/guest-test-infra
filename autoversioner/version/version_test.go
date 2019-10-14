@@ -22,27 +22,27 @@ import (
 	"time"
 )
 
-func TestNewNonSemanticVer(t *testing.T) {
+func TestNewVersion(t *testing.T) {
 	testCases := []struct {
-		desc, nonSemanticVersion, expect string
-		isErrorExpected                  bool
-		expectedError                    string
+		desc, versionString, expect string
+		isErrorExpected             bool
+		expectedError               string
 	}{
 		{"Happy case, pilot test", "20190515.23", "20190515.23", false, ""},
 		{"Happy case, dont trim off build number leading 0", "12345678.05", "12345678.05", false, ""},
 		{"Happy case, Add Leading zeroes", "03221432.2", "03221432.02", false, ""},
-		{"invalid version, less than 8 characters", "234232.3", "", true, ErrInvalidNonSemanticVer.Error()},
-		{"invalid version, alphabets in version", "abcd1234.4", "", true, ErrInvalidNonSemanticVer.Error()},
-		{"invalid version, more than 2 fields", "20190515.23.2", "", true, ErrInvalidNonSemanticVer.Error()},
-		{"invalid version, special characters in fields", "abcd-123.32", "", true, ErrInvalidNonSemanticVer.Error()},
-		{"invalid version, empty field", "12345678.", "", true, ErrInvalidCharacters.Error()},
-		{"invalid version, does not have negative date", "-12345678.98", "", true, ErrInvalidNonSemanticVer.Error()},
-		{"invalid version, does not have negatives build number", "12345678.-98", "", true, ErrInvalidCharacters.Error()},
-		{"invalid version, empty string", "", "", true, ErrEmptyString.Error()},
+		{"invalid versionString, less than 8 characters", "234232.3", "", true, ErrInvalidVersion.Error()},
+		{"invalid versionString, alphabets in versionString", "abcd1234.4", "", true, ErrInvalidVersion.Error()},
+		{"invalid versionString, more than 2 fields", "20190515.23.2", "", true, ErrInvalidVersion.Error()},
+		{"invalid versionString, special characters in fields", "abcd-123.32", "", true, ErrInvalidVersion.Error()},
+		{"invalid versionString, empty field", "12345678.", "", true, ErrInvalidCharacters.Error()},
+		{"invalid versionString, does not have negative date", "-12345678.98", "", true, ErrInvalidVersion.Error()},
+		{"invalid versionString, does not have negatives build number", "12345678.-98", "", true, ErrInvalidCharacters.Error()},
+		{"invalid versionString, empty string", "", "", true, ErrEmptyString.Error()},
 	}
 
 	for _, tc := range testCases {
-		actual, err := NewVersion(tc.nonSemanticVersion)
+		actual, err := NewVersion(tc.versionString)
 		if tc.isErrorExpected {
 			if err == nil || strings.Compare(err.Error(), tc.expectedError) != 0 {
 				t.Errorf("Desc:(%s): unexpected error type! expected(%s), got(%v)", tc.desc, tc.expectedError, err)
@@ -56,7 +56,7 @@ func TestNewNonSemanticVer(t *testing.T) {
 	}
 }
 
-func TestNonSemanticVerIncrementVersion(t *testing.T) {
+func TestIncrementVersion(t *testing.T) {
 	dp := time.Now().AddDate(0, 0, -5).Format(DateFormat)
 	dt := time.Now().Format(DateFormat)
 	testCases := []struct {
