@@ -71,7 +71,7 @@ func (c *Client) CreateTag(ctx context.Context, org, repo, tag, sha, message, bo
 	return *retTag, err
 }
 
-// ListTag fetches all tags for a github repo
+// ListTags fetches all tags for a github repo
 // refer https://developer.github.com/v3/repos/#list-tags
 func (c *Client) ListTags(ctx context.Context, org, repo string) ([]*github.RepositoryTag, error) {
 	tags, _, err := c.gc.Repositories.ListTags(ctx, org, repo, nil)

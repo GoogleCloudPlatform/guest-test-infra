@@ -42,7 +42,7 @@ func TestNewNonSemanticVer(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		actual, err := NewNonSemanticVer(tc.nonSemanticVersion)
+		actual, err := NewVersion(tc.nonSemanticVersion)
 		if tc.isErrorExpected {
 			if err == nil || strings.Compare(err.Error(), tc.expectedError) != 0 {
 				t.Errorf("Desc:(%s): unexpected error type! expected(%s), got(%v)", tc.desc, tc.expectedError, err)
@@ -61,10 +61,11 @@ func TestNonSemanticVerIncrementVersion(t *testing.T) {
 	dt := time.Now().Format(DateFormat)
 	testCases := []struct {
 		desc          string
-		input, expect NonSemanticVer
+		input, expect Version
 	}{
-		{"Happy case, first build today", NonSemanticVer{dp, 4}, NonSemanticVer{dt, 0}},
-		{"Happy case, non first time build today", NonSemanticVer{dt, 4}, NonSemanticVer{dt, 5}},
+		{"Happy case, first build today", Version{dp, 4}, Version{dt, 0}},
+		{"Happy case, non first time build today", Version{dt, 4}, Version{dt, 5}},
+		{"", Version{}, Version{dt, 0}},
 	}
 
 	for _, tc := range testCases {
@@ -76,14 +77,14 @@ func TestNonSemanticVerIncrementVersion(t *testing.T) {
 }
 
 func TestVersionSorter(t *testing.T) {
-	var versions []NonSemanticVer
+	var versions []Version
 	times := 1000
 	for i := 0; i < times; i++ {
 		d := randate()
 		bn := randNum()
-		versions = append(versions, NonSemanticVer{d, bn})
+		versions = append(versions, Version{d, bn})
 	}
-	sort.Sort(VersionSorter(versions))
+	sort.Sort(Sorter(versions))
 	for i := 1; i < times; i++ {
 		if !(versions[i-1].IsLesser(versions[i]) || versions[i-1].deepEquals(versions[i])) {
 			t.Errorf("sorting failed! (%+v) not less than (%+v)", versions[i-1], versions[i])

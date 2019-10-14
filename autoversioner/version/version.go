@@ -25,11 +25,11 @@ import (
 var (
 	// ErrInvalidNonSemanticVer is returned if a version is found to be invalid when
 	// being parsed.
-	ErrInvalidNonSemanticVer = fmt.Errorf("Invalid NonSemantic Version")
+	ErrInvalidNonSemanticVer = errors.New("Invalid NonSemantic Version")
 
 	// ErrInvalidDate is returned if the date being parsed is in a different
 	// format than expected.
-	ErrInvalidDate = fmt.Errorf("Invalid date format")
+	ErrInvalidDate = errors.New("Invalid date format")
 
 	// ErrEmptyString is returned when an empty string is passed in for parsing.
 	ErrEmptyString = errors.New("Version string empty")
@@ -40,28 +40,30 @@ var (
 )
 
 const (
+	// DateFormat is format of tag we chose to use in github
 	DateFormat = "20060102"
 )
 
-// NonSemanticVer is for packages that follow nonsemantic version release
-type NonSemanticVer struct {
+// Version is for packages that follow nonsemantic version release
+type Version struct {
 	// in yyyyMMdd format
 	date     string
 	buildNum int
 }
 
-type VersionSorter []NonSemanticVer
+// Sorter sorts a list of Version
+type Sorter []Version
 
-func (a VersionSorter) Len() int {
+func (a Sorter) Len() int {
 	return len(a)
 }
 
-func (a VersionSorter) Swap(i, j int) {
+func (a Sorter) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
 // sort in increasing order
-func (a VersionSorter) Less(i, j int) bool {
+func (a Sorter) Less(i, j int) bool {
 	if a[i].date == a[j].date {
 		return a[i].buildNum < a[j].buildNum
 	}
@@ -71,13 +73,8 @@ func (a VersionSorter) Less(i, j int) bool {
 	return tj.After(ti)
 }
 
-func FirstVersionToday() *NonSemanticVer {
-	today := time.Now().Format(DateFormat)
-	return &NonSemanticVer{today, 0}
-}
-
-// NewNonSemanticVer returns a new non semantic version object
-func NewNonSemanticVer(v string) (*NonSemanticVer, error) {
+// NewVersion returns a new non semantic version object
+func NewVersion(v string) (*Version, error) {
 	if len(v) == 0 {
 		return nil, ErrEmptyString
 	}
@@ -99,29 +96,30 @@ func NewNonSemanticVer(v string) (*NonSemanticVer, error) {
 		return nil, ErrInvalidCharacters
 	}
 
-	return &NonSemanticVer{parts[0], bn}, nil
+	return &Version{parts[0], bn}, nil
 }
 
 // IncrementVersion increases takes the current version and
 // returns the next release version
-func (v NonSemanticVer) IncrementVersion() NonSemanticVer {
+func (v Version) IncrementVersion() Version {
 	today := time.Now().Format(DateFormat)
 	if strings.Compare(today, v.date) == 0 {
-		return NonSemanticVer{date: v.date, buildNum: v.buildNum + 1}
+		return Version{date: v.date, buildNum: v.buildNum + 1}
 	}
-	return NonSemanticVer{date: today, buildNum: 0}
+	return Version{date: today, buildNum: 0}
 }
 
 // String returns the  in string format
-func (v NonSemanticVer) String() string {
+func (v Version) String() string {
 	return fmt.Sprintf("%s.%02d", v.date, v.buildNum)
 }
 
-func (v NonSemanticVer) deepEquals(a NonSemanticVer) bool {
+func (v Version) deepEquals(a Version) bool {
 	return strings.Compare(v.date, a.date) == 0 && v.buildNum == a.buildNum
 }
 
-func (v NonSemanticVer) IsLesser(a NonSemanticVer) bool {
+// IsLesser checks if a version was generated earlier than a given version
+func (v Version) IsLesser(a Version) bool {
 	if v.date == a.date {
 		return v.buildNum < a.buildNum
 	}

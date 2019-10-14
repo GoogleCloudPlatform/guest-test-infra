@@ -51,28 +51,27 @@ func generateVersion(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error fetching tags: %+v", err)
 	}
-
 	versions, err := getVersions(tags)
+
+	lastVersion := version.Version{}
 	// this repository is using our build and release pipeline
 	// for the first time
-	if len(versions) == 0 {
-		return version.FirstVersionToday().String(), nil
+	if len(versions) != 0 {
+		sort.Sort(version.Sorter(versions))
+		lastVersion = versions[len(versions)-1]
 	}
-
-	sort.Sort(version.VersionSorter(versions))
-	latestVersion := versions[len(versions)-1].IncrementVersion()
-	return latestVersion.String(), nil
+	return lastVersion.IncrementVersion().String(), nil
 }
 
 // converts the github tag objects to nonsemanticver objects
-func getVersions(tags []*github.RepositoryTag) ([]version.NonSemanticVer, error) {
+func getVersions(tags []*github.RepositoryTag) ([]version.Version, error) {
 	if tags == nil || len(tags) == 0 {
 		return nil, fmt.Errorf("invalid input")
 	}
 
-	var versions []version.NonSemanticVer
+	var versions []version.Version
 	for _, tag := range tags {
-		v, err := version.NewNonSemanticVer(*tag.Name)
+		v, err := version.NewVersion(*tag.Name)
 		if err != nil {
 			continue
 		}
