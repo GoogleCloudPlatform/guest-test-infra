@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/autoversioner/tagger"
+	ghub "github.com/GoogleCloudPlatform/guest-test-infra/autoversioner/github"
 	"github.com/google/go-github/github"
 )
 
@@ -42,18 +42,18 @@ func main() {
 // create ref /refs/tags/<tagname>; createtag just creates a tag object
 // refer https://developer.github.com/v3/git/tags/#create-a-tag-object
 func AddTag(ctx context.Context) (*github.Reference, error) {
-	tagger, err := tagger.NewClient(ctx, *tokenFile)
+	tagger, err := ghub.NewClient(ctx, *tokenFile)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating tagger: %+v\n", err)
+		return nil, fmt.Errorf("error creating tagger: %+v", err)
 	}
 	tag, err := tagger.CreateTag(ctx, *org, *repo, *tag, *sha, *message, *botUser, *botEmail)
 	if err != nil {
-		return nil, fmt.Errorf("Error while tagging: %+v\n", err)
+		return nil, fmt.Errorf("error while tagging: %+v", err)
 	}
 	fmt.Printf("Added tag correctly: %+v\n", tag)
 	ref, err := tagger.CreateRef(ctx, *org, *repo, fmt.Sprintf("refs/tags/%s", *tag.Tag), *tag.SHA)
 	if err != nil {
-		return nil, fmt.Errorf("Error while creating ref: %+v", err)
+		return nil, fmt.Errorf("error while creating ref: %+v", err)
 	}
 
 	return ref, nil
@@ -61,19 +61,19 @@ func AddTag(ctx context.Context) (*github.Reference, error) {
 
 func validateFlags() error {
 	if *tag == "" {
-		return fmt.Errorf("Empty tag\n")
+		return fmt.Errorf("empty tag")
 	}
 	if *tokenFile == "" {
-		return fmt.Errorf("empty token file\n")
+		return fmt.Errorf("empty token file")
 	}
 	if *org == "" {
-		return fmt.Errorf("empty org value\n")
+		return fmt.Errorf("empty org value")
 	}
 	if *repo == "" {
-		return fmt.Errorf("empty repo value\n")
+		return fmt.Errorf("empty repo value")
 	}
 	if *sha == "" {
-		return fmt.Errorf("empty sha value\n")
+		return fmt.Errorf("empty sha value")
 	}
 
 	return nil
