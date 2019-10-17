@@ -36,15 +36,16 @@ GOBUILD_OUT=0
 #cd /
 
 echo "Building for Linux"
-go build ./...
+go build -o /tmp/gobuild ./...
 RET=$?
 if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET
   echo "'go build' exited with ${GOBUILD_OUT}"
 fi
+rm /tmp/gobuild
 
 echo "Building for Windows"
-GOOS=windows go build ./...
+GOOS=windows go build -o /tmp/gobuild ./...
 RET=$?
 if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET
