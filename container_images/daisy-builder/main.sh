@@ -20,6 +20,20 @@ ZONE="$2"
 WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
+function GENERATE_NEW_VERSION() {
+  VERSION_GENERATE_CMD="/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME}"
+  VERSION_GENERATE_OUT=$(${VERSION_GENERATE_CMD})
+
+  if [[ $? -ne 0 ]]; then
+    echo -e "could not generate version: $VERSION_GENERATE_OUT"
+  fi
+
+  pattern="Generated version: "
+  local BUILD_ID=$(echo $VERSION_GENERATE_OUT | sed "s/$pattern//")
+  echo "$BUILD_ID"
+  return 0
+}
+
 # Sets service account used for daisy and gsutil commands below. Will use
 # default service account for VM or k8s node if not set.
 if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
@@ -37,8 +51,16 @@ if [[ "$JOB_TYPE" == "presubmit" ]]; then
   DAISY_VARS+=",pull_ref=pull/${PULL_NUMBER}/head"
 fi
 
+## generate buildID
+if [[ "$JOB_TYPE" == "postsubmit" ]]; then
+  BUILD_ID=$(GENERATE_NEW_VERSION)
+  DAISY_VARS+=",build_id=${BUILD_ID}"
+fi
+
 DAISY_CMD+=" -variables ${DAISY_VARS} ${WORKFLOW_FILE}"
 
+echo "running daisy command..."
+echo $DAISY_CMD
 $DAISY_CMD 2>err | tee out 
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
   echo "error running daisy: stderr: $(<err)"
