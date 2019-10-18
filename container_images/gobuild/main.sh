@@ -25,6 +25,9 @@
 #  git checkout ${PULL_NUMBER}
 #fi
 
+[[ -d /tmp/gobuild ]] && rm -rf /tmp/gobuild
+mkdir /tmp/gobuild
+
 go version
 
 echo 'Pulling Linux imports...'
