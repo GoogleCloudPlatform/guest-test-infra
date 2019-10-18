@@ -21,8 +21,7 @@ WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
 function generate_new_version() {
-  VERSION_GENERATE_CMD="/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME}"
-  local VERSION=$(${VERSION_GENERATE_CMD})
+  local VERSION=`/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME}`
 
   if [[ $? -ne 0 ]]; then
     echo -e "could not generate version: $VERSION_GENERATE_OUT"
