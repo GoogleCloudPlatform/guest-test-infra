@@ -20,17 +20,15 @@ ZONE="$2"
 WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
-function GENERATE_NEW_VERSION() {
+function generate_new_version() {
   VERSION_GENERATE_CMD="/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME}"
-  VERSION_GENERATE_OUT=$(${VERSION_GENERATE_CMD})
+  local VERSION=$(${VERSION_GENERATE_CMD})
 
   if [[ $? -ne 0 ]]; then
     echo -e "could not generate version: $VERSION_GENERATE_OUT"
   fi
 
-  pattern="Generated version: "
-  local BUILD_ID=$(echo $VERSION_GENERATE_OUT | sed "s/$pattern//")
-  echo "$BUILD_ID"
+  echo "$VERSION"
   return 0
 }
 
@@ -53,8 +51,8 @@ fi
 
 ## generate buildID
 if [[ "$JOB_TYPE" == "postsubmit" ]]; then
-  BUILD_ID=$(GENERATE_NEW_VERSION)
-  DAISY_VARS+=",build_id=${BUILD_ID}"
+  VERSION=$(generate_new_version)
+  DAISY_VARS+=",version=${VERSION}"
 fi
 
 DAISY_CMD+=" -variables ${DAISY_VARS} ${WORKFLOW_FILE}"
