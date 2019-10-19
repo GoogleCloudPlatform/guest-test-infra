@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/guest-test-infra/autoversioner
+module github.com/GoogleCloudPlatform/guest-test-infra
 
 go 1.13
 

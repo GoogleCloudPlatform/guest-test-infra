@@ -1,3 +1,10 @@
+options:
+  env:
+    - GO111MODULE=on
+    - GOPROXY=https://proxy.golang.org
+  volumes:
+    - name: go-modules
+      path: /go
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/gocheck:latest', '--tag=gcr.io/$PROJECT_ID/gocheck:$COMMIT_SHA', './container_images/gocheck']
@@ -11,12 +18,14 @@ steps:
   args: ['build', '--tag=gcr.io/$PROJECT_ID/selinux-tools:latest', '--tag=gcr.io/$PROJECT_ID/selinux-tools:$COMMIT_SHA', './container_images/selinux-tools']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/build-essential:latest', '--tag=gcr.io/$PROJECT_ID/build-essential:$COMMIT_SHA', './container_images/build-essential']
-- name: 'gcr.io/cloud-builders/go'
-  dir: './autoversioner'
-  args: ['install', './cmd/...']
-  env: ['PROJECT_ROOT=github.com/GoogleCloudPlatform/guest-test-infra']
+- name: 'golang:1.12'
+  dir: './autoversioner/cmd/versiongenerator'
+  args: ["go","build","-o","/workspace/bin/versiongenerator","main.go"]
+- name: 'golang:1.12'
+  dir: './autoversioner/cmd/tagger'
+  args: ["go","build","-o","/workspace/bin/tagger","main.go"]
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=gcr.io/$PROJECT_ID/autoversioner:latest', '--tag=gcr.io/$PROJECT_ID/autoversioner:$COMMIT_SHA', '-f', './container_images/autoversioner/Dockerfile', './autoversioner/']
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/autoversioner:latest', '--file=./container_images/autoversioner/Dockerfile', "/workspace"]
 images:
   - 'gcr.io/$PROJECT_ID/gocheck:latest'
   - 'gcr.io/$PROJECT_ID/gocheck:$COMMIT_SHA'
