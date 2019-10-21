@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
 PROJECT="$1"
 ZONE="$2"
 WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
 function generate_new_version() {
-  local VERSION_OUT=`/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME}`
+  local VERSION_OUT=`/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME} 2>err`
 
   if [[ $? -ne 0 ]]; then
-    echo -e "could not generate version: $VERSION_OUT"
+    echo "could not generate version: $(<err)"
+    exit 1
   fi
 
   echo "$VERSION_OUT"
