@@ -33,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Generated version: %s\n", buildID)
+	fmt.Printf("%s\n", buildID)
 }
 
 // gets the latest buildID
