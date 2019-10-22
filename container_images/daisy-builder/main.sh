@@ -19,15 +19,12 @@ WORKFLOW_FILE="$3"      # Workflow to run
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
 
 function generate_new_version() {
-  local VERSION_OUT=`/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME} 2>err`
-
-  if [[ $? -ne 0 ]]; then
-    echo "could not generate version: $(<err)"
-    exit 1
+  local VERSION_OUT
+  if ! VERSION_OUT=`/versiongenerator --token-file-path=${GITHUB_ACCESS_TOKEN} --org=${REPO_OWNER} --repo=${REPO_NAME} 2>&1`; then
+      echo "could not generate version: ${VERSION_OUT}"
+      return 1
   fi
-
-  echo "$VERSION_OUT"
-  return 0
+  echo $VERSION_OUT
 }
 
 # Sets service account used for daisy and gsutil commands below. Will use
