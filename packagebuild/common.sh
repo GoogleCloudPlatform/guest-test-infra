@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
-export PKGNAME="google-osconfig-agent"
-export VERSION="20190925.00"
-
 function exit_error() {
   echo "build failed: $0:$1 \"$BASH_COMMAND\" returned $?"
   exit 1
@@ -30,16 +25,16 @@ function install_go() {
   # across linux distributions. Needs curl and tar to be installed.
 
   local GOLANG="go1.12.5.linux-amd64.tar.gz"
-  export GO=/tmp/go/bin/go
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
-  PATH=/tmp/go/bin:${GOPATH}/bin:${PATH}  # set path for whoever invokes this function.
 
   # Golang setup
   [[ -d /tmp/go ]] && rm -rf /tmp/go
   mkdir -p /tmp/go/
   curl -s "https://dl.google.com/go/${GOLANG}" -o /tmp/go/go.tar.gz
   tar -C /tmp/go/ --strip-components=1 -xf /tmp/go/go.tar.gz
+
+  PATH=/tmp/go/bin:${GOPATH}/bin:${PATH}  # set path for whoever invokes this function.
 }
 
 function git_checkout() {
