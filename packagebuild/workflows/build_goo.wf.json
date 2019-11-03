@@ -1,0 +1,31 @@
+{
+  "Name": "goo",
+  "Vars": {
+    "gcs_path": {
+      "Required": true
+    },
+    "repo_owner": {
+      "Required": true
+    },
+    "repo_name": {
+      "Required": true
+    },
+    "git_ref": {
+      "Required": true
+    }
+  },
+  "Steps": {
+    "build-package": {
+      "SubWorkflow": {
+        "Path": "./build_package_base.wf.json",
+        "Vars": {
+          "type": "goo",
+          "sourceImage": "projects/debian-cloud/global/images/family/debian-10",
+          "gcs_path": "${gcs_path}",
+          "repo_owner": "${repo_owner}",
+          "repo_name": "${repo_name}",
+          "git_ref": "${git_ref}"
+      }
+    }
+  }
+}

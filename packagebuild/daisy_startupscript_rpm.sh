@@ -82,13 +82,14 @@ for spec in $SPECS; do
   buildreqs="$(rpmspec --parse ${spec}|grep BuildRequires|cut -d' ' -f2-|xargs)"
   [[ -n "$buildreqs" ]] && yum install -y $buildreqs
 
-  cp "${spec}" "${RPMDIR}/SPECS/"
+  cp "$spec" "${RPMDIR}/SPECS/"
   tar czvf "${RPMDIR}/SOURCES/${spec//.spec}.tar.gz" --exclude .git \
-    --exclude packaging .
+    --exclude packaging --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
     --define "_go ${GOPATH}/bin/go" --define "_gopath ${GOPATH}" \
-    --define "_sources ${spec//.spec}.tar.gz" -ba ${RPMDIR}/SPECS/${spec}.spec
+    -ba ${RPMDIR}/SPECS/${spec}.spec
 done
 
-gsutil cp ${RPMDIR}/{S,}RPMS/*/*.rpm "${GCS_PATH}/"
+gsutil cp "$RPMDIR"/{S,}RPMS/*/*.rpm "$GCS_PATH"
+build_success "Built `ls "$RPMDIR"/{S,}RPMS/*/*.rpm`"

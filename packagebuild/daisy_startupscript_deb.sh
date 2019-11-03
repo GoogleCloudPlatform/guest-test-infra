@@ -35,10 +35,15 @@ try_command apt-get install -y --no-install-{suggests,recommends} git-core \
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
-# Ensure deps are met
+# Install build deps
 mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes \
   --no-install-recommends --yes" --install packaging/debian/control
 dpkg-checkbuilddeps packaging/debian/control
+
+if grep -q '+deb' debian/changelog; then
+  DEB=$(</etc/debian_version)
+  DEB="+deb${DEB:0:1}"
+fi
 
 if [[ -n "$GOBUILD" ]]; then
   echo "Installing go"
@@ -49,18 +54,25 @@ if [[ -n "$GOBUILD" ]]; then
 fi
 
 echo "Building package(s)"
-[[ -d $dpkg_working_dir ]] && rm -rf $dpkg_working_dir
-mkdir $dpkg_working_dir
-tar czvf $dpkg_working_dir/${PKGNAME}_${VERSION}.orig.tar.gz --exclude .git \
-  --exclude packaging --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
-working_dir=${PWD}
-cd $dpkg_working_dir
-tar xzvf ${PKGNAME}_${VERSION}.orig.tar.gz
+# Create build dir.
+BUILD_DIR="/tmp/debpackage/"
+[[ -d $BUILD_DIR ]] || mkdir $BUILD_DIR
 
-cd ${PKGNAME}-${VERSION}
+# Create 'upstream' tarball.
+TAR="${PKGNAME}_${VERSION}.orig.tar.gz"
+tar czvf "${BUILD_DIR}/${TAR}" --exclude .git --exclude packaging \
+  --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
-cp -r ${working_dir}/packaging/debian ./
-cp -r ${working_dir}/*.service ./debian/
+# Extract tarball and build.
+tar -C "$BUILD_DIR" xzvf "$TAR"
+PKGDIR="${BUILD_DIR}/${PKGNAME}-${VERSION}"
+cp -r packaging/debian "${BUILD_DIR}/${PKGNAME}-${VERSION}/"
 
+cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
+dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \
+  "Debian packaging for ${PKGNAME}"
 debuild -e "VERSION=${VERSION}" -us -uc
+
+gsutil cp "$BUILD_DIR"/*.deb "$GCS_PATH"
+build_success "Built `ls "$BUILD_DIR"/*.deb|xargs`"

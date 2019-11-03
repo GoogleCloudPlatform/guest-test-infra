@@ -13,9 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function exit_error() {
-  echo "build failed: $0:$1 \"$BASH_COMMAND\" returned $?"
+function build_success() {
+  echo "Build succeeded: $@"
+  exit 0
+}
+
+function build_fail() {
+  echo "Build failed: $@"
   exit 1
+}
+
+function exit_error() {
+  build_fail "$0:$1 \"$BASH_COMMAND\" returned $?"
 }
 
 trap 'exit_error $LINENO' ERR

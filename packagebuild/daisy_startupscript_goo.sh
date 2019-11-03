@@ -16,22 +16,33 @@
 URL="http://metadata/computeMetadata/v1/instance/attributes"
 GCS_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-outs-path)
 SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
-BASE_REPO=$(curl -f -H Metadata-Flavor:Google ${URL}/base-repo)
-REPO=$(curl -f -H Metadata-Flavor:Google ${URL}/repo)
-PULL_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/pull-ref)
+REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
+REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
+GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
+GOBUILD=$(curl -f -H Metadata-Flavor:Google ${URL}/gobuild)
+VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 
 echo "Started build..."
 
 gsutil cp "${SRC_PATH}/common.sh" ./
-
 . common.sh
 
-apt-get -y update
-apt-get install -y git-core
+try_command apt-get -y update
+try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
-git_checkout "$BASE_REPO" "$REPO" "$PULL_REF"
+git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
-./packaging/build_goo.sh
-gsutil cp google-osconfig-agent*.goo "${GCS_PATH}/"
+if [[ -n "$GOBUILD" ]]; then
+  echo "Installing go"
+  install_go
 
-echo "Package build success: built `echo *.goo|xargs -n1 basename`"
+  echo "Installing go dependencies"
+  go mod download
+fi
+
+echo "Building package"
+go get github.com/google/googet/v2/goopack
+goopack -var:version=${VERSION} packaging/googet/*.goospec
+
+gsutil cp *.goo "$GCS_PATH"
+build_success "Built `ls *.goo|xargs`"
