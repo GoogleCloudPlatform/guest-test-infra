@@ -25,6 +25,7 @@
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}"
+        }
       }
     }
   }

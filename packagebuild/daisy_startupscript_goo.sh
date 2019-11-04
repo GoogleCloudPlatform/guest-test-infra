@@ -19,7 +19,6 @@ SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
-GOBUILD=$(curl -f -H Metadata-Flavor:Google ${URL}/gobuild)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 
 echo "Started build..."
@@ -32,17 +31,20 @@ try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
-if [[ -n "$GOBUILD" ]]; then
-  echo "Installing go"
-  install_go
+# We always install go, needed for goopack.
+echo "Installing go"
+install_go
 
+if find . -type f -iname '*.go' >/dev/null; then
   echo "Installing go dependencies"
-  go mod download
+  $GO mod download
 fi
 
-echo "Building package"
+echo "Building package(s)"
 go get github.com/google/googet/v2/goopack
-goopack -var:version=${VERSION} packaging/googet/*.goospec
+for spec in packaging/googet/*.goospec; do
+  goopack -var:version="$VERSION" "$spec"
+done
 
-gsutil cp *.goo "$GCS_PATH"
+gsutil cp -n *.goo "$GCS_PATH"
 build_success "Built `ls *.goo|xargs`"

@@ -19,8 +19,8 @@ SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
-GOBUILD=$(curl -f -H Metadata-Flavor:Google ${URL}/gobuild)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
+VERSION=${VERSION:="1dummy"}
 
 DEBIAN_FRONTEND=noninteractive
 
@@ -35,22 +35,24 @@ try_command apt-get install -y --no-install-{suggests,recommends} git-core \
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
+PKGNAME="$(grep "^Package:" ./packaging/debian/control|cut -d' ' -f2-)"
+
 # Install build deps
 mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes \
   --no-install-recommends --yes" --install packaging/debian/control
 dpkg-checkbuilddeps packaging/debian/control
 
-if grep -q '+deb' debian/changelog; then
+if grep -q '+deb' packaging/debian/changelog; then
   DEB=$(</etc/debian_version)
   DEB="+deb${DEB:0:1}"
 fi
 
-if [[ -n "$GOBUILD" ]]; then
+if grep -q 'golang' packaging/debian/control; then
   echo "Installing go"
   install_go
 
   echo "Installing go dependencies"
-  go mod download
+  $GO mod download
 fi
 
 echo "Building package(s)"
@@ -65,14 +67,17 @@ tar czvf "${BUILD_DIR}/${TAR}" --exclude .git --exclude packaging \
   --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
 # Extract tarball and build.
-tar -C "$BUILD_DIR" xzvf "$TAR"
+tar -C "$BUILD_DIR" -xzvf "${BUILD_DIR}/${TAR}"
 PKGDIR="${BUILD_DIR}/${PKGNAME}-${VERSION}"
 cp -r packaging/debian "${BUILD_DIR}/${PKGNAME}-${VERSION}/"
 
 cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
+
+# We generate this to enable auto-versioning.
+[[ -f debian/changelog ]] && rm debian/changelog
 dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \
   "Debian packaging for ${PKGNAME}"
 debuild -e "VERSION=${VERSION}" -us -uc
 
-gsutil cp "$BUILD_DIR"/*.deb "$GCS_PATH"
+gsutil cp -n "$BUILD_DIR"/*.deb "$GCS_PATH"
 build_success "Built `ls "$BUILD_DIR"/*.deb|xargs`"
