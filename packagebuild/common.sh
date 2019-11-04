@@ -43,7 +43,8 @@ function install_go() {
   curl -s "https://dl.google.com/go/${GOLANG}" -o /tmp/go/go.tar.gz
   tar -C /tmp/go/ --strip-components=1 -xf /tmp/go/go.tar.gz
 
-  PATH=/tmp/go/bin:${GOPATH}/bin:${PATH}  # set path for whoever invokes this function.
+  export PATH="/tmp/go/bin:${GOPATH}/bin:${PATH}"  # set path for whoever invokes this function.
+  export GO=/tmp/go/bin/go  # reference this go explicitly.
 }
 
 function git_checkout() {

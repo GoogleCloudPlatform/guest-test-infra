@@ -16,8 +16,8 @@
   },
   "Steps": {
     "build-package": {
-      "IncludeWorkflow": {
-        "Path": "./build_package_base.wf.json",
+      "SubWorkflow": {
+        "Path": "./build_package.wf.json",
         "Vars": {
           "type": "rpm",
           "sourceImage": "projects/centos-cloud/global/images/family/centos-7",

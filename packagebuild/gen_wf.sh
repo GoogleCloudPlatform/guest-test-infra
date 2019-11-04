@@ -50,7 +50,6 @@ function genwf() {
 }
 
 [[ -z "$DISTROS" ]] && usage
-WF="temp.wf.json"
-genwf > $WF
+genwf > ${WF:="temp.wf.json"}
 daisy -project liamh-testing -zone us-west1-b -var:repo_name=osconfig $WF
 rm $WF

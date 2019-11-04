@@ -16,8 +16,8 @@
   },
   "Steps": {
     "build-package": {
-      "SubWorkflow": {
-        "Path": "./build_package_base.wf.json",
+      "IncludeWorkflow": {
+        "Path": "./build_package.wf.json",
         "Vars": {
           "type": "goo",
           "sourceImage": "projects/debian-cloud/global/images/family/debian-10",

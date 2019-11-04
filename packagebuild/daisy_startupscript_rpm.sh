@@ -19,13 +19,16 @@
 # packaging/ directory from the cloned repo.
 
 URL="http://metadata/computeMetadata/v1/instance/attributes"
-GCS_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-outs-path)
-SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
-REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
-REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
-GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
-GOBUILD=$(curl -f -H Metadata-Flavor:Google ${URL}/gobuild)
-VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
+function get_md() {
+  curl -f -H Metadata-Flavor:Google "${URL}/${1}"
+}
+GCS_PATH=$(get_md daisy-outs-path)
+SRC_PATH=$(get_md daisy-sources-path)
+REPO_OWNER=$(get_md repo-owner)
+REPO_NAME=$(get_md repo-name)
+GIT_REF=$(get_md git-ref)
+VERSION=$(get_md version)
+VERSION=${VERSION:-"dummy"}
 
 echo "Started build..."
 
@@ -36,7 +39,7 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 # Install git2 as this is not available in centos 6/7
 VERSION_ID=6
 if [[ -f /etc/os-release ]]; then
-  . /etc/os-release
+  eval $(grep VERSION_ID /etc/os-release)
   VERSION_ID=${VERSION_ID:0:1}
 fi
 
@@ -51,12 +54,12 @@ try_command yum install -y $GIT rpmdevtools yum-utils
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
-if [[ -n "$GOBUILD" ]]; then
+if grep -q '%{_go}' ./packaging/*.spec; then
   echo "Installing go"
   install_go
 
   echo "Installing go dependencies"
-  go mod download
+  $GO mod download
 fi
 
 # Make build dirs as needed.
@@ -67,6 +70,7 @@ done
 
 # Find the RPM specs.
 for spec in ./packaging/*.spec; do
+  spec=$(basename "$spec")
   # If the spec file has elN in it, only add it if N matches VERSION_ID
   if [[ "$spec" =~ \.el[0-9] ]]; then
     [[ "$spec" =~ \.el${VERSION_ID} ]] && SPECS="${SPECS} ${spec}"
@@ -79,17 +83,18 @@ done
 
 echo "Building package(s)"
 for spec in $SPECS; do
-  buildreqs="$(rpmspec --parse ${spec}|grep BuildRequires|cut -d' ' -f2-|xargs)"
-  [[ -n "$buildreqs" ]] && yum install -y $buildreqs
+  PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-)"
+  yum-builddep "./packaging/${spec}"
 
-  cp "$spec" "${RPMDIR}/SPECS/"
-  tar czvf "${RPMDIR}/SOURCES/${spec//.spec}.tar.gz" --exclude .git \
+  cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
+  tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" --exclude .git \
     --exclude packaging --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
-    --define "_go ${GOPATH}/bin/go" --define "_gopath ${GOPATH}" \
-    -ba ${RPMDIR}/SPECS/${spec}.spec
+    --define "_go ${GO:-""}" --define "_gopath ${GOPATH:-""}" \
+    -ba "${RPMDIR}/SPECS/${spec}"
 done
 
-gsutil cp "$RPMDIR"/{S,}RPMS/*/*.rpm "$GCS_PATH"
-build_success "Built `ls "$RPMDIR"/{S,}RPMS/*/*.rpm`"
+rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
+gsutil cp ${rpms} "$GCS_PATH"
+build_success "Built ${rpms}"

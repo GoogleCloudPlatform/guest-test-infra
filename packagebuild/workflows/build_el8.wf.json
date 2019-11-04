@@ -17,7 +17,7 @@
   "Steps": {
     "build-package": {
       "IncludeWorkflow": {
-        "Path": "./build_package_base.wf.json",
+        "Path": "./build_package.wf.json",
         "Vars": {
           "type": "rpm",
           "sourceImage": "projects/rhel-cloud/global/images/family/rhel-8",
@@ -25,6 +25,7 @@
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}"
+        }
       }
     }
   }

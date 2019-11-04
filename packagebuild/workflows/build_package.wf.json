@@ -1,8 +1,8 @@
 {
   "Name": "build-package",
   "Sources": {
-    "startup.sh": "./daisy_startupscript_${type}.sh",
-    "common.sh": "./common.sh"
+    "startup.sh": "../daisy_startupscript_${type}.sh",
+    "common.sh": "../common.sh"
   },
   "Vars": {
     "type": {
@@ -57,7 +57,7 @@
           "Name": "inst-build-deb",
           "SerialOutput": {
             "Port": 1,
-            "SuccessMatch": "Build success",
+            "SuccessMatch": "Build succeeded",
             "FailureMatch": "Build failed"
           }
         }
