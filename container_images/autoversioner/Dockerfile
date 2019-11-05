@@ -17,3 +17,5 @@ FROM scratch
 COPY --from=0 tagger /tagger
 COPY --from=0 versiongenerator /versiongenerator
 
+# for debugging
+COPY container_images/autoversioner/Dockerfile /
