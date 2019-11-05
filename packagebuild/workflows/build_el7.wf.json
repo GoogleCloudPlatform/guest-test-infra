@@ -12,6 +12,9 @@
     },
     "git_ref": {
       "Required": true
+    },
+    "version": {
+      "Required": true
     }
   },
   "Steps": {
@@ -24,7 +27,8 @@
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
-          "git_ref": "${git_ref}"
+          "git_ref": "${git_ref}",
+          "version": "${version}"
         }
       }
     }

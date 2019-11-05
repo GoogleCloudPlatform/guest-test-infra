@@ -30,7 +30,7 @@ function generate_new_version() {
 # Workflow consisting entirely of separate IncludeWorkflow steps referencing
 # build_${distro}.wf.json, which should be checked out from guest-test-infra.
 function generate_build_workflow() {
-  local $WF="$1"
+  local WF="$1"
 
   config='{
   "Name": "build-packages",
@@ -50,6 +50,9 @@ function generate_build_workflow() {
     "git_ref": {
       "Value": "master",
       "Description": "Git ref to check out and build"
+    },
+    "version": {
+      "Description": "Version to build"
     }
   },
   "Steps": {'
@@ -65,7 +68,8 @@ function generate_build_workflow() {
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
-          "git_ref": "${git_ref}"
+          "git_ref": "${git_ref}",
+          "version": "${version}"
         }
       }
     }'
