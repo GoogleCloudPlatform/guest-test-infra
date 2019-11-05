@@ -25,7 +25,6 @@ function generate_new_version() {
       echo "could not generate version: ${VERSION_OUT}"
       return 1
   fi
-  VERSION=${VERSION_OUT}
   echo $VERSION_OUT
 }
 
@@ -89,9 +88,9 @@ tag_commit() {
     echo "not valid build $LATEST_VERSION != $VERSION"
     return 1
   fi
-  TAGGER_CMD="/tagger --token-file-path=${GITHUB_ACCESS_TOKEN} --tag=${LATEST_VERSION} --sha=${PULL_BASE_SHA} "
-  TAGGER_CMD+="--org=${REPO_OWNER} --repo=${REPO_NAME}"
-
+  TAGGER_CMD="/tagger --token-file-path=${GITHUB_ACCESS_TOKEN} \
+              --tag=${LATEST_VERSION} --sha=${PULL_BASE_SHA} \
+              --org=${REPO_OWNER} --repo=${REPO_NAME}"
 
   TAGGER_CMD_OUT=$(${TAGGER_CMD})
   if [[ $? -ne 0 ]]; then
@@ -122,7 +121,8 @@ fi
 
 ## generate version
 if [[ "$JOB_TYPE" == "postsubmit" ]]; then
-  DAISY_VARS+=",version=$(generate_new_version)"
+  VERSION=$(generate_new_version)
+  DAISY_VARS+=",version=${VERSION}"
 fi
 
 DAISY_CMD="/daisy -project ${PROJECT} -zone ${ZONE} -variables ${DAISY_VARS} ${WF}"
