@@ -17,6 +17,7 @@ PROJECT="$1"
 ZONE="$2"
 DISTROS="$3"            # Distros to build
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
+VERSION=""
 
 function generate_new_version() {
   local VERSION_OUT
@@ -81,6 +82,24 @@ function generate_build_workflow() {
   echo -e "$config" > "$WF"
 }
 
+tag_commit() {
+  LATEST_VERSION=$(generate_new_version)
+  if [[ "$LATEST_VERSION" != "$VERSION" ]]; then
+    echo "not valid build $LATEST_VERSION != $VERSION"
+    return 1
+  fi
+  TAGGER_CMD="/tagger --token-file-path=${GITHUB_ACCESS_TOKEN} \
+              --tag=${LATEST_VERSION} --sha=${PULL_BASE_SHA} \
+              --org=${REPO_OWNER} --repo=${REPO_NAME}"
+
+  TAGGER_CMD_OUT=$(${TAGGER_CMD})
+  if [[ $? -ne 0 ]]; then
+    echo "could not tag github commit: $TAGGER_CMD_OUT"
+    return 1
+  fi
+  return 0
+}
+
 # Sets service account used for daisy and gsutil commands below. Will use
 # default service account for VM or k8s node if not set.
 if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
@@ -102,7 +121,8 @@ fi
 
 ## generate version
 if [[ "$JOB_TYPE" == "postsubmit" ]]; then
-  DAISY_VARS+=",version=$(generate_new_version)"
+  VERSION=$(generate_new_version)
+  DAISY_VARS+=",version=${VERSION}"
 fi
 
 DAISY_CMD="/daisy -project ${PROJECT} -zone ${ZONE} -variables ${DAISY_VARS} ${WF}"
@@ -113,6 +133,14 @@ $DAISY_CMD 2>err | tee out
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
   echo "error running daisy: stderr: $(<err)"
   exit 1
+fi
+
+if [[ "$JOB_TYPE" == "postsubmit" ]]; then
+  TAG_OUTPUT=$(tag_commit)
+  if [[ $? -ne 0 ]]; then
+    echo ${TAG_OUTPUT}
+    exit 1
+  fi
 fi
 
 # TODO: pass this in
