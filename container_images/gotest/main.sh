@@ -22,7 +22,7 @@ go get -d -t ./...
 echo "Pulling Windows imports..."
 GOOS=windows go get -d -t ./...
 
-go test -coverprofile=/coverage.out ./... >/go-test.txt
+go test -v -coverprofile=/coverage.out ./... >/go-test.txt
 RET=$?
 if [[ $RET -ne 0 ]]; then
   echo "go test -coverprofile=/coverage.out ./... returned ${RET}"
