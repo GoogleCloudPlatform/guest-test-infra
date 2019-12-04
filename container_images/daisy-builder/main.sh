@@ -92,6 +92,7 @@ tag_commit() {
               --tag=${LATEST_VERSION} --sha=${PULL_BASE_SHA} \
               --org=${REPO_OWNER} --repo=${REPO_NAME}"
 
+  echo "running $TAGGER_CMD ..."
   TAGGER_CMD_OUT=$(${TAGGER_CMD})
   if [[ $? -ne 0 ]]; then
     echo "could not tag github commit: $TAGGER_CMD_OUT"
