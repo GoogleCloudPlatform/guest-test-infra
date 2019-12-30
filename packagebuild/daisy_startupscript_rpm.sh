@@ -84,7 +84,7 @@ done
 echo "Building package(s)"
 for spec in $SPECS; do
   PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-)"
-  yum-builddep "./packaging/${spec}"
+  yum-builddep -y "./packaging/${spec}"
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
   tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" --exclude .git \
