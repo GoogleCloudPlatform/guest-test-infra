@@ -151,11 +151,11 @@ DAISY_BUCKET="gs://$(sed -En "s|(^.*)$pattern||p" out)"
 # copy daisy logs and artifacts to artifacts folder for prow
 # $ARTIFACTS is set by prow
 if [[ -n $ARTIFACTS ]]; then
-  echo "copying daisy outputs from $DAISY_BUCKET to prow artifacts dir"
-  gsutil cp "${DAISY_BUCKET}/outs/*" ${ARTIFACTS}/
+  echo "copying daisy outputs from ${DAISY_BUCKET}/packages to prow artifacts dir"
+  gsutil cp "${DAISY_BUCKET}/packages/*" ${ARTIFACTS}/
 fi
 
 # If invoked as periodic, postsubmit, or manually, upload the results.
 if [[ "$JOB_TYPE" != "presubmit" ]]; then
-  gsutil cp "${DAISY_BUCKET}/outs/*" $GCS_OUTPUT_BUCKET
+  gsutil cp "${DAISY_BUCKET}/packages/*" $GCS_OUTPUT_BUCKET
 fi
