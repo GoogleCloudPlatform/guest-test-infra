@@ -46,5 +46,5 @@ for spec in packaging/googet/*.goospec; do
   goopack -var:version="$VERSION" "$spec"
 done
 
-gsutil cp -n *.goo "$GCS_PATH"
+gsutil cp -n *.goo "$GCS_PATH/"
 build_success "Built `ls *.goo|xargs`"

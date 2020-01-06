@@ -96,5 +96,5 @@ for spec in $SPECS; do
 done
 
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
-gsutil cp -n ${rpms} "$GCS_PATH"
+gsutil cp -n ${rpms} "$GCS_PATH/"
 build_success "Built ${rpms}"
