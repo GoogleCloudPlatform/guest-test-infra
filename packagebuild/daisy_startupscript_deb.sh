@@ -80,5 +80,5 @@ dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \
 debuild -e "VERSION=${VERSION}" -us -uc
 
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH"
-echo gsutil cp -n "$BUILD_DIR"/*.deb "$GCS_PATH"
+gsutil cp -n "$BUILD_DIR"/*.deb "$GCS_PATH/"
 build_success "Built `ls "$BUILD_DIR"/*.deb|xargs`"
