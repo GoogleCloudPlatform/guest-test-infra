@@ -1,5 +1,6 @@
 {
   "Name": "build-package",
+  "DefaultTimeout": "30m",
   "Sources": {
     "startup.sh": "../daisy_startupscript_${type}.sh",
     "common.sh": "../common.sh"
