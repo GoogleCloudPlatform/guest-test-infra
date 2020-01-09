@@ -49,7 +49,7 @@
             "version": "${version}"
           },
           "machineType": "n1-standard-2",
-          "name": "inst-build-deb",
+          "name": "inst-build-pkg",
           "StartupScript": "startup.sh",
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"]
         }
