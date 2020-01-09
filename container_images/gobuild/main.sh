@@ -25,9 +25,6 @@
 #  git checkout ${PULL_NUMBER}
 #fi
 
-[[ -d /tmp/gobuild ]] && rm -rf /tmp/gobuild
-mkdir /tmp/gobuild
-
 go version
 
 echo 'Pulling Linux imports...'
@@ -39,16 +36,15 @@ GOBUILD_OUT=0
 #cd /
 
 echo "Building for Linux"
-go build -o /tmp/gobuild ./...
+go build ./...
 RET=$?
 if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET
   echo "'go build' exited with ${GOBUILD_OUT}"
 fi
-rm /tmp/gobuild
 
 echo "Building for Windows"
-GOOS=windows go build -o /tmp/gobuild ./...
+GOOS=windows go build ./...
 RET=$?
 if [[ $RET -ne 0 ]]; then
   GOBUILD_OUT=$RET

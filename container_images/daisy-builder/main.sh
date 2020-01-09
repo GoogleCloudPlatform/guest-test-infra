@@ -35,6 +35,7 @@ function generate_build_workflow() {
 
   config='{
   "Name": "build-packages",
+  "DefaultTimeout": "30m",
   "Vars": {
     "gcs_path": {
       "Value": "${SCRATCHPATH}/packages",
@@ -111,6 +112,8 @@ cd packagebuild
 
 WF="build.wf.json"
 generate_build_workflow "$WF"
+echo "Generated workflow:"
+cat "$WF"
 
 ## Some vars such as REPO_OWNER and PULL_NUMBER are set by prow
 DAISY_VARS="repo_owner=${REPO_OWNER},repo_name=${REPO_NAME}"
