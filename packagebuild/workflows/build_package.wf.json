@@ -59,7 +59,7 @@
       "Timeout": "10m",
       "WaitForInstancesSignal": [
         {
-          "Name": "inst-build-deb",
+          "Name": "inst-build-pkg",
           "SerialOutput": {
             "Port": 1,
             "SuccessMatch": "Build succeeded",
