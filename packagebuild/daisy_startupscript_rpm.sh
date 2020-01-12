@@ -83,15 +83,16 @@ done
 
 echo "Building package(s)"
 for spec in $SPECS; do
-  PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-)"
+  PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
-  tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" --exclude .git \
-    --exclude packaging --transform "s/^\./${PKGNAME}-${VERSION}/" .
+  tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" \
+    --exclude .git --exclude packaging \
+    --transform "s/^\./${PKGNAME}-${VERSION}/" .
 
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
-    --define "_go ${GO:-""}" --define "_gopath ${GOPATH:-""}" \
+    --define "_go ${GO:-"UNSET"}" --define "_gopath ${GOPATH:-"UNSET"}" \
     -ba "${RPMDIR}/SPECS/${spec}"
 done
 
