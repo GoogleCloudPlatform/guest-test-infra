@@ -31,7 +31,7 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core \
-  debhelper devscripts build-essential equivs
+  debhelper devscripts build-essential equivs libdistro-info-perl
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
@@ -44,7 +44,7 @@ dpkg-checkbuilddeps packaging/debian/control
 
 if grep -q '+deb' packaging/debian/changelog; then
   DEB=$(</etc/debian_version)
-  DEB="+deb${DEB:0:1}"
+  DEB="+deb${DEB/.*}"
 fi
 
 if grep -q 'golang' packaging/debian/control; then
@@ -58,7 +58,7 @@ fi
 echo "Building package(s)"
 
 # Create build dir.
-BUILD_DIR="/tmp/debpackage/"
+BUILD_DIR="/tmp/debpackage"
 [[ -d $BUILD_DIR ]] || mkdir $BUILD_DIR
 
 # Create 'upstream' tarball.
@@ -77,8 +77,8 @@ cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
 [[ -f debian/changelog ]] && rm debian/changelog
 dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \
   "Debian packaging for ${PKGNAME}"
-debuild -e "VERSION=${VERSION}" -us -uc
+DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -us -uc
 
-echo "copying $BUILD_DIR/*.deb to $GCS_PATH"
-gsutil cp -n "$BUILD_DIR"/*.deb "$GCS_PATH/"
-build_success "Built `ls "$BUILD_DIR"/*.deb|xargs`"
+echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
+gsutil cp -n $BUILD_DIR/*.deb "$GCS_PATH/"
+build_success Built $BUILD_DIR/*.deb
