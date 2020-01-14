@@ -13,19 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Check this out in GOPATH since go package handling requires it to be here.
-#REPO_PATH=${GOPATH}/src/github.com/${REPO_OWNER}/${REPO_NAME}
-#mkdir -p ${REPO_PATH}
-#git clone https://github.com/${REPO_OWNER}/${REPO_NAME} ${REPO_PATH}
-#cd ${REPO_PATH}
-#
-## Pull PR if this is a PR.
-#if [ ! -z "${PULL_NUMBER}" ]; then
-#  git fetch origin pull/${PULL_NUMBER}/head:${PULL_NUMBER}
-#  git checkout ${PULL_NUMBER}
-#fi
+set -xe
 
-go version
+BUILD_DIR=$1
+[[ -n $BUILD_DIR ]] && cd $BUILD_DIR
 
 echo 'Pulling Linux imports...'
 go get -d ./...

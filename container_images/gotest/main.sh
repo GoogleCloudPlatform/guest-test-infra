@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -xe
+
 export GOCOVPATH=/gocov.txt
 
-go version
+BUILD_DIR=$1
+[[ -n $BUILD_DIR ]] && cd $BUILD_DIR
 
 echo "Pulling Linux imports..."
 go get -d -t ./...
