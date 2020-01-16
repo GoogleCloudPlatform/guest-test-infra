@@ -27,6 +27,7 @@ SRC_PATH=$(get_md daisy-sources-path)
 REPO_OWNER=$(get_md repo-owner)
 REPO_NAME=$(get_md repo-name)
 GIT_REF=$(get_md git-ref)
+BUILD_DIR=$(get_md build-dir)
 VERSION=$(get_md version)
 VERSION=${VERSION:-"dummy"}
 
@@ -35,6 +36,10 @@ echo "Started build..."
 # common.sh contains functions common to all builds.
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 # Install git2 as this is not available in centos 6/7
 VERSION_ID=6
