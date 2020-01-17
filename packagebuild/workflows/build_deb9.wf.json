@@ -15,6 +15,9 @@
     },
     "version": {
       "Required": true
+    },
+    "build_dir": {
+      "Required": true
     }
   },
   "Steps": {
@@ -28,6 +31,7 @@
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
+          "build_dir": "${build_dir}",
           "version": "${version}"
         }
       }

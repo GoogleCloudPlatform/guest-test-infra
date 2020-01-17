@@ -27,6 +27,7 @@ SRC_PATH=$(get_md daisy-sources-path)
 REPO_OWNER=$(get_md repo-owner)
 REPO_NAME=$(get_md repo-name)
 GIT_REF=$(get_md git-ref)
+BUILD_DIR=$(get_md build-dir)
 VERSION=$(get_md version)
 VERSION=${VERSION:-"dummy"}
 
@@ -53,6 +54,10 @@ fi
 try_command yum install -y $GIT rpmdevtools yum-utils
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 if grep -q '%{_go}' ./packaging/*.spec; then
   echo "Installing go"

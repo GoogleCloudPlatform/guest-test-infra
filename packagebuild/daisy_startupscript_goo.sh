@@ -19,6 +19,7 @@ SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
+BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 
 echo "Started build..."
@@ -30,6 +31,10 @@ try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 # We always install go, needed for goopack.
 echo "Installing go"

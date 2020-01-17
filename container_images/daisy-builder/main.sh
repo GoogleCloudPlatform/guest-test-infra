@@ -17,6 +17,7 @@ PROJECT="$1"
 ZONE="$2"
 DISTROS="$3"            # Distros to build
 GCS_OUTPUT_BUCKET="$4"  # Destination for artifacts
+BUILD_DIR="$5"          # Directory to build from
 VERSION=""
 
 function generate_new_version() {
@@ -55,6 +56,9 @@ function generate_build_workflow() {
     },
     "version": {
       "Description": "Version to build"
+    },
+    "build_dir": {
+      "Description": "Directory to build from"
     }
   },
   "Steps": {'
@@ -71,6 +75,7 @@ function generate_build_workflow() {
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
+          "build_dir": "${build_dir}",
           "version": "${version}"
         }
       }
@@ -121,6 +126,13 @@ DAISY_VARS="repo_owner=${REPO_OWNER},repo_name=${REPO_NAME}"
 ## only add pull reference in case of presubmit jobs
 if [[ "$JOB_TYPE" == "presubmit" ]]; then
   DAISY_VARS+=",git_ref=pull/${PULL_NUMBER}/head"
+else
+  DAISY_VARS+=",git_ref=${PULL_BASE_REF}"
+fi
+
+## Build from subdir if requested
+if [[ -n "$BUILD_DIR" ]]; then
+  DAISY_VARS+=",build_dir=${BUILD_DIR}"
 fi
 
 ## generate version

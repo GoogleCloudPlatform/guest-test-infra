@@ -19,6 +19,7 @@ SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
+BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 VERSION=${VERSION:="1dummy"}
 
@@ -26,14 +27,20 @@ DEBIAN_FRONTEND=noninteractive
 
 echo "Started build..."
 
+
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
+
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core \
   debhelper devscripts build-essential equivs libdistro-info-perl
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 PKGNAME="$(grep "^Package:" ./packaging/debian/control|cut -d' ' -f2-)"
 
