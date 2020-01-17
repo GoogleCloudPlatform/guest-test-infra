@@ -37,10 +37,6 @@ echo "Started build..."
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
-if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
-fi
-
 # Install git2 as this is not available in centos 6/7
 VERSION_ID=6
 if [[ -f /etc/os-release ]]; then
@@ -58,6 +54,10 @@ fi
 try_command yum install -y $GIT rpmdevtools yum-utils
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 if grep -q '%{_go}' ./packaging/*.spec; then
   echo "Installing go"

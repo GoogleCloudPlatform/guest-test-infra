@@ -8,13 +8,15 @@ DEFAULT_ZONE='us-west1-a'
 DEFAULT_OWNER='GoogleCloudPlatform'
 DEFAULT_GIT_REF='master'
 DEFAULT_GCS_PATH='${SCRATCHPATH}/packages'
+DEFAULT_BUILD_DIR='.'
 
 [[ -z $TYPE ]] && read -p "Build type [$DEFAULT_TYPE]: " TYPE
 [[ -z $PROJECT ]] && read -p "Build project [$DEFAULT_PROJECT]: " PROJECT
 [[ -z $ZONE ]] && read -p "Build zone [$DEFAULT_ZONE]: " ZONE
 [[ -z $OWNER ]] && read -p "Repo owner or org [$DEFAULT_OWNER]: " OWNER
 [[ -z $GIT_REF ]] && read -p "Ref [$DEFAULT_GIT_REF]: " GIT_REF
-[[ -z $GCS_PATH ]] && read -p "GCS Path to upload to [$DEFAULT_GCS_PATH]: " GIT_REF
+[[ -z $GCS_PATH ]] && read -p "GCS Path to upload to [$DEFAULT_GCS_PATH]: " GCS_PATH
+[[ -z $BUILD_DIR ]] && read -p "Directory to build from [$DEFAULT_BUILD_DIR]: " BUILD_DIR
 [[ -z $REPO ]] && read -p "Repo name: " REPO
 
 [[ $TYPE == "" ]] && TYPE=$DEFAULT_TYPE
@@ -23,6 +25,7 @@ DEFAULT_GCS_PATH='${SCRATCHPATH}/packages'
 [[ $OWNER == "" ]] && OWNER=$DEFAULT_OWNER
 [[ $GIT_REF == "" ]] && GIT_REF=$DEFAULT_GIT_REF
 [[ $GCS_PATH == "" ]] && GCS_PATH=$DEFAULT_GCS_PATH
+[[ $BUILD_DIR == "" ]] && BUILD_DIR=$DEFAULT_BUILD_DIR
 
 WF="workflows/build_${TYPE}.wf.json"
 
@@ -31,6 +34,7 @@ if [[ ! -f "$WF" ]]; then
   exit 1
 fi
 
+set -x
 daisy \
   -project $PROJECT \
   -zone $ZONE \
@@ -38,5 +42,6 @@ daisy \
   -var:repo_owner=$OWNER \
   -var:repo_name=$REPO \
   -var:git_ref=$GIT_REF \
+  -var:build_dir=$BUILD_DIR \
   -var:version=1dummy \
   "$WF"

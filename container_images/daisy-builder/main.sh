@@ -58,8 +58,7 @@ function generate_build_workflow() {
       "Description": "Version to build"
     },
     "build_dir": {
-      "Description": "Directory to build from",
-      "Value": "."
+      "Description": "Directory to build from"
     }
   },
   "Steps": {'
@@ -127,6 +126,8 @@ DAISY_VARS="repo_owner=${REPO_OWNER},repo_name=${REPO_NAME}"
 ## only add pull reference in case of presubmit jobs
 if [[ "$JOB_TYPE" == "presubmit" ]]; then
   DAISY_VARS+=",git_ref=pull/${PULL_NUMBER}/head"
+else
+  DAISY_VARS+=",git_ref=${PULL_BASE_REF}"
 fi
 
 ## Build from subdir if requested

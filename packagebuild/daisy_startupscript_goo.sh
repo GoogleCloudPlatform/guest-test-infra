@@ -27,14 +27,14 @@ echo "Started build..."
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
-if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
-fi
-
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 # We always install go, needed for goopack.
 echo "Installing go"

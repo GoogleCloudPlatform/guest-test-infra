@@ -31,15 +31,16 @@ echo "Started build..."
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
-if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
-fi
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core \
   debhelper devscripts build-essential equivs libdistro-info-perl
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 PKGNAME="$(grep "^Package:" ./packaging/debian/control|cut -d' ' -f2-)"
 
