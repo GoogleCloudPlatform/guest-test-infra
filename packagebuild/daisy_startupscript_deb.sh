@@ -80,6 +80,9 @@ cp -r packaging/debian "${BUILD_DIR}/${PKGNAME}-${VERSION}/"
 
 cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
 
+COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
+sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
+
 # We generate this to enable auto-versioning.
 [[ -f debian/changelog ]] && rm debian/changelog
 dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \

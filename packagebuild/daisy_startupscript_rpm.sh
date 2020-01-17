@@ -86,10 +86,14 @@ done
 
 [[ -z "$SPECS" ]] && build_fail "No RPM specs found"
 
+COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
+
 echo "Building package(s)"
 for spec in $SPECS; do
   PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
+
+  sed -i"" "/^Source/aVcs: ${COMMITURL}" "./packaging/${spec}"
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
   tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" \
