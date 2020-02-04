@@ -60,11 +60,11 @@ function git_checkout() {
   git init
 
   # fetch only the branch that we want to build
-  git_command="git fetch https://github.com/${BASE_REPO}/${REPO}.git ${PULL_REF:-"master"}:packaging"
+  git_command="git fetch https://github.com/${BASE_REPO}/${REPO}.git ${PULL_REF:-"master"}"
   echo "Running ${git_command}"
   $git_command
 
-  git checkout packaging
+  git checkout FETCH_HEAD
 }
 
 function try_command() {

@@ -62,6 +62,8 @@ if grep -q 'golang' packaging/debian/control; then
   $GO mod download
 fi
 
+COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
+
 echo "Building package(s)"
 
 # Create build dir.
@@ -79,6 +81,8 @@ PKGDIR="${BUILD_DIR}/${PKGNAME}-${VERSION}"
 cp -r packaging/debian "${BUILD_DIR}/${PKGNAME}-${VERSION}/"
 
 cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
+
+sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
 
 # We generate this to enable auto-versioning.
 [[ -f debian/changelog ]] && rm debian/changelog

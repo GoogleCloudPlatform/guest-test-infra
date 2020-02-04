@@ -73,23 +73,33 @@ for dir in ${RPMDIR}/{SOURCES,SPECS}; do
   [[ -d "$dir" ]] || mkdir -p "$dir"
 done
 
-# Find the RPM specs.
-for spec in ./packaging/*.spec; do
+# Find the RPM specs to build for this version.
+TOBUILD=""
+SPECS=$(ls ./packaging/*.spec | sed -re 's/(\.el.)?.spec//' | sort -ru)
+echo "all specs $SPECS"
+for spec in $SPECS; do
   spec=$(basename "$spec")
-  # If the spec file has elN in it, only add it if N matches VERSION_ID
-  if [[ "$spec" =~ \.el[0-9] ]]; then
-    [[ "$spec" =~ \.el${VERSION_ID} ]] && SPECS="${SPECS} ${spec}"
+  distspec="${spec}.el${VERSION_ID}.spec"
+  echo checking $spec and $distspec
+  if [[ -f "./packaging/$distspec" ]]; then
+    TOBUILD="${TOBUILD} ${distspec}"
   else
-    SPECS="${SPECS} ${spec}"
+    TOBUILD="${TOBUILD} ${spec}.spec"
   fi
 done
 
-[[ -z "$SPECS" ]] && build_fail "No RPM specs found"
+[[ -z "$TOBUILD" ]] && build_fail "No RPM specs found"
+
+COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
 
 echo "Building package(s)"
-for spec in $SPECS; do
+for spec in $TOBUILD; do
   PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
+
+  if [[ $VERSION_ID -ne 6 ]]; then
+    sed -i"" "/^Source/aVcs: ${COMMITURL}" "./packaging/${spec}"
+  fi
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
   tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" \
@@ -104,4 +114,4 @@ done
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
 echo "copying ${rpms} to $GCS_PATH/"
 gsutil cp -n ${rpms} "$GCS_PATH/"
-build_success "Built ${rpms}"
+build_success "Built $(echo ${rpms}|xargs)"
