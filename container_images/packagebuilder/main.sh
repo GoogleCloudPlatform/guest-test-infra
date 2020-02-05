@@ -113,8 +113,6 @@ if [[ -n $GOOGLE_APPLICATION_CREDENTIALS ]]; then
   gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 fi
 
-cd packagebuild
-
 WF="build.wf.json"
 generate_build_workflow "$WF"
 echo "Generated workflow:"
