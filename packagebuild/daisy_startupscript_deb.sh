@@ -86,9 +86,10 @@ sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
 
 # We generate this to enable auto-versioning.
 [[ -f debian/changelog ]] && rm debian/changelog
-dch --create -M -v 1:${VERSION}-g1${DEB} --package $PKGNAME -D stable \
+RELEASE="g1${DEB}"
+dch --create -M -v 1:${VERSION}-${RELEASE} --package $PKGNAME -D stable \
   "Debian packaging for ${PKGNAME}"
-DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -us -uc
+DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
 gsutil cp -n $BUILD_DIR/*.deb "$GCS_PATH/"
