@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc. All Rights Reserved.
+# Copyright 2020 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,14 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang
+FROM python:alpine
 
-ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test-service-account/creds.json
-
-RUN apt-get update && apt-get install -y git && \
-    rm -rf /var/cache/apt/archives
+RUN pip install flake8 flake8-import-order
 
 # Copy this Dockerfile for debugging.
+WORKDIR /
 COPY Dockerfile Dockerfile
 COPY main.sh main.sh
 ENTRYPOINT ["./main.sh"]
