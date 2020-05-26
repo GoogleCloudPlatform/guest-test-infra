@@ -46,7 +46,7 @@ fi
 
 GIT="git"
 if [[ ${VERSION_ID} =~ 6|7 ]]; then
-    try_command yum install -y https://rhel${VERSION_ID}.iuscommunity.org/ius-release.rpm
+    try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
     GIT="git2u"
 fi
