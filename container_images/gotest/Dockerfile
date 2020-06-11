@@ -13,9 +13,6 @@
 # limitations under the License.
 FROM golang
 
-ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test-service-account/creds.json
-ENV CODECOV_TOKEN /etc/codecov/codecov
-
 RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget && \
     rm -rf /var/cache/apt/archives
 

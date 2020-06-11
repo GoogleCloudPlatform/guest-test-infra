@@ -13,27 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -xe
+set -x
 
-export GOCOVPATH=/gocov.txt
+#export GOCOVPATH=/gocov.txt
 
 BUILD_DIR=$1
-[[ -n $BUILD_DIR ]] && cd $BUILD_DIR
+if [[ -n $BUILD_DIR ]]; then
+  cd $BUILD_DIR || exit 1
+fi
 
 echo "Pulling Linux imports..."
-go get -d -t ./...
+go get -d -t ./... || exit 1
 echo "Pulling Windows imports..."
-GOOS=windows go get -d -t ./...
+GOOS=windows go get -d -t ./... || exit 1
 
 go test -v -coverprofile=/coverage.out ./... >/go-test.txt
 RET=$?
 if [[ $RET -ne 0 ]]; then
   echo "go test -coverprofile=/coverage.out ./... returned ${RET}"
 fi
+cp /go-test.txt ${ARTIFACTS}/
 
 # $ARTIFACTS is provided by prow decoration containers
-go tool cover -html=/coverage.out -o $ARTIFACTS/coverage.html
-cat /go-test.txt | go-junit-report > $ARTIFACTS/junit.xml
+go tool cover -html=/coverage.out -o ${ARTIFACTS}/coverage.html
+cat /go-test.txt | go-junit-report > ${ARTIFACTS}/junit.xml
 
 # Upload coverage results to Codecov.
 #CODEV_COV_ARGS="-v -t $(cat ${CODECOV_TOKEN}) -B master -C $(git rev-parse HEAD)"
