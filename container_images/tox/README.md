@@ -6,13 +6,13 @@ Check the Dockerfile for which Python versions are installed.
 Your job:
 1. Create a [tox configuration file](https://tox.readthedocs.io/en/latest/config.html) in your
 repository's test directory.
-   * Optionally, write test artifacts to the `ARTIFACTS` directory.
+   * Optionally, write test artifacts to the directory set in the `ARTIFACTS` environment variable.
 1. Configure prow with the test directory's path as the first positional argument.
 
 Prior to invoking, the runner will:
 1. Checkout your repository, mount it as a volume, and set its root as Docker's 
 [workdir](https://docs.docker.com/engine/reference/commandline/run/#set-working-directory--w).
-2. Mount a volume for artifacts, and inject its path with the `ARTIFACTS` env variable.
+2. Mount a volume for artifacts, and set the `ARTIFACTS` environment variable to its path.
 
 ### Example
 
@@ -43,7 +43,7 @@ commands = pytest --junit-prefix={envname} \
                   --junit-xml={env:ARTIFACTS}/junit-{envname}.xml
 ```
 
-To simulate prow's execution, use the following:
+To run this manually, use the following:
 
 ```shell script
 docker run --volume ~/project:/project \
