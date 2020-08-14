@@ -28,6 +28,10 @@ import tox
 # Dependencies to install in addition to user's requested dependencies.
 _common_test_deps = ["pytest==6.0.1"]
 
+# Command that's passed to tox.
+#
+# This is passed through 'format', so use double braces to bypass
+# the formatter's replacement (they'll be converted to a single brace).
 _per_interpreter_command = [
   # Don't invoke the `pytest` binary directly, as it circumvents
   # the virtual environment.
@@ -43,33 +47,31 @@ _per_interpreter_command = [
   # Within the junit report, add a namespace for the environment,
   # to ensure that tests from different interpreters aren't
   # considered duplicates.
-  "--junit-prefix={envname}",
+  "--junit-prefix={{envname}}",
   # Write a new junit xml file for each interpreter. The filename pattern
   # is defined in our Prow instance's configuration:
   #  https://github.com/GoogleCloudPlatform/oss-test-infra/blob/cc1f0cf1ffecc0e3b75664b0d264abc6165276d1/prow/oss/config.yaml#L98
-  "--junit-xml={env:ARTIFACTS}/junit-{envname}.xml",
+  "--junit-xml={artifact_dir}/junit-{{envname}}.xml",
 ]
 
 
-def setup_execution_root(pyproject_toml_file: str) -> str:
+def setup_execution_root(package_root: str) -> str:
   """Create execution directory and copy project's code to it.
 
   Tox creates in-directory files, and its execution fails when the
   source tree is mounted read-only.
 
   Args:
-    pyproject_toml_file: Absolute path to the project config file. The
-      containing directory will be recursively copied to the execution root.
+    package_root: Absolute path to the Python package's root directory.
 
   Returns:
     Absolute path to execution root.
   """
-  assert (os.path.isabs(pyproject_toml_file) and
-          os.path.exists(pyproject_toml_file))
+  assert (os.path.isabs(package_root) and
+          os.path.exists(package_root))
 
-  source_root = os.path.dirname(pyproject_toml_file)
   exec_root = tempfile.mkdtemp()
-  shutil.copytree(source_root, exec_root, dirs_exist_ok=True)
+  shutil.copytree(package_root, exec_root, dirs_exist_ok=True)
   return exec_root
 
 
@@ -82,7 +84,7 @@ def to_tox_version(py_version: str):
     sys.exit("Invalid version number: " + py_version)
 
 
-def write_tox_ini():
+def write_tox_ini(artifact_dir):
   """Read project configuration from pyproject.toml, and write a new tox.ini
   file.
 
@@ -93,7 +95,9 @@ def write_tox_ini():
 
   with open("pyproject.toml") as f:
     project_cfg = toml.load(f)
-    test_cfg = project_cfg.get("tool", {}).get("gcp-guest-pytest", {})
+
+  # Read the [tool.gcp-guest-pytest] section of pyproject.toml.
+  test_cfg = project_cfg.get("tool", {}).get("gcp-guest-pytest", {})
 
   # Which interpreters to enable.
   envlist = [to_tox_version(env) for env in test_cfg.get("envlist", [])]
@@ -111,20 +115,22 @@ def write_tox_ini():
   }
 
   config["testenv"] = {
-    "envlogdir": "{env:ARTIFACTS}/tox/{envname}",
+    "envlogdir": "{artifact_dir}/tox/{{envname}}"
+      .format(artifact_dir=artifact_dir),
     "deps": "\n\t".join(_common_test_deps + test_deps),
-    "commands": " ".join(_per_interpreter_command),
+    "commands": " ".join(_per_interpreter_command)
+      .format(artifact_dir=artifact_dir),
   }
 
   if os.path.exists("tox.ini"):
-    print("Ignoring existing tox.ini file.")
+    print("Removing existing tox.ini file.")
     os.remove("tox.ini")
 
   with open("tox.ini", "w") as f:
     config.write(f)
 
 
-def save_configs(dst: str):
+def archive_configs(dst: str):
   print("Saving config files to " + dst)
   if not os.path.exists(dst):
     os.mkdir(dst)
@@ -133,31 +139,32 @@ def save_configs(dst: str):
 
 
 def validate_args(args: typing.List[str]):
-  if (len(args) > 1 and args[1].endswith("pyproject.toml") and
-      os.path.exists(args[1])):
-    toml_file = os.path.abspath(args[1])
+  if (len(args) > 1
+      and os.path.isdir(args[1])
+      and os.path.isfile(os.path.join(args[1], 'pyproject.toml'))):
+    package_root = os.path.abspath(args[1])
   else:
-    sys.exit("First argument must be path to pyproject.toml")
+    sys.exit("First argument must be path to python package "
+             "package must contain pyproject.toml.")
   if "ARTIFACTS" in os.environ and os.path.exists(os.environ["ARTIFACTS"]):
     artifact_dir = os.path.abspath(os.environ["ARTIFACTS"])
-    # Protect against a relative artifacts directory.
-    os.environ["ARTIFACTS"] = artifact_dir
   else:
-    sys.exit("$ARTIFACTS must be set to a directory that exists")
-  return artifact_dir, toml_file
+    sys.exit("$ARTIFACTS must point to a directory that exists")
+  return artifact_dir, package_root
 
 
 def main():
   print("args: %s" % sys.argv)
   print("$ARTIFACTS: %s" % os.environ.get("ARTIFACTS"))
-  artifact_dir, toml_file = validate_args(sys.argv)
+  artifact_dir, package_root = validate_args(sys.argv)
 
-  execution_root = setup_execution_root(toml_file)
+  # Create a new execution area, since we'll be writing files.
+  execution_root = setup_execution_root(package_root)
   os.chdir(execution_root)
   print("Executing tests in " + execution_root)
 
-  write_tox_ini()
-  save_configs(os.path.join(artifact_dir, "tox"))
+  write_tox_ini(artifact_dir)
+  archive_configs(os.path.join(artifact_dir, "tox"))
   result_code = tox.cmdline(["-v"])
   sys.exit(result_code)
 
