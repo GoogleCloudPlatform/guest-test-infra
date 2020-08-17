@@ -51,7 +51,7 @@ _per_interpreter_command = [
   # Write a new junit xml file for each interpreter. The filename pattern
   # is defined in our Prow instance's configuration:
   #  https://github.com/GoogleCloudPlatform/oss-test-infra/blob/cc1f0cf1ffecc0e3b75664b0d264abc6165276d1/prow/oss/config.yaml#L98
-  "--junit-xml={artifact_dir}/junit-{{envname}}.xml",
+  "--junit-xml={artifact_dir}/junit_{{envname}}.xml",
 ]
 
 
@@ -67,8 +67,8 @@ def setup_execution_root(package_root: str) -> str:
   Returns:
     Absolute path to execution root.
   """
-  assert (os.path.isabs(package_root) and
-          os.path.exists(package_root))
+  assert os.path.exists(package_root) and os.path.isabs(package_root), \
+    f"Expected {package_root} to exist and to be an absolute path."
 
   exec_root = tempfile.mkdtemp()
   shutil.copytree(package_root, exec_root, dirs_exist_ok=True)
@@ -81,17 +81,16 @@ def to_tox_version(py_version: str):
     major, minor = py_version.split(".")
     return "py{major}{minor}".format(major=major, minor=minor)
   else:
-    sys.exit("Invalid version number: " + py_version)
+    raise ValueError("Invalid version number: " + py_version)
 
 
 def write_tox_ini(artifact_dir):
-  """Read project configuration from pyproject.toml, and write a new tox.ini
-  file.
+  """Read pyproject.toml and write a new tox.ini file.
 
   The tox.ini file is generated to ensure that tests are run consistently,
   and that test reports are written to the correct location.
   """
-  assert os.path.exists("pyproject.toml")
+  assert os.path.exists("pyproject.toml"), "Expected pyproject.toml to exist."
 
   with open("pyproject.toml") as f:
     project_cfg = toml.load(f)
@@ -106,8 +105,9 @@ def write_tox_ini(artifact_dir):
   test_deps = test_cfg.get("test-deps", [])
 
   if not envlist:
-    sys.exit("pyproject.toml must contain a section [tool.gcp-guest-pytest] "
-             'with a key "envlist" and at least one interpreter.')
+    raise ValueError(
+      "pyproject.toml must contain a section [tool.gcp-guest-pytest] "
+      "with a key `envlist` and at least one interpreter.")
 
   config = configparser.ConfigParser()
   config["tox"] = {
@@ -115,11 +115,12 @@ def write_tox_ini(artifact_dir):
   }
 
   config["testenv"] = {
-    "envlogdir": "{artifact_dir}/tox/{{envname}}"
-      .format(artifact_dir=artifact_dir),
-    "deps": "\n\t".join(_common_test_deps + test_deps),
-    "commands": " ".join(_per_interpreter_command)
-      .format(artifact_dir=artifact_dir),
+    "envlogdir":
+      "{artifact_dir}/tox/{{envname}}".format(artifact_dir=artifact_dir),
+    "deps":
+      "\n\t".join(_common_test_deps + test_deps),
+    "commands":
+      " ".join(_per_interpreter_command).format(artifact_dir=artifact_dir),
   }
 
   if os.path.exists("tox.ini"):
@@ -131,9 +132,11 @@ def write_tox_ini(artifact_dir):
 
 
 def archive_configs(dst: str):
-  print("Saving config files to " + dst)
-  if not os.path.exists(dst):
+  if os.path.exists(dst):
+    assert os.path.isdir(dst), f"Expected {dst} to be a directory."
+  else:
     os.mkdir(dst)
+  print("Saving config files to " + dst)
   for fname in ["pyproject.toml", "tox.ini"]:
     shutil.copy2(fname, dst)
 
@@ -141,15 +144,14 @@ def archive_configs(dst: str):
 def validate_args(args: typing.List[str]):
   if (len(args) > 1
       and os.path.isdir(args[1])
-      and os.path.isfile(os.path.join(args[1], 'pyproject.toml'))):
+      and os.path.isfile(os.path.join(args[1], "pyproject.toml"))):
     package_root = os.path.abspath(args[1])
   else:
-    sys.exit("First argument must be path to python package "
-             "package must contain pyproject.toml.")
+    raise ValueError("First argument must be path to python package")
   if "ARTIFACTS" in os.environ and os.path.exists(os.environ["ARTIFACTS"]):
     artifact_dir = os.path.abspath(os.environ["ARTIFACTS"])
   else:
-    sys.exit("$ARTIFACTS must point to a directory that exists")
+    raise ValueError("$ARTIFACTS must point to a directory that exists")
   return artifact_dir, package_root
 
 
