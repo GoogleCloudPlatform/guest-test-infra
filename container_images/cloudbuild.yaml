@@ -15,6 +15,8 @@ steps:
   args: ['build', '--tag=gcr.io/$PROJECT_ID/autoversioner:latest', '--tag=gcr.io/$PROJECT_ID/autoversioner:$COMMIT_SHA', '--file=./container_images/autoversioner/Dockerfile', "/workspace"]
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/flake8:latest', '--tag=gcr.io/$PROJECT_ID/flake8:$COMMIT_SHA', './container_images/flake8']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/pytest:latest', '--tag=gcr.io/$PROJECT_ID/pytest:$COMMIT_SHA', './container_images/pytest']
 images:
   - 'gcr.io/$PROJECT_ID/gocheck:latest'
   - 'gcr.io/$PROJECT_ID/gocheck:$COMMIT_SHA'
@@ -32,3 +34,5 @@ images:
   - 'gcr.io/$PROJECT_ID/autoversioner:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/flake8:latest'
   - 'gcr.io/$PROJECT_ID/flake8:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/pytest:latest'
+  - 'gcr.io/$PROJECT_ID/pytest:$COMMIT_SHA'
