@@ -8,8 +8,6 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/daisy-builder:latest', '--tag=gcr.io/$PROJECT_ID/daisy-builder:$COMMIT_SHA', './container_images/daisy-builder']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=gcr.io/$PROJECT_ID/selinux-tools:latest', '--tag=gcr.io/$PROJECT_ID/selinux-tools:$COMMIT_SHA', './container_images/selinux-tools']
-- name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/build-essential:latest', '--tag=gcr.io/$PROJECT_ID/build-essential:$COMMIT_SHA', './container_images/build-essential']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/autoversioner:latest', '--tag=gcr.io/$PROJECT_ID/autoversioner:$COMMIT_SHA', '--file=./container_images/autoversioner/Dockerfile', "/workspace"]
@@ -26,8 +24,6 @@ images:
   - 'gcr.io/$PROJECT_ID/gotest:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/daisy-builder:latest'
   - 'gcr.io/$PROJECT_ID/daisy-builder:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/selinux-tools:latest'
-  - 'gcr.io/$PROJECT_ID/selinux-tools:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/build-essential:latest'
   - 'gcr.io/$PROJECT_ID/build-essential:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/autoversioner:latest'
