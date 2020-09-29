@@ -2,7 +2,7 @@
   "Name": "integ-all",
   "Sources": {
     "run_integ_tests": "run_integ_tests.sh",
-    "common.sh": "../packagebuild/common.sh"
+    "common.sh": "common.sh"
   },
   "Vars": {
     "repo_owner": {
@@ -17,7 +17,7 @@
       "Value": "master",
       "Description": "Git ref to check out and build"
     },
-    "gcs_output": {
+    "gcs_path": {
       "Value": "$OUTSPATH"
     }
   },
@@ -98,7 +98,7 @@
         },
         {
           "Name": "disk-debian-10",
-          "SourceImage": "projects/bct-prod-images/global/images/family/debian-10",
+          "SourceImage": "projects/debian-cloud/global/images/family/debian-10",
           "SizeGb": "20",
           "Type": "pd-ssd"
         }
@@ -401,7 +401,7 @@
     "copy-results": {
       "CopyGCSObjects": [
         {
-          "Source": "${OUTSPATH}/*.txt",
+          "Source": "${OUTSPATH}/",
           "Destination": "${gcs_path}/"
         }
       ]

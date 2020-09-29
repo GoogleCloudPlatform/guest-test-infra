@@ -16,19 +16,28 @@
 set -x
 
 echo "Running daisy integration test workflow"
+cd /  # Prow will put us in the dir with repo checked out.
 
-GCS_BUCKET="gs://liamh-testing/integ_output"
-/daisy -project $PROJECT -zone $ZONE -var:repo_name=$REPO_NAME \
-  -var:repo_owner=$REPO_OWNER -var:git_ref=$GIT_REF -var:gcs_path=$GCS_BUCKET \
-  integ-test-all.wf.json
+GCS_PATH="${GCS_BUCKET}/`date '+%s'`"
+
+if [[ "$JOB_TYPE" == "presubmit" ]]; then
+  GIT_REF="pull/${PULL_NUMBER}/head"
+else
+  GIT_REF="$PULL_BASE_REF"
+fi
+
+/daisy -project "$PROJECT" -zone "$ZONE" -var:repo_name="$REPO_NAME" \
+  -var:repo_owner="$REPO_OWNER" -var:git_ref="$GIT_REF" \
+  -var:gcs_path="$GCS_PATH" integ-test-all.wf.json
 RET=$?
 
-gsutil cp $GCS_BUCKET/go-test*txt ./
+gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+gsutil cp "$GCS_PATH"/go-test*txt ./
 
 for f in go-test*.txt; do
   # $ARTIFACTS is provided by prow decoration containers
-  cat "$f" | go-junit-report > ${ARTIFACTS}/junit_${f%%.txt}.xml
+  cat "$f" | go-junit-report > "${ARTIFACTS}/junit_${f%%.txt}.xml"
 done
 
 echo Done
-exit "$RET"
+exit $RET

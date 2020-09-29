@@ -13,21 +13,23 @@
 # limitations under the License.
 FROM gcr.io/compute-image-tools/daisy:latest
 FROM golang
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 
-RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget && \
-    rm -rf /var/cache/apt/archives
+COPY --from=0 /daisy /daisy
+# Daisy image copies this from gcr.io/distroless/base, we copy here.
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+COPY --from=1 /go /go
+COPY --from=1 /usr/local/go /usr/local/go
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Go test junit xml output
 RUN go get -u github.com/jstemmer/go-junit-report
 
-COPY --from=0 /daisy daisy
-# Daisy image copies this from gcr.io/distroless/base, we copy here.
-COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget && \
+    rm -rf /var/cache/apt/archives
 
-# Copy this Dockerfile for debugging.
-COPY Dockerfile Dockerfile
-COPY main.sh main.sh
-COPY run_integ_tests.sh run_integ_tests.sh
-COPY integ-test-all.json integ-test-all.json
+COPY . .
 
 ENTRYPOINT ["./main.sh"]
