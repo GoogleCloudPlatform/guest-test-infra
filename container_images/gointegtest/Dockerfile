@@ -11,23 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM gcr.io/compute-image-tools/daisy:latest
 FROM golang
-FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
-
-COPY --from=0 /daisy /daisy
-# Daisy image copies this from gcr.io/distroless/base, we copy here.
-COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
-COPY --from=1 /go /go
-COPY --from=1 /usr/local/go /usr/local/go
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-
-# Go test junit xml output
 RUN go get -u github.com/jstemmer/go-junit-report
 
-RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget && \
+FROM gcr.io/compute-image-tools/daisy:latest
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+
+COPY --from=0 /go/bin/go-junit-report /go-junit-report
+COPY --from=1 /daisy /daisy
+
+RUN apt-get update && apt-get -y install ca-certificates && \
     rm -rf /var/cache/apt/archives
 
 COPY . .

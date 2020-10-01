@@ -36,7 +36,8 @@ gsutil cp "$GCS_PATH"/go-test*txt ./
 
 for f in go-test*.txt; do
   # $ARTIFACTS is provided by prow decoration containers
-  cat "$f" | go-junit-report > "${ARTIFACTS}/junit_${f%%.txt}.xml"
+  cp "$f" "${ARTIFACTS}/"
+  cat "$f" | /go-junit-report > "${ARTIFACTS}/junit_${f%%.txt}.xml"
 done
 
 echo Done
