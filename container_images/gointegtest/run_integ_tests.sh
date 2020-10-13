@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 URL="http://metadata/computeMetadata/v1/instance/"
 OUTS_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/attributes/daisy-outs-path)
 SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/attributes/daisy-sources-path)
@@ -48,7 +50,7 @@ install_go
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
 $GO get -d -t ./...
-$GO test -tags integration -v ./... > /go-test.txt
+$GO test -tags integration -v ./... > /go-test.txt || :
 
 platform=$(echo $IMAGE|sed -e 's/.*\///' -e 's/-v.*//')
 gsutil cp /go-test.txt ${OUTS_PATH}/go-test-${platform}.txt
