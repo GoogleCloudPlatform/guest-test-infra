@@ -63,10 +63,19 @@ See the Dockerfile for currently-installed versions.
 
 #### test-deps (optional)
 
-*Additional* dependencies to install prior to running tests. Runtime
-dependencies from `setup.py` are automatically included. 
+Dependencies to install prior to installing your package:
 
-Encode dependencies using [requirement specifiers](https://pip.pypa.io/en/stable/reference/pip_install/#requirement-specifiers).
+```toml
+test-deps = [
+    "pip-package",
+    "//in-repo-package"
+]
+```
+
+##### pip package
+
+To encode **pip** dependencies, use 
+[requirement specifiers](https://pip.pypa.io/en/stable/reference/pip_install/#requirement-specifiers):
 
 ```toml
 test-deps = [
@@ -76,3 +85,26 @@ test-deps = [
     "D ~=1.4.2"
 ]
 ```
+
+The common usecase is test-only dependencies, such as assertion libraries.
+
+##### in-repo package
+
+To install a dependency from the current repo, write the dependency's path **relative to the root
+of the repository**, starting with two slashes. 
+
+
+```
+repo
+└── src
+    ├── application
+    │   ├── main.py
+    │   ├── main_test.py
+    │   ├── pyproject.toml
+    │   └── setup.py
+    └── sums
+        ├── ints.py
+        └── setup.py
+```
+
+If `application` has a dependency on `sums`, it writes the dependency as `//src/sums`.

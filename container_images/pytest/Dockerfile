@@ -19,7 +19,7 @@ FROM python:3.6.11-slim-buster
 FROM python:3.7.8-slim-buster
 
 FROM python:3.8.5-slim-buster
-RUN pip3 install tox==3.19.0
+RUN pip3 install tox==3.20.1
 
 COPY --from=0 /usr/local/lib/python3.5/ /usr/local/lib/python3.5/
 COPY --from=0 /usr/local/lib/lib*3.5* /usr/local/lib/
