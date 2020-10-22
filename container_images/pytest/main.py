@@ -70,7 +70,6 @@ class TestConfig:
       envlist: Interpreters to run tests with.
       pip_deps: List of dependencies from Pip
       local_deps: List of dependencies installable from this repo.
-
     """
     self.repo_root = repo_root
     self.package_root = package_root
@@ -92,7 +91,7 @@ def setup_execution_root(cfg: TestConfig) -> Path:
     Absolute path to execution root.
   """
   assert cfg.package_root.exists(), \
-      f"Expected {cfg.package_root} to exist and to be an absolute path."
+    f"Expected {cfg.package_root} to exist and to be an absolute path."
 
 
   exec_root = Path(tempfile.mkdtemp())
