@@ -1,0 +1,281 @@
+## Configuration values for the Concourse application (worker and web components).
+## The values specified here are almost direct references to the flags under the
+## `concourse web` and `concourse worker` commands.
+##
+concourse:
+  ## Configurations for the `web` component based on the possible flags configurable
+  ## through the `concourse web` command.
+  ##
+  web:
+
+    ## Enable this flag in order to customize the `client_id` and
+    ## `client_secret` used when logging into the Concourse UI.
+    ##
+    ## Enabling this requires setting `secrets.clientId` and #
+    ## `secrets.clientSecret` (or filling the equivalent fields in the Secret).
+    ##
+    clientConfig:
+      enabled: false
+
+    ## Enable equivalent resources across pipelines and teams to share a single version history.
+    ## Ref: https://concourse-ci.org/global-resources.html
+    ##
+    enableGlobalResources: false
+
+    ## Enable auditing for all api requests connected to builds.
+    ##
+    enableBuildAuditing: true
+
+    ## Enable auditing for all api requests connected to containers.
+    ##
+    enableContainerAuditing: true
+
+    ## Enable auditing for all api requests connected to jobs.
+    ##
+    enableJobAuditing: true
+
+    ## Enable auditing for all api requests connected to pipelines.
+    ##
+    enablePipelineAuditing: true
+
+    ## Enable auditing for all api requests connected to resources.
+    ##
+    enableResourceAuditing: true
+
+    ## Enable auditing for all api requests connected to system transactions.
+    ##
+    enableSystemAuditing: true
+
+    ## Enable auditing for all api requests connected to teams.
+    ##
+    enableTeamAuditing: true
+
+    ## Enable auditing for all api requests connected to workers.
+    ##
+    enableWorkerAuditing: true
+
+    ## Enable auditing for all api requests connected to volumes.
+    ##
+    enableVolumeAuditing: true
+
+    ## IP address on which to listen for HTTP traffic (web UI and API).
+    ##
+    bindIp: 0.0.0.0
+
+    ## Port on which to listen for HTTP traffic (web UI and API).
+    ##
+    bindPort: 8080
+
+    ## URL used to reach any ATC from the outside world.
+    ## This is *very* important for a proper authentication workflow as
+    ## browser redirects are based on the value set here.
+    ##
+    ## Example: http://ci.concourse-ci.org
+    ##
+    # Set to a fake URL for non-Ingress type. Need to set this in
+    # local hosts file.
+    externalUrl: http://localhost
+
+    encryption:
+      ## Enable encryption of pipeline configuration. Encryption keys can be set via secrets
+      ## (`encryption-key` and `old-encryption-key` fields).
+      ## Ref: https://concourse-ci.org/encryption.html
+      ##
+      enabled: true
+
+    localAuth:
+      ## Enable the use of local authentication (basic auth).
+      ## Once enabled, users configured through `local-users` (secret)
+      ## are able to authenticate.
+      ##
+      ## Local users can be individually added to the `main` team by setting
+      ## `concourse.web.auth.mainTeam.localUser` with a comma-separated list
+      ## of ids.
+      ##
+      ## Ref: https://concourse-ci.org/local-auth.html
+      ##
+      enabled: true
+
+    ## Configuration file for specifying defaults for base resource types
+    ## Ref: https://concourse-ci.org/concourse-web.html#resource-defaults
+    ## Example:
+    ## baseResourceTypeDefaults: |
+    ##   registry-image:
+    ##     registry_mirror:
+    ##       host: https://registry.mirror.example.com
+    ##
+    baseResourceTypeDefaults: ""  # TODO
+
+    kubernetes:
+      ## Enable the use of Kubernetes Secrets as the credential provider for
+      ## concourse pipelines.
+      ##
+      enabled: true
+
+
+    tracing:
+
+      ## GCP's Project ID
+      ##
+      ## Example: "my-projectid"
+      ##
+      stackdriverProjectId: gcp-guest
+
+
+    auth:
+      ## Length of time for which tokens are valid. Afterwards, users will have to log back in.
+      ## The value must be specified as Go duration values (e.g.: 30m or 24h).
+      duration: 10h
+
+      mainTeam:
+        ## Comma-separated list of local Concourse users to be included as members of the `main` team.
+        ## Make sure you have local users support enabled (`concourse.web.localAuth.enabled`) and
+        ## that the users were added (`secrets.localUsers`).
+        ##
+        localUser: "concourse"
+
+  worker:
+
+    baggageclaim:
+
+      ## Driver to use for managing volumes.
+      ## Possible values: detect, naive, btrfs, and overlay.
+      ##
+      driver: overlay
+
+
+## Configuration values for Concourse Web components.
+## For more information regarding the characteristics of
+## Concourse Web nodes, see https://concourse-ci.org/concourse-web.html.
+##
+web:
+
+  ## Enable or disable the web component.
+  ## This allows the creation of worker-only releases by setting this to false.
+  ##
+  enabled: true
+
+
+  ## Service configuration.
+  ## Ref: https://kubernetes.io/docs/user-guide/services/
+  ##
+  service:
+    api:
+      ## For minikube, set this to ClusterIP, elsewhere use LoadBalancer or NodePort
+      ## Ref: https://kubernetes.io/docs/user-guide/services/#publishing-services---service-types
+      ##
+      type: NodePort
+
+    workerGateway:
+      ## For minikube, set this to ClusterIP, elsewhere use LoadBalancer or NodePort
+      ## Ref: https://kubernetes.io/docs/user-guide/services/#publishing-services---service-types
+      ##
+      type: NodePort
+
+
+  ## Ingress configuration.
+  ## Ref: https://kubernetes.io/docs/user-guide/ingress/
+  ##
+  ingress:
+    ## Enable Ingress.
+    ##
+    enabled: false
+
+    # TODO uncomment below and set above to true when ready for hostname
+    # behind GKE HTTP(S) or TCP/SSL tunnel. Then uberproxy (?) that.
+
+    ## Hostnames.
+    ## Must be provided if Ingress is enabled.
+    ## Example:
+    ##   - concourse.domain.com
+    ##
+    #hosts:
+
+    ## TLS configuration.
+    ## Secrets must be manually created in the namespace.
+    ## Example:
+    ##   - secretName: concourse-web-tls
+    ##     hosts:
+    ##       - concourse.domain.com
+    ##
+    #tls:
+
+## Configuration values for Concourse Worker components.
+## For more information regarding the characteristics of
+## Concourse Workers, see https://concourse-ci.org/concourse-worker.html
+##
+worker:
+
+  ## Enable or disable the worker component.
+  ## This can allow users to create web only releases by setting this to false
+  ##
+  enabled: true
+
+
+## Persistent Volume Storage configuration.
+## Ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+##
+persistence:
+
+  ## Enable persistence using Persistent Volume Claims.
+  ## Ignored for Kind: Deployment. If persistence is needed use kind: StatefulSet
+  ##
+  enabled: true
+
+## Configuration values for the postgresql dependency.
+## Ref: https://github.com/helm/charts/blob/master/stable/postgresql/README.md
+##
+postgresql:
+
+  ## Use the PostgreSQL chart dependency.
+  ##
+  ## Set to false if bringing your own PostgreSQL, and set the corresponding `secrets`
+  ## fields that correspond to the PostgreSQL variables that `concourse web` should use
+  ## to connect to.
+  ##
+  ## Should be set to false if using the chart as a worker only deployment.
+  ##
+  enabled: true
+
+  ### PostgreSQL User to create.
+  ##
+  postgresqlUsername: cipsql
+
+  ## PostgreSQL Password for the new user.
+  ## If not set, a random 10 characters password will be used.
+  ##
+  postgresqlPassword:
+
+  ## Persistent Volume Storage configuration for PostgreSQL.
+  ##
+  ## Ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+  ##
+  persistence:
+    ## Enable PostgreSQL persistence using Persistent Volume Claims.
+    ##
+    enabled: true
+
+## For Kubernetes RBAC support:
+##
+rbac:
+  ## Enable the creation of RBAC resources.
+  ##
+  create: true
+
+## For managing podSecurityPolicies. To make sure rbac objects are also created
+## for the use of the podsecuritypolicy objects,
+## set rbac.create to 'true' (this is the default value)
+##
+podSecurityPolicy:
+  ## Create podSecurityPolicy objects for concourse. Set this to false if
+  ## objects are not needed, or if they are managed outside helm.
+  ##
+  create: false
+
+## For managing secrets using Helm
+##
+secrets:
+  ## Create the secret resource from the following values. Set this to
+  ## false to manage these secrets outside Helm.
+  ##
+  create: false
