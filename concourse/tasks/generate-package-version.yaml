@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/daisy-builder
+    tag: latest
+
+inputs:
+- name: token
+
+outputs:
+- name: package-version
+
+run:
+  path: sh
+  args:
+  - -xc
+  - |
+    /versiongenerator --token-file-path=token/token.txt --org=GoogleCloudPlatform --repo=((repo-name)) > package-version/version
+    cat package-version/version

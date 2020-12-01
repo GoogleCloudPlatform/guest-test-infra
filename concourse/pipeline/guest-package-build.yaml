@@ -1,0 +1,336 @@
+---
+resource_types:
+- name: gcs
+  type: registry-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+# centos
+- name: guest-agent
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-agent.git
+    branch: master
+- name: guest-oslogin
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-oslogin.git
+    branch: master
+- name: osconfig
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/osconfig.git
+    branch: master
+- name: guest-diskexpand
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-diskexpand.git
+    branch: master
+- name: guest-configs
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-configs.git
+    branch: master
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
+
+jobs:
+- name: guest-agent-integration-test
+  plan:
+  - get: guest-agent
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: guest-package-build-guest-agent
+    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    vars:
+      repo-name: "guest-agent"
+- name: guest-oslogin-integration-test
+  plan:
+  - get: guest-oslogin
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: guest-package-build-guest-oslogin
+    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    vars:
+      repo-name: "guest-oslogin"
+- name: osconfig-integration-test
+  plan:
+  - get: osconfig
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: guest-package-build-osconfig
+    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    vars:
+      repo-name: "osconfig"
+- name: guest-diskexpand-integration-test
+  plan:
+  - get: guest-diskexpand
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: guest-package-build-guest-diskexpand
+    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    vars:
+      repo-name: "guest-diskexpand"
+- name: guest-configs-integration-test
+  plan:
+  - get: guest-configs
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: guest-package-build-guest-configs
+    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    vars:
+      repo-name: "guest-configs"
+
+- name: build-guest-agent
+  plan:
+  - get: guest-agent
+    passed: [guest-agent-integration-test]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: commit-sha
+    file: guest-agent/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    vars:
+      repo-name: "guest-agent"
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-guest-agent-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb9.wf.json"
+          repo-name: "guest-agent"
+          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+      - task: guest-package-build-guest-agent-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el7.wf.json"
+          repo-name: "guest-agent"
+          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+      - task: guest-package-build-guest-agent-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el8.wf.json"
+          repo-name: "guest-agent"
+          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+      - task: guest-package-build-guest-agent-goo
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_goo.wf.json"
+          repo-name: "guest-agent"
+          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+  - task: tag-commit
+    file: guest-test-infra/concourse/tasks/tag-commit.yaml
+    vars:
+      repo-name: "guest-agent"
+- name: build-guest-oslogin
+  plan:
+  - get: guest-oslogin
+    passed: [guest-oslogin-integration-test]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: commit-sha
+    file: guest-oslogin/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    vars:
+      repo-name: "guest-oslogin"
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-guest-oslogin-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb9.wf.json"
+          repo-name: "guest-oslogin"
+          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+      - task: guest-package-build-guest-oslogin-deb10
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb10.wf.json"
+          repo-name: "guest-oslogin"
+          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+      - task: guest-package-build-guest-oslogin-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el7.wf.json"
+          repo-name: "guest-oslogin"
+          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+      - task: guest-package-build-guest-oslogin-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el8.wf.json"
+          repo-name: "guest-oslogin"
+          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+  - task: tag-commit
+    file: guest-test-infra/concourse/tasks/tag-commit.yaml
+    vars:
+      repo-name: "guest-oslogin"
+- name: build-osconfig
+  plan:
+  - get: osconfig
+    passed: [osconfig-integration-test]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: commit-sha
+    file: osconfig/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    vars:
+      repo-name: "osconfig"
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-osconfig-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb9.wf.json"
+          repo-name: "osconfig"
+          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+      - task: guest-package-build-osconfig-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el7.wf.json"
+          repo-name: "osconfig"
+          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+      - task: guest-package-build-osconfig-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el8.wf.json"
+          repo-name: "osconfig"
+          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+      - task: guest-package-build-osconfig-goo
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_goo.wf.json"
+          repo-name: "osconfig"
+          gcs_path: "gs://gcp-guest-package-uploads/gosconfig"
+
+  - task: tag-commit
+    file: guest-test-infra/concourse/tasks/tag-commit.yaml
+    vars:
+      repo-name: "osconfig"
+- name: build-guest-diskexpand
+  plan:
+  - get: guest-diskexpand
+    passed: [guest-diskexpand-integration-test]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: commit-sha
+    file: guest-diskexpand/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    vars:
+      repo-name: "guest-diskexpand"
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-guest-diskexpand-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb9.wf.json"
+          repo-name: "guest-diskexpand"
+          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+      - task: guest-package-build-guest-diskexpand-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el7.wf.json"
+          repo-name: "guest-diskexpand"
+          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+      - task: guest-package-build-guest-diskexpand-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el8.wf.json"
+          repo-name: "guest-diskexpand"
+          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+  - task: tag-commit
+    file: guest-test-infra/concourse/tasks/tag-commit.yaml
+    vars:
+      repo-name: "osconfig"
+- name: build-guest-configs
+  plan:
+  - get: guest-configs
+    passed: [guest-configs-integration-test]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: commit-sha
+    file: guest-configs/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    vars:
+      repo-name: "guest-configs"
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-guest-configs-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_deb9.wf.json"
+          repo-name: "guest-configs"
+          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+      - task: guest-package-build-guest-configs-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el7.wf.json"
+          repo-name: "guest-configs"
+          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+      - task: guest-package-build-guest-configs-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: "build_el8.wf.json"
+          repo-name: "guest-configs"
+          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+  - task: tag-commit
+    file: guest-test-infra/concourse/tasks/tag-commit.yaml
+    vars:
+      repo-name: "guest-configs"
