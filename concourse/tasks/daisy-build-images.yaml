@@ -1,0 +1,17 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: gcr.io/hanga-testing/daisy-with-creds, tag: latest}
+
+inputs:
+- name: compute-image-tools
+
+run:
+  path: /daisy
+  args:
+  - -project=hanga-testing
+  - -zone=us-central1-c
+  - -var:installer_iso=((iso))
+  - -var:publish_path=((puslish_path))
+  - ./compute-image-tools/daisy_workflows/((wf))

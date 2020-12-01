@@ -1,0 +1,764 @@
+---
+resource_types:
+- name: gcs
+  type: registry-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: compute-image-tools
+  type: git
+  source:
+    uri: https://github.com/gaohannk/compute-image-tools.git
+    branch: master
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/gaohannk/guest-test-infra.git
+    branch: master
+
+- name: centos-6-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/centos-6-v(.*)-root.tar.gz"
+- name: centos-7-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/centos-7-v(.*)-root.tar.gz"
+- name: centos-8-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/centos-8-v(.*)-root.tar.gz"
+- name: rhel-6-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/rhel-6-v(.*)-root.tar.gz"
+- name: rhel-7-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/rhel-7-v(.*)-root.tar.gz"
+- name: rhel-8-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/rhel-8-v(.*)-root.tar.gz"
+- name: debian-9-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/debian-9-v(.*)-root.tar.gz"
+- name: debian-10-gcs
+  type: gcs
+  source:
+    bucket: concourse-result
+    json_key: |
+      ((concourse-secret.gcs_key))
+    regexp: "image_builds_ci/dummy/debian-10-v(.*)-root.tar.gz"
+
+jobs:
+  # Build jobs
+- name: build-centos-6
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+    vars: {prefix: "centos-6"}
+  - put: centos-6-gcs
+    params: {file: build-id-dir/centos-6*}
+    get_params: {skip_download: "true"}
+  - load_var: gcs-url
+    file: centos-6-gcs/url
+  - task: daisy-build-centos-6
+    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+    vars:
+      wf: "image_build/enterprise_linux/centos_6.wf.json"
+      path: ((.:gcs-url))
+      iso: "gs://concourse-iso/linux-build-resources/CentOS-6.10-x86_64-bin-DVD1.iso"
+#- name: build-centos-7
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+#    vars: {prefix: "centos-7"}
+#  - put: centos-7-gcs
+#    params: {file: build-id-dir/centos-7*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-7-gcs/url
+#  - task: daisy-build-centos-7
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/enterprise_linux/centos_7_uefi.wf.json"
+#      path: ((.:gcs-url))
+#      iso: "gs://liamh-export/linux-build-resources/CentOS-7-x86_64-DVD-2003.iso"
+#- name: build-centos-8
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+#    vars: {prefix: "centos-8"}
+#  - put: centos-8-gcs
+#    params: {file: build-id-dir/centos-8*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-8-gcs/url
+#  - task: daisy-build-centos-8
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/enterprise_linux/centos_8_uefi.wf.json"
+#      path: ((.:gcs-url))
+#      iso: "gs://liamh-export/linux-build-resources/CentOS-8.2.2004-x86_64-dvd1.iso"
+#- name: build-rhel-6
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+#    vars: {prefix: "rhel-6"}
+#  - put: rhel-6-gcs
+#    params: {file: build-id-dir/rhel-6*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-6-gcs/url
+#  - task: daisy-build-rhel-6
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/enterprise_linux/rhel_6.wf.json"
+#      path: ((.:gcs-url))
+#      iso: "gs://liamh-export/linux-build-resources/rhel-server-6.10-x86_64-dvd.iso"
+#- name: build-rhel-7
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+#    vars: {prefix: "rhel-7"}
+#  - put: rhel-7-gcs
+#    params: {file: build-id-dir/rhel-7*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-7-gcs/url
+#  - task: daisy-build-rhel-7
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/enterprise_linux/rhel_7_uefi.wf.json"
+#      path: ((.:gcs-url))
+#      iso: "gs://liamh-export/linux-build-resources/rhel-server-7.8-x86_64-dvd.iso"
+#- name: build-rhel-8
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact.yml
+#    vars: {prefix: "rhel-8"}
+#  - put: rhel-8-gcs
+#    params: {file: build-id-dir/rhel-8*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-8-gcs/url
+#  - task: daisy-build-rhel-8
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/enterprise_linux/rhel_8_uefi.wf.json"
+#      path: ((.:gcs-url))
+#      iso: "gs://liamh-export/linux-build-resources/rhel-8.2-x86_64-dvd.iso"
+#- name: build-debian-9
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact-path.yml
+#    vars: {prefix: "debian-9"}
+#  - put: debian-9-gcs
+#    params: {file: build-id-dir/debian-9*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-9-gcs/url
+#  - task: daisy-build-debian-9
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/debian/debian_9.wf.json"
+#      path: ((.:gcs-url))
+#- name: build-debian-10
+#  plan:
+#  - get: compute-image-tools
+#  - get: guest-test-infra
+#  - task: generate-build-id
+#    file: guest-test-infra/concourse/tasks/generate-artifact-path.yml
+#    vars: {prefix: "debian-10"}
+#  - put: debian-10-gcs
+#    params: {file: build-id-dir/debian-10*}
+#    get_params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-10-gcs/url
+#  - task: daisy-build-debian-10
+#    file: guest-test-infra/concourse/tasks/daisy-build-image.yml
+#    vars:
+#      wf: "image_build/debian/debian_10_fai.wf.json"
+#      path: ((.:gcs-url))
+
+  # Publish to testing
+- name: publish-to-testing-centos-6
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: centos-6-gcs
+    passed: [build-centos-6]
+    trigger: false
+    params: {skip_download: "true"}
+  - load_var: source-version
+    file: centos-6-gcs/version
+  - load_var: gcs-url
+    file: centos-6-gcs/url
+  - task: gsutil-ls
+    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+    vars:
+      path: ((.:gcs-url))
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-build-id.yml
+  - load_var: publish-version
+    file: build-id-dir/build-id  # produced from generate-version task
+  - task: publish-centos-6
+    file: guest-test-infra/concourse/tasks/gce-image-publish.yml
+    input_mapping: {workflows: compute-image-tools}
+    vars:
+      family: debian-9
+      source_version: ((.:gcs-version))
+      publish_version: ((.:publish-version))
+      wf: daisy_workflows/image_publish/debian/debian_9.publish.json
+      gcs_path: gs://concourse-result/image_builds_ci/dummy/
+
+# Publish to staging
+#- name: publish-to-staging-centos-6
+#  old_name: echo-centos-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-6-gcs
+#    passed: [build-centos-6]
+#    trigger: false
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-7
+#  old_name: echo-centos-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-7-gcs
+#    passed: [build-centos-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-8
+#  old_name: echo-centos-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-8-gcs
+#    passed: [build-centos-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-6
+#  old_name: echo-rhel-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-6-gcs
+#    passed: [build-rhel-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-7
+#  old_name: echo-rhel-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-7-gcs
+#    passed: [build-rhel-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-8
+#  old_name: echo-rhel-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-8-gcs
+#    passed: [build-rhel-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-testing-debian-9
+#  plan:
+#  - get: guest-test-infra
+#  - get: compute-image-tools
+#  - get: debian-9-gcs
+#    passed: [build-debian-9]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: source-version
+#    file: debian-9-gcs/version
+#  - load_var: gcs-url
+#    file: debian-9-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#  - task: generate-version
+#    file: guest-test-infra/concourse/tasks/generate-build-id.yml
+#  - load_var: publish-version
+#    file: build-id-dir/build-id  # produced from generate-version task
+#  - task: publish-debian-9
+#    file: guest-test-infra/concourse/tasks/gce-image-publish.yml
+#    input_mapping: {workflows: compute-image-tools}
+#    vars:
+#      family: debian-9
+#      source_version: ((.:gcs-version))
+#      publish_version: ((.:publish-version))
+#      wf: daisy_workflows/image_publish/debian/debian_9.publish.json
+#      gcs_path: gs://liamh-export/image_builds_ci/dummy/
+#- name: publish-to-staging-debian-10
+#  old_name: echo-debian-10
+#  plan:
+#  - get: guest-test-infra
+#  - get: debian-10-gcs
+#    passed: [build-debian-10]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-10-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#
+#- name: publish-to-staging-centos-6
+#  old_name: echo-centos-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-6-gcs
+#    passed: [build-centos-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-7
+#  old_name: echo-centos-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-7-gcs
+#    passed: [build-centos-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-8
+#  old_name: echo-centos-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-8-gcs
+#    passed: [build-centos-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-6
+#  old_name: echo-rhel-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-6-gcs
+#    passed: [build-rhel-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-7
+#  old_name: echo-rhel-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-7-gcs
+#    passed: [build-rhel-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-8
+#  old_name: echo-rhel-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-8-gcs
+#    passed: [build-rhel-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-testing-debian-9
+#  plan:
+#  - get: guest-test-infra
+#  - get: compute-image-tools
+#  - get: debian-9-gcs
+#    passed: [build-debian-9]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: source-version
+#    file: debian-9-gcs/version
+#  - load_var: gcs-url
+#    file: debian-9-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#  - task: generate-version
+#    file: guest-test-infra/concourse/tasks/generate-build-id.yml
+#  - load_var: publish-version
+#    file: build-id-dir/build-id  # produced from generate-version task
+#  - task: publish-debian-9
+#    file: guest-test-infra/concourse/tasks/gce-image-publish.yml
+#    input_mapping: {workflows: compute-image-tools}
+#    vars:
+#      family: debian-9
+#      source_version: ((.:gcs-version))
+#      publish_version: ((.:publish-version))
+#      wf: daisy_workflows/image_publish/debian/debian_9.publish.json
+#      gcs_path: gs://liamh-export/image_builds_ci/dummy/
+#- name: publish-to-staging-debian-10
+#  old_name: echo-debian-10
+#  plan:
+#  - get: guest-test-infra
+#  - get: debian-10-gcs
+#    passed: [build-debian-10]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-10-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+
+  # Publish to prod
+#- name: publish-to-prod-centos-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-6-gcs
+#    passed: [build-centos-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-7
+#  old_name: echo-centos-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-7-gcs
+#    passed: [build-centos-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-8
+#  old_name: echo-centos-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-8-gcs
+#    passed: [build-centos-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-6
+#  old_name: echo-rhel-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-6-gcs
+#    passed: [build-rhel-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-7
+#  old_name: echo-rhel-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-7-gcs
+#    passed: [build-rhel-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-8
+#  old_name: echo-rhel-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-8-gcs
+#    passed: [build-rhel-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-testing-debian-9
+#  plan:
+#  - get: guest-test-infra
+#  - get: compute-image-tools
+#  - get: debian-9-gcs
+#    passed: [build-debian-9]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: source-version
+#    file: debian-9-gcs/version
+#  - load_var: gcs-url
+#    file: debian-9-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#  - task: generate-version
+#    file: guest-test-infra/concourse/tasks/generate-build-id.yml
+#  - load_var: publish-version
+#    file: build-id-dir/build-id  # produced from generate-version task
+#  - task: publish-debian-9
+#    file: guest-test-infra/concourse/tasks/gce-image-publish.yml
+#    input_mapping: {workflows: compute-image-tools}
+#    vars:
+#      family: debian-9
+#      source_version: ((.:gcs-version))
+#      publish_version: ((.:publish-version))
+#      wf: daisy_workflows/image_publish/debian/debian_9.publish.json
+#      gcs_path: gs://liamh-export/image_builds_ci/dummy/
+#- name: publish-to-staging-debian-10
+#  old_name: echo-debian-10
+#  plan:
+#  - get: guest-test-infra
+#  - get: debian-10-gcs
+#    passed: [build-debian-10]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-10-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#
+#- name: publish-to-staging-centos-6
+#  old_name: echo-centos-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-6-gcs
+#    passed: [build-centos-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-7
+#  old_name: echo-centos-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-7-gcs
+#    passed: [build-centos-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-centos-8
+#  old_name: echo-centos-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: centos-8-gcs
+#    passed: [build-centos-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: centos-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-6
+#  old_name: echo-rhel-6
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-6-gcs
+#    passed: [build-rhel-6]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-6-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-7
+#  old_name: echo-rhel-7
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-7-gcs
+#    passed: [build-rhel-7]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-7-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-staging-rhel-8
+#  old_name: echo-rhel-8
+#  plan:
+#  - get: guest-test-infra
+#  - get: rhel-8-gcs
+#    passed: [build-rhel-8]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: rhel-8-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#- name: publish-to-testing-debian-9
+#  plan:
+#  - get: guest-test-infra
+#  - get: compute-image-tools
+#  - get: debian-9-gcs
+#    passed: [build-debian-9]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: source-version
+#    file: debian-9-gcs/version
+#  - load_var: gcs-url
+#    file: debian-9-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))
+#  - task: generate-version
+#    file: guest-test-infra/concourse/tasks/generate-build-id.yml
+#  - load_var: publish-version
+#    file: build-id-dir/build-id  # produced from generate-version task
+#  - task: publish-debian-9
+#    file: guest-test-infra/concourse/tasks/gce-image-publish.yml
+#    input_mapping: {workflows: compute-image-tools}
+#    vars:
+#      family: debian-9
+#      source_version: ((.:gcs-version))
+#      publish_version: ((.:publish-version))
+#      wf: daisy_workflows/image_publish/debian/debian_9.publish.json
+#      gcs_path: gs://liamh-export/image_builds_ci/dummy/
+#- name: publish-to-staging-debian-10
+#  old_name: echo-debian-10
+#  plan:
+#  - get: guest-test-infra
+#  - get: debian-10-gcs
+#    passed: [build-debian-10]
+#    trigger: true
+#    params: {skip_download: "true"}
+#  - load_var: gcs-url
+#    file: debian-10-gcs/url
+#  - task: gsutil-ls
+#    file: guest-test-infra/concourse/tasks/gsutil-ls.yml
+#    vars:
+#      path: ((.:gcs-url))

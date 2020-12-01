@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: google/cloud-sdk, tag: latest}
+
+run:
+  path: gsutil
+  args:
+  - cp
+  - ((src))
+  - ((dst))
