@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: busybox
+
+outputs:
+- name: publish-version
+
+run:
+  path: sh
+  args:
+  - -c
+  - "date '+%Y%m%d' | tee publish-version/version"
