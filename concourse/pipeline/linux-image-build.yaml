@@ -95,7 +95,7 @@ resources:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "debian/debian-9-stretch-v${.*}.tar.gz"
+    regexp: "debian/debian-9-stretch-v(.*).tar.gz"
 - name: debian-10-gcs
   type: gcs
   source:
@@ -120,11 +120,11 @@ jobs:
       file: build-id-dir/centos-7*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: centos-7-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -132,10 +132,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/centos_7_uefi.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.centos-7))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-centos-8
   plan:
   - get: compute-image-tools
@@ -149,11 +149,11 @@ jobs:
       file: build-id-dir/centos-8*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: centos-8-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -161,10 +161,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/centos_8_uefi.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.centos-8))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 # rhel
 - name: build-rhel-6
   plan:
@@ -179,11 +179,11 @@ jobs:
       file: build-id-dir/rhel-6*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-6-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -191,10 +191,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_6.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-6))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-7
   plan:
   - get: compute-image-tools
@@ -208,11 +208,11 @@ jobs:
       file: build-id-dir/rhel-7*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-7-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -220,10 +220,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_7_uefi.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-7))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-8
   plan:
   - get: compute-image-tools
@@ -237,11 +237,11 @@ jobs:
       file: build-id-dir/rhel-8*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-8-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -249,10 +249,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_8_uefi.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-8))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-7-4-sap
   plan:
   - get: compute-image-tools
@@ -266,11 +266,11 @@ jobs:
       file: build-id-dir/rhel-7-4-sap*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-7-4-sap-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -278,10 +278,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_7_4_sap.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-7-4))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-7-6-sap
   plan:
   - get: compute-image-tools
@@ -295,11 +295,11 @@ jobs:
       file: build-id-dir/rhel-7-6-sap*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-7-6-sap-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -307,10 +307,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_7_6_sap.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-7-6))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-7-7-sap
   plan:
   - get: compute-image-tools
@@ -324,11 +324,11 @@ jobs:
       file: build-id-dir/rhel-7-7-sap*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-7-7-sap-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -336,10 +336,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_7_7_sap.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-7-7))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-8-1-sap
   plan:
   - get: compute-image-tools
@@ -353,11 +353,11 @@ jobs:
       file: build-id-dir/rhel-8-1-sap*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-8-1-sap-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -365,10 +365,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_8_1_sap.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-8-1))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-rhel-8-2-sap
   plan:
   - get: compute-image-tools
@@ -382,11 +382,11 @@ jobs:
       file: build-id-dir/rhel-8-2-sap*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: rhel-8-2-sap-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -394,10 +394,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/rhel_8_2_sap.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       iso: ((iso-paths.rhel-8-1))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 # debian
 - name: build-debian-9
   plan:
@@ -412,11 +412,11 @@ jobs:
       file: build-id-dir/debian-9*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: debian-9-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -424,9 +424,9 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
     vars:
       wf: "debian/debian_9.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 - name: build-debian-10
   plan:
   - get: compute-image-tools
@@ -440,11 +440,11 @@ jobs:
       file: build-id-dir/debian-10*
     get_params:
       skip_download: "true"
-  - load_var: gcs-url
+  - load_var: gcs_url
     file: debian-10-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
+  - load_var: build_date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -452,9 +452,9 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
     vars:
       wf: "debian/debian_10.wf.json"
-      gcs-url: ((.:gcs-url))
+      gcs_url: ((.:gcs_url))
       google_cloud_repo: "stable"
-      build_date: ((.:build-date))
+      build_date: ((.:build_date))
 
 # Publish to testing
 # centos
@@ -670,8 +670,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-1-sap-gcs/version
-  - load_var: gcs-url
-    file: rhel-8-1-sap-gcs/url
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -697,8 +695,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-2-sap-gcs/version
-  - load_var: gcs-url
-    file: rhel-8-2-sap-gcs/url
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
