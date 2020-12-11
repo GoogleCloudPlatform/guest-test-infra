@@ -23,14 +23,14 @@ resources:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "centos/centos-7-v(.*).tar.gz"
+    regexp: "centos/centos-7-v([0-9]+).tar.gz"
 - name: centos-8-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "centos/centos-8-v(.*).tar.gz"
+    regexp: "centos/centos-8-v([0-9]+).tar.gz"
 # rhel
 - name: rhel-6-gcs
   type: gcs
@@ -38,56 +38,56 @@ resources:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-6-v(.*).tar.gz"
+    regexp: "rhel/rhel-6-v([0-9]+).tar.gz"
 - name: rhel-7-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-7-v(.*).tar.gz"
+    regexp: "rhel/rhel-7-v([0-9]+).tar.gz"
 - name: rhel-8-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-8-v(.*).tar.gz"
+    regexp: "rhel/rhel-8-v([0-9]+).tar.gz"
 - name: rhel-7-4-sap-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-7-4-sap-v(.*).tar.gz"
+    regexp: "rhel/rhel-7-4-sap-v([0-9]+).tar.gz"
 - name: rhel-7-6-sap-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-7-6-sap-v(.*).tar.gz"
+    regexp: "rhel/rhel-7-6-sap-v([0-9]+).tar.gz"
 - name: rhel-7-7-sap-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-7-7-sap-v(.*).tar.gz"
+    regexp: "rhel/rhel-7-7-sap-v([0-9]+).tar.gz"
 - name: rhel-8-1-sap-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-8-1-sap-v(.*).tar.gz"
+    regexp: "rhel/rhel-8-1-sap-v([0-9]+).tar.gz"
 - name: rhel-8-2-sap-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-8-2-sap-v(.*).tar.gz"
+    regexp: "rhel/rhel-8-2-sap-v([0-9]+).tar.gz"
 # debian
 - name: debian-9-gcs
   type: gcs
@@ -95,14 +95,14 @@ resources:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "debian/debian-9-stretch-v(.*).tar.gz"
+    regexp: "debian/debian-9-stretch-v([0-9]+).tar.gz"
 - name: debian-10-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "debian/debian-10-buster-v(.*).tar.gz"
+    regexp: "debian/debian-10-buster-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
