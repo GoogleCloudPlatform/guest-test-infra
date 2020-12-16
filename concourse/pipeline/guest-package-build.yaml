@@ -137,6 +137,10 @@ jobs:
           wf: "build_goo.wf.json"
           repo-name: "guest-agent"
           gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+  - task: validate-version
+    file: guest-test-infra/concourse/tasks/validate-version.yaml
+    vars:
+      repo-name: "guest-agent"
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -188,6 +192,10 @@ jobs:
           wf: "build_el8.wf.json"
           repo-name: "guest-oslogin"
           gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+  - task: validate-version
+    file: guest-test-infra/concourse/tasks/validate-version.yaml
+    vars:
+      repo-name: "guest-oslogin"
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -239,7 +247,10 @@ jobs:
           wf: "build_goo.wf.json"
           repo-name: "osconfig"
           gcs_path: "gs://gcp-guest-package-uploads/gosconfig"
-
+  - task: validate-version
+    file: guest-test-infra/concourse/tasks/validate-version.yaml
+    vars:
+      repo-name: "osconfig"
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -285,6 +296,10 @@ jobs:
           wf: "build_el8.wf.json"
           repo-name: "guest-diskexpand"
           gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+  - task: validate-version
+    file: guest-test-infra/concourse/tasks/validate-version.yaml
+    vars:
+      repo-name: "guest-diskexpand"
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -330,6 +345,10 @@ jobs:
           wf: "build_el8.wf.json"
           repo-name: "guest-configs"
           gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+  - task: validate-version
+    file: guest-test-infra/concourse/tasks/validate-version.yaml
+    vars:
+      repo-name: "guest-configs"
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
