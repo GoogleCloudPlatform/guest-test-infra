@@ -1,0 +1,15 @@
+---
+resources:
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
+
+jobs:
+- name: set-pipelines
+  plan:
+  - get: guest-test-infra
+    trigger: true
+  - set_pipeline: linux-image-build
+    file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
