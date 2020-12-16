@@ -288,7 +288,7 @@ jobs:
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
-      repo-name: "osconfig"
+      repo-name: "guest-diskexpand"
 - name: build-guest-configs
   plan:
   - get: guest-configs
