@@ -1,10 +1,4 @@
 ---
-resource_types:
-- name: gcs
-  type: registry-image
-  source:
-    repository: frodenas/gcs-resource
-
 resources:
 # centos
 - name: guest-agent
@@ -46,19 +40,9 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: guest-package-build-guest-agent
-    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
     vars:
       repo-name: "guest-agent"
-- name: guest-oslogin-integration-test
-  plan:
-  - get: guest-oslogin
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: guest-package-build-guest-oslogin
-    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
-    vars:
-      repo-name: "guest-oslogin"
 - name: osconfig-integration-test
   plan:
   - get: osconfig
@@ -66,35 +50,15 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: guest-package-build-osconfig
-    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
+    file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
     vars:
       repo-name: "osconfig"
-- name: guest-diskexpand-integration-test
-  plan:
-  - get: guest-diskexpand
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: guest-package-build-guest-diskexpand
-    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
-    vars:
-      repo-name: "guest-diskexpand"
-- name: guest-configs-integration-test
-  plan:
-  - get: guest-configs
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: guest-package-build-guest-configs
-    file: guest-test-infra/concourse/tasks/package-integration-test.yaml
-    vars:
-      repo-name: "guest-diskexpand"
 
 - name: build-guest-agent
   plan:
   - get: guest-agent
     passed: [guest-agent-integration-test]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: commit-sha
@@ -148,10 +112,6 @@ jobs:
 - name: build-guest-oslogin
   plan:
   - get: guest-oslogin
-    passed: [guest-oslogin-integration-test]
-    trigger: false
-    params:
-      skip_download: "true"
   - load_var: commit-sha
     file: guest-oslogin/.git/ref
   - get: guest-test-infra
@@ -204,7 +164,7 @@ jobs:
   plan:
   - get: osconfig
     passed: [osconfig-integration-test]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: commit-sha
@@ -258,10 +218,6 @@ jobs:
 - name: build-guest-diskexpand
   plan:
   - get: guest-diskexpand
-    passed: [guest-diskexpand-integration-test]
-    trigger: false
-    params:
-      skip_download: "true"
   - load_var: commit-sha
     file: guest-diskexpand/.git/ref
   - get: guest-test-infra
@@ -307,10 +263,6 @@ jobs:
 - name: build-guest-configs
   plan:
   - get: guest-configs
-    passed: [guest-configs-integration-test]
-    trigger: false
-    params:
-      skip_download: "true"
   - load_var: commit-sha
     file: guest-configs/.git/ref
   - get: guest-test-infra

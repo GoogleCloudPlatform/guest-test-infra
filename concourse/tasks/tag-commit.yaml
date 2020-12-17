@@ -12,8 +12,10 @@ inputs:
 
 
 run:
-  path: sh
+  path: /tagger
   args:
-  - -xc
-  - |
-    /tagger --token-file-path=token/token.txt --tag=((.:package-version)) --sha=((.:commit-sha)) --org=GoogleCloudPlatform --repo=((repo-name))
+  - --token-file-path=token/token.txt
+  - --tag=((.:package-version))
+  - --sha=((.:commit-sha))
+  - --org=GoogleCloudPlatform
+  - --repo=((repo-name))
