@@ -1,6 +1,5 @@
 ---
 resources:
-# centos
 - name: guest-agent
   type: git
   source:
@@ -109,6 +108,8 @@ jobs:
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
       repo-name: "guest-agent"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))
 - name: build-guest-oslogin
   plan:
   - get: guest-oslogin
@@ -160,6 +161,8 @@ jobs:
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
       repo-name: "guest-oslogin"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))
 - name: build-osconfig
   plan:
   - get: osconfig
@@ -178,6 +181,8 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
     vars:
       repo-name: "osconfig"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -215,6 +220,8 @@ jobs:
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
       repo-name: "osconfig"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))
 - name: build-guest-diskexpand
   plan:
   - get: guest-diskexpand
@@ -305,3 +312,5 @@ jobs:
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
       repo-name: "guest-configs"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))

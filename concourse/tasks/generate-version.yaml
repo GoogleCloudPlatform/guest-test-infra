@@ -12,5 +12,5 @@ outputs:
 run:
   path: sh
   args:
-  - -c
+  - -ec
   - "date '+%Y%m%d' | tee publish-version/version"
