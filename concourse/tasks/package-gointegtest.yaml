@@ -14,12 +14,13 @@ params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
 
 run:
-  path: /daisy
+  path: sh
   args:
-  - -project=gcp-guest
-  - -zone=us-west1-b
-  - -var:repo_name=((repo-name))
-  - -var:repo_owner=GoogleCloudPlatform
-  - -var:git_ref=master
-  - -var:gcs_path=gs://gcp-guest-test-outputs/$(date '+%s')
-  - guest-test-infra/container_images/gointegtest/integ-test-all.wf.json
+  - -exc
+  - |
+    /daisy -project=gcp-guest \
+    -zone=us-west1-b -var:repo_name=((repo-name)) \
+    -var:repo_owner=GoogleCloudPlatform \
+    -var:git_ref=master \
+    -var:gcs_path=gs://gcp-guest-test-outputs/$(date '+%s') \
+    guest-test-infra/container_images/gointegtest/integ-test-all.wf.json

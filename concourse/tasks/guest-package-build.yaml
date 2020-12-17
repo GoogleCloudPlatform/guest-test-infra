@@ -22,7 +22,7 @@ run:
   - -var:repo_owner=GoogleCloudPlatform
   - -var:repo_name=((repo-name))
   - -var:git_ref=master
-  - -var:version=((.:package-version))
+  - -var:version=((version))
   - -var:gcs_path=((gcs_path))
   - -var:build_dir=
   - guest-test-infra/packagebuild/workflows/((wf))

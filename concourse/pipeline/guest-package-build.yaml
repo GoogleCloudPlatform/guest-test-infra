@@ -81,24 +81,28 @@ jobs:
         vars:
           wf: "build_deb9.wf.json"
           repo-name: "guest-agent"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el7.wf.json"
           repo-name: "guest-agent"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
       - task: guest-package-build-guest-agent-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el8.wf.json"
           repo-name: "guest-agent"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_goo.wf.json"
           repo-name: "guest-agent"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
@@ -134,24 +138,28 @@ jobs:
         vars:
           wf: "build_deb9.wf.json"
           repo-name: "guest-oslogin"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/oslogin"
       - task: guest-package-build-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_deb10.wf.json"
           repo-name: "guest-oslogin"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/oslogin"
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el7.wf.json"
           repo-name: "guest-oslogin"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/oslogin"
       - task: guest-package-build-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el8.wf.json"
           repo-name: "guest-oslogin"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/oslogin"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
@@ -193,24 +201,28 @@ jobs:
         vars:
           wf: "build_deb9.wf.json"
           repo-name: "osconfig"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/osconfig"
       - task: guest-package-build-osconfig-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el7.wf.json"
           repo-name: "osconfig"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/osconfig"
       - task: guest-package-build-osconfig-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el8.wf.json"
           repo-name: "osconfig"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/osconfig"
       - task: guest-package-build-osconfig-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_goo.wf.json"
           repo-name: "osconfig"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/gosconfig"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
@@ -246,18 +258,21 @@ jobs:
         vars:
           wf: "build_deb9.wf.json"
           repo-name: "guest-diskexpand"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
       - task: guest-package-build-guest-diskexpand-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el7.wf.json"
           repo-name: "guest-diskexpand"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
       - task: guest-package-build-guest-diskexpand-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el8.wf.json"
           repo-name: "guest-diskexpand"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
@@ -291,18 +306,21 @@ jobs:
         vars:
           wf: "build_deb9.wf.json"
           repo-name: "guest-configs"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
       - task: guest-package-build-guest-configs-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el7.wf.json"
           repo-name: "guest-configs"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
       - task: guest-package-build-guest-configs-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: "build_el8.wf.json"
           repo-name: "guest-configs"
+          version: ((.:package-version))
           gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
