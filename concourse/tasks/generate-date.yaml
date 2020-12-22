@@ -13,4 +13,4 @@ run:
   path: sh
   args:
   - -exc
-  - "echo $(date '+%s') | tee date/date"
+  - "echo $(date '+%s') > tee date/date"
