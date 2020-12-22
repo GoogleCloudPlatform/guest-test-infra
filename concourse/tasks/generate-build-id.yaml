@@ -12,5 +12,5 @@ outputs:
 run:
   path: sh
   args:
-  - -ec
+  - -exc
   - "buildid=$(date '+%s'); echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-v${buildid}.tar.gz"

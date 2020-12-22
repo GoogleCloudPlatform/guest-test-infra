@@ -7,10 +7,10 @@ image_resource:
     repository: busybox
 
 outputs:
-- name: date
+- name: timestamp
 
 run:
   path: sh
   args:
   - -exc
-  - "echo $(date '+%s') > tee date/date"
+  - "timestamp=$(date '+%s'); echo $timestamp | tee timestamp/timestamp"

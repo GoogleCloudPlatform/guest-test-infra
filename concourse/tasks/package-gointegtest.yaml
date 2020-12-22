@@ -21,5 +21,5 @@ run:
   - -var:repo_name=((repo-name))
   - -var:repo_owner=GoogleCloudPlatform
   - -var:git_ref=master
-  - -var:gcs_path=gs://gcp-guest-test-outputs/((date))
+  - -var:gcs_path=gs://gcp-guest-test-outputs/((timestamp))
   - guest-test-infra/container_images/gointegtest/integ-test-all.wf.json
