@@ -47,21 +47,6 @@ jobs:
     vars:
       repo-name: "guest-agent"
       timestamp: ((.:timestamp))
-- name: osconfig-integration-test
-  plan:
-  - get: osconfig
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: generate-timestamp
-    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
-  - load_var: timestamp
-    file: timestamp/timestamp
-  - task: osconfig-integration-test
-    file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
-    vars:
-      repo-name: "osconfig"
-      timestamp: ((.:timestamp))
 
 - name: build-guest-agent
   plan:
