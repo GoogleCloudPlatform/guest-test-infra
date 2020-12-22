@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: busybox
+
+outputs:
+- name: date
+
+run:
+  path: sh
+  args:
+  - -exc
+  - "echo $(date '+%s') | tee date/date"

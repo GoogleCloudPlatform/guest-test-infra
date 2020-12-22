@@ -16,7 +16,7 @@ outputs:
 run:
   path: sh
   args:
-  - -xc
+  - -exc
   - |
     /versiongenerator --token-file-path=token/token.txt --org=GoogleCloudPlatform --repo=((repo-name)) > package-version/version
     cat package-version/version

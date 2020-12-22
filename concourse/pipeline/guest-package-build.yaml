@@ -38,20 +38,30 @@ jobs:
   - get: guest-test-infra
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-date
+    file: guest-test-infra/concourse/tasks/generate-date.yaml
+  - load_var: date
+    file: date/date
   - task: guest-package-build-guest-agent
     file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
     vars:
       repo-name: "guest-agent"
+      date: ((date))
 - name: osconfig-integration-test
   plan:
   - get: osconfig
   - get: guest-test-infra
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-date
+    file: guest-test-infra/concourse/tasks/generate-date.yaml
+  - load_var: date
+    file: date/date
   - task: guest-package-build-osconfig
     file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
     vars:
       repo-name: "osconfig"
+      date: ((date))
 
 - name: build-guest-agent
   plan:
@@ -108,6 +118,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
       repo-name: "guest-agent"
+      version: ((.:package-version))
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -165,6 +176,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
       repo-name: "guest-oslogin"
+      version: ((.:package-version))
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -228,6 +240,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
       repo-name: "osconfig"
+      version: ((.:package-version))
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
@@ -278,10 +291,13 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
       repo-name: "guest-diskexpand"
+      version: ((.:package-version))
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:
       repo-name: "guest-diskexpand"
+      tag: ((.:package-version))
+      sha: ((.:commit-sha))
 - name: build-guest-configs
   plan:
   - get: guest-configs
@@ -326,6 +342,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
       repo-name: "guest-configs"
+      version: ((.:package-version))
   - task: tag-commit
     file: guest-test-infra/concourse/tasks/tag-commit.yaml
     vars:

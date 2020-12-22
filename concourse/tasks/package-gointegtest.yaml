@@ -3,7 +3,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: gcr.io/gcp-guest/gointegtest
+    repository: gcr.io/compute-image-tools/daisy
     tag: latest
 
 inputs:
@@ -14,13 +14,12 @@ params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
 
 run:
-  path: sh
+  path: /daisy
   args:
-  - -exc
-  - |
-    /daisy -project=gcp-guest \
-    -zone=us-west1-b -var:repo_name=((repo-name)) \
-    -var:repo_owner=GoogleCloudPlatform \
-    -var:git_ref=master \
-    -var:gcs_path=gs://gcp-guest-test-outputs/$(date '+%s') \
-    guest-test-infra/container_images/gointegtest/integ-test-all.wf.json
+  - -project=gcp-guest
+  - -zone=us-west1-b
+  - -var:repo_name=((repo-name))
+  - -var:repo_owner=GoogleCloudPlatform
+  - -var:git_ref=master
+  - -var:gcs_path=gs://gcp-guest-test-outputs/((date))
+  - guest-test-infra/container_images/gointegtest/integ-test-all.wf.json
