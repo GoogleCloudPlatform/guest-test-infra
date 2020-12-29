@@ -31,14 +31,14 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "centos/centos-8-v([0-9]+).tar.gz"
-# rhel
-- name: rhel-6-gcs
+- name: centos-stream-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "rhel/rhel-6-v([0-9]+).tar.gz"
+    regexp: "centos/centos-stream-v([0-9]+).tar.gz"
+# rhel
 - name: rhel-7-gcs
   type: gcs
   source:
@@ -165,36 +165,36 @@ jobs:
       iso: ((iso-paths.centos-8))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
-# rhel
-- name: build-rhel-6
+- name: build-centos-stream
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
-      prefix: "rhel-6"
-  - put: rhel-6-gcs
+      prefix: "centos-stream"
+  - put: centos-stream-gcs
     params:
-      file: build-id-dir/rhel-6*
+      file: build-id-dir/centos-stream*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: rhel-6-gcs/url
+    file: centos-stream-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-rhel-6
+  - task: daisy-build-centos-stream
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
-      wf: "enterprise_linux/rhel_6.wf.json"
+      wf: "enterprise_linux/centos_stream.wf.json"
       gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.rhel-6))
+      iso: ((iso-paths.centos-stream))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+# rhel
 - name: build-rhel-7
   plan:
   - get: compute-image-tools
@@ -395,7 +395,7 @@ jobs:
     vars:
       wf: "enterprise_linux/rhel_8_2_sap.wf.json"
       gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.rhel-8-1))
+      iso: ((iso-paths.rhel-8-2))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 # debian
@@ -508,32 +508,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8_uefi.publish.json"
       environment: "test"
-# rhel
-- name: publish-to-testing-rhel-6
+- name: publish-to-testing-centos-stream
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: rhel-6-gcs
-    passed: [build-rhel-6]
+  - get: centos-stream-gcs
+    passed: [build-centos-stream]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: rhel-6-gcs/version
+    file: centos-stream-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
-    file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-6
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-centos-stream
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://gce-image-archive/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "enterprise_linux/rhel_6.publish.json"
+      wf: "enterprise_linux/centos_stream.publish.json"
       environment: "test"
+# rhel
 - name: publish-to-testing-rhel-7
   plan:
   - get: guest-test-infra
@@ -811,33 +811,33 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8_uefi.publish.json"
-      environment: "staing"
-# rhel
-- name: publish-to-staging-rhel-6
+      environment: "staging"
+- name: publish-to-staging-centos-stream
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: rhel-6-gcs
-    passed: [publish-to-testing-rhel-6]
+  - get: centos-stream-gcs
+    passed: [publish-to-testing-centos-stream]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: rhel-6-gcs/version
+    file: centos-stream-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
-    file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-6
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-centos-stream
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://gce-image-archive/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "enterprise_linux/rhel_6.publish.json"
+      wf: "enterprise_linux/centos_stream.publish.json"
       environment: "staging"
+# rhel
 - name: publish-to-staging-rhel-7
   plan:
   - get: guest-test-infra
@@ -1115,32 +1115,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8_uefi.publish.json"
       environment: "prod"
-# rhel
-- name: publish-to-prod-rhel-6
+- name: publish-to-prod-centos-stream
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: rhel-6-gcs
-    passed: [publish-to-staging-rhel-6]
+  - get: centos-stream-gcs
+    passed: [publish-to-staging-centos-stream]
     trigger: false
-    params:
-      skip_download: "true"
+    params: {skip_download: "true"}
   - load_var: source-version
-    file: rhel-6-gcs/version
+    file: centos-stream-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
-    file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-6
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-centos-stream
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://gce-image-archive/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "enterprise_linux/rhel_6.publish.json"
+      wf: "enterprise_linux/centos_stream.publish.json"
       environment: "prod"
+# rhel
 - name: publish-to-prod-rhel-7
   plan:
   - get: guest-test-infra
