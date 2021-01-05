@@ -512,7 +512,7 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: centos-stream-gcs
+  - get: centos-stream-8-gcs
     passed: [build-centos-stream-8]
     trigger: false
     params:
@@ -822,7 +822,7 @@ jobs:
     params:
       skip_download: "true"
   - load_var: source-version
-    file: centos-stream-gcs/version
+    file: centos-stream-8-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -1119,7 +1119,7 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: centos-stream-gcs
+  - get: centos-stream-8-gcs
     passed: [publish-to-staging-centos-stream-8]
     trigger: false
     params: {skip_download: "true"}
