@@ -191,7 +191,7 @@ jobs:
     vars:
       wf: "enterprise_linux/centos_stream_8.wf.json"
       gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.centos-stream))
+      iso: ((iso-paths.centos-stream-8))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 # rhel
