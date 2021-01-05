@@ -31,7 +31,7 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "centos/centos-8-v([0-9]+).tar.gz"
-- name: centos-stream-gcs
+- name: centos-stream-8-gcs
   type: gcs
   source:
     bucket: gce-image-archive
@@ -165,7 +165,7 @@ jobs:
       iso: ((iso-paths.centos-8))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
-- name: build-centos-stream
+- name: build-centos-stream-8
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
@@ -173,20 +173,20 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "centos-stream-8"
-  - put: centos-stream-gcs
+  - put: centos-stream-8-gcs
     params:
-      file: build-id-dir/centos-stream*
+      file: build-id-dir/centos-stream-8*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: centos-stream-gcs/url
+    file: centos-stream-8-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-centos-stream
+  - task: daisy-build-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
     vars:
       wf: "enterprise_linux/centos_stream_8.wf.json"
@@ -508,24 +508,24 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
       environment: "test"
-- name: publish-to-testing-centos-stream
+- name: publish-to-testing-centos-stream-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-stream-gcs
-    passed: [build-centos-stream]
+    passed: [build-centos-stream-8]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: centos-stream-gcs/version
+    file: centos-stream-8-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-centos-stream
+  - task: publish-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
@@ -812,12 +812,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
       environment: "staging"
-- name: publish-to-staging-centos-stream
+- name: publish-to-staging-centos-stream-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: centos-stream-gcs
-    passed: [publish-to-testing-centos-stream]
+  - get: centos-stream-8-gcs
+    passed: [publish-to-testing-centos-stream-8]
     trigger: false
     params:
       skip_download: "true"
@@ -829,7 +829,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-centos-stream
+  - task: publish-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
@@ -1115,23 +1115,23 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
       environment: "prod"
-- name: publish-to-prod-centos-stream
+- name: publish-to-prod-centos-stream-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-stream-gcs
-    passed: [publish-to-staging-centos-stream]
+    passed: [publish-to-staging-centos-stream-8]
     trigger: false
     params: {skip_download: "true"}
   - load_var: source-version
-    file: centos-stream-gcs/version
+    file: centos-stream-8-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-centos-stream
+  - task: publish-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
