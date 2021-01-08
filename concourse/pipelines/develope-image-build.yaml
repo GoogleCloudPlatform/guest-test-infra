@@ -58,13 +58,6 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "devcluster/debian-9-proxy-v([0-9]+).tar.gz"
-- name: ubuntu-1404-devcluster-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "devcluster/ubuntu-1404-dev-v([0-9]+).tar.gz"
 - name: ubuntu-1604-devcluster-gcs
   type: gcs
   source:
@@ -240,32 +233,6 @@ jobs:
     vars:
       wf: "linux_devcluster/debian_proxy_devcluster.wf.json"
       build_date: ((.:build-date))
-- name: build-ubuntu-1404-devcluster
-  plan:
-  - get: compute-image-tools
-  - get: guest-test-infra
-  - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
-    vars:
-      prefix: "ubuntu-1404-dev"
-  - put: ubuntu-1404-devcluster-gcs
-    params:
-      file: build-id-dir/ubuntu-1404-dev*
-    get_params:
-      skip_download: "true"
-  - load_var: gcs-url
-    file: ubuntu-1404-devcluster-gcs/url
-  - task: generate-build-date
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
-    file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-ubuntu-1404-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
-    vars:
-      wf: "linux_devcluster/ubuntu_1404_devcluster.wf.json"
-      build_date: ((.:build-date))
 - name: build-ubuntu-1604-devcluster
   plan:
   - get: compute-image-tools
@@ -299,7 +266,7 @@ jobs:
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
-      prefix: "ubuntu-1604-dev"
+      prefix: "ubuntu-1804-dev"
   - put: ubuntu-1804-devcluster-gcs
     params:
       file: build-id-dir/ubuntu-1804-dev*
