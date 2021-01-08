@@ -9,13 +9,13 @@ resources:
 - name: compute-image-tools
   type: git
   source:
-    uri: https://github.com/gaohannk/compute-image-tools.git
-    branch: devcluster-image-build
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/gaohannk/guest-test-infra.git
-    branch: devcluster-image-build
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
 - name: debian-10-worker-gcs
   type: gcs
   source:
@@ -51,13 +51,6 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "devcluster/debian-10-dev-v([0-9]+).tar.gz"
-- name: debian-proxy-devcluster-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "devcluster/debian-9-proxy-v([0-9]+).tar.gz"
 - name: ubuntu-1604-devcluster-gcs
   type: gcs
   source:
@@ -211,33 +204,6 @@ jobs:
       wf: "linux_devcluster/debian_10_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
-- name: build-debian-proxy-devcluster
-  plan:
-  - get: compute-image-tools
-  - get: guest-test-infra
-  - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
-    vars:
-      prefix: "debian-9-proxy"
-  - put: debian-proxy-devcluster-gcs
-    params:
-      file: build-id-dir/debian-9-proxy*
-    get_params:
-      skip_download: "true"
-  - load_var: gcs-url
-    file: debian-proxy-devcluster-gcs/url
-  - task: generate-build-date
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
-    file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-debian-proxy-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
-    vars:
-      wf: "linux_devcluster/debian_proxy_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      build_date: ((.:build-date))
 - name: build-ubuntu-1604-devcluster
   plan:
   - get: compute-image-tools
@@ -325,3 +291,78 @@ jobs:
       wf: "linux_devcluster/debian_staging.publish.json"
       environment: "test"
 
+- name: publish-to-testing-debian-10-worker
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-10-worker-gcs
+    passed: [build-debian-10-worker]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-10-worker-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-10-worker
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_10_worker.publish.json"
+      environment: "test"
+- name: publish-to-staging-debian-10-worker
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-10-worker-gcs
+    passed: [publish-to-testing-debian-10-worker]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-10-worker-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-10-worker
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_10_worker.publish.json"
+      environment: "staging"
+- name: publish-to-prod-debian-10-worker
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-10-worker-gcs
+    passed: [publish-to-staging-debian-10-worker]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-10-worker-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-10-worker
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_10_worker.publish.json"
+      environment: "prod"
