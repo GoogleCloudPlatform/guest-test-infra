@@ -51,6 +51,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "devcluster/debian-10-dev-v([0-9]+).tar.gz"
+- name: debian-proxy-devcluster-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "devcluster/debian-9-proxy-v([0-9]+).tar.gz"
 - name: ubuntu-1404-devcluster-gcs
   type: gcs
   source:
@@ -183,7 +190,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-9-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/debian_9_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
@@ -211,9 +218,37 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-10-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/debian_10_devcluster.wf.json"
+      gcs_url: ((.:gcs-url))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+- name: build-debian-proxy-devcluster
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "debian-9-proxy"
+  - put: debian-proxy-devcluster-gcs
+    params:
+      file: build-id-dir/debian-9-proxy*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: debian-proxy-devcluster-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-debian-proxy-devcluster
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    vars:
+      wf: "linux_devcluster/debian_proxy_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
@@ -239,7 +274,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-ubuntu-1404-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1404_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
@@ -267,7 +302,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-ubuntu-1604-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1604_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
@@ -295,7 +330,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-ubuntu-1804-devcluster
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1804_devcluster.wf.json"
       gcs_url: ((.:gcs-url))
@@ -303,7 +338,7 @@ jobs:
       build_date: ((.:build-date))
 
 # Publish to dev stage
-- name: publish-to-testing-debian-staging
+- name: publish-debian-staging
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
