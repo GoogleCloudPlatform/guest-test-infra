@@ -7,10 +7,10 @@ image_resource:
     repository: busybox
 
 outputs:
-- name: publish-version
+- name: timestamp
 
 run:
   path: sh
   args:
   - -exc
-  - "date '+%Y%m%d' | tee publish-version/version"
+  - "timestamp=$(date '+%s'); echo $timestamp | tee timestamp/timestamp"

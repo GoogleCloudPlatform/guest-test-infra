@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/daisy-builder
+    tag: latest
+
+inputs:
+- name: token
+
+
+run:
+  path: /tagger
+  args:
+  - --token-file-path=token/token.txt
+  - --tag=((tag))
+  - --sha=((sha))
+  - --org=GoogleCloudPlatform
+  - --repo=((repo-name))

@@ -7,10 +7,12 @@ image_resource:
     repository: busybox
 
 outputs:
-- name: publish-version
+- name: token
 
 run:
   path: sh
   args:
-  - -exc
-  - "date '+%Y%m%d' | tee publish-version/version"
+  - -ec
+  - |
+    echo '((github-token.token))' > token/token.txt
+    ls token/token.txt
