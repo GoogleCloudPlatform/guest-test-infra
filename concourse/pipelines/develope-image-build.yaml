@@ -104,9 +104,11 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-10-worker
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
     vars:
       wf: "debian/debian_10_worker.wf.json"
+      gcs_url: ((.:gcs-url))
+      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-centos-7-devcluster
   plan:
@@ -122,7 +124,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: centos-7-gcs/url
+    file: centos-7-devcluster-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -262,7 +264,7 @@ jobs:
   - task: daisy-build-ubuntu-1404-devcluster
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
-      wf: "linux_devcluster/ubuntu-1404_devcluster.wf.json"
+      wf: "linux_devcluster/ubuntu_1404_devcluster.wf.json"
       build_date: ((.:build-date))
 - name: build-ubuntu-1604-devcluster
   plan:
@@ -288,7 +290,7 @@ jobs:
   - task: daisy-build-ubuntu-1604-devcluster
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
-      wf: "linux_devcluster/ubuntu-1604_devcluster.wf.json"
+      wf: "linux_devcluster/ubuntu_1604_devcluster.wf.json"
       build_date: ((.:build-date))
 - name: build-ubuntu-1804-devcluster
   plan:
@@ -314,7 +316,7 @@ jobs:
   - task: daisy-build-ubuntu-1804-devcluster
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
-      wf: "linux_devcluster/ubuntu-1804_devcluster.wf.json"
+      wf: "linux_devcluster/ubuntu_1804_devcluster.wf.json"
       build_date: ((.:build-date))
 
 # Publish to dev stage
