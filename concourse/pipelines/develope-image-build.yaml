@@ -107,8 +107,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "debian/debian_10_worker.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-centos-7-devcluster
   plan:
@@ -135,9 +133,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/centos_7_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.centos-7-devcluster))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-centos-8-devcluster
   plan:
@@ -164,9 +159,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/centos_8_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.centos-8-devcluster))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-debian-9-devcluster
   plan:
@@ -193,8 +185,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/debian_9_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-debian-10-devcluster
   plan:
@@ -221,8 +211,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/debian_10_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-debian-proxy-devcluster
   plan:
@@ -249,8 +237,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/debian_proxy_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-ubuntu-1404-devcluster
   plan:
@@ -277,8 +263,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1404_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-ubuntu-1604-devcluster
   plan:
@@ -305,8 +289,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1604_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-ubuntu-1804-devcluster
   plan:
@@ -333,8 +315,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
     vars:
       wf: "linux_devcluster/ubuntu-1804_devcluster.wf.json"
-      gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
 
 # Publish to dev stage
