@@ -57,7 +57,7 @@ jobs:
   - task: daisy-build-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-build-images-no-iso.yaml
     vars:
-      wf: "bera_metal/rhel_7.wf.json"
+      wf: "bare_metal/rhel_7.wf.json"
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
@@ -85,7 +85,7 @@ jobs:
   - task: daisy-build-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-build-images-no-iso.yaml
     vars:
-      wf: "bera_metal/rhel_8.wf.json"
+      wf: "bare_metal/rhel_8.wf.json"
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
