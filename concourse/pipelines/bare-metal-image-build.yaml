@@ -59,7 +59,6 @@ jobs:
     vars:
       wf: "bera_metal/rhel_7.wf.json"
       gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.rhel-7-metal))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-rhel-8-metal
@@ -88,7 +87,6 @@ jobs:
     vars:
       wf: "bera_metal/rhel_8.wf.json"
       gcs_url: ((.:gcs-url))
-      iso: ((iso-paths.rhel-8-metal))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 
