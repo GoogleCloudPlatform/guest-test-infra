@@ -178,7 +178,7 @@ jobs:
     params:
       skip_download: "true"
   - load_var: source-version
-    file: rhel-8-gcs/version
+    file: rhel-8-metal-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
