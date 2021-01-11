@@ -9,13 +9,13 @@ resources:
 - name: compute-image-tools
   type: git
   source:
-    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
-    branch: master
+    uri: https://github.com/gaohannk/compute-image-tools.git
+    branch: devcluster-image-build
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: master
+    uri: https://github.com/gaohannk/guest-test-infra.git
+    branch: devcluster-image-build
 - name: debian-10-worker-gcs
   type: gcs
   source:
@@ -118,7 +118,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-centos-7-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/centos_7_dev.wf.json"
       gcs_url: ((.:gcs-url))
@@ -145,7 +145,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-centos-8-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/centos_8_dev.wf.json"
       gcs_url: ((.:gcs-url))
@@ -172,7 +172,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-9-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/debian_9_dev.wf.json"
       gcs_url: ((.:gcs-url))
@@ -199,7 +199,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-10-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/debian_10_dev.wf.json"
       gcs_url: ((.:gcs-url))
@@ -226,7 +226,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-ubuntu-1604-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/ubuntu_1604_dev.wf.json"
       gcs_url: ((.:gcs-url))
@@ -253,7 +253,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-ubuntu-1804-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-images-dev.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "linux_dev/ubuntu_1804_dev.wf.json"
       gcs_url: ((.:gcs-url))
