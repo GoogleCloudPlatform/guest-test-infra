@@ -55,7 +55,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-7-metal
-    file: guest-test-infra/concourse/tasks/daisy-build-images-no-iso.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "bare_metal/rhel_7.wf.json"
       gcs_url: ((.:gcs-url))
@@ -83,7 +83,7 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-8-metal
-    file: guest-test-infra/concourse/tasks/daisy-build-images-no-iso.yaml
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
       wf: "bare_metal/rhel_8.wf.json"
       gcs_url: ((.:gcs-url))
