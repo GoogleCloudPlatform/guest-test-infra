@@ -1,0 +1,247 @@
+---
+resource_types:
+- name: gcs
+  type: registry-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: compute-image-tools
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
+- name: rhel-7-metal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "rhel/rhel-7-metal-v([0-9]+).tar.gz"
+- name: rhel-8-metal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "rhel/rhel-8-metal-v([0-9]+).tar.gz"
+
+jobs:
+# rhel
+- name: build-rhel-7-metal
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "rhel-7-metal"
+  - put: rhel-7-metal-gcs
+    params:
+      file: build-id-dir/rhel-7-metal*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: rhel-7-metal-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-rhel-7-metal
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
+    vars:
+      wf: "bare_metal/rhel_7.wf.json"
+      gcs_url: ((.:gcs-url))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+- name: build-rhel-8-metal
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "rhel-8-metal"
+  - put: rhel-8-metal-gcs
+    params:
+      file: build-id-dir/rhel-8-metal*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: rhel-8-metal-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-rhel-8-metal
+    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
+    vars:
+      wf: "bare_metal/rhel_8.wf.json"
+      gcs_url: ((.:gcs-url))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+
+# Publish to testing
+- name: publish-to-testing-rhel-7-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-metal-gcs
+    passed: [build-rhel-7-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-7-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_7.publish.json"
+      environment: "test"
+- name: publish-to-testing-rhel-8-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-metal-gcs
+    passed: [build-rhel-8-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rhel-8-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_8.publish.json"
+      environment: "test"
+
+# Publish to staging
+- name: publish-to-staging-rhel-7-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-metal-gcs
+    passed: [publish-to-testing-rhel-7-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-7-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_7.publish.json"
+      environment: "staging"
+- name: publish-to-staging-rhel-8-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-metal-gcs
+    passed: [publish-to-testing-rhel-8-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rhel-8-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_8.publish.json"
+      environment: "staging"
+
+# Publish to prod
+- name: publish-to-prod-rhel-7-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-metal-gcs
+    passed: [publish-to-staging-rhel-7-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-7-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_7.publish.json"
+      environment: "prod"
+- name: publish-to-prod-rhel-8-metal
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-metal-gcs
+    passed: [publish-to-staging-rhel-8-metal]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-metal-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rhel-8-metal
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "bare_metal/rhel_8.publish.json"
+      environment: "prod"
