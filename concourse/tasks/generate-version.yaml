@@ -13,4 +13,4 @@ run:
   path: sh
   args:
   - -exc
-  - "date '+%Y%m%d' | tee publish-version/version"
+  - "echo v$(date '+%Y%m%d') | tee publish-version/version"
