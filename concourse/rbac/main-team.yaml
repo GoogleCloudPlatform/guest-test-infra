@@ -1,0 +1,10 @@
+roles:
+- name: owner
+  local:
+    users: ["concourse-owner"]
+- name: pipeline-operator
+  local:
+    users: ["concourse-pipeline-operator"]
+- name: viewer
+  local:
+    users: ["concourse-viewer"]
