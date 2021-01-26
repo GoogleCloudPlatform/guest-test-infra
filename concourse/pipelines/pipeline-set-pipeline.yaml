@@ -13,3 +13,5 @@ jobs:
     trigger: true
   - set_pipeline: linux-image-build
     file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
+  - set_pipeline: guest-package-build
+    file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
