@@ -9,13 +9,13 @@ resources:
 - name: compute-image-tools
   type: git
   source:
-    uri: https://github.com/gaohannk/compute-image-tools.git
-    branch: devcluster-image-build
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/gaohannk/guest-test-infra.git
-    branch: devcluster-image-build
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
 - name: debian-10-worker-gcs
   type: gcs
   source:
