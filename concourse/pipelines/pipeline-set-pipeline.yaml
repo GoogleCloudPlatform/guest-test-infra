@@ -15,3 +15,7 @@ jobs:
     file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
   - set_pipeline: guest-package-build
     file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
+  - set_pipeline: dev-image-build
+    file: guest-test-infra/concourse/pipelines/dev-image-build.yaml
+  - set_pipeline: bare-metal-image-build
+    file: guest-test-infra/concourse/pipelines/bare-metal-image-build.yaml
