@@ -28,8 +28,8 @@ resources:
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: master
+    uri: https://github.com/gaohannk/guest-test-infra.git
+    branch: cicd-test
 
 jobs:
 - name: guest-agent-integration-test

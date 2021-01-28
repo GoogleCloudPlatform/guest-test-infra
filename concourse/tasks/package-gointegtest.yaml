@@ -19,7 +19,7 @@ run:
   - -project=gcp-guest
   - -zone=us-west1-b
   - -var:repo_name=((repo-name))
-  - -var:repo_owner=GoogleCloudPlatform
-  - -var:git_ref=master
+  - -var:repo_owner=gaohannk
+  - -var:git_ref=cicd-test
   - -var:gcs_path=gs://gcp-guest-test-outputs/((timestamp))
   - guest-test-infra/container_images/gointegtest/integ-test-all.wf.json

@@ -32,7 +32,7 @@ fi
 RET=$?
 
 gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
-gsutil cp "$GCS_PATH"/go-test*txt ./
+gsutil cp "$GCS_PATH"/go-test*.txt ./
 
 for f in go-test*.txt; do
   # $ARTIFACTS is provided by prow decoration containers
