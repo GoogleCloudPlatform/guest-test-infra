@@ -32,8 +32,12 @@ trap 'exit_error $LINENO' ERR
 function install_go() {
   # Installs a specific version of go for compilation, since availability varies
   # across linux distributions. Needs curl and tar to be installed.
+  local arch="amd64"
+  if [[ `uname -m` == "aarch64" ]]; then
+    arch="arm64"
+  fi
 
-  local GOLANG="go1.13.9.linux-amd64.tar.gz"
+  local GOLANG="go1.13.9.linux-${arch}.tar.gz"
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
 
