@@ -24,20 +24,23 @@ RET=0
 
 # Convert txt report to xml and html
 for f in go-test*.txt; do
-  if [ "`grep -c "FAIL" "$f"`" -gt "0" ]; then
-    RET=$?
+  if grep -qc "FAIL" "$f"; then
+    RET=1
   fi
   cat "$f"
+  # convert txt to xml
   cat "$f" | /go-junit-report > "./junit_${f%%.txt}.xml"
   # remove prefix junit_go-test and suffix .txt
   platform=${f%.txt}
   platform=${platform#junit_go-test-}
   echo $platform
   # add platform suffix for test
-  find "junit_${f%%.txt}.xml" -type f -exec sed -i 's/google_guest_agent/google_guest_agent-'${platform}'/g' {} \;
-  find "junit_${f%%.txt}.xml" -type f -exec sed -i 's/google_metadata_script_runner/google_metadata_script_runner-'${platform}'/g' {} \;
+  for name in $classname; do
+    find "junit_${f%%.txt}.xml" -type f -exec sed -i 's/'$name'/'$name'-'${platform}'/g' {} \;
+  done
 done
 
+# convert xml to html
 /usr/local/lib/node_modules/junit-merge/bin/junit-merge ./junit_*.xml -o junit_all_distros.xml
 /junit2html ./junit_all_distros.xml ./junit_all_distros.html
 

@@ -16,4 +16,3 @@ params:
   GCS_URL: https://storage.cloud.google.com/gcp-guest-test-outputs/((timestamp))
 run:
   path: /validate-result.sh
-  args:
