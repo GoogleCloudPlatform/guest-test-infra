@@ -14,5 +14,7 @@ params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
   GCS_PATH: gs://gcp-guest-test-outputs/((timestamp))
   GCS_URL: https://storage.cloud.google.com/gcp-guest-test-outputs/((timestamp))
+  PACKAGE_NAME: ((repo-name))
+
 run:
   path: /validate-result.sh

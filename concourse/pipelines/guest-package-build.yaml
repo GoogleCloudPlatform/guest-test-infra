@@ -51,9 +51,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/validate-integtest-result.yaml
     vars:
       timestamp: ((.:timestamp))
-      classname:
-      - "google_guest_agent"
-      - "google_metadata_script_runner"
+      repo-name: "guest-agent"
 
 - name: build-guest-agent
   plan:
