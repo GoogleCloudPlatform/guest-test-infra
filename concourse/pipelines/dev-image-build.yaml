@@ -458,6 +458,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "linux_dev/rhel_7_metal_dev.publish.json"
+      environment: "dev"
 - name: publish-to-staging-rhel-8-metal-dev
   plan:
   - get: guest-test-infra
@@ -482,3 +483,4 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "linux_dev/rhel_8_metal_dev.publish.json"
+      environment: "dev"
