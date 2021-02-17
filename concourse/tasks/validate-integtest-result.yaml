@@ -1,0 +1,20 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/validate-integtest
+    tag: latest
+
+inputs:
+- name: credentials
+- name: guest-test-infra
+
+params:
+  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+  GCS_PATH: gs://gcp-guest-test-outputs/((timestamp))
+  GCS_URL: https://storage.cloud.google.com/gcp-guest-test-outputs/((timestamp))
+  PACKAGE_NAME: ((repo-name))
+
+run:
+  path: /validate-result.sh

@@ -47,6 +47,11 @@ jobs:
     vars:
       repo-name: "guest-agent"
       timestamp: ((.:timestamp))
+  - task: validate-integtest-result
+    file: guest-test-infra/concourse/tasks/validate-integtest-result.yaml
+    vars:
+      timestamp: ((.:timestamp))
+      repo-name: "guest-agent"
 
 - name: build-guest-agent
   plan:

@@ -15,30 +15,38 @@
 
 set -x
 
-echo "Running daisy integration test workflow"
-cd /  # Prow will put us in the dir with repo checked out.
-
-GCS_PATH="${GCS_BUCKET}/`date '+%s'`"
-
-if [[ "$JOB_TYPE" == "presubmit" ]]; then
-  GIT_REF="pull/${PULL_NUMBER}/head"
-else
-  GIT_REF="$PULL_BASE_REF"
-fi
-
-/daisy -project "$PROJECT" -zone "$ZONE" -var:repo_name="$REPO_NAME" \
-  -var:repo_owner="$REPO_OWNER" -var:git_ref="$GIT_REF" \
-  -var:gcs_path="$GCS_PATH" integ-test-all.wf.json
-RET=$?
+echo "Validate Integration Test Result"
 
 gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 gsutil cp "$GCS_PATH"/go-test*.txt ./
 
+RET=0
+
+# Convert txt report to xml
 for f in go-test*.txt; do
-  # $ARTIFACTS is provided by prow decoration containers
-  cp "$f" "${ARTIFACTS}/"
-  cat "$f" | /go-junit-report > "${ARTIFACTS}/junit_${f%%.txt}.xml"
+  if grep -qc "FAIL" "$f"; then
+    RET=1
+  fi
+  # remove prefix go-test and suffix .txt
+  platform=${f%.txt}
+  platform=${platform#go-test-}
+  echo $platform
+
+  cat "$f"
+  # convert txt to xml
+  cat "$f" | grep -v "github" | /go-junit-report  -package-name ${PACKAGE_NAME}-${platform} > "./junit_${f%%.txt}.xml"
 done
 
+# Convert xml report to html
+echo "Merge Test Result"
+/usr/local/lib/node_modules/junit-merge/bin/junit-merge ./junit_*.xml -o junit_all_distros.xml
+/junit2html ./junit_all_distros.xml ./junit_all_distros.html
+
+gsutil cp ./junit_*.* "$GCS_PATH"/
+
+# Upload test report to GCS
+echo "Test Result Report"
+echo $GCS_URL/junit_all_distros.html
 echo Done
+
 exit $RET
