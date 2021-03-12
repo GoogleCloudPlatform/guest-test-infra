@@ -17,6 +17,13 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
+- name: almalinux-8-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "almalinux/almalinux-8-v([0-9]+).tar.gz"
 - name: centos-7-gcs
   type: gcs
   source:
@@ -120,6 +127,36 @@ resources:
 
 jobs:
 # Build jobs
+# almalinux
+- name: build-almalinux-8
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "almalinux-8"
+  - put: almalinux-8-gcs
+    params:
+      file: build-id-dir/almalinux-8*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: almalinux-8-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-almalinux-8
+    file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
+    vars:
+      wf: "enterprise_linux/almalinux_8.wf.json"
+      gcs_url: ((.:gcs-url))
+      iso: ((iso-paths.almalinux-8))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
 # centos
 - name: build-centos-7
   plan:
@@ -529,6 +566,32 @@ jobs:
       build_date: ((.:build-date))
 
 # Publish to testing
+# almalinux
+- name: publish-to-testing-almalinux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: almalinux-8-gcs
+    passed: [build-almalinux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: almalinux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-almalinux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/almalinux_8.publish.json"
+      environment: "test"
 # centos
 - name: publish-to-testing-centos-7
   plan:
@@ -884,6 +947,32 @@ jobs:
       environment: "test"
 
 # Publish to staging
+# almalinux
+- name: publish-to-staging-almalinux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: almalinux-8-gcs
+    passed: [publish-to-testing-almalinux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: almalinux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-almalinux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/almalinux_8.publish.json"
+      environment: "staging"
 - name: publish-to-staging-centos-7
   plan:
   - get: guest-test-infra
@@ -1238,6 +1327,31 @@ jobs:
       environment: "staging"
 
 # Publish to prod
+# almalinux
+- name: publish-to-prod-almalinux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: almalinux-8-gcs
+    passed: [publish-to-staging-almalinux-8]
+    trigger: false
+    params: {skip_download: "true"}
+  - load_var: source-version
+    file: almalinux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-almalinux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/almalinux_8.publish.json"
+      environment: "prod"
 # centos
 - name: publish-to-prod-centos-7
   plan:
@@ -1545,18 +1659,7 @@ jobs:
   - get: debian-9-gcs
     passed: [publish-to-staging-debian-9]
     trigger: false
-    params:
-      skip_download: "true"
-  - load_var: source-version
-    file: debian-9-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: generate-version
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: publish-version
-    file: publish-version/version # produced from generate-version task
-  - task: publish-debian-9
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:entos_7-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/debian"
       source_version: v((.:source-version))
