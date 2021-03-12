@@ -224,7 +224,7 @@ jobs:
           wf: "build_goo.wf.json"
           repo-name: "osconfig"
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/gosconfig"
+          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
   - task: validate-version
     file: guest-test-infra/concourse/tasks/validate-version.yaml
     vars:
