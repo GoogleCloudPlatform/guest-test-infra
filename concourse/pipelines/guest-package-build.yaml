@@ -1,40 +1,11 @@
 ---
-resources:
-- name: guest-agent
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-agent.git
-    branch: master
-- name: guest-oslogin
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-oslogin.git
-    branch: master
-- name: osconfig
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/osconfig.git
-    branch: master
-- name: guest-diskexpand
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-diskexpand.git
-    branch: master
-- name: guest-configs
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-configs.git
-    branch: master
-- name: guest-test-infra
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: master
-
 jobs:
 - name: guest-agent-integration-test
   plan:
   - get: guest-agent
+    trigger: true
+    params:
+      skip_download: true
   - get: guest-test-infra
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -45,13 +16,13 @@ jobs:
   - task: guest-agent-integration-test
     file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
     vars:
-      repo-name: "guest-agent"
+      repo-name: guest-agent
       timestamp: ((.:timestamp))
   - task: validate-integtest-result
     file: guest-test-infra/concourse/tasks/validate-integtest-result.yaml
     vars:
       timestamp: ((.:timestamp))
-      repo-name: "guest-agent"
+      repo-name: guest-agent
 
 - name: build-guest-agent
   plan:
@@ -59,7 +30,7 @@ jobs:
     passed: [guest-agent-integration-test]
     trigger: true
     params:
-      skip_download: "true"
+      skip_download: true
   - load_var: commit-sha
     file: guest-agent/.git/ref
   - get: guest-test-infra
@@ -69,8 +40,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
-    vars:
-      repo-name: "guest-agent"
+    input_mapping: {repo: guest-agent}
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -79,45 +49,76 @@ jobs:
       - task: guest-package-build-guest-agent-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb9.wf.json"
-          repo-name: "guest-agent"
+          wf: build_deb9.wf.json
+          repo-name: guest-agent
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+          gcs_path: gs://gcp-guest-package-uploads/guest-agent
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el7.wf.json"
-          repo-name: "guest-agent"
+          wf: build_el7.wf.json
+          repo-name: guest-agent
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+          gcs_path: gs://gcp-guest-package-uploads/guest-agent
       - task: guest-package-build-guest-agent-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el8.wf.json"
-          repo-name: "guest-agent"
+          wf: build_el8.wf.json
+          repo-name: guest-agent
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
+          gcs_path: gs://gcp-guest-package-uploads/guest-agent
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_goo.wf.json"
-          repo-name: "guest-agent"
+          wf: build_goo.wf.json
+          repo-name: guest-agent
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/guest-agent"
-  - task: validate-version
-    file: guest-test-infra/concourse/tasks/validate-version.yaml
-    vars:
-      repo-name: "guest-agent"
-      version: ((.:package-version))
-  - task: tag-commit
-    file: guest-test-infra/concourse/tasks/tag-commit.yaml
-    vars:
-      repo-name: "guest-agent"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+          gcs_path: gs://gcp-guest-package-uploads/guest-agent
+  - put: guest-agent-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: guest-agent/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-guest-agent-deb9
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          universe: cloud-apt
+          repo: google-guest-agent
+      - task: inject-guest-agent-el7
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
+          universe: cloud-apt
+          repo: google-guest-agent-el7
+      - task: inject-guest-agent-el8
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-guest-agent_((.:package-version))-g1.el8.x86_64.rpm
+          universe: cloud-apt
+          repo: google-guest-agent-el8
+      - task: inject-compute-engine-windows
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
+          universe: cloud-yuck
+          repo: google-compute-engine-windows
+      - task: inject-compute-engine-metadata-scripts
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
+          universe: cloud-yuck
+          repo: google-compute-engine-metadata-scripts
+
 - name: build-guest-oslogin
   plan:
   - get: guest-oslogin
+    trigger: true
+    params:
+      skip_download: true
   - load_var: commit-sha
     file: guest-oslogin/.git/ref
   - get: guest-test-infra
@@ -127,8 +128,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
-    vars:
-      repo-name: "guest-oslogin"
+    input_mapping: {repo: guest-oslogin}
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -137,48 +137,71 @@ jobs:
       - task: guest-package-build-guest-oslogin-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb9.wf.json"
-          repo-name: "guest-oslogin"
+          wf: build_deb9.wf.json
+          repo-name: guest-oslogin
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
       - task: guest-package-build-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb10.wf.json"
-          repo-name: "guest-oslogin"
+          wf: build_deb10.wf.json
+          repo-name: guest-oslogin
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el7.wf.json"
-          repo-name: "guest-oslogin"
+          wf: build_el7.wf.json
+          repo-name: guest-oslogin
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
       - task: guest-package-build-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el8.wf.json"
-          repo-name: "guest-oslogin"
+          wf: build_el8.wf.json
+          repo-name: guest-oslogin
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/oslogin"
-  - task: validate-version
-    file: guest-test-infra/concourse/tasks/validate-version.yaml
-    vars:
-      repo-name: "guest-oslogin"
-      version: ((.:package-version))
-  - task: tag-commit
-    file: guest-test-infra/concourse/tasks/tag-commit.yaml
-    vars:
-      repo-name: "guest-oslogin"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
+  - put: guest-oslogin-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: guest-oslogin/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-guest-oslogin-deb9
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb9_amd64.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-stretch
+      - task: guest-package-build-guest-oslogin-deb10
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb10_amd64.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-buster
+      - task: guest-package-build-guest-oslogin-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el7.x86_64.rpm
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el7
+      - task: guest-package-build-guest-oslogin-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
+          package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el8.x86_64.rpm
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el8
+
 - name: build-osconfig
   plan:
   - get: osconfig
     trigger: true
     params:
-      skip_download: "true"
+      skip_download: true
   - load_var: commit-sha
     file: osconfig/.git/ref
   - get: guest-test-infra
@@ -188,10 +211,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
-    vars:
-      repo-name: "osconfig"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+    input_mapping: {repo: osconfig}
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -200,45 +220,70 @@ jobs:
       - task: guest-package-build-osconfig-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb9.wf.json"
-          repo-name: "osconfig"
+          wf: build_deb9.wf.json
+          repo-name: osconfig
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+          gcs_path: gs://gcp-guest-package-uploads/osconfig
       - task: guest-package-build-osconfig-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el7.wf.json"
-          repo-name: "osconfig"
+          wf: build_el7.wf.json
+          repo-name: osconfig
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+          gcs_path: gs://gcp-guest-package-uploads/osconfig
       - task: guest-package-build-osconfig-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el8.wf.json"
-          repo-name: "osconfig"
+          wf: build_el8.wf.json
+          repo-name: osconfig
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
+          gcs_path: gs://gcp-guest-package-uploads/osconfig
       - task: guest-package-build-osconfig-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_goo.wf.json"
-          repo-name: "osconfig"
+          wf: build_goo.wf.json
+          repo-name: osconfig
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/osconfig"
-  - task: validate-version
-    file: guest-test-infra/concourse/tasks/validate-version.yaml
-    vars:
-      repo-name: "osconfig"
-      version: ((.:package-version))
-  - task: tag-commit
-    file: guest-test-infra/concourse/tasks/tag-commit.yaml
-    vars:
-      repo-name: "osconfig"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+          gcs_path: gs://gcp-guest-package-uploads/osconfig
+  - put: osconfig-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: osconfig/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-osconfig-deb9-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb
+          universe: cloud-apt
+          repo: google-osconfig-agent
+      - task: inject-osconfig-el7-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm
+          universe: cloud-yum
+          repo: google-osconfig-agent-el7
+      - task: inject-osconfig-el8-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm
+          universe: cloud-yum
+          repo: google-osconfig-agent-el8
+      - task: inject-osconfig-goo-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo
+          universe: cloud-yuck
+          repo: google-osconfig-agent
+
 - name: build-guest-diskexpand
   plan:
   - get: guest-diskexpand
+    trigger: true
+    params:
+      skip_download: true
   - load_var: commit-sha
     file: guest-diskexpand/.git/ref
   - get: guest-test-infra
@@ -248,8 +293,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
-    vars:
-      repo-name: "guest-diskexpand"
+    input_mapping: {repo: guest-diskexpand}
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -258,38 +302,57 @@ jobs:
       - task: guest-package-build-guest-diskexpand-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb9.wf.json"
-          repo-name: "guest-diskexpand"
+          wf: build_deb9.wf.json
+          repo-name: guest-diskexpand
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+          gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
       - task: guest-package-build-guest-diskexpand-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el7.wf.json"
-          repo-name: "guest-diskexpand"
+          wf: build_el7.wf.json
+          repo-name: guest-diskexpand
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
+          gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
       - task: guest-package-build-guest-diskexpand-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el8.wf.json"
-          repo-name: "guest-diskexpand"
+          wf: build_el8.wf.json
+          repo-name: guest-diskexpand
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/gce-disk-expand"
-  - task: validate-version
-    file: guest-test-infra/concourse/tasks/validate-version.yaml
-    vars:
-      repo-name: "guest-diskexpand"
-      version: ((.:package-version))
-  - task: tag-commit
-    file: guest-test-infra/concourse/tasks/tag-commit.yaml
-    vars:
-      repo-name: "guest-diskexpand"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+          gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
+  - put: guest-diskexpand-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: guest-diskexpand/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-guest-diskexpand-deb9-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb
+          universe: cloud-apt
+          repo: gce-disk-expand
+      - task: inject-guest-diskexpand-el7-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm
+          universe: cloud-yum
+          repo: gce-disk-expand-el7
+      - task: inject-guest-diskexpand-el8-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm
+          universe: cloud-yum
+          repo: gce-disk-expand-el8
+
 - name: build-guest-configs
   plan:
   - get: guest-configs
+    trigger: true
+    params:
+      skip_download: true
   - load_var: commit-sha
     file: guest-configs/.git/ref
   - get: guest-test-infra
@@ -299,8 +362,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
-    vars:
-      repo-name: "guest-configs"
+    input_mapping: {repo: guest-configs}
   - load_var: package-version
     file: package-version/version
   - in_parallel:
@@ -309,32 +371,116 @@ jobs:
       - task: guest-package-build-guest-configs-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_deb9.wf.json"
-          repo-name: "guest-configs"
+          gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          repo-name: guest-configs
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+          wf: build_deb9.wf.json
       - task: guest-package-build-guest-configs-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el7.wf.json"
-          repo-name: "guest-configs"
+          gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          repo-name: guest-configs
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
+          wf: build_el7.wf.json
       - task: guest-package-build-guest-configs-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
-          wf: "build_el8.wf.json"
-          repo-name: "guest-configs"
+          gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          repo-name: guest-configs
           version: ((.:package-version))
-          gcs_path: "gs://gcp-guest-package-uploads/google-compute-engine"
-  - task: validate-version
-    file: guest-test-infra/concourse/tasks/validate-version.yaml
-    vars:
-      repo-name: "guest-configs"
-      version: ((.:package-version))
-  - task: tag-commit
-    file: guest-test-infra/concourse/tasks/tag-commit.yaml
-    vars:
-      repo-name: "guest-configs"
-      tag: ((.:package-version))
-      sha: ((.:commit-sha))
+          wf: build_el8.wf.json
+  - put: guest-configs-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: guest-configs/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-guest-configs-deb-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine
+      - task: inject-guest-configs-el7-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el7
+      - task: inject-guest-configs-el8-unstable
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el8
+
+resources:
+- name: guest-agent
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-agent.git
+    branch: master
+    fetch_tags: true
+- name: guest-agent-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: guest-agent
+    access_token: ((github-token.token))
+- name: guest-oslogin
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-oslogin.git
+    branch: master
+    fetch_tags: true
+- name: guest-oslogin-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: guest-oslogin
+    access_token: ((github-token.token))
+- name: osconfig
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/osconfig.git
+    branch: master
+    fetch_tags: true
+- name: osconfig-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: osconfig
+    access_token: ((github-token.token))
+- name: guest-diskexpand
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-diskexpand.git
+    branch: master
+    fetch_tags: true
+- name: guest-diskexpand-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: guest-diskexpand
+    access_token: ((github-token.token))
+- name: guest-configs
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-configs.git
+    branch: master
+    fetch_tags: true
+- name: guest-configs-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: guest-configs
+    access_token: ((github-token.token))
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/hopkiw/guest-test-infra.git
+    branch: inject_package
+    fetch_tags: true
+
