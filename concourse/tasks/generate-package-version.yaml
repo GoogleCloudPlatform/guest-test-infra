@@ -4,19 +4,29 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: gcr.io/gcp-guest/daisy-builder
-    tag: latest
+    repository: alpine/git
 
 inputs:
-- name: token
+- name: repo
 
 outputs:
 - name: package-version
 
 run:
-  path: sh
+  path: ash
   args:
   - -exc
   - |
-    /versiongenerator --token-file-path=token/token.txt --org=GoogleCloudPlatform --repo=((repo-name)) > package-version/version
-    cat package-version/version
+    cd repo
+    latest=$(git tag --contains `cat .git/ref` | grep -v stable | tail -1)
+    latest_date=${latest/.*}
+    todays_date=$(date '+%Y%m%d')
+    if [[ $latest_date == $todays_date ]]; then
+      latest_build=${latest/*.}
+      ((latest_build++))
+      new="${todays_date}.${latest_build}"
+    else
+      new="${todays_date}.00"
+    fi
+    cd ..
+    echo $new | tee package-version/version
