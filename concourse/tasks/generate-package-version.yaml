@@ -18,7 +18,7 @@ run:
   - -exc
   - |
     cd repo
-    latest=$(git tag --contains `cat .git/ref` | grep -v stable | tail -1)
+    latest=$(git tag -l '20*'|tail -1)
     latest_date=${latest/.*}
     todays_date=$(date '+%Y%m%d')
     if [[ $latest_date == $todays_date ]]; then
