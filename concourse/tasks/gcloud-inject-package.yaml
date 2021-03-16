@@ -21,4 +21,4 @@ run:
   - |
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     # TODO: take topic and bucket?
-    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "inject", "msg": {"bucket": "gcp-guest-package-uploads", "object": "((package_path))", "universe": "((universe))", "repo": "((repo))"}}'
+    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "inject", "request": {"bucket": "gcp-guest-package-uploads", "object": "((package_path))", "universe": "((universe))", "repo": "((repo))"}}'
