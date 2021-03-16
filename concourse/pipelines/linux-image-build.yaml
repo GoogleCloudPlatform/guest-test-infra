@@ -1244,7 +1244,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-7-gcs
-    passed: [publish-to-staging-centos-7]
+    passed: [publish-to-testing-centos-7]
     trigger: false
     params: {skip_download: "true"}
   - load_var: source-version
@@ -1268,7 +1268,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-8-gcs
-    passed: [publish-to-staging-centos-8]
+    passed: [publish-to-testing-centos-8]
     trigger: false
     params: {skip_download: "true"}
   - load_var: source-version
@@ -1292,7 +1292,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-stream-8-gcs
-    passed: [publish-to-staging-centos-stream-8]
+    passed: [publish-to-testing-centos-stream-8]
     trigger: false
     params: {skip_download: "true"}
   - load_var: source-version
@@ -1317,7 +1317,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-gcs
-    passed: [publish-to-staging-rhel-7]
+    passed: [publish-to-testing-rhel-7]
     trigger: false
     params:
       skip_download: "true"
@@ -1342,7 +1342,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-gcs
-    passed: [publish-to-staging-rhel-8]
+    passed: [publish-to-testing-rhel-8]
     trigger: false
     params:
       skip_download: "true"
@@ -1367,7 +1367,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-byos-gcs
-    passed: [publish-to-staging-rhel-7-byos]
+    passed: [publish-to-testing-rhel-7-byos]
     trigger: false
     params:
       skip_download: "true"
@@ -1392,7 +1392,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-byos-gcs
-    passed: [publish-to-staging-rhel-8-byos]
+    passed: [publish-to-testing-rhel-8-byos]
     trigger: false
     params:
       skip_download: "true"
@@ -1417,7 +1417,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-4-sap-gcs
-    passed: [publish-to-staging-rhel-7-4-sap]
+    passed: [publish-to-testing-rhel-7-4-sap]
     trigger: false
     params:
       skip_download: "true"
@@ -1442,7 +1442,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-6-sap-gcs
-    passed: [publish-to-staging-rhel-7-6-sap]
+    passed: [publish-to-testing-rhel-7-6-sap]
     trigger: false
     params:
       skip_download: "true"
@@ -1467,7 +1467,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-7-sap-gcs
-    passed: [publish-to-staging-rhel-7-7-sap]
+    passed: [publish-to-testing-rhel-7-7-sap]
     trigger: false
     params:
       skip_download: "true"
@@ -1492,7 +1492,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-1-sap-gcs
-    passed: [publish-to-staging-rhel-8-1-sap]
+    passed: [publish-to-testing-rhel-8-1-sap]
     trigger: false
     params:
       skip_download: "true"
@@ -1517,7 +1517,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-2-sap-gcs
-    passed: [publish-to-staging-rhel-8-2-sap]
+    passed: [publish-to-testing-rhel-8-2-sap]
     trigger: false
     params:
       skip_download: "true"
@@ -1543,7 +1543,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: debian-9-gcs
-    passed: [publish-to-staging-debian-9]
+    passed: [publish-to-testing-debian-9]
     trigger: false
     params:
       skip_download: "true"
@@ -1568,7 +1568,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: debian-10-gcs
-    passed: [publish-to-staging-debian-10]
+    passed: [publish-to-testing-debian-10]
     trigger: false
     params:
       skip_download: "true"
