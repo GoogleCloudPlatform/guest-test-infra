@@ -97,7 +97,7 @@ jobs:
       - task: inject-guest-agent-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1.el8.x86_64.rpm
+          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-apt
           repo: google-guest-agent-el8
       - task: inject-compute-engine-windows
@@ -406,13 +406,13 @@ jobs:
       - task: inject-guest-configs-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
+          package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el7
       - task: inject-guest-configs-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
+          package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
 
