@@ -480,7 +480,7 @@ resources:
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/hopkiw/guest-test-infra.git
-    branch: inject_package
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
     fetch_tags: true
 
