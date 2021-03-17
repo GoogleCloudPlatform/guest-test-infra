@@ -171,25 +171,25 @@ jobs:
       fail_fast: true
       steps:
       - task: guest-package-build-guest-oslogin-deb9
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb9_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
       - task: guest-package-build-guest-oslogin-deb10
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb10_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
       - task: guest-package-build-guest-oslogin-el7
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
       - task: guest-package-build-guest-oslogin-el8
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/oslogin
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el8.x86_64.rpm
@@ -254,25 +254,25 @@ jobs:
       fail_fast: true
       steps:
       - task: inject-osconfig-deb9-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-osconfig-agent
       - task: inject-osconfig-el7-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: google-osconfig-agent-el7
       - task: inject-osconfig-el8-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: google-osconfig-agent-el8
       - task: inject-osconfig-goo-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo
           universe: cloud-yuck
@@ -329,19 +329,19 @@ jobs:
       fail_fast: true
       steps:
       - task: inject-guest-diskexpand-deb9-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-disk-expand
       - task: inject-guest-diskexpand-el7-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-disk-expand-el7
       - task: inject-guest-diskexpand-el8-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
@@ -398,19 +398,19 @@ jobs:
       fail_fast: true
       steps:
       - task: inject-guest-configs-deb-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-google-compute-engine
       - task: inject-guest-configs-el7-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el7
       - task: inject-guest-configs-el8-unstable
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
