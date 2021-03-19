@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,107 +15,108 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/jstemmer/go-junit-report/formatter"
-	"github.com/jstemmer/go-junit-report/parser"
+	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
+	junitParser "github.com/jstemmer/go-junit-report/parser"
 )
 
 const (
-	metadataUrlPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
-	testTxtResult       = "/tmp/go-test.txt"
-	testJunitResult     = "/tmp/junit_go-test.xml"
+	metadataURLPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
+	testTxtResult       = "go-test.txt"
 	testResultObject    = "outs/junit_go-test.xml"
-	testBinaryLocalPath = "/tmp/image_test"
+	testBinaryLocalPath = "image_test"
+	artifactPath        = "/artifact"
 )
-
-var testArgument = []string{"-test.v"}
 
 func main() {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		log.Fatalf("Failed to create cloud storage client: %v\n", err)
+		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 
-	testBinaryUrl, err := getMetadataAttribute("_test_binary_url")
-	log.Printf("Metadata _test_binary_url: %v\n", testBinaryUrl)
-	bucket, object, err := parseBucketObject(testBinaryUrl)
+	testBinaryURL, err := getMetadataAttribute("_test_binary_url")
 	if err != nil {
-		log.Fatalf("Failed to pase gcs url: %v\n", err)
+		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
 	}
+
+	u, err := url.Parse(testBinaryURL)
+	if err != nil {
+		log.Fatalf("failed to parse gcs url: %v", err)
+	}
+	bucket, object := u.Host, u.Path
 
 	testRun, err := getMetadataAttribute("_test_run")
-	log.Printf("Metadata _test_run: %v\n", testRun)
+	if err != nil {
+		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
+	}
+
+	var testArguments = []string{"-test.v"}
 	if testRun != "" {
-		testArgument = append(testArgument, "-test.run", testRun)
+		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
-	err = downloadObjectToFile(ctx, client, bucket, object, testBinaryLocalPath)
-	if err != nil {
-		log.Fatalf("Failed to download object: %v\n", err)
+	workDir := "/test-" + randString(5)
+	if err = os.Mkdir(workDir+artifactPath, 0755); err != nil {
+		log.Fatalf("failed to create artifact dir: %v", err)
+	}
+	if err = os.Mkdir(workDir, 0755); err != nil {
+		log.Fatalf("failed to create work dir: %v", err)
+	}
+	if err = os.Chdir(workDir); err != nil {
+		log.Fatalf("failed to change work dir: %v", err)
+	}
+	if err = downloadGCSObject(ctx, client, bucket, object, testBinaryLocalPath); err != nil {
+		log.Fatalf("failed to download object: %v", err)
 	}
 
-	err = executeAndSaveOutput(testTxtResult, testBinaryLocalPath, testArgument...)
-	if err != nil {
-		log.Fatalf("Failed to execute test binary: %v\n", err)
+	if err = executeAndSaveOutput(testTxtResult, testBinaryLocalPath, testArguments); err != nil {
+		log.Fatalf("failed to execute test binary: %v", err)
 	}
 
-	err = covertTxtToJunit(testTxtResult, testJunitResult)
+	testData, err := convertTxtToJunit(testTxtResult)
 	if err != nil {
-		log.Fatalf("Failed to convert to junit format: %v\n", err)
+		log.Fatalf("failed to convert to junit format: %v", err)
 	}
 
-	err = uploadObjectFromFile(ctx, client, bucket, testResultObject, testJunitResult)
-	if err != nil {
-		log.Fatalf("Failed to upload test result: %v\n", err)
+	if err = uploadGCSObject(ctx, client, bucket, testResultObject, testData); err != nil {
+		log.Fatalf("failed to upload test result: %v", err)
 	}
 }
 
-func parseBucketObject(gcsUrl string) (string, string, error) {
-	u, err := url.Parse(gcsUrl)
+func convertTxtToJunit(file string) (*bytes.Buffer, error) {
+	in, err := os.Open(file)
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to pase gcs url: %v\n", err)
+		return nil, fmt.Errorf("failed to open file %v", err)
 	}
-	return u.Host, u.Path, nil
+
+	var b bytes.Buffer
+	report, err := junitParser.Parse(in, "")
+	if err != nil {
+		return nil, err
+	}
+	if err = junitFormatter.JUnitReportXML(report, false, "", &b); err != nil {
+		return nil, err
+	}
+	return &b, nil
 }
 
-func covertTxtToJunit(input, output string) error {
-	in, err := os.Open(input)
-	if err != nil {
-		return fmt.Errorf("Failed to open file %v", err)
-	}
-
-	out, err := os.Create(output)
-	if err != nil {
-		return fmt.Errorf("Failed to create file %v", err)
-	}
-	report, err := parser.Parse(in, "")
-	if err != nil {
-		return err
-	}
-	err = formatter.JUnitReportXML(report, false, "", out)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func executeAndSaveOutput(file, name string, arg ...string) error {
-	command := exec.Command(name, arg...)
-	log.Printf("The command: %v\n", command.String())
+func executeAndSaveOutput(stdoutFile, cmd string, arg []string) error {
+	command := exec.Command(cmd, arg...)
+	log.Printf("The command: %v", command.String())
 
 	output, err := command.Output()
 	if err != nil {
-		return fmt.Errorf("Failed to execute command: %v\n", err)
+		return fmt.Errorf("failed to execute command: %v", err)
 	}
-	err = ioutil.WriteFile(file, output, 0755)
+	err = ioutil.WriteFile(stdoutFile, output, 0755)
 	if err != nil {
-		return fmt.Errorf("Failed to write stdout: %v\n", err)
+		return fmt.Errorf("failed to write stdout: %v", err)
 	}
 	return nil
 }
 
 func getMetadataAttribute(attribute string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataUrlPrefix, attribute), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, attribute), nil)
 	if err != nil {
 		return "", err
 	}
@@ -123,6 +126,9 @@ func getMetadataAttribute(attribute string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("http response code is %v", resp.StatusCode)
+	}
 	val, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
@@ -130,42 +136,39 @@ func getMetadataAttribute(attribute string) (string, error) {
 	return string(val), nil
 }
 
-func downloadObjectToFile(ctx context.Context, client *storage.Client, bucket, object, file string) error {
+func downloadGCSObject(ctx context.Context, client *storage.Client, bucket, object, file string) error {
 	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to open the reader: %v\n", err)
+		return fmt.Errorf("failed to open the reader: %v", err)
 	}
 	defer rc.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
 
 	data, err := ioutil.ReadAll(rc)
 	if err != nil {
 		return fmt.Errorf("ioutil.ReadAll: %v", err)
 	}
 
-	err = ioutil.WriteFile(file, data, 0777)
-	if err != nil {
-		return fmt.Errorf("Failed to write file: %v\n", err)
+	if err = ioutil.WriteFile(file, data, 0755); err != nil {
+		return fmt.Errorf("failed to write file: %v", err)
 	}
 	return nil
 }
 
-func uploadObjectFromFile(ctx context.Context, client *storage.Client, bucket, object, file string) error {
-	f, err := os.Open(file)
-	if err != nil {
-		return fmt.Errorf("fail to open a file %v", err)
+func uploadGCSObject(ctx context.Context, client *storage.Client, bucket, object string, data io.Reader) error {
+	des := client.Bucket(bucket).Object(object).NewWriter(ctx)
+	if _, err := io.Copy(des, data); err != nil {
+		return fmt.Errorf("failed to write file: %v", err)
 	}
-	defer f.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
-
-	wc := client.Bucket(bucket).Object(object).NewWriter(ctx)
-	if _, err = io.Copy(wc, f); err != nil {
-		return fmt.Errorf("Failed to write file: %v", err)
-	}
-	wc.Close()
+	des.Close()
 	return nil
+}
+
+func randString(n int) string {
+	gen := rand.New(rand.NewSource(time.Now().UnixNano()))
+	letters := "bdghjlmnpqrstvwxyz0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letters[gen.Int63()%int64(len(letters))]
+	}
+	return string(b)
 }
