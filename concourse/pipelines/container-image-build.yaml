@@ -1,0 +1,20 @@
+resources:
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/gaohannk/guest-test-infra.git
+    branch: test_manager_container
+
+jobs:
+- name: "build-test-manager-container"
+  plan:
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: build-test-manager-container-image
+    file: guest-test-infra/concourse/tasks/build-container-image.yaml
+    vars:
+      destination: gcr.io/gcp-guest/test-manager:latest
+      dockerfile: ./container_images/test-manager/Dockerfile
+      context: ./guest-test-infra
+

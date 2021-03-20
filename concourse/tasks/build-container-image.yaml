@@ -1,0 +1,19 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/kaniko-project/executor
+    tag: debug
+
+inputs:
+- name: guest-test-infra
+- name: credentials
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    export GOOGLE_APPLICATION_CREDENTIALS=$PWD/credentials/credentials.json
+    executor --dockerfile=((dockerfile)) --context=((context)) --destination=((destination))
