@@ -92,13 +92,13 @@ jobs:
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
-          universe: cloud-apt
+          universe: cloud-yum
           repo: google-guest-agent-el7
       - task: inject-guest-agent-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
-          universe: cloud-apt
+          universe: cloud-yum
           repo: google-guest-agent-el8
       - task: inject-compute-engine-windows
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
@@ -148,6 +148,13 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+      - task: guest-package-build-guest-oslogin-deb11
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: build_deb11.wf.json
+          repo-name: guest-oslogin
+          version: ((.:package-version))
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -182,6 +189,12 @@ jobs:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb10_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
+      - task: guest-package-build-guest-oslogin-deb11
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb11_amd64.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-bullseye
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
