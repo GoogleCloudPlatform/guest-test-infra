@@ -1659,7 +1659,18 @@ jobs:
   - get: debian-9-gcs
     passed: [publish-to-testing-debian-9]
     trigger: false
-    params:entos_7-publish-images.yaml
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-9-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-9
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/debian"
       source_version: v((.:source-version))
