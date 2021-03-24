@@ -21,10 +21,10 @@ import (
 
 const (
 	metadataURLPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
-	testTxtResult       = "go-test.txt"
 	testResultObject    = "outs/junit_go-test.xml"
 	testBinaryLocalPath = "image_test"
 	artifactPath        = "/artifact"
+	workDir             = "/workspace"
 )
 
 func main() {
@@ -39,23 +39,13 @@ func main() {
 		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
 	}
 
-	u, err := url.Parse(testBinaryURL)
-	if err != nil {
-		log.Fatalf("failed to parse gcs url: %v", err)
-	}
-	bucket, object := u.Host, u.Path
-
 	testRun, err := getMetadataAttribute("_test_run")
-	if err != nil {
-		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
-	}
 
 	var testArguments = []string{"-test.v"}
 	if testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
-	workDir := "/test-" + randString(5)
 	if err = os.Mkdir(workDir+artifactPath, 0755); err != nil {
 		log.Fatalf("failed to create artifact dir: %v", err)
 	}
@@ -65,15 +55,16 @@ func main() {
 	if err = os.Chdir(workDir); err != nil {
 		log.Fatalf("failed to change work dir: %v", err)
 	}
-	if err = downloadGCSObject(ctx, client, bucket, object, testBinaryLocalPath); err != nil {
+	if err = downloadGCSObject(ctx, client, testBinaryURL, testBinaryLocalPath); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
-	if err = executeAndSaveOutput(testTxtResult, testBinaryLocalPath, testArguments); err != nil {
+	out, err := executeCMD(testBinaryLocalPath, testArguments)
+	if err != nil {
 		log.Fatalf("failed to execute test binary: %v", err)
 	}
 
-	testData, err := convertTxtToJunit(testTxtResult)
+	testData, err := convertTxtToJunit(out)
 	if err != nil {
 		log.Fatalf("failed to convert to junit format: %v", err)
 	}
@@ -83,14 +74,10 @@ func main() {
 	}
 }
 
-func convertTxtToJunit(file string) (*bytes.Buffer, error) {
-	in, err := os.Open(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file %v", err)
-	}
-
+func convertTxtToJunit(in []byte) (*bytes.Buffer, error) {
 	var b bytes.Buffer
-	report, err := junitParser.Parse(in, "")
+	r := bytes.NewReader(in)
+	report, err := junitParser.Parse(r, "")
 	if err != nil {
 		return nil, err
 	}
@@ -100,23 +87,19 @@ func convertTxtToJunit(file string) (*bytes.Buffer, error) {
 	return &b, nil
 }
 
-func executeAndSaveOutput(stdoutFile, cmd string, arg []string) error {
+func executeCMD(cmd string, arg []string) ([]byte, error) {
 	command := exec.Command(cmd, arg...)
 	log.Printf("The command: %v", command.String())
 
 	output, err := command.Output()
 	if err != nil {
-		return fmt.Errorf("failed to execute command: %v", err)
+		return nil, fmt.Errorf("failed to execute command: %v", err)
 	}
-	err = ioutil.WriteFile(stdoutFile, output, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to write stdout: %v", err)
-	}
-	return nil
+	return output, nil
 }
 
 func getMetadataAttribute(attribute string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, attribute), nil)
+	req, err := http.NewRequest(http.MethodGet, metadataURLPrefix+attribute, nil)
 	if err != nil {
 		return "", err
 	}
@@ -127,7 +110,7 @@ func getMetadataAttribute(attribute string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("http response code is %v", resp.StatusCode)
+		return "", fmt.Errorf("http response code is %d", resp.StatusCode)
 	}
 	val, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -136,7 +119,13 @@ func getMetadataAttribute(attribute string) (string, error) {
 	return string(val), nil
 }
 
-func downloadGCSObject(ctx context.Context, client *storage.Client, bucket, object, file string) error {
+func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL, file string) error {
+	u, err := url.Parse(testBinaryURL)
+	if err != nil {
+		log.Fatalf("failed to parse gcs url: %v", err)
+	}
+	bucket, object := u.Host, u.Path
+
 	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to open the reader: %v", err)
