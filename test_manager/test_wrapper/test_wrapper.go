@@ -7,12 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
-	"time"
 
 	"cloud.google.com/go/storage"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
@@ -155,14 +153,4 @@ func uploadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL 
 	}
 	des.Close()
 	return nil
-}
-
-func randString(n int) string {
-	gen := rand.New(rand.NewSource(time.Now().UnixNano()))
-	letters := "bdghjlmnpqrstvwxyz0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letters[gen.Int63()%int64(len(letters))]
-	}
-	return string(b)
 }
