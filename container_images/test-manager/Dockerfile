@@ -15,26 +15,10 @@ FROM golang as builder
 
 WORKDIR /go/src/
 COPY . .
-
-WORKDIR ./test_manager
-RUN go get
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o /test_manager
-
-WORKDIR ./test_wrapper
-RUN go get
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o /test_wrapper
-
-WORKDIR ../test_suites/oslogin
-RUN CGO_ENABLED=0 GOOS=linux go test -c -o /oslogin.test
-
-WORKDIR ../shutdown_scripts
-RUN CGO_ENABLED=0 GOOS=linux go test -c -o /shutdown_scripts.test
+RUN chmod +x ./container_images/test-manager/build.sh
+RUN ./container_images/test-manager/build.sh
 
 FROM alpine
-COPY --from=builder /test_manager /
-COPY --from=builder /test_wrapper /
-COPY --from=builder /shutdown_scripts.test /
-COPY --from=builder /oslogin.test /
+COPY --from=builder /out/* /
 
 ENTRYPOINT ["/test_manager"]
-
