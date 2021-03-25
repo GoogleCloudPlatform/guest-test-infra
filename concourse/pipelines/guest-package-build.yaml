@@ -170,25 +170,25 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: guest-package-build-guest-oslogin-deb9
+      - task: guest-package-inject-guest-oslogin-deb9
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb9_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
-      - task: guest-package-build-guest-oslogin-deb10
+      - task: guest-package-inject-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb10_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
-      - task: guest-package-build-guest-oslogin-el7
+      - task: guest-package-inject-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
-      - task: guest-package-build-guest-oslogin-el8
+      - task: guest-package-inject-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/oslogin
