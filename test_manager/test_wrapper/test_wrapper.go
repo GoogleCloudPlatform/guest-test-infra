@@ -55,7 +55,7 @@ func main() {
 	if err = os.Chdir(workDir); err != nil {
 		log.Fatalf("failed to change work dir: %v", err)
 	}
-	if err = downloadGCSObject(ctx, client, testBinaryURL, testBinaryLocalPath); err != nil {
+	if err = downloadGCSObject(ctx, client, testBinaryURL); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
@@ -69,7 +69,7 @@ func main() {
 		log.Fatalf("failed to convert to junit format: %v", err)
 	}
 
-	if err = uploadGCSObject(ctx, client, bucket, testResultObject, testData); err != nil {
+	if err = uploadGCSObject(ctx, client, testBinaryURL, testData); err != nil {
 		log.Fatalf("failed to upload test result: %v", err)
 	}
 }
@@ -119,7 +119,7 @@ func getMetadataAttribute(attribute string) (string, error) {
 	return string(val), nil
 }
 
-func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL, file string) error {
+func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL string) error {
 	u, err := url.Parse(testBinaryURL)
 	if err != nil {
 		log.Fatalf("failed to parse gcs url: %v", err)
@@ -137,14 +137,19 @@ func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryUR
 		return fmt.Errorf("ioutil.ReadAll: %v", err)
 	}
 
-	if err = ioutil.WriteFile(file, data, 0755); err != nil {
+	if err = ioutil.WriteFile(testBinaryLocalPath, data, 0755); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 	return nil
 }
 
-func uploadGCSObject(ctx context.Context, client *storage.Client, bucket, object string, data io.Reader) error {
-	des := client.Bucket(bucket).Object(object).NewWriter(ctx)
+func uploadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL string, data io.Reader) error {
+	u, err := url.Parse(testBinaryURL)
+	if err != nil {
+		log.Fatalf("failed to parse gcs url: %v", err)
+	}
+	bucket := u.Host
+	des := client.Bucket(bucket).Object(testResultObject).NewWriter(ctx)
 	if _, err := io.Copy(des, data); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
