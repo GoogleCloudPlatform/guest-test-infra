@@ -11,8 +11,12 @@ jobs:
   plan:
   - get: guest-test-infra
     trigger: true
-  - set_pipeline: linux-image-build
-    file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
+  - set_pipeline: linux-image-build-centos
+    file: guest-test-infra/concourse/pipelines/linux-image-build-centos.yaml
+  - set_pipeline: linux-image-build-debian
+    file: guest-test-infra/concourse/pipelines/linux-image-build-debian.yaml
+  - set_pipeline: linux-image-build-rhel
+    file: guest-test-infra/concourse/pipelines/linux-image-build-rhel.yaml
   - set_pipeline: guest-package-build
     file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
   - set_pipeline: dev-image-build
