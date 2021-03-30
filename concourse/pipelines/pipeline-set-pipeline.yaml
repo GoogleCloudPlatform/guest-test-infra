@@ -11,6 +11,8 @@ jobs:
   plan:
   - get: guest-test-infra
     trigger: true
+  - set_pipeline: linux-image-build-almalinux
+    file: guest-test-infra/concourse/pipelines/linux-image-build-almalinux.yaml
   - set_pipeline: linux-image-build-centos
     file: guest-test-infra/concourse/pipelines/linux-image-build-centos.yaml
   - set_pipeline: linux-image-build-debian
