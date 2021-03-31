@@ -51,6 +51,10 @@ dpkg-checkbuilddeps packaging/debian/control
 
 if grep -q '+deb' packaging/debian/changelog; then
   DEB=$(</etc/debian_version)
+  # Currently Debian 11 doesn't use a numerical version number in its release.
+  if [[ "${DEB}" =~ "bullseye" ]]; then
+    DEB="11"
+  fi
   DEB="+deb${DEB/.*}"
 fi
 
