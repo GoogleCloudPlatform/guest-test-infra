@@ -1702,3 +1702,72 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
       environment: "prod"
+groups:
+- name: debian
+  jobs:
+  - build-debian-9
+  - build-debian-10
+  - publish-to-testing-debian-9
+  - publish-to-testing-debian-10
+  - publish-to-staging-debian-9
+  - publish-to-staging-debian-10
+  - publish-to-prod-debian-9
+  - publish-to-prod-debian-10
+- name: centos
+  jobs:
+  - build-centos-7
+  - build-centos-8
+  - build-centos-stream-8
+  - publish-to-testing-centos-7
+  - publish-to-testing-centos-8
+  - publish-to-testing-centos-stream-8
+  - publish-to-staging-centos-7
+  - publish-to-staging-centos-8
+  - publish-to-staging-centos-stream-8
+  - publish-to-prod-centos-7
+  - publish-to-prod-centos-8
+  - publish-to-prod-centos-stream-8
+- name: almalinux
+  jobs:
+  - build-almalinux-8
+  - publish-to-testing-almalinux-8
+  - publish-to-staging-almalinux-8
+  - publish-to-prod-almalinux-8
+- name: rhel
+  jobs:
+  - build-rhel-7
+  - build-rhel-8
+  - build-rhel-7-byos
+  - build-rhel-8-byos
+  - build-rhel-7-4-sap
+  - build-rhel-7-6-sap
+  - build-rhel-7-7-sap
+  - build-rhel-8-1-sap
+  - build-rhel-8-2-sap
+  - publish-to-testing-rhel-7
+  - publish-to-testing-rhel-8
+  - publish-to-testing-rhel-7-byos
+  - publish-to-testing-rhel-8-byos
+  - publish-to-testing-rhel-7-4-sap
+  - publish-to-testing-rhel-7-6-sap
+  - publish-to-testing-rhel-7-7-sap
+  - publish-to-testing-rhel-8-1-sap
+  - publish-to-testing-rhel-8-2-sap
+  - publish-to-staging-rhel-7
+  - publish-to-staging-rhel-7-byos
+  - publish-to-staging-rhel-8-byos
+  - publish-to-staging-rhel-8
+  - publish-to-staging-rhel-7-4-sap
+  - publish-to-staging-rhel-7-6-sap
+  - publish-to-staging-rhel-7-7-sap
+  - publish-to-staging-rhel-8-1-sap
+  - publish-to-staging-rhel-8-2-sap
+  - publish-to-prod-rhel-7
+  - publish-to-prod-rhel-8
+  - publish-to-prod-rhel-7-byos
+  - publish-to-prod-rhel-8-byos
+  - publish-to-prod-rhel-7-4-sap
+  - publish-to-prod-rhel-7-6-sap
+  - publish-to-prod-rhel-7-7-sap
+  - publish-to-prod-rhel-8-1-sap
+  - publish-to-prod-rhel-8-2-sap
