@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2021 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ done
 
 for test_suite in ./test_suites; do
   test_suite=`basename ${test_suite}`
-  go test -c ./test_suites/${test_suite} -o /out/${test_suite}.test
+  go test -c ./${test_suite} -o /out/${test_suite}.test
   echo "'go test -c' exited with $?"
 done
 
