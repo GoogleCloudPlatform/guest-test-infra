@@ -21,7 +21,7 @@ const (
 	metadataURLPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 	testResultObject    = "outs/junit_go-test.xml"
 	testBinaryLocalPath = "image_test"
-	artifactPath        = "/artifact"
+	artifactPath        = "/workspace/artifact"
 	workDir             = "/workspace"
 )
 
@@ -37,18 +37,18 @@ func main() {
 		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
 	}
 
-	testRun, err := getMetadataAttribute("_test_run")
+	testRun, _ := getMetadataAttribute("_test_run")
 
 	var testArguments = []string{"-test.v"}
 	if testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
-	if err = os.Mkdir(workDir+artifactPath, 0755); err != nil {
-		log.Fatalf("failed to create artifact dir: %v", err)
-	}
 	if err = os.Mkdir(workDir, 0755); err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
+	}
+	if err = os.Mkdir(artifactPath, 0755); err != nil {
+		log.Fatalf("failed to create artifact dir: %v", err)
 	}
 	if err = os.Chdir(workDir); err != nil {
 		log.Fatalf("failed to change work dir: %v", err)
@@ -57,7 +57,7 @@ func main() {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
-	out, err := executeCMD(testBinaryLocalPath, testArguments)
+	out, err := executeCMD(testBinaryLocalPath, workDir, testArguments)
 	if err != nil {
 		log.Fatalf("failed to execute test binary: %v", err)
 	}
@@ -85,8 +85,9 @@ func convertTxtToJunit(in []byte) (*bytes.Buffer, error) {
 	return &b, nil
 }
 
-func executeCMD(cmd string, arg []string) ([]byte, error) {
+func executeCMD(cmd, dir string, arg []string) ([]byte, error) {
 	command := exec.Command(cmd, arg...)
+	command.Dir = dir
 	log.Printf("The command: %v", command.String())
 
 	output, err := command.Output()
@@ -147,10 +148,10 @@ func uploadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL 
 		log.Fatalf("failed to parse gcs url: %v", err)
 	}
 	bucket := u.Host
-	des := client.Bucket(bucket).Object(testResultObject).NewWriter(ctx)
-	if _, err := io.Copy(des, data); err != nil {
+	dst := client.Bucket(bucket).Object(testResultObject).NewWriter(ctx)
+	if _, err := io.Copy(dst, data); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
-	des.Close()
+	dst.Close()
 	return nil
 }
