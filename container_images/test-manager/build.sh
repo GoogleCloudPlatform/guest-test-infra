@@ -15,26 +15,26 @@
 
 export CGO_ENABLED=0 GOOS=linux
 BUILD_DIR=./test_manager
+pwd
 cd $BUILD_DIR
 mkdir /out
 
 GOBUILD_OUT=0
 
 echo "Start Building"
-for d in *; do
-  d=`basename $d`
-  if [[ "$d" != "test_suites" ]]; then
-    pushd $d || continue
-    go get && go build -v -o /out/$d
-    echo "'go build' exited with $?"
-    popd
-  fi
-done
+cd testmanager
+go get && go build -v -o /out/$d
+echo "'go build' exited with $?"
+cd ..
+cd test_wrapper
+go get && go build -v -o /out/$d
+echo "'go build' exited with $?"
+cd ..
+
 
 for test_suite in ./test_suites; do
   test_suite=`basename ${test_suite}`
-  go test -c ./${test_suite} -o /out/${test_suite}.test
-  echo "'go test -c' exited with $?"
+  go test -c ./test_suites/${test_suite} -o /out/${test_suite}.test
 done
 
 echo "All build output:"
