@@ -20,13 +20,12 @@ cd test_manager
 mkdir /out
 
 echo "Start Building"
-go get
 cd ./testmanager
-go build -v -o /out/test_manager
+go get && go build -v -o /out/test_manager
 echo "go build exited with $?"
 cd ..
 cd ./test_wrapper
-go build -v -o /out/test_wrapper
+go get && go build -v -o /out/test_wrapper
 echo "go build exited with $?"
 cd ..
 
