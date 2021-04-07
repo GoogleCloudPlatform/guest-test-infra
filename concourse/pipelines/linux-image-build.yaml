@@ -1899,4 +1899,5 @@ groups:
   - publish-to-prod-rhel-8-1-sap
   - publish-to-prod-rhel-8-2-sap
 - name: test-manager-container
+  jobs:
   - build-test-manager-container
