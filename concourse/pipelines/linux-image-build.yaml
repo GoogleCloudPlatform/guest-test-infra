@@ -1813,7 +1813,7 @@ jobs:
       wf: "debian/debian_11.publish.json"
       environment: "prod"
 
-- name: "build-test-manager-container"
+- name: build-test-manager-container
   plan:
   - get: guest-test-infra
   - task: get-credential
@@ -1898,3 +1898,5 @@ groups:
   - publish-to-prod-rhel-7-7-sap
   - publish-to-prod-rhel-8-1-sap
   - publish-to-prod-rhel-8-2-sap
+- name: test-manager-container
+  - build-test-manager-container
