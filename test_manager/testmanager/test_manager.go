@@ -2,7 +2,6 @@ package testmanager
 
 import (
 	"context"
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -25,8 +24,6 @@ const (
 	testSuitePath    = testBinariesPath + "/test_suites"
 )
 
-// Originally named TestSuite because a jUnit <testsuite> will cover one workflow.
-
 // TestWorkflow defines a test workflow which creates at least one test VM.
 type TestWorkflow struct {
 	wf          *daisy.Workflow
@@ -35,19 +32,6 @@ type TestWorkflow struct {
 	skipped     bool
 	destination string
 }
-
-// TODO: remove this testing method
-
-func (t *TestWorkflow) String() string {
-	b, err := json.MarshalIndent(t.wf, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshalling workflow for printing:", err)
-		return ""
-	}
-	return string(b)
-}
-
-// TODO: remove this testing method
 
 // Disable disables a workflow.
 func (t *TestWorkflow) Disable() {
@@ -122,7 +106,6 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	}
 	// TODO: remove this debug line
 	fmt.Printf("runTestWorkflow: running %s on %s (ID %s)\n", test.Name, test.Image, test.wf.ID())
-	//test.wf.Print(ctx)
 	if err := test.wf.Run(ctx); err != nil {
 		res.WorkflowFailed = true
 		res.Result = err.Error()
@@ -197,7 +180,7 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 	for i := 0; i < len(testWorkflows); i++ {
 		suites.Suites = append(suites.Suites, parseResult(<-testResults))
 	}
-	// TODO: write final testSuites XML!
+
 	bytes, err := xml.MarshalIndent(suites, "", "\t")
 	if err != nil {
 		fmt.Printf("failed to marshall result: %v\n", err)
