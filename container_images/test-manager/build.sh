@@ -20,16 +20,17 @@ cd test_manager
 mkdir /out
 
 echo "Start Building"
-cd ./testmanager
-go get && go build -v -o /out/test_manager
+go get ./...
+cd testmanager
+go build -v -o /out/test_manager
 echo "go build exited with $?"
 cd ..
-cd ./test_wrapper
-go get && go build -v -o /out/test_wrapper
+cd test_wrapper
+go build -v -o /out/test_wrapper
 echo "go build exited with $?"
 cd ..
 
-cd ./test_suites
+cd test_suites
 for test_suite in *; do
   go test -c ${test_suite} -o /out/${test_suite}.test
   echo "go test -c exited with $?"
