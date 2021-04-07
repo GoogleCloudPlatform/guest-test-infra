@@ -1,0 +1,25 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/test-manager
+    tag: latest
+
+inputs:
+- name: credentials
+- name: guest-test-infra
+
+
+params:
+  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+
+run:
+  path: /test_manager
+  args:
+  # Assume we need these vars
+  - -work_project=((workProject))
+  - -tarball_path=((tarballPath))
+  - -test_binary_path=((testBinaryPath))
+
+
