@@ -1,53 +1,49 @@
 package shutdown_scripts
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 )
 
-// TestScriptTime tests that shutdown scripts can continue running for around
-// two minutes. Because the test involves a reboot, the test context must be
-// permissive of reboots (i.e. don't cancel or clean up on reboot), and this
-// test will run both times so it must recognize when the second boot has
-// occurred. It is a good example of a single-VM, complicated test.
-//
-func TestScriptTimeOrig(t *testing.T) {
-	// old logic:
-	// instance was started in setupClass
-	// stop instance
-	// start instance
-	// get some output file on the instance
-	// read the file and see if the script was able to write that long
-	//
-	return
-}
+var (
+	minimumSeconds = 110
+)
 
 func parseFile() error {
-	fmt.Println("TestSuccess: The file exists!")
+	res, err := ioutil.ReadFile(timerfile)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(res), "\n")
+	if len(lines) < 1 {
+		return errors.New("empty file")
+	}
+	count, err := strconv.Atoi(lines[len(lines)-1])
+	if err != nil {
+		return err
+	}
+	if count < minimumSeconds {
+		return fmt.Errorf("shutdown script reported %d seconds runtime, less than minimum %d seconds", count, minimumSeconds)
+	}
+
 	return nil
 }
 
-var filename = "/root/the_log"
-
 func TestScriptTime(t *testing.T) {
-	/*
-		creds, err := google.FindDefaultCredentials(context.Background())
-		if err != nil {
-			t.Fatalf("%v", err)
-		}
-		t.Logf("got: %v", creds.TokenSource)
-	*/
-	_, err := os.Stat(filename)
+	_, err := os.Stat(timerfile)
 	if err == nil {
 		if err := parseFile(); err != nil {
-			t.Errorf("It failed..")
+			t.Errorf("failed to parse timer file: %v", err)
 		}
 		return
 	}
 	if os.IsNotExist(err) {
-		fmt.Printf("TestInterimSuccess: No file to parse, probably first boot")
-		// If I exit, won't that cause an issue... bc my results will get uploaded?
+		t.Log("timer file missing, assuming this is first boot")
 		return
 
 	}

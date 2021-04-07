@@ -13,6 +13,7 @@ while True; do
   ((count++)
   sleep 1
 done`
+	timerfile = "/root/the_log"
 )
 
 func TestSetup(t *testmanager.TestWorkflow) error {
@@ -21,5 +22,6 @@ func TestSetup(t *testmanager.TestWorkflow) error {
 		return err
 	}
 	vm1.SetShutdownScript(shutdownscript)
+	vm1.Reboot()
 	return nil
 }
