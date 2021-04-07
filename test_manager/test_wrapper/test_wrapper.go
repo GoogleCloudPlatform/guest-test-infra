@@ -20,9 +20,9 @@ import (
 const (
 	metadataURLPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 	testResultObject    = "outs/junit_go-test.xml"
-	testBinaryLocalPath = "image_test"
-	artifactPath        = "/workspace/artifact"
-	workDir             = "/workspace"
+	testBinaryLocalName = "image_test"
+	workDir             = "/workspace/"
+	artifactPath        = workDir + "artifact"
 )
 
 func main() {
@@ -50,14 +50,11 @@ func main() {
 	if err = os.Mkdir(artifactPath, 0755); err != nil {
 		log.Fatalf("failed to create artifact dir: %v", err)
 	}
-	if err = os.Chdir(workDir); err != nil {
-		log.Fatalf("failed to change work dir: %v", err)
-	}
-	if err = downloadGCSObject(ctx, client, testBinaryURL); err != nil {
+	if err = downloadGCSObject(ctx, client, testBinaryURL, workDir); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
-	out, err := executeCMD(testBinaryLocalPath, workDir, testArguments)
+	out, err := executeCMD(workDir+testBinaryLocalName, workDir, testArguments)
 	if err != nil {
 		log.Fatalf("failed to execute test binary: %v", err)
 	}
@@ -118,7 +115,7 @@ func getMetadataAttribute(attribute string) (string, error) {
 	return string(val), nil
 }
 
-func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL string) error {
+func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryURL, workDir string) error {
 	u, err := url.Parse(testBinaryURL)
 	if err != nil {
 		log.Fatalf("failed to parse gcs url: %v", err)
@@ -136,7 +133,7 @@ func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryUR
 		return fmt.Errorf("ioutil.ReadAll: %v", err)
 	}
 
-	if err = ioutil.WriteFile(testBinaryLocalPath, data, 0755); err != nil {
+	if err = ioutil.WriteFile(workDir+testBinaryLocalName, data, 0755); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 	return nil
