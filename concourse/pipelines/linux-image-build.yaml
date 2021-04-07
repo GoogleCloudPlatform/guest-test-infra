@@ -633,7 +633,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-7-gcs
-    passed: [image-test-centos-7]
+    passed: [build-centos-7]
     trigger: false
     params:
       skip_download: "true"
