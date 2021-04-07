@@ -124,6 +124,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "debian/debian-10-buster-v([0-9]+).tar.gz"
+- name: debian-11-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "debian/debian-11-bullseye-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -564,6 +571,34 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+- name: build-debian-11
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "debian-11-bullseye"
+  - put: debian-11-gcs
+    params:
+      file: build-id-dir/debian-11*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: debian-11-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-debian-11
+    file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
+    vars:
+      wf: "debian/debian_11.wf.json"
+      gcs_url: ((.:gcs-url))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
 
 # Publish to testing
 # almalinux
@@ -945,6 +980,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
       environment: "test"
+- name: publish-to-testing-debian-11
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-11-gcs
+    passed: [build-debian-11]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-11-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-debian-11
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_11.publish.json"
+      environment: "test"
 
 # Publish to staging
 # almalinux
@@ -1325,6 +1385,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
       environment: "staging"
+- name: publish-to-staging-debian-11
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-11-gcs
+    passed: [publish-to-testing-debian-11]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-11-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-debian-11
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_11.publish.json"
+      environment: "staging"
 
 # Publish to prod
 # almalinux
@@ -1702,17 +1787,47 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
       environment: "prod"
+- name: publish-to-prod-debian-11
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-11-gcs
+    passed: [publish-to-testing-debian-11]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-11-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-debian-11
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_11.publish.json"
+      environment: "prod"
+
 groups:
 - name: debian
   jobs:
   - build-debian-9
   - build-debian-10
+  - build-debian-11
   - publish-to-testing-debian-9
   - publish-to-testing-debian-10
+  - publish-to-testing-debian-11
   - publish-to-staging-debian-9
   - publish-to-staging-debian-10
+  - publish-to-staging-debian-11
   - publish-to-prod-debian-9
   - publish-to-prod-debian-10
+  - publish-to-prod-debian-11
 - name: centos
   jobs:
   - build-centos-7
