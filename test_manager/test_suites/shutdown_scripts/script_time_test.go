@@ -10,17 +10,17 @@ import (
 )
 
 var (
-	minimumSeconds = 110
+	minimumSeconds = 210
 )
 
 func parseFile() error {
 	res, err := ioutil.ReadFile(timerfile)
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't read timer file: %v", err)
 	}
 	lines := strings.Split(string(res), "\n")
 	if len(lines) < 1 {
-		return fmt.Errorf("empty file")
+		return fmt.Errorf("timer file was empty")
 	}
 	count := 0
 	for i := len(lines) - 1; i != 0; i-- {
@@ -42,7 +42,7 @@ func TestScriptTime(t *testing.T) {
 	_, err := os.Stat(timerfile)
 	if err == nil {
 		if err := parseFile(); err != nil {
-			t.Errorf("failed to parse timer file: %v", err)
+			t.Errorf("%v", err)
 		}
 	} else if os.IsNotExist(err) {
 		t.Log("timer file missing, assuming this is first boot")

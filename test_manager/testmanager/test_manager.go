@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
 )
 
@@ -85,7 +85,7 @@ type testResult struct {
 }
 
 func getTestResults(ctx context.Context, ts *TestWorkflow) (string, error) {
-	junit, err := utils.DownloadGCSObject(ctx, client, ts.destination)
+	junit, err := test_utils.DownloadGCSObject(ctx, client, ts.destination)
 	if err != nil {
 		return "", err
 	}
@@ -201,9 +201,13 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 
 func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 	var ret junitFormatter.JUnitTestSuite
+	ret.Name = res.testWorkflow.Name
+
 	switch {
 	case res.FailedSetup:
 		fmt.Printf("test %s on %s failed during setup and was disabled\n", res.testWorkflow.Name, res.testWorkflow.Image)
+		ret.Tests = 1
+		ret.Failures = 1
 		return ret
 	case res.Skipped:
 		fmt.Printf("test %s on %s was skipped\n", res.testWorkflow.Name, res.testWorkflow.Image)
@@ -220,8 +224,10 @@ func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 			fmt.Printf("Failed to unmarshal junit results: %v\n", err)
 			return ret // TODO: fill this in.
 		}
-		fmt.Printf("%+v\n", suites.Suites[0])
-		return suites.Suites[0]
+		suite := suites.Suites[0]
+		fmt.Printf("%+v\n", suite)
+		suite.Name = res.testWorkflow.Name
+		return suite
 	default:
 		fmt.Printf("test %s on %s has unknown status\n", res.testWorkflow.Name, res.testWorkflow.Image)
 	}
