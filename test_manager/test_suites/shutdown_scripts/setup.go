@@ -8,9 +8,10 @@ var (
 	Name           = "shutdown-scripts"
 	shutdownscript = `#!/bin/bash
 count=1
-while True; do
+while true; do
   echo $count | tee -a /root/the_log
-  ((count++)
+  sync
+  ((count++))
   sleep 1
 done`
 	timerfile = "/root/the_log"

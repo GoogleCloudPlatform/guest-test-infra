@@ -9,8 +9,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"os/exec"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
@@ -21,11 +21,12 @@ const (
 	metadataURLPrefix   = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 	testResultObject    = "outs/junit_go-test.xml"
 	testBinaryLocalName = "image_test"
-	workDir             = "/workspace/"
-	artifactPath        = workDir + "artifact"
 )
 
 func main() {
+	log.Printf("FINISHED-BOOTING")
+	defer func() { log.Printf("MAGIC-STRING") }()
+
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -44,20 +45,25 @@ func main() {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
-	if err = os.Mkdir(workDir, 0755); err != nil {
+	workDir, err := ioutil.TempDir("", "image_test")
+	if err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
 	}
-	if err = os.Mkdir(artifactPath, 0755); err != nil {
-		log.Fatalf("failed to create artifact dir: %v", err)
-	}
+	workDir = workDir + "/"
+
 	if err = downloadGCSObject(ctx, client, testBinaryURL, workDir); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
 	out, err := executeCMD(workDir+testBinaryLocalName, workDir, testArguments)
 	if err != nil {
-		log.Fatalf("failed to execute test binary: %v", err)
+		if ee, ok := err.(*exec.ExitError); ok {
+			log.Fatalf("exiterror: failed to execute test binary: %v stdout: %q stderr: %q", ee, out, ee.Stderr)
+		} else {
+			log.Fatalf("NOT exiterror: failed to execute test binary: %v stdout: %q", err, out)
+		}
 	}
+	log.Printf("command output:\n%s\n", out)
 
 	testData, err := convertTxtToJunit(out)
 	if err != nil {
@@ -85,11 +91,11 @@ func convertTxtToJunit(in []byte) (*bytes.Buffer, error) {
 func executeCMD(cmd, dir string, arg []string) ([]byte, error) {
 	command := exec.Command(cmd, arg...)
 	command.Dir = dir
-	log.Printf("The command: %v", command.String())
+	log.Printf("Going to execute: %q", command.String())
 
 	output, err := command.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute command: %v", err)
+		return output, err
 	}
 	return output, nil
 }
@@ -120,9 +126,10 @@ func downloadGCSObject(ctx context.Context, client *storage.Client, testBinaryUR
 	if err != nil {
 		log.Fatalf("failed to parse gcs url: %v", err)
 	}
-	bucket, object := u.Host, u.Path
+	object := strings.TrimPrefix(u.Path, "/")
+	log.Printf("downloading bucket %s object %s\n", u.Host, object)
 
-	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
+	rc, err := client.Bucket(u.Host).Object(object).NewReader(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to open the reader: %v", err)
 	}

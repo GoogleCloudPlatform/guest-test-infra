@@ -19,9 +19,8 @@ var (
 )
 
 const (
-	testBinariesPath = "/tmp/test_manager"
-	testWrapperPath  = testBinariesPath + "/test_wrapper/test_wrapper"
-	testSuitePath    = testBinariesPath + "/test_suites"
+	testBinariesPath = "/tmp/out"
+	testWrapperPath  = testBinariesPath + "/test_wrapper"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -47,21 +46,22 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) {
 
 		ts.wf.DisableGCSLogging()
 		ts.wf.DisableCloudLogging()
-		ts.wf.DisableStdoutLogging()
+		//ts.wf.DisableStdoutLogging()
 
 		ts.wf.Zone = zone
 		ts.wf.Project = project
 
 		ts.wf.Sources["startup"] = testWrapperPath
-		// TODO: the name i know is maybe different from path name
-		ts.wf.Sources["testbinary"] = fmt.Sprintf("%s/%s/%s.test", testSuitePath, ts.Name, ts.Name)
+		ts.wf.Sources["testbinary"] = fmt.Sprintf("%s/%s.test", testBinariesPath, ts.Name)
 
 		copyStep := ts.wf.Steps["copy-objects"]
+
 		// Two issues with manipulating this step. First, it is a
 		// typedef that removes the slice notation, so we have to cast
 		// it back in order to index it.
 		copyObject := []daisy.CopyGCSObject(*copyStep.CopyGCSObjects)[0]
 		copyObject.Destination = ts.destination
+
 		// Second, it is not a pointer, so we can't modify it in place.
 		// Instead, we overwrite the struct with a new step with our
 		// modified copy of the config.
@@ -72,7 +72,7 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) {
 			if vm.Metadata == nil {
 				vm.Metadata = make(map[string]string)
 			}
-			vm.Metadata["_test_binarypath"] = "${SOURCESPATH}/testbinary"
+			vm.Metadata["_test_binary_url"] = "${SOURCESPATH}/testbinary"
 		}
 	}
 }
