@@ -14,9 +14,9 @@ import (
 )
 
 func TestHostname(t *testing.T) {
-	metadataHostname, err := test_utils.GetMetadataAttribute("hostname")
+	metadataHostname, err := test_utils.GetMetadata("hostname")
 	if err != nil {
-		t.Fatalf("couldn't determine metadata hostname")
+		t.Fatalf(" still couldn't determine metadata hostname")
 	}
 
 	// 'hostname' in metadata is fully qualified domain name.
@@ -39,19 +39,20 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestFQDN(t *testing.T) {
-	metadataHostname, err := test_utils.GetMetadataAttribute("hostname")
+	metadataHostname, err := test_utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
 
-	// See HOSTNAME(1), section 'THE FQDN'. This command is not safe on multi-NIC VMs.
+	// This command is not safe on multi-NIC VMs. See HOSTNAME(1), section 'THE FQDN'.
 	cmd := exec.Command("/bin/hostname", "-A")
-	hostname, err := cmd.Output()
+	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("hostname command failed")
 	}
+	hostname := strings.TrimRight(string(out), " \n")
 
-	if string(hostname) != metadataHostname {
+	if hostname != metadataHostname {
 		t.Errorf("hostname does not match metadata. Expected: %q got: %q", metadataHostname, hostname)
 	}
 }
@@ -101,7 +102,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 		hashes = append(hashes, sshKeyHash{file, hash})
 	}
 
-	image, err := test_utils.GetMetadataAttribute("image")
+	image, err := test_utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -114,7 +115,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 		restart = "systemctl"
 	}
 
-	cmd := exec.Command(restart, "google-guest-agent")
+	cmd := exec.Command(restart, "restart", "google-guest-agent")
 	err = cmd.Run()
 	if err != nil {
 		t.Errorf("Failed to restart guest agent: %v", err)

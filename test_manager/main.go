@@ -8,9 +8,6 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_suites/image_validation"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_suites/oslogin"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_suites/shutdown_scripts"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/testmanager"
 )
 
@@ -69,18 +66,20 @@ func main() {
 			image_validation.Name,
 			image_validation.TestSetup,
 		},
-		{
-			oslogin.Name,
-			oslogin.TestSetup,
-		},
-		{
-			ssh.Name,
-			ssh.TestSetup,
-		},
-		{
-			shutdown_scripts.Name,
-			shutdown_scripts.TestSetup,
-		},
+		/*
+				{
+					oslogin.Name,
+					oslogin.TestSetup,
+				},
+				{
+					ssh.Name,
+					ssh.TestSetup,
+				},
+			{
+				shutdown_scripts.Name,
+				shutdown_scripts.TestSetup,
+			},
+		*/
 	}
 
 	var testWorkflows []*testmanager.TestWorkflow

@@ -1,4 +1,4 @@
-package utils
+package test_utils
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-const metadataUrlPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
+const metadataUrlPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
@@ -30,7 +30,11 @@ func GetRealVMName(name string) (string, error) {
 }
 
 func GetMetadataAttribute(attribute string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataUrlPrefix, attribute), nil)
+	return GetMetadata("attributes/" + attribute)
+}
+
+func GetMetadata(path string) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataUrlPrefix, path), nil)
 	if err != nil {
 		return "", err
 	}
