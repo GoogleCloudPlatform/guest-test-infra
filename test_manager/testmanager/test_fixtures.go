@@ -96,7 +96,7 @@ func (t *TestWorkflow) setupBaseWorkflow(name string) error {
 	// TODO: implement waiting on guest attributes in daisy.
 	serialOutput := &daisy.SerialOutput{}
 	serialOutput.Port = 1
-	serialOutput.SuccessMatch = "MAGIC-STRING"
+	serialOutput.SuccessMatch = "FINISHED-TEST"
 	instanceSignal.SerialOutput = serialOutput
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 

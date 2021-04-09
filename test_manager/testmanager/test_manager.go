@@ -220,20 +220,21 @@ func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 		fmt.Printf("test %s on %s workflow completed without error\n", res.testWorkflow.Name, res.testWorkflow.Image)
 		var suites junitFormatter.JUnitTestSuites
 		if err := xml.Unmarshal([]byte(res.Result), &suites); err != nil {
-			//fmt.Printf("Failed to unmarshal junit results: %v\n", err)
-			failure := &junitFormatter.JUnitFailure{}
-			failure.Contents = "Test setup failed"
-			failure.Message = res.Result
-			testcase := junitFormatter.JUnitTestCase{}
-			testcase.Name = res.testWorkflow.Name + "-Setup"
-			testcase.Failure = failure
-			ret.TestCases = append(ret.TestCases, testcase)
-			ret.Failures = 1
-			ret.Tests = 1
+			fmt.Printf("Failed to unmarshal junit results: %v\n", err)
+			/*
+				failure := &junitFormatter.JUnitFailure{}
+				failure.Contents = "Test setup failed"
+				failure.Message = res.Result
+				testcase := junitFormatter.JUnitTestCase{}
+				testcase.Name = res.testWorkflow.Name + "-Setup"
+				testcase.Failure = failure
+				ret.TestCases = append(ret.TestCases, testcase)
+				ret.Failures = 1
+				ret.Tests = 1
+			*/
 			return ret
 		}
 		suite := suites.Suites[0]
-		fmt.Printf("%+v\n", suite)
 		suite.Name = res.testWorkflow.Name
 		return suite
 	default:
