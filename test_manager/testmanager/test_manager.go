@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
 )
 
@@ -85,7 +85,7 @@ type testResult struct {
 }
 
 func getTestResults(ctx context.Context, ts *TestWorkflow) (string, error) {
-	junit, err := test_utils.DownloadGCSObject(ctx, client, ts.destination)
+	junit, err := utils.DownloadGCSObject(ctx, client, ts.destination)
 	if err != nil {
 		return "", err
 	}

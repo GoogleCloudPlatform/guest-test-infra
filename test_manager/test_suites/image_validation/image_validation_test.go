@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
 )
 
 func TestHostname(t *testing.T) {
-	metadataHostname, err := test_utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
 	}
@@ -39,7 +39,7 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestFQDN(t *testing.T) {
-	metadataHostname, err := test_utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
@@ -102,7 +102,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 		hashes = append(hashes, sshKeyHash{file, hash})
 	}
 
-	image, err := test_utils.GetMetadata("image")
+	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}

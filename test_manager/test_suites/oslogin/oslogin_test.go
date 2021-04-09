@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
 )
 
 func TestXxx(t *testing.T) {
 	fmt.Println("oslogin.TestXxx")
-	metadata, err := test_utils.GetMetadataAttribute("hostname")
+	metadata, err := utils.GetMetadataAttribute("hostname")
 	if err == nil {
 		fmt.Printf("hostname: %s\n", metadata)
 	} else {
