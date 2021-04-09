@@ -46,7 +46,7 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) {
 
 		ts.wf.DisableGCSLogging()
 		ts.wf.DisableCloudLogging()
-		//ts.wf.DisableStdoutLogging()
+		ts.wf.DisableStdoutLogging()
 
 		ts.wf.Zone = zone
 		ts.wf.Project = project
@@ -201,12 +201,11 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 
 func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 	var ret junitFormatter.JUnitTestSuite
-	ret.Name = res.testWorkflow.Name
+	//ret.Name = res.testWorkflow.Name
 
 	switch {
 	case res.FailedSetup:
 		fmt.Printf("test %s on %s failed during setup and was disabled\n", res.testWorkflow.Name, res.testWorkflow.Image)
-		ret.Tests = 1
 		ret.Failures = 1
 		return ret
 	case res.Skipped:
@@ -217,12 +216,21 @@ func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 		fmt.Printf("test %s on %s workflow failed: %s\n", res.testWorkflow.Name, res.testWorkflow.Image, res.Result)
 		return ret
 	case res.WorkflowSuccess:
-		// Workflow completed without error. ONLY in this case do we try to parse the result.
+		// Workflow completed without error. Only in this case do we try to parse the result.
 		fmt.Printf("test %s on %s workflow completed without error\n", res.testWorkflow.Name, res.testWorkflow.Image)
 		var suites junitFormatter.JUnitTestSuites
 		if err := xml.Unmarshal([]byte(res.Result), &suites); err != nil {
-			fmt.Printf("Failed to unmarshal junit results: %v\n", err)
-			return ret // TODO: fill this in.
+			//fmt.Printf("Failed to unmarshal junit results: %v\n", err)
+			failure := &junitFormatter.JUnitFailure{}
+			failure.Contents = "Test setup failed"
+			failure.Message = res.Result
+			testcase := junitFormatter.JUnitTestCase{}
+			testcase.Name = res.testWorkflow.Name + "-Setup"
+			testcase.Failure = failure
+			ret.TestCases = append(ret.TestCases, testcase)
+			ret.Failures = 1
+			ret.Tests = 1
+			return ret
 		}
 		suite := suites.Suites[0]
 		fmt.Printf("%+v\n", suite)
