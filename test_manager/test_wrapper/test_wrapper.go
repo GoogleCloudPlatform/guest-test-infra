@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/test_utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
 	junitParser "github.com/jstemmer/go-junit-report/parser"
 )
@@ -32,18 +32,18 @@ func main() {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 
-	daisyOutsPath, err := test_utils.GetMetadataAttribute("daisy-outs-path")
+	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {
 		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
 	}
 	daisyOutsPath = daisyOutsPath + "/"
 
-	testBinaryURL, err := test_utils.GetMetadataAttribute("_test_binary_url")
+	testBinaryURL, err := utils.GetMetadataAttribute("_test_binary_url")
 	if err != nil {
 		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
 	}
 
-	testRun, _ := test_utils.GetMetadataAttribute("_test_run")
+	testRun, _ := utils.GetMetadataAttribute("_test_run")
 
 	var testArguments = []string{"-test.v"}
 	if testRun != "" {
@@ -56,7 +56,7 @@ func main() {
 	}
 	workDir = workDir + "/"
 
-	if err = test_utils.DownloadGCSObjectToFile(ctx, client, testBinaryURL, workDir+testBinaryLocalName); err != nil {
+	if err = utils.DownloadGCSObjectToFile(ctx, client, testBinaryURL, workDir+testBinaryLocalName); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
