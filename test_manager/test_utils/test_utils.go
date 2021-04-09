@@ -14,7 +14,7 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-const metadataUrlPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
@@ -29,12 +29,14 @@ func GetRealVMName(name string) (string, error) {
 	return strings.Join([]string{parts[0], name, parts[2]}, "-"), nil
 }
 
+// GetMetadataAttribute returns an attribute from metadata if present, and error if not.
 func GetMetadataAttribute(attribute string) (string, error) {
 	return GetMetadata("attributes/" + attribute)
 }
 
+// GetMetadata returns a metadata value for the specified key if it is present, and error if not.
 func GetMetadata(path string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataUrlPrefix, path), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
 	if err != nil {
 		return "", err
 	}
@@ -54,6 +56,7 @@ func GetMetadata(path string) (string, error) {
 	return string(val), nil
 }
 
+// DownloadGCSObject downloads a GCS object.
 func DownloadGCSObject(ctx context.Context, client *storage.Client, gcsPath string) ([]byte, error) {
 	u, err := url.Parse(gcsPath)
 	if err != nil {
@@ -73,6 +76,8 @@ func DownloadGCSObject(ctx context.Context, client *storage.Client, gcsPath stri
 
 	return data, nil
 }
+
+// DownloadGCSObjectToFile downloads a GCS object, writing it to the specified file.
 func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPath, file string) error {
 	data, err := DownloadGCSObject(ctx, client, gcsPath)
 	if err != nil {
