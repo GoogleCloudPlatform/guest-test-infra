@@ -1,11 +1,11 @@
-package image_validation
+package imagevalidation
 
-import (
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/testmanager"
-)
+import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 
-var Name = "image-validation"
+// Name is the name of the test package. It must match the directory name.
+var Name = "image_validation"
 
-func TestSetup(t *testmanager.TestWorkflow) error {
-	return testmanager.SingleVMTest(t)
+// TestSetup sets up the test workflow.
+func TestSetup(t *imagetest.TestWorkflow) error {
+	return imagetest.SingleVMTest(t)
 }

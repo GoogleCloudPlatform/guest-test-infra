@@ -1,4 +1,4 @@
-package testmanager
+package imagetest
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
 	"google.golang.org/api/compute/v1"
 )
@@ -21,7 +21,7 @@ var (
 
 const (
 	testBinariesPath = "/out"
-	testWrapperPath  = testBinariesPath + "/test_wrapper"
+	testWrapperPath  = testBinariesPath + "/wrapper"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.

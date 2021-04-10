@@ -1,4 +1,4 @@
-package testmanager
+package imagetest
 
 import (
 	"fmt"

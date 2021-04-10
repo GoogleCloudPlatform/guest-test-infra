@@ -1,7 +1,8 @@
-package image_validation
+package imagevalidation
 
 import (
 	"crypto/md5"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,8 +11,22 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
+
+var (
+	runtest = flag.Bool("runtest", false, "really run the test")
+)
+
+func TestMain(m *testing.M) {
+	// call flag.Parse() here if TestMain uses flags
+	flag.Parse()
+	if *runtest {
+		os.Exit(m.Run())
+	} else {
+		os.Exit(0)
+	}
+}
 
 func TestHostname(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
