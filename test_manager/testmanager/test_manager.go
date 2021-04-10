@@ -119,9 +119,9 @@ func (t *TestWorkflow) addWaitStep(name, vmname string, stopped bool) (*daisy.St
 	return waitStep, nil
 }
 
-func (t *TestWorkflow) addStopStep(name string) (*daisy.Step, error) {
+func (t *TestWorkflow) addStopStep(name, vmname string) (*daisy.Step, error) {
 	stopInstances := &daisy.StopInstances{}
-	stopInstances.Instances = append(stopInstances.Instances, name)
+	stopInstances.Instances = append(stopInstances.Instances, vmname)
 
 	stopInstancesStep, err := t.wf.NewStep(name)
 	if err != nil {
@@ -132,9 +132,9 @@ func (t *TestWorkflow) addStopStep(name string) (*daisy.Step, error) {
 	return stopInstancesStep, nil
 }
 
-func (t *TestWorkflow) addStartStep(name string) (*daisy.Step, error) {
+func (t *TestWorkflow) addStartStep(name, vmname string) (*daisy.Step, error) {
 	startInstances := &daisy.StartInstances{}
-	startInstances.Instances = append(startInstances.Instances, name)
+	startInstances.Instances = append(startInstances.Instances, vmname)
 
 	startInstancesStep, err := t.wf.NewStep(name)
 	if err != nil {
@@ -234,8 +234,11 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 // NewTestWorkflow returns a new TestWorkflow with only the final step included.
 func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
+	t.Name = name
+	t.Image = image
+
 	t.wf = daisy.New()
-	t.wf.Name = t.Name
+	t.wf.Name = name
 
 	copyGCSObject := daisy.CopyGCSObject{}
 	copyGCSObject.Source = "${OUTSPATH}/junit.xml"

@@ -90,8 +90,10 @@ func main() {
 			// workflow here with a NewWorkflow function? Or is
 			// there anything for the workflow we can do before
 			// receiving the vm name? Will there ever be?
-			// ts := testmanager.NewTestWorkflow(testPackage.Name, image)
-			test := &testmanager.TestWorkflow{Name: testPackage.name, Image: image}
+			test, err := testmanager.NewTestWorkflow(testPackage.name, image)
+			if err != nil {
+				log.Fatalf("Failed to create test workflow: %v", err)
+			}
 			testWorkflows = append(testWorkflows, test)
 			if err := testPackage.setupFunc(test); err != nil {
 				log.Printf("%s.TestSetup for %s failed: %v", testPackage.name, image, err)

@@ -118,7 +118,7 @@ func (t *TestVM) Reboot() error {
 		return fmt.Errorf("wait-vm-%s step missing", t.name)
 	}
 
-	stopInstancesStep, err := t.testWorkflow.addStopStep("stop-" + t.name)
+	stopInstancesStep, err := t.testWorkflow.addStopStep("stop-"+t.name, t.name)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (t *TestVM) Reboot() error {
 		return err
 	}
 
-	startInstancesStep, err := t.testWorkflow.addStartStep("start-" + t.name)
+	startInstancesStep, err := t.testWorkflow.addStartStep("start-"+t.name, t.name)
 	if err != nil {
 		return err
 	}
