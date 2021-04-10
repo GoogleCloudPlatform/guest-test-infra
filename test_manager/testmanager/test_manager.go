@@ -12,6 +12,7 @@ import (
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
+	"google.golang.org/api/compute/v1"
 )
 
 var (
@@ -32,9 +33,116 @@ type TestWorkflow struct {
 	destination string
 }
 
-// Disable disables a workflow.
-func (t *TestWorkflow) Disable() {
-	t.wf = nil
+func (t *TestWorkflow) addCreateVMStep(name string) (*daisy.Step, error) {
+	attachedDisk := &compute.AttachedDisk{Source: name}
+
+	instance := &daisy.Instance{}
+	instance.StartupScript = "startup"
+	instance.Name = name
+	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+	instance.Disks = append(instance.Disks, attachedDisk)
+
+	createInstances := &daisy.CreateInstances{}
+	createInstances.Instances = append(createInstances.Instances, instance)
+
+	createVMStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		// append to existing step.
+		createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
+	} else {
+		var err error
+		createVMStep, err = t.wf.NewStep(createVMsStepName)
+		if err != nil {
+			return nil, err
+		}
+		createVMStep.CreateInstances = createInstances
+	}
+
+	return createVMStep, nil
+}
+
+func (t *TestWorkflow) addCreateDisksStep(name string) (*daisy.Step, error) {
+	bootdisk := &daisy.Disk{}
+	bootdisk.Name = name
+	bootdisk.SourceImage = t.Image
+
+	createDisks := &daisy.CreateDisks{bootdisk}
+
+	createDisksStep, ok := t.wf.Steps[createDisksStepName]
+	if ok {
+		// append to existing step.
+		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, bootdisk)
+	} else {
+		var err error
+		createDisksStep, err = t.wf.NewStep(createDisksStepName)
+		if err != nil {
+			return nil, err
+		}
+		createDisksStep.CreateDisks = createDisks
+	}
+
+	return createDisksStep, nil
+}
+
+func (t *TestWorkflow) addWaitStep(name, vmname string, stopped bool) (*daisy.Step, error) {
+	// TODO: implement waiting on guest attributes in daisy.
+	serialOutput := &daisy.SerialOutput{}
+	serialOutput.Port = 1
+	serialOutput.SuccessMatch = successMatch
+
+	instanceSignal := &daisy.InstanceSignal{}
+	instanceSignal.Name = vmname
+	instanceSignal.Stopped = stopped
+
+	// Waiting for stop and waiting for success match are mutually exclusive.
+	if !stopped {
+		instanceSignal.SerialOutput = serialOutput
+	}
+
+	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
+
+	waitStep, err := t.wf.NewStep(name)
+	if err != nil {
+		return nil, err
+	}
+	waitStep.WaitForInstancesSignal = waitForInstances
+
+	copyStep, ok := t.wf.Steps["copy-objects"]
+	if !ok {
+		return nil, fmt.Errorf("copy-objects step missing")
+	}
+
+	if err := t.wf.AddDependency(copyStep, waitStep); err != nil {
+		return nil, err
+	}
+
+	return waitStep, nil
+}
+
+func (t *TestWorkflow) addStopStep(name string) (*daisy.Step, error) {
+	stopInstances := &daisy.StopInstances{}
+	stopInstances.Instances = append(stopInstances.Instances, name)
+
+	stopInstancesStep, err := t.wf.NewStep(name)
+	if err != nil {
+		return nil, err
+	}
+	stopInstancesStep.StopInstances = stopInstances
+
+	return stopInstancesStep, nil
+}
+
+func (t *TestWorkflow) addStartStep(name string) (*daisy.Step, error) {
+	startInstances := &daisy.StartInstances{}
+	startInstances.Instances = append(startInstances.Instances, name)
+
+	startInstancesStep, err := t.wf.NewStep(name)
+	if err != nil {
+		return nil, err
+	}
+	startInstancesStep.StartInstances = startInstances
+
+	return startInstancesStep, nil
 }
 
 func finalizeWorkflows(tests []*TestWorkflow, zone, project string) {
@@ -123,6 +231,24 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	return res
 }
 
+// NewTestWorkflow returns a new TestWorkflow with only the final step included.
+func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
+	t := &TestWorkflow{}
+	t.wf = daisy.New()
+	t.wf.Name = t.Name
+
+	copyGCSObject := daisy.CopyGCSObject{}
+	copyGCSObject.Source = "${OUTSPATH}/junit.xml"
+	copyGCSObjects := &daisy.CopyGCSObjects{copyGCSObject}
+	copyStep, err := t.wf.NewStep("copy-objects")
+	if err != nil {
+		return nil, err
+	}
+	copyStep.CopyGCSObjects = copyGCSObjects
+
+	return t, nil
+}
+
 // PrintTests prints all test workflows.
 func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string) {
 	finalizeWorkflows(testWorkflows, zone, project)
@@ -201,7 +327,6 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 
 func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 	var ret junitFormatter.JUnitTestSuite
-	//ret.Name = res.testWorkflow.Name
 
 	switch {
 	case res.FailedSetup:
@@ -221,17 +346,6 @@ func parseResult(res testResult) junitFormatter.JUnitTestSuite {
 		var suites junitFormatter.JUnitTestSuites
 		if err := xml.Unmarshal([]byte(res.Result), &suites); err != nil {
 			fmt.Printf("Failed to unmarshal junit results: %v\n", err)
-			/*
-				failure := &junitFormatter.JUnitFailure{}
-				failure.Contents = "Test setup failed"
-				failure.Message = res.Result
-				testcase := junitFormatter.JUnitTestCase{}
-				testcase.Name = res.testWorkflow.Name + "-Setup"
-				testcase.Failure = failure
-				ret.TestCases = append(ret.TestCases, testcase)
-				ret.Failures = 1
-				ret.Tests = 1
-			*/
 			return ret
 		}
 		suite := suites.Suites[0]

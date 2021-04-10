@@ -1,8 +1,15 @@
 package testmanager
 
 import (
+	"fmt"
+
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
-	"google.golang.org/api/compute/v1"
+)
+
+const (
+	createVMsStepName   = "create-vms"
+	createDisksStepName = "create-disks"
+	successMatch        = "FINISHED-TEST"
 )
 
 // SingleVMTest configures the simple test case of one VM running the test
@@ -12,114 +19,9 @@ func SingleVMTest(t *TestWorkflow) error {
 	return err
 }
 
-// TestVM is a test VM.
-type TestVM struct {
-	name         string
-	testWorkflow *TestWorkflow
-	instance     *daisy.Instance
-}
-
-// CreateTestVM adds steps to a workflow to create a test VM. The workflow is
-// created if it doesn't exist. The first VM created has a WaitInstances step
-// configured.
-func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
-	testVM := &TestVM{name: name, testWorkflow: t}
-
-	if t.wf == nil {
-		t.wf = daisy.New()
-		t.wf.Name = t.Name
-		if err := t.setupBaseWorkflow(name); err != nil {
-			return nil, err
-		}
-		return testVM, nil
-	}
-
-	// Test VMs and disks are created in parallel, so we're just appending.
-	bootdisk := &daisy.Disk{}
-	bootdisk.Name = name
-	bootdisk.SourceImage = t.Image
-	createDisksStep := t.wf.Steps["create-disks"]
-	*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, bootdisk)
-
-	instance := &daisy.Instance{}
-	instance.StartupScript = "startup"
-	instance.Name = name
-	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
-
-	attachedDisk := &compute.AttachedDisk{Source: name}
-	instance.Disks = append(instance.Disks, attachedDisk)
-
-	createVMStep := t.wf.Steps["create-vms"]
-	createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
-
-	return testVM, nil
-}
-
-// TODO: break these two into smaller functions for each step and add unit tests.
-//       setupBase should not add the first VM, but the workflow itself. A test
-//       author may first call createnetwork, or similar.
-
-func (t *TestWorkflow) setupBaseWorkflow(name string) error {
-	bootdisk := &daisy.Disk{}
-	bootdisk.Name = name
-	bootdisk.SourceImage = t.Image
-	createDisks := &daisy.CreateDisks{bootdisk}
-	createDisksStep, err := t.wf.NewStep("create-disks")
-	if err != nil {
-		return err
-	}
-	createDisksStep.CreateDisks = createDisks
-
-	instance := &daisy.Instance{}
-	instance.StartupScript = "startup"
-	instance.Name = name
-	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
-
-	attachedDisk := &compute.AttachedDisk{Source: name}
-	instance.Disks = append(instance.Disks, attachedDisk)
-
-	createInstances := &daisy.CreateInstances{}
-	createInstances.Instances = append(createInstances.Instances, instance)
-
-	createVMStep, err := t.wf.NewStep("create-vms")
-	if err != nil {
-		return err
-	}
-	_ = t.wf.Steps["create-vms"]
-	createVMStep.CreateInstances = createInstances
-	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
-		return err
-	}
-
-	instanceSignal := &daisy.InstanceSignal{}
-	instanceSignal.Name = name
-	// TODO: implement waiting on guest attributes in daisy.
-	serialOutput := &daisy.SerialOutput{}
-	serialOutput.Port = 1
-	serialOutput.SuccessMatch = "FINISHED-TEST"
-	instanceSignal.SerialOutput = serialOutput
-	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
-
-	waitStep, err := t.wf.NewStep("wait-" + name)
-	if err != nil {
-		return err
-	}
-	waitStep.WaitForInstancesSignal = waitForInstances
-
-	t.wf.AddDependency(waitStep, createVMStep)
-
-	copyGCSObject := daisy.CopyGCSObject{}
-	copyGCSObject.Source = "${OUTSPATH}/junit.xml"
-	copyGCSObjects := &daisy.CopyGCSObjects{copyGCSObject}
-	copyStep, err := t.wf.NewStep("copy-objects")
-	if err != nil {
-		return err
-	}
-	copyStep.CopyGCSObjects = copyGCSObjects
-
-	t.wf.AddDependency(copyStep, waitStep)
-
-	return nil
+// Disable disables a workflow.
+func (t *TestWorkflow) Disable() {
+	t.wf = nil
 }
 
 // Skip marks a test workflow to be skipped.
@@ -128,9 +30,47 @@ func (t *TestWorkflow) Skip(message string) {
 	t.skipped = true
 }
 
+// CreateTestVM creates the necessary steps to create a VM with the specified name to the workflow.
+func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
+
+	createDisksStep, err := t.addCreateDisksStep(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// createDisksStep doesn't depend on any other steps.
+
+	createVMStep, err := t.addCreateVMStep(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	waitStep, err := t.addWaitStep("wait-vm-"+name, name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	return &TestVM{name: name, testWorkflow: t}, nil
+}
+
+// TestVM is a test VM.
+type TestVM struct {
+	name         string
+	testWorkflow *TestWorkflow
+	instance     *daisy.Instance
+}
+
 // AddMetadata adds the specified key:value pair to metadata during VM creation.
 func (t *TestVM) AddMetadata(key, value string) {
-	createVMStep := t.testWorkflow.wf.Steps["create-vms"]
+	createVMStep := t.testWorkflow.wf.Steps[createVMsStepName]
 	for _, vm := range createVMStep.CreateInstances.Instances {
 		if vm.Name == t.name {
 			if vm.Metadata == nil {
@@ -167,93 +107,52 @@ func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
 }
 
-// AddWait adds a daisy.WaitForInstancesSignal Step depending on this VM. Note:
-// the first created VM automatically has a wait step created.
-func (t *TestVM) AddWait(success, failure, status string, stopped bool) error {
-	/*
-		if _, ok := t.testWorkflow.wf.Steps["wait-"+t.name]; ok {
-			return fmt.Errorf("wait step already exists for TestVM %q", t.name)
-		}
-	*/
-	instanceSignal := &daisy.InstanceSignal{}
-	instanceSignal.Name = t.name
-	instanceSignal.Stopped = stopped
-	if success != "" {
-		instanceSignal.SerialOutput.SuccessMatch = success
-	}
-	if status != "" {
-		instanceSignal.SerialOutput.StatusMatch = status
-	}
-	if failure != "" {
-		// FailureMatch is a []string, compared to success and status.
-		instanceSignal.SerialOutput.FailureMatch = append(instanceSignal.SerialOutput.FailureMatch, failure)
-	}
-	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
-	s, err := t.testWorkflow.wf.NewStep("wait-" + t.name)
-	if err != nil {
-		return err
-	}
-	s.WaitForInstancesSignal = waitForInstances
-	t.testWorkflow.wf.AddDependency(s, t.testWorkflow.wf.Steps["create-vms"])
-	return nil
-}
-
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your
 // test package must handle being run twice.
 func (t *TestVM) Reboot() error {
-	instanceSignal := &daisy.InstanceSignal{}
-	instanceSignal.Name = t.name
-	serialOutput := &daisy.SerialOutput{}
-	serialOutput.Port = 1
-	serialOutput.SuccessMatch = "FINISHED-BOOTING"
-	instanceSignal.SerialOutput = serialOutput
-	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
+	// appends to existing "wait-vm-name" step. Should look like:
+	// "wait-vm-name" => "stop-name" => "wait-stopped-name" => "start-name" => "wait-started-name"
 
-	waitBootStep, err := t.testWorkflow.wf.NewStep("wait-boot-" + t.name)
+	waitStep, ok := t.testWorkflow.wf.Steps["wait-vm-"+t.name]
+	if !ok {
+		return fmt.Errorf("wait-vm-%s step missing", t.name)
+	}
+
+	stopInstancesStep, err := t.testWorkflow.addStopStep("stop-" + t.name)
 	if err != nil {
 		return err
 	}
-	waitBootStep.WaitForInstancesSignal = waitForInstances
 
-	t.testWorkflow.wf.AddDependency(waitBootStep, t.testWorkflow.wf.Steps["create-vms"])
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, waitStep); err != nil {
+		return err
+	}
 
-	stopInstances := &daisy.StopInstances{}
-	stopInstances.Instances = append(stopInstances.Instances, t.name)
-
-	stopInstancesStep, err := t.testWorkflow.wf.NewStep("stop-" + t.name)
+	waitStopStep, err := t.testWorkflow.addWaitStep("wait-stopped-"+t.name, t.name, true)
 	if err != nil {
 		return err
 	}
-	stopInstancesStep.StopInstances = stopInstances
 
-	t.testWorkflow.wf.AddDependency(stopInstancesStep, waitBootStep)
+	if err := t.testWorkflow.wf.AddDependency(waitStopStep, stopInstancesStep); err != nil {
+		return err
+	}
 
-	instanceSignalStop := &daisy.InstanceSignal{}
-	instanceSignalStop.Name = t.name
-	instanceSignalStop.Stopped = true
-	waitForInstancesStop := &daisy.WaitForInstancesSignal{instanceSignalStop}
-
-	waitStopStep, err := t.testWorkflow.wf.NewStep("wait-stopped-" + t.name)
+	startInstancesStep, err := t.testWorkflow.addStartStep("start-" + t.name)
 	if err != nil {
 		return err
 	}
-	waitStopStep.WaitForInstancesSignal = waitForInstancesStop
 
-	t.testWorkflow.wf.AddDependency(waitStopStep, stopInstancesStep)
+	if err := t.testWorkflow.wf.AddDependency(startInstancesStep, waitStopStep); err != nil {
+		return err
+	}
 
-	startInstances := &daisy.StartInstances{}
-	startInstances.Instances = append(startInstances.Instances, t.name)
-
-	startInstancesStep, err := t.testWorkflow.wf.NewStep("start-" + t.name)
+	waitStartedStep, err := t.testWorkflow.addWaitStep("wait-started-"+t.name, t.name, false)
 	if err != nil {
 		return err
 	}
-	startInstancesStep.StartInstances = startInstances
 
-	t.testWorkflow.wf.AddDependency(startInstancesStep, waitStopStep)
-
-	// Make original wait step also wait on the outcome of the reboot.
-	t.testWorkflow.wf.AddDependency(t.testWorkflow.wf.Steps["wait-"+t.name], startInstancesStep)
+	if err := t.testWorkflow.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
+		return err
+	}
 
 	return nil
 }
