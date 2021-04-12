@@ -12,13 +12,11 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
-	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
-	junitParser "github.com/jstemmer/go-junit-report/parser"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	testBinaryLocalName = "image_test"
+	testPackage = "image_test"
 )
 
 func main() {
@@ -34,18 +32,23 @@ func main() {
 
 	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {
-		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
+		log.Fatalf("failed to get metadata daisy-outs-path: %v", err)
 	}
 	daisyOutsPath = daisyOutsPath + "/"
 
-	testBinaryURL, err := utils.GetMetadataAttribute("_test_binary_url")
+	testPackageURL, err := utils.GetMetadataAttribute("_test_package_url")
 	if err != nil {
-		log.Fatalf("failed to get metadata _test_binary_url: %v", err)
+		log.Fatalf("failed to get metadata _test_package_url: %v", err)
+	}
+
+	resultsURL, err := utils.GetMetadataAttribute("_test_results_url")
+	if err != nil {
+		log.Fatalf("failed to get metadata _test_results_url: %v", err)
 	}
 
 	testRun, _ := utils.GetMetadataAttribute("_test_run")
 
-	var testArguments = []string{"-test.v"}
+	var testArguments = []string{"-test.v", "-runtest"}
 	if testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
@@ -56,42 +59,24 @@ func main() {
 	}
 	workDir = workDir + "/"
 
-	if err = utils.DownloadGCSObjectToFile(ctx, client, testBinaryURL, workDir+testBinaryLocalName); err != nil {
+	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
-	out, err := executeCmd(workDir+testBinaryLocalName, workDir, testArguments)
+	out, err := executeCmd(workDir+testPackage, workDir, testArguments)
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
-			log.Printf("test binary exited with error: %v stderr: %q", ee, ee.Stderr)
+			log.Printf("test package exited with error: %v stderr: %q", ee, ee.Stderr)
 		} else {
-			log.Fatalf("failed to execute test binary: %v stdout: %q", err, out)
+			log.Fatalf("failed to execute test package: %v stdout: %q", err, out)
 		}
 	}
 
 	log.Printf("command output:\n%s\n", out)
 
-	testData, err := convertTxtToJunit(out)
-	if err != nil {
-		log.Fatalf("failed to convert to junit format: %v", err)
-	}
-
-	if err = uploadGCSObject(ctx, client, daisyOutsPath+"junit.xml", testData); err != nil {
+	if err = uploadGCSObject(ctx, client, resultsURL, bytes.NewReader(out)); err != nil {
 		log.Fatalf("failed to upload test result: %v", err)
 	}
-}
-
-func convertTxtToJunit(in []byte) (*bytes.Buffer, error) {
-	var b bytes.Buffer
-	r := bytes.NewReader(in)
-	report, err := junitParser.Parse(r, "")
-	if err != nil {
-		return nil, err
-	}
-	if err = junitFormatter.JUnitReportXML(report, false, "", &b); err != nil {
-		return nil, err
-	}
-	return &b, nil
 }
 
 func executeCmd(cmd, dir string, arg []string) ([]byte, error) {
