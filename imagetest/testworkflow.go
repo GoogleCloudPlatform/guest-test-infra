@@ -172,7 +172,7 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 	close(testchan)
 	wg.Wait()
 
-	var suites TestSuites
+	var suites testSuites
 	for i := 0; i < len(testWorkflows); i++ {
 		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults))
 	}
@@ -220,8 +220,8 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 }
 
 // gets result struct and converts to a jUnit TestSuite
-func parseResult(res testResult) *TestSuite {
-	ret := &TestSuite{}
+func parseResult(res testResult) *testSuite {
+	ret := &testSuite{}
 
 	switch {
 	case res.skipped:

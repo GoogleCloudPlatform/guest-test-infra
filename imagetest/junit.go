@@ -9,16 +9,17 @@ import (
 	junitParser "github.com/jstemmer/go-junit-report/parser"
 )
 
-type TestSuites struct {
+type testSuites struct {
 	XMLName   xml.Name     `xml:"testsuites"`
 	Name      string       `xml:"name,attr"`
 	Errors    int          `xml:"errors,attr"`
 	Failures  int          `xml:"failures,attr"`
 	Tests     int          `xml:"tests,attr"`
 	Time      float64      `xml:"time,attr"`
-	TestSuite []*TestSuite `xml:"testsuite"`
+	TestSuite []*testSuite `xml:"testsuite"`
 }
-type TestSuite struct {
+
+type testSuite struct {
 	XMLName   xml.Name `xml:"testsuite"`
 	Name      string   `xml:"name,attr"`
 	Tests     int      `xml:"tests,attr"`
@@ -30,10 +31,10 @@ type TestSuite struct {
 	SystemOut string   `xml:"system-out,omitempty"`
 	SystemErr string   `xml:"system-err,omitempty"`
 
-	TestCase []*TestCase `xml:"testcase"`
+	TestCase []*testCase `xml:"testcase"`
 }
 
-type TestCase struct {
+type testCase struct {
 	Classname string        `xml:"classname,attr"`
 	Name      string        `xml:"name,attr"`
 	Time      float64       `xml:"time,attr"`
@@ -51,9 +52,9 @@ type junitFailure struct {
 	FailType    string `xml:"type,attr"`
 }
 
-// converts `go test` outputs to a jUnit TestSuite
-func convertToTestSuite(results []string) *TestSuite {
-	ts := &TestSuite{}
+// converts `go test` outputs to a jUnit testSuite
+func convertToTestSuite(results []string) *testSuite {
+	ts := &testSuite{}
 	for _, testResult := range results {
 		tcs, err := convertToTestCase(testResult)
 		if err != nil {
@@ -74,7 +75,7 @@ func convertToTestSuite(results []string) *TestSuite {
 }
 
 // converts a single `go test` output to jUnit TestCases
-func convertToTestCase(in string) ([]*TestCase, error) {
+func convertToTestCase(in string) ([]*testCase, error) {
 	var b bytes.Buffer
 	r := bytes.NewReader([]byte(in))
 	report, err := junitParser.Parse(r, "")
@@ -85,7 +86,7 @@ func convertToTestCase(in string) ([]*TestCase, error) {
 		return nil, err
 	}
 
-	var tss TestSuites
+	var tss testSuites
 	if err := xml.Unmarshal(b.Bytes(), &tss); err != nil {
 		return nil, err
 	}
