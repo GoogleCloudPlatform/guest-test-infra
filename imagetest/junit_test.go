@@ -37,23 +37,23 @@ FAIL
 func TestConvertToTestSuite(t *testing.T) {
 	tests := []struct {
 		results []string
-		ts      *TestSuite
+		ts      *testSuite
 	}{
 		{
 			[]string{testPass},
-			&TestSuite{Tests: 4},
+			&testSuite{Tests: 4},
 		},
 		{
 			[]string{testFail},
-			&TestSuite{Tests: 5, Failures: 1},
+			&testSuite{Tests: 5, Failures: 1},
 		},
 		{
 			[]string{testPass, testPass},
-			&TestSuite{Tests: 8},
+			&testSuite{Tests: 8},
 		},
 		{
 			[]string{testPass, testFail},
-			&TestSuite{Tests: 9, Failures: 1},
+			&testSuite{Tests: 9, Failures: 1},
 		},
 	}
 	for idx, tt := range tests {
@@ -88,11 +88,11 @@ func TestConvertToTestSuite(t *testing.T) {
 func TestConvertToTestCase(t *testing.T) {
 	tests := []struct {
 		result string
-		tcs    []*TestCase
+		tcs    []*testCase
 	}{
 		{
 			testPass,
-			[]*TestCase{
+			[]*testCase{
 				{Name: "TestUpdateNSSwitchConfig"},
 				{Name: "TestUpdateSSHConfig"},
 				{Name: "TestUpdatePAMsshd"},
@@ -100,7 +100,7 @@ func TestConvertToTestCase(t *testing.T) {
 		},
 		{
 			testFail,
-			[]*TestCase{
+			[]*testCase{
 				{Name: "TestAlwaysFails", Failure: &junitFailure{
 					FailMessage: "main_test.go:47: failed, message: heh\nmain_test.go:47: failed, message: heh2\nmain_test.go:47: failed, message: heh again"},
 				},
