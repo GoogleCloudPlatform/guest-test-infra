@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/guest-test-infra/test_manager/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	junitFormatter "github.com/jstemmer/go-junit-report/formatter"
 	junitParser "github.com/jstemmer/go-junit-report/parser"
 )
