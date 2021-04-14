@@ -389,7 +389,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: debian-10-worker-gcs
-    passed: [publish-to-testing-debian-10-worker]
+    passed: [build-debian-10-worker]
     trigger: false
     params:
       skip_download: "true"
@@ -484,3 +484,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "linux_dev/rhel_8_metal_dev.publish.json"
       environment: "dev"
+
+groups:
+- name: debian
+  jobs:
+  - build-debian-10-worker
+  - publish-to-testing-debian-10-worker
+  - publish-to-staging-debian-10-worker
+  - publish-to-prod-debian-10-worker
+  - build-debian-9-dev
+  - build-debian-10-dev
+  - publish-debian-staging
+- name: centos
+  jobs:
+  - build-centos-7-dev
+  - build-centos-8-dev
+- name: ubuntu
+  jobs:
+  - build-ubuntu-1604-dev
+  - build-ubuntu-1804-dev
+- name: rhel
+  jobs:
+  - build-rhel-7-metal-dev
+  - build-rhel-8-metal-dev
+  - publish-to-staging-rhel-7-metal-dev
+  - publish-to-staging-rhel-8-metal-dev
+
+
