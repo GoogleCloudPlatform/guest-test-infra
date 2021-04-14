@@ -1,3 +1,17 @@
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package imagetest
 
 import (
@@ -28,23 +42,28 @@ const (
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
 type TestWorkflow struct {
-	Image          string
-	Name           string
-	ShortImage     string
+	Name string
+	// Image will be the partial URL of a GCE image.
+	Image string
+	// ShortImage will be only the final component of Image, used for naming.
+	ShortImage string
+	// destination for workflow outputs in GCS.
 	destination    string
 	skipped        bool
 	skippedMessage string
 	wf             *daisy.Workflow
 }
 
+// finalizeWorkflows adds the final necessary data to each workflow for it to
+// be able to run, including the final copy-objects step.
 func finalizeWorkflows(tests []*TestWorkflow, zone, project string) error {
 	run := time.Now().Format(time.RFC3339)
 	for _, ts := range tests {
 		if ts.wf == nil {
-			continue
+			return fmt.Errorf("found nil workflow in finalize")
 		}
-		ts.destination = fmt.Sprintf("%s/%s/%s/%s", baseGCSPath, run, ts.Name, ts.ShortImage)
 
+		ts.destination = fmt.Sprintf("%s/%s/%s/%s", baseGCSPath, run, ts.Name, ts.ShortImage)
 		ts.wf.GCSPath = ts.destination
 
 		ts.wf.DisableGCSLogging()
@@ -57,6 +76,7 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) error {
 		ts.wf.Sources["wrapper"] = testWrapperPath
 		ts.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.test", testBinariesPath, ts.Name)
 
+		// add a final copy-objects step which copies the daisy-outs-path directory to ts.destination + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
 		copyGCSObject.Source = "${OUTSPATH}/" // Trailing slash apparently crucial.
 		copyGCSObject.Destination = ts.destination + "/outs"
