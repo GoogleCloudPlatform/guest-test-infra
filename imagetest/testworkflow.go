@@ -27,6 +27,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 var (
@@ -34,10 +35,9 @@ var (
 )
 
 const (
-	testBinariesPath  = "/out"
-	testWrapperPath   = testBinariesPath + "/wrapper"
-	baseGCSPath       = "gs://gcp-guest-test-outputs/cloud_image_tests/"
-	createVMsStepName = "create-vms"
+	testBinariesPath = "/out"
+	testWrapperPath  = testBinariesPath + "/wrapper"
+	baseGCSPath      = "gs://gcp-guest-test-outputs/cloud_image_tests/"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -48,10 +48,117 @@ type TestWorkflow struct {
 	// ShortImage will be only the final component of Image, used for naming.
 	ShortImage string
 	// destination for workflow outputs in GCS.
-	destination    string
+	gcsPath        string
 	skipped        bool
 	skippedMessage string
 	wf             *daisy.Workflow
+}
+
+func (t *TestWorkflow) appendCreateVMStep(name string) (*daisy.Step, error) {
+	attachedDisk := &compute.AttachedDisk{Source: name}
+
+	instance := &daisy.Instance{}
+	instance.StartupScript = "wrapper"
+	instance.Name = name
+	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+	instance.Disks = append(instance.Disks, attachedDisk)
+
+	instance.Metadata = make(map[string]string)
+	instance.Metadata["_test_vmname"] = name
+	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
+	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
+
+	createInstances := &daisy.CreateInstances{}
+	createInstances.Instances = append(createInstances.Instances, instance)
+
+	createVMStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		// append to existing step.
+		createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
+	} else {
+		var err error
+		createVMStep, err = t.wf.NewStep(createVMsStepName)
+		if err != nil {
+			return nil, err
+		}
+		createVMStep.CreateInstances = createInstances
+	}
+
+	return createVMStep, nil
+}
+
+func (t *TestWorkflow) appendCreateDisksStep(diskname string) (*daisy.Step, error) {
+	bootdisk := &daisy.Disk{}
+	bootdisk.Name = diskname
+	bootdisk.SourceImage = t.Image
+
+	createDisks := &daisy.CreateDisks{bootdisk}
+
+	createDisksStep, ok := t.wf.Steps[createDisksStepName]
+	if ok {
+		// append to existing step.
+		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, bootdisk)
+	} else {
+		var err error
+		createDisksStep, err = t.wf.NewStep(createDisksStepName)
+		if err != nil {
+			return nil, err
+		}
+		createDisksStep.CreateDisks = createDisks
+	}
+
+	return createDisksStep, nil
+}
+
+func (t *TestWorkflow) addWaitStep(stepname, vmname string, stopped bool) (*daisy.Step, error) {
+	serialOutput := &daisy.SerialOutput{}
+	serialOutput.Port = 1
+	serialOutput.SuccessMatch = successMatch
+
+	instanceSignal := &daisy.InstanceSignal{}
+	instanceSignal.Name = vmname
+	instanceSignal.Stopped = stopped
+
+	// Waiting for stop and waiting for success match are mutually exclusive.
+	if !stopped {
+		instanceSignal.SerialOutput = serialOutput
+	}
+
+	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
+
+	waitStep, err := t.wf.NewStep("wait-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	waitStep.WaitForInstancesSignal = waitForInstances
+
+	return waitStep, nil
+}
+
+func (t *TestWorkflow) addStopStep(stepname, vmname string) (*daisy.Step, error) {
+	stopInstances := &daisy.StopInstances{}
+	stopInstances.Instances = append(stopInstances.Instances, vmname)
+
+	stopInstancesStep, err := t.wf.NewStep("stop-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	stopInstancesStep.StopInstances = stopInstances
+
+	return stopInstancesStep, nil
+}
+
+func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error) {
+	startInstances := &daisy.StartInstances{}
+	startInstances.Instances = append(startInstances.Instances, vmname)
+
+	startInstancesStep, err := t.wf.NewStep("start-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	startInstancesStep.StartInstances = startInstances
+
+	return startInstancesStep, nil
 }
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
@@ -63,8 +170,8 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) error {
 			return fmt.Errorf("found nil workflow in finalize")
 		}
 
-		ts.destination = fmt.Sprintf("%s/%s/%s/%s", baseGCSPath, run, ts.Name, ts.ShortImage)
-		ts.wf.GCSPath = ts.destination
+		ts.gcsPath = fmt.Sprintf("%s/%s/%s/%s", baseGCSPath, run, ts.Name, ts.ShortImage)
+		ts.wf.GCSPath = ts.gcsPath
 
 		ts.wf.DisableGCSLogging()
 		ts.wf.DisableCloudLogging()
@@ -76,10 +183,10 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project string) error {
 		ts.wf.Sources["wrapper"] = testWrapperPath
 		ts.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.test", testBinariesPath, ts.Name)
 
-		// add a final copy-objects step which copies the daisy-outs-path directory to ts.destination + /outs
+		// add a final copy-objects step which copies the daisy-outs-path directory to ts.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
 		copyGCSObject.Source = "${OUTSPATH}/" // Trailing slash apparently crucial.
-		copyGCSObject.Destination = ts.destination + "/outs"
+		copyGCSObject.Destination = ts.gcsPath + "/outs"
 		copyGCSObjects := &daisy.CopyGCSObjects{copyGCSObject}
 		copyStep, err := ts.wf.NewStep("copy-objects")
 		if err != nil {
@@ -220,7 +327,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	res.testWorkflow = test
 	if test.skipped {
 		res.skipped = true
-		res.err = fmt.Errorf("Test suite was skipped")
+		res.err = fmt.Errorf("Test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
 	fmt.Printf("runTestWorkflow: running %s on %s (ID %s)\n", test.Name, test.ShortImage, test.wf.ID())
