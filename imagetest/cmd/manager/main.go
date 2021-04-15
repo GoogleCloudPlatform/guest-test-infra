@@ -9,7 +9,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 )
 
 var (
@@ -46,10 +45,6 @@ func main() {
 		{
 			imagevalidation.Name,
 			imagevalidation.TestSetup,
-		},
-		{
-			ssh.Name,
-			ssh.TestSetup,
 		},
 	}
 
