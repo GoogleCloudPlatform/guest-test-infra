@@ -52,6 +52,11 @@ func TestHostname(t *testing.T) {
 }
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
+func TestCustomHostname(t *testing.T) {
+	TestFQDN(t)
+}
+
+// TestFQDN tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestFQDN(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {

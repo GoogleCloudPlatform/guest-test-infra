@@ -73,17 +73,16 @@ func (t *TestWorkflow) SkippedMessage() string {
 
 // CreateTestVM creates the necessary steps to create a VM with the specified name to the workflow.
 func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
-	// TODO: more robust name validation.
-	name = strings.ReplaceAll(name, "_", "-")
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
 
-	createDisksStep, err := t.appendCreateDisksStep(name)
+	createDisksStep, err := t.appendCreateDisksStep(vmname)
 	if err != nil {
 		return nil, err
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-
-	createVMStep, err := t.appendCreateVMStep(name)
+	createVMStep, err := t.appendCreateVMStep(vmname, name)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +91,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	waitStep, err := t.addWaitStep(name, name, false)
+	waitStep, err := t.addWaitStep(vmname, vmname, false)
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +100,10 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	return &TestVM{name: name, testWorkflow: t}, nil
+	return &TestVM{name: vmname, testWorkflow: t}, nil
 }
 
-func (t *TestWorkflow) appendCreateVMStep(name string) (*daisy.Step, error) {
+func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, error) {
 	attachedDisk := &compute.AttachedDisk{Source: name}
 
 	instance := &daisy.Instance{}
@@ -112,6 +111,9 @@ func (t *TestWorkflow) appendCreateVMStep(name string) (*daisy.Step, error) {
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 	instance.Disks = append(instance.Disks, attachedDisk)
+	if hostname != "" && name != hostname {
+		instance.Hostname = hostname
+	}
 
 	instance.Metadata = make(map[string]string)
 	instance.Metadata["_test_vmname"] = name

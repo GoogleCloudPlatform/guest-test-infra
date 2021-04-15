@@ -194,7 +194,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname")
+	step, err := twf.appendCreateVMStep("vmname", "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateVMStep("vmname2")
+	step2, err := twf.appendCreateVMStep("vmname2", "")
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -224,6 +224,36 @@ func TestAppendCreateVMStep(t *testing.T) {
 		t.Fatal("CreateDisks step was not appended")
 	}
 	if instances[1].Name != "vmname2" {
+		t.Error("CreateInstances step is malformed")
+	}
+}
+
+func TestAppendCreateVMStepCustomHostname(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	if _, ok := twf.wf.Steps["create-disks"]; ok {
+		t.Fatal("create-disks step already exists")
+	}
+	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.CreateInstances == nil {
+		t.Fatal("CreateDisks step is missing")
+	}
+	instances := step.CreateInstances.Instances
+	if len(instances) != 1 {
+		t.Error("CreateInstances step is malformed")
+	}
+	if instances[0].Name != "vmname" {
+		t.Error("CreateInstances step is malformed")
+	}
+	if instances[0].Hostname != "vmname.example.com" {
 		t.Error("CreateInstances step is malformed")
 	}
 }
