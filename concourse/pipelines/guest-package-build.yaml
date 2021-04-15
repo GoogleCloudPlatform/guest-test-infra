@@ -180,32 +180,32 @@ jobs:
       - task: inject-guest-oslogin-deb9
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb9_amd64.deb
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
       - task: inject-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb10_amd64.deb
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
-      - task: guest-package-build-guest-oslogin-deb11
+      - task: inject-guest-oslogin-deb11
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))+deb11_amd64.deb
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-bullseye
       - task: inject-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el7.x86_64.rpm
+          package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
       - task: inject-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/oslogin
-          package_path: oslogin/google-compute-engine-oslogin-((.:package-version)).el8.x86_64.rpm
+          package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
 
