@@ -76,11 +76,6 @@ func TestFQDN(t *testing.T) {
 	}
 }
 
-func TestArePackagesLegalToUse(t *testing.T) {
-	// This will be a bit longer to translate ;)
-	return
-}
-
 func md5Sum(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
