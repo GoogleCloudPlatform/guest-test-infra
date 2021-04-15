@@ -54,6 +54,56 @@ type TestWorkflow struct {
 	wf             *daisy.Workflow
 }
 
+// SingleVMTest configures one VM running tests.
+func SingleVMTest(t *TestWorkflow) error {
+	_, err := t.CreateTestVM("vm")
+	return err
+}
+
+// Skip marks a test workflow to be skipped.
+func (t *TestWorkflow) Skip(message string) {
+	t.skipped = true
+	t.skippedMessage = message
+}
+
+// SkippedMessage returns the skip reason message for the workflow.
+func (t *TestWorkflow) SkippedMessage() string {
+	return t.skippedMessage
+}
+
+// CreateTestVM creates the necessary steps to create a VM with the specified name to the workflow.
+func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
+	// TODO: more robust name validation.
+	name = strings.ReplaceAll(name, "_", "-")
+
+	createDisksStep, err := t.appendCreateDisksStep(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// createDisksStep doesn't depend on any other steps.
+
+	createVMStep, err := t.appendCreateVMStep(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	waitStep, err := t.addWaitStep(name, name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	return &TestVM{name: name, testWorkflow: t}, nil
+}
+
 func (t *TestWorkflow) appendCreateVMStep(name string) (*daisy.Step, error) {
 	attachedDisk := &compute.AttachedDisk{Source: name}
 

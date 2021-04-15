@@ -26,14 +26,14 @@ func TestAddStartStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	step, err := twf.addStartStep("stepname", "vmname")
 	if err != nil {
 		t.Errorf("failed to add start step to test workflow: %v", err)
 	}
 	if step.StartInstances == nil {
-		t.Error("StartInstances step is missing")
+		t.Fatal("StartInstances step is missing")
 	}
 	if len(step.StartInstances.Instances) != 1 {
 		t.Error("StartInstances step is malformed")
@@ -41,8 +41,7 @@ func TestAddStartStep(t *testing.T) {
 	if step.StartInstances.Instances[0] != "vmname" {
 		t.Error("StartInstances step is malformed")
 	}
-	stepFromWF, ok := twf.wf.Steps["start-stepname"]
-	if !ok || step != stepFromWF {
+	if stepFromWF, ok := twf.wf.Steps["start-stepname"]; !ok || step != stepFromWF {
 		t.Error("Step was not correctly added to workflow")
 	}
 }
@@ -53,14 +52,14 @@ func TestAddStopStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	step, err := twf.addStopStep("stepname", "vmname")
 	if err != nil {
 		t.Errorf("failed to add stop step to test workflow: %v", err)
 	}
 	if step.StopInstances == nil {
-		t.Error("StopInstances step is missing")
+		t.Fatal("StopInstances step is missing")
 	}
 	if len(step.StopInstances.Instances) != 1 {
 		t.Error("StopInstances step is malformed")
@@ -68,8 +67,7 @@ func TestAddStopStep(t *testing.T) {
 	if step.StopInstances.Instances[0] != "vmname" {
 		t.Error("StopInstances step is malformed")
 	}
-	stepFromWF, ok := twf.wf.Steps["stop-stepname"]
-	if !ok || step != stepFromWF {
+	if stepFromWF, ok := twf.wf.Steps["stop-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
 }
@@ -80,14 +78,14 @@ func TestAddWaitStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	step, err := twf.addWaitStep("stepname", "vmname", false)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
 	if step.WaitForInstancesSignal == nil {
-		t.Error("WaitForInstancesSignal step is missing")
+		t.Fatal("WaitForInstancesSignal step is missing")
 	}
 	instancesSignal := []*daisy.InstanceSignal(*step.WaitForInstancesSignal)
 	if len(instancesSignal) != 1 {
@@ -102,8 +100,7 @@ func TestAddWaitStep(t *testing.T) {
 	if instancesSignal[0].Stopped {
 		t.Error("waitInstances step is malformed")
 	}
-	stepFromWF, ok := twf.wf.Steps["wait-stepname"]
-	if !ok || step != stepFromWF {
+	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
 }
@@ -114,14 +111,14 @@ func TestAddWaitStoppedStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	step, err := twf.addWaitStep("stepname", "vmname", true)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
 	if step.WaitForInstancesSignal == nil {
-		t.Error("WaitForInstancesSignal step is missing")
+		t.Fatal("WaitForInstancesSignal step is missing")
 	}
 	instancesSignal := []*daisy.InstanceSignal(*step.WaitForInstancesSignal)
 	if len(instancesSignal) != 1 {
@@ -136,8 +133,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 	if !instancesSignal[0].Stopped {
 		t.Error("waitInstances step is malformed")
 	}
-	stepFromWF, ok := twf.wf.Steps["wait-stepname"]
-	if !ok || step != stepFromWF {
+	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
 }
@@ -148,14 +144,14 @@ func TestAppendCreateDisksStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	step, err := twf.appendCreateDisksStep("diskname")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
 	if step.CreateDisks == nil {
-		t.Error("CreateDisks step is missing")
+		t.Fatal("CreateDisks step is missing")
 	}
 	disks := []*daisy.Disk(*step.CreateDisks)
 	if len(disks) != 1 {
@@ -193,7 +189,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
@@ -203,7 +199,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
 	if step.CreateInstances == nil {
-		t.Error("CreateDisks step is missing")
+		t.Fatal("CreateDisks step is missing")
 	}
 	instances := step.CreateInstances.Instances
 	if len(instances) != 1 {
@@ -238,7 +234,7 @@ func TestNewTestWorkflow(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	if twf.wf == nil {
-		t.Error("test workflow is malformed")
+		t.Fatal("test workflow is malformed")
 	}
 	if len(twf.wf.Steps) != 0 {
 		t.Error("test workflow has initial steps")
