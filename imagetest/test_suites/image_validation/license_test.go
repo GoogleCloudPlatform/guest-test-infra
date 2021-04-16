@@ -148,7 +148,6 @@ func isValidLicense(licenseCheck string) bool {
 	return isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck)
 }
 
-
 func TestArePackagesLegalToUse_License(t *testing.T) {
 	problemPackages := validatePackageLegal("/usr/share/doc/*/LICENSE")
 	if problemPackages != nil {
