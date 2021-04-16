@@ -11,6 +11,5 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	rebootVM.Reboot()
-	return nil
+	return rebootVM.Reboot()
 }

@@ -16,10 +16,10 @@ func TestGuestBoot(t *testing.T) {
 }
 
 func TestGuestReboot(t *testing.T) {
-	_, err := os.Stat("boot")
+	_, err := os.Stat("/tmp/boot")
 	if os.IsNotExist(err) {
 		// first boot
-		if _, err := os.Create("boot"); err != nil {
+		if _, err := os.Create("/tmp/boot"); err != nil {
 			t.Fatal("fail to create file when first boot")
 			return
 		}
