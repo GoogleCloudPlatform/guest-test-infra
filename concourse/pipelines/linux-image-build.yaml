@@ -1821,8 +1821,8 @@ jobs:
   - task: build-test-manager-container-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
-      destination: gcr.io/gcp-guest/test-manager:latest
-      dockerfile: ./container_images/test-manager/Dockerfile
+      destination: gcr.io/gcp-guest/cloud-image-tests:latest
+      dockerfile: ./container_images/cloud-image-tests/Dockerfile
       context: ./guest-test-infra
 
 groups:
