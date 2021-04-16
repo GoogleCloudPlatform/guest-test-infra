@@ -1,4 +1,4 @@
-package imagevalidation
+package image_validation
 
 import (
 	"crypto/md5"
