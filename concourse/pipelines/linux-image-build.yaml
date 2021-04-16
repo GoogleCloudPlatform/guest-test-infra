@@ -1821,9 +1821,9 @@ jobs:
   - task: build-test-manager-container-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
-      destination: gcr.io/gcp-guest/test-manager:latest
-      dockerfile: ./container_images/test-manager/Dockerfile
-      context: ./guest-test-infra
+      destination: gcr.io/gcp-guest/cloud-image-tests:latest
+      context: guest-test-infra
+      dockerfile: imagetest/Dockerfile
 
 groups:
 - name: debian
