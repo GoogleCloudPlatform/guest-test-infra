@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 )
 
@@ -48,8 +48,8 @@ func main() {
 			imagevalidation.TestSetup,
 		},
 		{
-			image_boot.Name,
-			image_boot.TestSetup,
+			imageboot.Name,
+			imageboot.TestSetup,
 		},
 	}
 

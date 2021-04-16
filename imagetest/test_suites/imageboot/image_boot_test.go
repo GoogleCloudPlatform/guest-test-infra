@@ -1,4 +1,4 @@
-package image_boot
+package imageboot
 
 import (
 	"syscall"
