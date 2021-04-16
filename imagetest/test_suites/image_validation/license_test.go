@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var LicenseNames = []string{
+var licenseNames = []string{
 	"Apache License",
 	"Artistic/GPL",
 	"Artistic",
@@ -62,7 +62,7 @@ var LicenseNames = []string{
 	"ZLIB",
 }
 
-var Licenses = []string{
+var licenses = []string{
 	`Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permission notice appear in supporting documentation, and that the name of the authors not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. The authors makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.`,
 	`free software; you can redistribute it and/or modify it under the terms of the GNU.*General Public License.*as published by the Free Software Foundation`,
 	`The main library is licensed under GNU Lesser General Public License (LGPL) version 2.1+, Gnutls Extra (i.e. openssl wrapper library, and library for code for "GnuTLS Inner Application" support) build system, testsuite and commandline utilities are licenced under the GNU General Public License version 3+. The Guile bindings use the same license as the respective underlying library, i.e. LGPLv2.1+ for the main library and GPLv3+ for Gnutls extra.`,
@@ -122,7 +122,7 @@ var Licenses = []string{
 }
 
 func isValidLicenseName(licenseCheck string) bool {
-	for _, name := range LicenseNames {
+	for _, name := range licenseNames {
 		var regexString = fmt.Sprintf("(?i)"+"(?:(?:License|Copyright)\\s*:\\s*{0})|(?:(?:covered )*under (?:the )?{0})|(?:under (?:the terms of )*the {%s})", name)
 		re := regexp.MustCompile(regexString)
 
@@ -134,7 +134,7 @@ func isValidLicenseName(licenseCheck string) bool {
 }
 
 func isValidLicenseText(licenseCheck string) bool {
-	for _, licenseText := range Licenses {
+	for _, licenseText := range licenses {
 		re := regexp.MustCompile(licenseText)
 
 		if re.MatchString(licenseCheck) {
@@ -148,21 +148,19 @@ func isValidLicense(licenseCheck string) bool {
 	return isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck)
 }
 
-func TestArePackagesLegalToUse_License(t *testing.T) {
-	problemPackages := validatePackageLegal("/usr/share/doc/*/LICENSE")
-	if problemPackages != nil {
-		t.Fatalf("The following packages are not legal to use %s", problemPackages)
+func TestArePackagesLicenseLegal(t *testing.T) {
+	if !isPackageLegal("/usr/share/doc/*/copyright") {
+		t.Fatalf("The packages are not legal to use")
 	}
 }
 
-func TestArePackagesLegalToUse_CopyRight(t *testing.T) {
-	problemPackages := validatePackageLegal("/usr/share/doc/*/copyright")
-	if problemPackages != nil {
-		t.Fatalf("The following packages are not legal to use %s", problemPackages)
+func TestArePackagesCopyRightLegal(t *testing.T) {
+	if !isPackageLegal("/usr/share/doc/*/copyright") {
+		t.Fatalf("The packages are not legal to use")
 	}
 }
 
-func validatePackageLegal(path string) []string {
+func isPackageLegal(path string) bool {
 	var problemPackages []string
 	filenames, _ := filepath.Glob(path)
 	for _, filename := range filenames {
@@ -192,8 +190,11 @@ func validatePackageLegal(path string) []string {
 
 		if !isValidLicense(licenseCheck) {
 			problemPackages = append(problemPackages, filename)
-			return problemPackages
 		}
 	}
-	return nil
+	if problemPackages != nil {
+		fmt.Printf("The following packages are not legal to use %s", problemPackages)
+		return false
+	}
+	return true
 }
