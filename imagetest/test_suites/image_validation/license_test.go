@@ -1,4 +1,4 @@
-package image_validation
+package imagevalidation
 
 import (
 	"bufio"
