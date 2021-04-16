@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var LICENSE_NAMES = []string{
+var LicenseNames = []string{
 	"Apache License",
 	"Artistic/GPL",
 	"Artistic",
@@ -62,7 +62,7 @@ var LICENSE_NAMES = []string{
 	"ZLIB",
 }
 
-var LICENSES = []string{
+var Licenses = []string{
 	`Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permission notice appear in supporting documentation, and that the name of the authors not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. The authors makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.`,
 	`free software; you can redistribute it and/or modify it under the terms of the GNU.*General Public License.*as published by the Free Software Foundation`,
 	`The main library is licensed under GNU Lesser General Public License (LGPL) version 2.1+, Gnutls Extra (i.e. openssl wrapper library, and library for code for "GnuTLS Inner Application" support) build system, testsuite and commandline utilities are licenced under the GNU General Public License version 3+. The Guile bindings use the same license as the respective underlying library, i.e. LGPLv2.1+ for the main library and GPLv3+ for Gnutls extra.`,
@@ -121,36 +121,33 @@ var LICENSES = []string{
 	`This software is made available under the terms of *either* of the licenses found in LICENSE.APACHE or LICENSE.BSD. Contributions to cryptography are made under the terms of *both* these licenses.`,
 }
 
-func isValidLicenseName(license_check string) bool {
-	for _, name := range LICENSE_NAMES {
+func isValidLicenseName(licenseCheck string) bool {
+	for _, name := range LicenseNames {
 		var regexString = fmt.Sprintf("(?i)"+"(?:(?:License|Copyright)\\s*:\\s*{0})|(?:(?:covered )*under (?:the )?{0})|(?:under (?:the terms of )*the {%s})", name)
 		re := regexp.MustCompile(regexString)
 
-		if re.MatchString(license_check) {
+		if re.MatchString(licenseCheck) {
 			return true
 		}
 	}
 	return false
 }
 
-func isValidLicenseText(license_check string) bool {
-	for _, license_text := range LICENSES {
-		re := regexp.MustCompile(license_text)
+func isValidLicenseText(licenseCheck string) bool {
+	for _, licenseText := range Licenses {
+		re := regexp.MustCompile(licenseText)
 
-		if re.MatchString(license_check) {
+		if re.MatchString(licenseCheck) {
 			return true
 		}
 	}
 	return false
 }
 
-func isValidLicense(license_check string) bool {
-	return isValidLicenseName(license_check) || isValidLicenseText(license_check)
+func isValidLicense(licenseCheck string) bool {
+	return isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck)
 }
 
-func TestLicenceValidation(t *testing.T) {
-
-}
 
 func TestArePackagesLegalToUse_License(t *testing.T) {
 	problemPackages := validatePackageLegal("/usr/share/doc/*/LICENSE")
@@ -167,7 +164,7 @@ func TestArePackagesLegalToUse_CopyRight(t *testing.T) {
 }
 
 func validatePackageLegal(path string) []string {
-	var problem_packages []string
+	var problemPackages []string
 	filenames, _ := filepath.Glob(path)
 	for _, filename := range filenames {
 		file, err := os.Open(filename)
@@ -177,10 +174,10 @@ func validatePackageLegal(path string) []string {
 		}
 		defer file.Close()
 
-		var license_check string
+		var licenseCheck string
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			license_check += scanner.Text()
+			licenseCheck += scanner.Text()
 		}
 
 		if err := scanner.Err(); err != nil {
@@ -189,14 +186,14 @@ func validatePackageLegal(path string) []string {
 		}
 
 		re := regexp.MustCompile(`(\\*|#)*`)
-		license_check = re.ReplaceAllString(license_check, " ")
+		licenseCheck = re.ReplaceAllString(licenseCheck, " ")
 
-		space_regex := regexp.MustCompile(`\\s+`)
-		license_check = strings.Join(space_regex.Split(license_check, -1), " ")
+		spaceRegex := regexp.MustCompile(`\\s+`)
+		licenseCheck = strings.Join(spaceRegex.Split(licenseCheck, -1), " ")
 
-		if !isValidLicense(license_check) {
-			problem_packages = append(problem_packages, filename)
-			return problem_packages
+		if !isValidLicense(licenseCheck) {
+			problemPackages = append(problemPackages, filename)
+			return problemPackages
 		}
 	}
 	return nil
