@@ -1,4 +1,4 @@
-package imagevalidation
+package image_validation
 
 import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 
