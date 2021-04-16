@@ -1,0 +1,8 @@
+<testsuites name="" errors="0" failures="0" tests="0" time="0">
+	<testsuite name="image_validation-debian" tests="1" failures="0" errors="1" disabled="0" skipped="0" time="0">
+		<system-err>error validating workflow: project does not exist: &#34;hanga-test&#34;</system-err>
+	</testsuite>
+	<testsuite name="image-boot-debian" tests="1" failures="0" errors="1" disabled="0" skipped="0" time="0">
+		<system-err>error validating workflow: project does not exist: &#34;hanga-test&#34;</system-err>
+	</testsuite>
+</testsuites>
