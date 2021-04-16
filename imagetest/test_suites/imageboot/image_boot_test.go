@@ -1,9 +1,9 @@
 package imageboot
 
 import (
+	"os"
 	"syscall"
 	"testing"
-	"os"
 )
 
 func TestGuestBoot(t *testing.T) {
