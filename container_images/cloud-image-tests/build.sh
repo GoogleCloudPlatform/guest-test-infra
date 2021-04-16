@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2021 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,14 +12,32 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang as builder
 
-WORKDIR /go/src/
-COPY . .
-RUN chmod +x ./container_images/test-manager/build.sh
-RUN ./container_images/test-manager/build.sh
+set -e
 
-FROM alpine
-COPY --from=builder /out/* /
+export CGO_ENABLED=0 GOOS=linux
 
-ENTRYPOINT ["/test_manager"]
+cd imagetest
+mkdir /out
+
+echo "Start Building"
+go get ./...
+
+pushd cmd/manager
+go build -v -o /out/manager
+popd
+
+pushd cmd/wrapper
+go build -v -o /out/wrapper
+popd
+
+cd test_suites
+for suite in *; do
+  go test -c "$suite" -o "/out/${suite}.test"
+done
+
+echo "Build output:"
+ls /out
+
+sync
+echo "Finished building"
