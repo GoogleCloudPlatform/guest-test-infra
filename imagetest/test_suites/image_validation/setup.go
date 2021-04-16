@@ -7,5 +7,17 @@ var Name = "image_validation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	return imagetest.SingleVMTest(t)
+	vm1, err := t.CreateTestVM("vm1")
+	if err != nil {
+		return err
+	}
+	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce")
+
+	vm2, err := t.CreateTestVM("vm2.custom.domain")
+	if err != nil {
+		return err
+	}
+	vm2.RunTests("TestCustomHostname")
+
+	return nil
 }
