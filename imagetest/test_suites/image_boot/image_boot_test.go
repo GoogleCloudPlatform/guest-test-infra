@@ -1,12 +1,24 @@
-// +build !linux
-
 package imageboot
 
 import (
+	"flag"
 	"os"
 	"syscall"
 	"testing"
 )
+
+var (
+	runtest = flag.Bool("runtest", false, "really run the test")
+)
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if *runtest {
+		os.Exit(m.Run())
+	} else {
+		os.Exit(0)
+	}
+}
 
 func TestGuestBoot(t *testing.T) {
 	err := syscall.Uname(&syscall.Utsname{})
@@ -28,7 +40,7 @@ func TestGuestReboot(t *testing.T) {
 		return
 	}
 	// second boot
-	err = syscall.Uname(&syscall.Utsname{})
+	err = syscall.Sysinfo(&syscall.Sysinfo_t{})
 
 	if err != nil {
 		t.Fatalf("couldn't get system information, image reboot failed")
