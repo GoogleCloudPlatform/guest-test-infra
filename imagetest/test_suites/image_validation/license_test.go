@@ -149,7 +149,7 @@ func isValidLicense(licenseCheck string) bool {
 }
 
 func TestArePackagesLicenseLegal(t *testing.T) {
-	filenames, _ := filepath.Glob("/usr/share/doc/*/License")
+	filenames, _ := filepath.Glob("/usr/share/doc/*/LICENSE")
 	for _, filename := range filenames {
 		if !isPackageLegal(filename) {
 			t.Fatalf("The packages are not legal to use")
