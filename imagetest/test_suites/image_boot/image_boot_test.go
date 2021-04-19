@@ -5,7 +5,6 @@ package imageboot
 import (
 	"flag"
 	"os"
-	"syscall"
 	"testing"
 )
 
@@ -23,28 +22,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestGuestBoot(t *testing.T) {
-	err := syscall.Uname(&syscall.Utsname{})
-
-	if err != nil {
-		t.Fatalf("couldn't get system information, image boot failed")
-	}
-
+	t.Log("this test signal the guest boot successful")
 }
 
 func TestGuestReboot(t *testing.T) {
-	_, err := os.Stat("/tmp/boot")
+	_, err := os.Stat("/boot")
 	if os.IsNotExist(err) {
 		// first boot
-		if _, err := os.Create("/tmp/boot"); err != nil {
+		if _, err := os.Create("/boot"); err != nil {
 			t.Fatal("fail to create file when first boot")
-			return
 		}
 		return
 	}
 
 	// second boot
-	if err = syscall.Sysinfo(&syscall.Sysinfo_t{}); err != nil {
-		t.Fatalf("couldn't get system information, image reboot failed")
-	}
-
+	t.Log("the file exist signal the guest reboot successful")
 }
