@@ -1,18 +1,33 @@
 package network
 
 import (
+	"flag"
 	"fmt"
 	"net"
+	"os"
 	"testing"
 )
 
 const (
-	GceMtu                        = 1460
+	gceMTU                        = 1460
 	defaultInterface              = "eth0"
 	defaultDebianInterface        = "eth4"
 	DefaultInterfaceWin2012Beyond = "Ethernet"
 	DefaultInterfaceWin2008       = "Local Area Connection"
 )
+
+var (
+	runtest = flag.Bool("runtest", false, "really run the test")
+)
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if *runtest {
+		os.Exit(m.Run())
+	} else {
+		os.Exit(0)
+	}
+}
 
 func TestLinuxDefaultMTU(t *testing.T) {
 	err := checkDefaultMTU(defaultInterface)
@@ -35,7 +50,7 @@ func TestWin2012BeyondDefaultMTU(t *testing.T) {
 	}
 }
 
-func TestDebianDefaultMTU(t *testing.T) {
+func TestDefaultMTU(t *testing.T) {
 	err := checkDefaultMTU(defaultDebianInterface)
 	if err != nil {
 		t.Fatal(err)
@@ -49,8 +64,8 @@ func checkDefaultMTU(defaultInterface string) error {
 	}
 	for _, i := range ifs {
 		if i.Name == defaultInterface {
-			if i.MTU != GceMtu {
-				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %s", GceMtu, i.Name, i.MTU)
+			if i.MTU != gceMTU {
+				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
 			}
 			return nil
 		}
