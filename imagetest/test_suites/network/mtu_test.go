@@ -64,8 +64,13 @@ func checkDefaultMTU(defaultInterface string) error {
 	}
 	for _, i := range ifs {
 		if i.Name == defaultInterface {
+<<<<<<< HEAD
 			if i.MTU != gceMTU {
 				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
+=======
+			if i.MTU != GceMtu {
+				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %d", GceMtu, i.Name, i.MTU)
+>>>>>>> 97ea3cb (go check)
 			}
 			return nil
 		}
