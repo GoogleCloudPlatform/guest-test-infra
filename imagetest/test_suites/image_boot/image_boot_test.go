@@ -1,10 +1,10 @@
+// +build linux
+
 package imageboot
 
 import (
 	"flag"
 	"os"
-	"os/exec"
-	"runtime"
 	"syscall"
 	"testing"
 )
@@ -43,14 +43,8 @@ func TestGuestReboot(t *testing.T) {
 	}
 
 	// second boot
-	if runtime.GOOS == "linux" {
-		if err = syscall.Sysinfo(&syscall.Sysinfo_t{}); err != nil {
-			t.Fatalf("couldn't get system information, image reboot failed")
-		}
-	} else {
-		cmd := exec.Command("systeminfo")
-		if err = cmd.Run(); err != nil {
-			t.Fatalf("couldn't get system information, image reboot failed")
-		}
+	if err = syscall.Sysinfo(&syscall.Sysinfo_t{}); err != nil {
+		t.Fatalf("couldn't get system information, image reboot failed")
 	}
+
 }
