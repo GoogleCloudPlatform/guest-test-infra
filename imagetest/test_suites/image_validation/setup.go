@@ -19,5 +19,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.RunTests("TestCustomHostname")
 
+	vm3, err := t.CreateTestVM("vm3.license")
+	if err != nil {
+		return err
+	}
+	vm3.RunTests("TestArePackagesCopyRightLegal|TestArePackagesLicenseLegal")
 	return nil
 }
