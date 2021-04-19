@@ -32,9 +32,9 @@ func TestGuestReboot(t *testing.T) {
 		if _, err := os.Create("/boot"); err != nil {
 			t.Fatal("fail to create file when first boot")
 		}
-		return
+		t.Fatal("fail since the file does not exist")
+	} else {
+		// second boot
+		t.Log("the file exist signal the guest reboot successful")
 	}
-
-	// second boot
-	t.Log("the file exist signal the guest reboot successful")
 }
