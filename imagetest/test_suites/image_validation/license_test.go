@@ -149,51 +149,48 @@ func isValidLicense(licenseCheck string) bool {
 }
 
 func TestArePackagesLicenseLegal(t *testing.T) {
-	if !isPackageLegal("/usr/share/doc/*/copyright") {
-		t.Fatalf("The packages are not legal to use")
+	filenames, _ := filepath.Glob("/usr/share/doc/*/License")
+	for _, filename := range filenames {
+		if !isPackageLegal(filename) {
+			t.Fatalf("The packages are not legal to use")
+		}
 	}
 }
 
 func TestArePackagesCopyRightLegal(t *testing.T) {
-	if !isPackageLegal("/usr/share/doc/*/copyright") {
-		t.Fatalf("The packages are not legal to use")
+	filenames, _ := filepath.Glob("/usr/share/doc/*/copyright")
+	for _, filename := range filenames {
+		if !isPackageLegal(filename) {
+			t.Fatalf("The packages are not legal to use")
+		}
 	}
 }
 
-func isPackageLegal(path string) bool {
-	var problemPackages []string
-	filenames, _ := filepath.Glob(path)
-	for _, filename := range filenames {
-		file, err := os.Open(filename)
-		if err != nil {
-			log.Printf("error open file")
-			continue
-		}
-		defer file.Close()
-
-		var licenseCheck string
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			licenseCheck += scanner.Text()
-		}
-
-		if err := scanner.Err(); err != nil {
-			log.Printf("error read file")
-			continue
-		}
-
-		re := regexp.MustCompile(`(\\*|#)*`)
-		licenseCheck = re.ReplaceAllString(licenseCheck, " ")
-
-		spaceRegex := regexp.MustCompile(`\\s+`)
-		licenseCheck = strings.Join(spaceRegex.Split(licenseCheck, -1), " ")
-
-		if !isValidLicense(licenseCheck) {
-			problemPackages = append(problemPackages, filename)
-		}
+func isPackageLegal(filepath string) bool {
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Printf("error open file")
 	}
-	if problemPackages != nil {
-		fmt.Printf("The following packages are not legal to use %s", problemPackages)
+	defer file.Close()
+
+	var licenseCheck string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		licenseCheck += scanner.Text()
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("error read file")
+	}
+
+	re := regexp.MustCompile(`(\*|#)*`)
+	licenseCheck = re.ReplaceAllString(licenseCheck, "")
+
+	spaceRegex := regexp.MustCompile(`\s+`)
+	licenseCheck = strings.Join(spaceRegex.Split(licenseCheck, -1), " ")
+
+	if !isValidLicense(licenseCheck) {
+		fmt.Printf("The package %s are not legal to use.", filepath)
 		return false
 	}
 	return true

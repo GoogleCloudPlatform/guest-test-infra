@@ -4,10 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go/storage v1.14.0
-	github.com/GeertJohan/go.rice v1.0.2 // indirect
 	github.com/GoogleCloudPlatform/compute-image-tools/daisy v0.0.0-20210416002445-25d654193a83
-	github.com/ains/go-test-html v0.0.0-20161021131355-c8eb28a2a5f2 // indirect
-	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
