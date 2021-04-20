@@ -1,14 +1,15 @@
 package imagevalidation
 
 import (
-	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var licenseNames = []string{
@@ -121,9 +122,15 @@ var licenses = []string{
 	`This software is made available under the terms of *either* of the licenses found in LICENSE.APACHE or LICENSE.BSD. Contributions to cryptography are made under the terms of *both* these licenses.`,
 }
 
+const (
+	copyright = "/usr/share/doc/*/copyright"
+	license   = "/usr/share/doc/*/LICENSE"
+)
+
 func isValidLicenseName(licenseCheck string) bool {
 	for _, name := range licenseNames {
-		var regexString = fmt.Sprintf("(?i)"+"(?:(?:License|Copyright)\\s*:\\s*{0})|(?:(?:covered )*under (?:the )?{0})|(?:under (?:the terms of )*the {%s})", name)
+		// (?i) case insensitive
+		var regexString = fmt.Sprintf(`(?i)((?:(?:License|Copyright)\s*:\s*%[1]s)|(?:(?:covered )*under (?:the )?%[1]s)|(?:under (?:the terms of )*the %[1]s))`, name)
 		re := regexp.MustCompile(regexString)
 
 		if re.MatchString(licenseCheck) {
@@ -135,7 +142,8 @@ func isValidLicenseName(licenseCheck string) bool {
 
 func isValidLicenseText(licenseCheck string) bool {
 	for _, licenseText := range licenses {
-		re := regexp.MustCompile(licenseText)
+		// (?i) case insensitive
+		re := regexp.MustCompile(`(?i)(` + licenseText + `)`)
 
 		if re.MatchString(licenseCheck) {
 			return true
@@ -148,17 +156,15 @@ func isValidLicense(licenseCheck string) bool {
 	return isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck)
 }
 
-func TestArePackagesLicenseLegal(t *testing.T) {
-	filenames, _ := filepath.Glob("/usr/share/doc/*/LICENSE")
-	for _, filename := range filenames {
-		if !isPackageLegal(filename) {
-			t.Fatalf("The packages are not legal to use")
-		}
+func TestArePackagesLegal(t *testing.T) {
+	var filenames []string
+	if utils.IsTargetOSVersion(utils.RedHat) || utils.IsTargetOSVersion(utils.SUSE) {
+		filenames, _ = filepath.Glob(license)
+	} else if utils.IsTargetOSVersion(utils.Debian) || utils.IsTargetOSVersion(utils.Ubuntu) {
+		filenames, _ = filepath.Glob(copyright)
+	} else {
+		t.Skip("can not run test on other os")
 	}
-}
-
-func TestArePackagesCopyRightLegal(t *testing.T) {
-	filenames, _ := filepath.Glob("/usr/share/doc/*/copyright")
 	for _, filename := range filenames {
 		if !isPackageLegal(filename) {
 			t.Fatalf("The packages are not legal to use")
@@ -167,28 +173,21 @@ func TestArePackagesCopyRightLegal(t *testing.T) {
 }
 
 func isPackageLegal(filepath string) bool {
-	file, err := os.Open(filepath)
+	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		log.Printf("error open file")
-	}
-	defer file.Close()
-
-	var licenseCheck string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		licenseCheck += scanner.Text()
-	}
-
-	if err := scanner.Err(); err != nil {
 		log.Printf("error read file")
 	}
 
+	var licenseCheck string = string(bytes)
+
+	// Remove comment
 	re := regexp.MustCompile(`(\*|#)*`)
-	licenseCheck = re.ReplaceAllString(licenseCheck, "")
-
-	spaceRegex := regexp.MustCompile(`\s+`)
-	licenseCheck = strings.Join(spaceRegex.Split(licenseCheck, -1), " ")
-
+	loc := re.FindStringIndex(licenseCheck)
+	if loc != nil {
+		licenseCheck = licenseCheck[0:loc[0]] + licenseCheck[loc[1]:]
+	}
+	// Replace all whitespace with one space
+	licenseCheck = strings.Join(strings.Fields(licenseCheck), " ")
 	if !isValidLicense(licenseCheck) {
 		fmt.Printf("The package %s are not legal to use.", filepath)
 		return false

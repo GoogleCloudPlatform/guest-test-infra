@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -14,7 +15,20 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+const (
+	osVersionFile     = "/etc/os-release"
+	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+)
+
+/**
+OS Version Name
+*/
+const (
+	RedHat = "Rad Hat"
+	Debian = "Debian GNU/Linux"
+	Ubuntu = "Ubuntu"
+	SUSE   = "SLES"
+)
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
@@ -87,4 +101,24 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 		return err
 	}
 	return nil
+}
+
+// IsTargetOSVersion check if the vm is target linux distribution.
+func IsTargetOSVersion(version string) bool {
+	file, err := os.Open(osVersionFile)
+	if err != nil {
+		log.Printf("can not determine os version")
+		return false
+	}
+	sc := bufio.NewScanner(file)
+	for sc.Scan() {
+		items := strings.Split(sc.Text(), "=")
+		if items[0] == "NAME" && strings.Contains(items[1], version) {
+			return true
+		}
+	}
+	if err := sc.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return false
 }

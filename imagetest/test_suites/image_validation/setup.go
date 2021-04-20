@@ -23,6 +23,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.RunTests("TestArePackagesCopyRightLegal|TestArePackagesLicenseLegal")
+	vm3.RunTests("TestArePackagesLegal")
 	return nil
 }
