@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -28,6 +27,7 @@ import (
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/iterator"
 )
 
 var (
@@ -37,7 +37,6 @@ var (
 const (
 	testBinariesPath = "/out"
 	testWrapperPath  = testBinariesPath + "/wrapper"
-	baseGCSPath      = "gs://gcp-guest-test-outputs/cloud_image_tests/"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -215,14 +214,15 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(tests []*TestWorkflow, zone, project string) error {
+func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) error {
 	run := time.Now().Format(time.RFC3339)
 	for _, ts := range tests {
 		if ts.wf == nil {
 			return fmt.Errorf("found nil workflow in finalize")
 		}
 
-		ts.gcsPath = fmt.Sprintf("%s/%s/%s/%s", baseGCSPath, run, ts.Name, ts.ShortImage)
+		// gs://$PROJECT-cloud-test-outputs/2021-04-20T11:44:08-07:00/image_validation/debian-10
+		ts.gcsPath = fmt.Sprintf("gs://%s/%s/%s/%s", bucket, run, ts.Name, ts.ShortImage)
 		ts.wf.GCSPath = ts.gcsPath
 
 		ts.wf.DisableGCSLogging()
@@ -299,7 +299,7 @@ func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 
 // PrintTests prints all test workflows.
 func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string) {
-	finalizeWorkflows(testWorkflows, zone, project)
+	finalizeWorkflows(testWorkflows, zone, project, "")
 	for _, test := range testWorkflows {
 		if test.wf == nil {
 			continue
@@ -310,7 +310,7 @@ func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zon
 
 // ValidateTests validates all test workflows.
 func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string) error {
-	finalizeWorkflows(testWorkflows, zone, project)
+	finalizeWorkflows(testWorkflows, zone, project, "")
 	for _, test := range testWorkflows {
 		if test.wf == nil {
 			continue
@@ -322,14 +322,37 @@ func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, 
 	return nil
 }
 
+// daisyBucket returns the bucket name for outputs, creating it if needed.
+func daisyBucket(ctx context.Context, client *storage.Client, project string) (string, error) {
+	bucketName := strings.Replace(project, ":", "-", -1) + "-cloud-test-outputs"
+	it := client.Buckets(ctx, project)
+	for attr, err := it.Next(); err != iterator.Done; attr, err = it.Next() {
+		if err != nil {
+			return "", fmt.Errorf("failed to iterate buckets: %v", err)
+		}
+		if attr.Name == bucketName {
+			return bucketName, nil
+		}
+	}
+
+	if err := client.Bucket(bucketName).Create(ctx, project, nil); err != nil {
+		return "", fmt.Errorf("failed to create bucket: %v", err)
+	}
+	return bucketName, nil
+}
+
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, project, zone string, parallelCount int) {
+func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, project, zone string, parallelCount int) ([]byte, error) {
 	var err error
 	client, err = storage.NewClient(ctx)
 	if err != nil {
-		log.Fatalf("Failed to set up storage client: %v", err)
+		return nil, fmt.Errorf("Failed to set up storage client: %v", err)
 	}
-	finalizeWorkflows(testWorkflows, zone, project)
+	bucket, err := daisyBucket(ctx, client, project)
+	if err != nil {
+		return nil, err
+	}
+	finalizeWorkflows(testWorkflows, zone, project, bucket)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
@@ -357,20 +380,18 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 
 	bytes, err := xml.MarshalIndent(suites, "", "\t")
 	if err != nil {
-		fmt.Printf("failed to marshall result: %v\n", err)
-		return
+		return nil, fmt.Errorf("failed to marshall result: %v", err)
 	}
 	outFile, err := os.Create(outPath)
 	if err != nil {
-		fmt.Printf("failed to create output file: %v\n", err)
-		return
+		return nil, fmt.Errorf("failed to create output file: %v", err)
 	}
 	defer outFile.Close()
 
 	outFile.Write(bytes)
 	outFile.Write([]byte{'\n'})
 
-	return
+	return bytes, nil
 }
 
 func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
