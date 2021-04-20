@@ -29,7 +29,7 @@ func TestGuestReboot(t *testing.T) {
 	_, err := os.Stat("/boot-marker")
 	if os.IsNotExist(err) {
 		// first boot
-		if _, err := os.Create("/boot"); err != nil {
+		if _, err := os.Create("/boot-marker"); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
 		t.Fatal("marker file does not exist")
