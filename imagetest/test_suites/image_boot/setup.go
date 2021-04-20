@@ -7,9 +7,9 @@ var Name = "image_boot"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	rebootVM, err := t.CreateTestVM("reboot-test")
+	vm, err := t.CreateTestVM("reboot-test")
 	if err != nil {
 		return err
 	}
-	return rebootVM.Reboot()
+	return vm.Reboot()
 }

@@ -22,19 +22,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestGuestBoot(t *testing.T) {
-	t.Log("this test signal the guest boot successful")
+	t.Log("Guest booted successfully")
 }
 
 func TestGuestReboot(t *testing.T) {
-	_, err := os.Stat("/boot")
+	_, err := os.Stat("/boot-marker")
 	if os.IsNotExist(err) {
 		// first boot
 		if _, err := os.Create("/boot"); err != nil {
-			t.Fatal("fail to create file when first boot")
+			t.Fatalf("failed creating marker file: %v", err)
 		}
-		t.Fatal("fail since the file does not exist")
+		t.Fatal("marker file does not exist")
 	} else {
 		// second boot
-		t.Log("the file exist signal the guest reboot successful")
+		t.Log("marker file exist signal the guest reboot successful")
 	}
 }
