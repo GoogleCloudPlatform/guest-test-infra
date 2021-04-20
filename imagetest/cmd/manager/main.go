@@ -73,10 +73,14 @@ func main() {
 
 	if *validate {
 		if err := imagetest.ValidateTests(ctx, testWorkflows, *project, *zone); err != nil {
-			fmt.Printf("Validate failed: %v\n", err)
+			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	imagetest.RunTests(ctx, testWorkflows, *outPath, *project, *zone, *parallelCount)
+	out, err := imagetest.RunTests(ctx, testWorkflows, *outPath, *project, *zone, *parallelCount)
+	if err != nil {
+		log.Fatalf("Failed to run tests: %v", err)
+	}
+	fmt.Printf("%s\n", out)
 }
