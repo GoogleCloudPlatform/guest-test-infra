@@ -85,7 +85,7 @@ resources:
   source:
     bucket: gce-image-archive
     json_key: |
-      ((gcsoslogin-staging-key.credential))
+      ((gcs-key.credential))
     regexp: "partner/freebsd/freebsd-12-v([0-9]+).tar.gz"
 - name: freebsd-13-gcs
   type: gcs
