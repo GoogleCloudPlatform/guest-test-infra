@@ -49,13 +49,11 @@ func main() {
 			imagevalidation.TestSetup,
 		},
 		{
-<<<<<<< HEAD
 			network.Name,
 			network.TestSetup,
-=======
+		},{
 			image_boot.Name,
 			image_boot.TestSetup,
->>>>>>> 5815f1c (add image boot test)
 		},
 	}
 

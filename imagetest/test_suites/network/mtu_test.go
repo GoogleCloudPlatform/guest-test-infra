@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	gceMTU                        = 1460
-	defaultInterface              = "eth0"
-	defaultDebianInterface        = "eth4"
-	DefaultInterfaceWin2012Beyond = "Ethernet"
-	DefaultInterfaceWin2008       = "Local Area Connection"
+	gceMTU                 = 1460
+	defaultInterface       = "eth0"
+	defaultDebianInterface = "ens4"
 )
 
 var (
@@ -30,32 +31,41 @@ func TestMain(m *testing.M) {
 }
 
 func TestDefaultMTU(t *testing.T) {
-	var networkInterface = defaultInterface
-	if checkOSversion(){
-		networkInterface = defaultDebianInterface
-	} else if checkOSversion(){
-		networkInterface = defaultDebianInterface
-	} else if checkOSversion(){
-		networkInterface = DefaultInterfaceWin2012Beyond
-	}
-	err := checkDefaultMTU(networkInterface)
+	var networkInterface string
+
+	image, err := utils.GetMetadata("image")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	switch {
+	case strings.Contains(image, "debian-10"):
+		networkInterface = defaultDebianInterface
+	default:
+		networkInterface = defaultInterface
+	}
+
+	isDefault, err := isDefaultGCEMTU(networkInterface)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if !isDefault {
+		t.Fatal(err.Error())
 	}
 }
 
-func checkDefaultMTU(defaultInterface string) error {
+func isDefaultGCEMTU(interfaceName string) (bool, error) {
 	ifs, err := net.Interfaces()
 	if err != nil {
-		return fmt.Errorf("can't get network interface")
+		return false, fmt.Errorf("can't get network interface")
 	}
 	for _, i := range ifs {
-		if i.Name == defaultInterface {
+		if i.Name == interfaceName {
 			if i.MTU != gceMTU {
-				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
+				return false, fmt.Errorf("expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
 			}
-			return nil
+			return true, nil
 		}
 	}
-	return fmt.Errorf("can't find network interface %s", defaultInterface)
+	return false, fmt.Errorf("can't find network interface %s", interfaceName)
 }

@@ -14,7 +14,16 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+const (
+	osVersionFile     = "/etc/os-release"
+	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+)
+
+// OS Version Name
+const (
+	Debian    = "Debian GNU/Linux"
+	Version10 = "10"
+)
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
