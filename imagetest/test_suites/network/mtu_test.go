@@ -29,29 +29,16 @@ func TestMain(m *testing.M) {
 	}
 }
 
-func TestLinuxDefaultMTU(t *testing.T) {
-	err := checkDefaultMTU(defaultInterface)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestWindows2008DefaultMTU(t *testing.T) {
-	err := checkDefaultMTU(DefaultInterfaceWin2008)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestWin2012BeyondDefaultMTU(t *testing.T) {
-	err := checkDefaultMTU(DefaultInterfaceWin2012Beyond)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestDefaultMTU(t *testing.T) {
-	err := checkDefaultMTU(defaultDebianInterface)
+	var networkInterface = defaultInterface
+	if checkOSversion(){
+		networkInterface = defaultDebianInterface
+	} else if checkOSversion(){
+		networkInterface = defaultDebianInterface
+	} else if checkOSversion(){
+		networkInterface = DefaultInterfaceWin2012Beyond
+	}
+	err := checkDefaultMTU(networkInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,13 +51,8 @@ func checkDefaultMTU(defaultInterface string) error {
 	}
 	for _, i := range ifs {
 		if i.Name == defaultInterface {
-<<<<<<< HEAD
 			if i.MTU != gceMTU {
 				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
-=======
-			if i.MTU != GceMtu {
-				return fmt.Errorf("Expected MTU %d on interface %s, got MTU %d", GceMtu, i.Name, i.MTU)
->>>>>>> 97ea3cb (go check)
 			}
 			return nil
 		}
