@@ -1308,7 +1308,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
-      environment: "test"
+      environment: "staging"
 - name: publish-to-staging-rhel-8-2-sap
   plan:
   - get: guest-test-infra
@@ -1418,7 +1418,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: almalinux-8-gcs
-    passed: [publish-to-staging-almalinux-8]
+    passed: [publish-to-testing-almalinux-8]
     trigger: false
     params: {skip_download: "true"}
   - load_var: source-version

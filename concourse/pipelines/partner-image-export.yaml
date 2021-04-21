@@ -933,7 +933,7 @@ jobs:
     params:
       skip_download: "true"
   - load_var: source-version
-    file: ubuntu-1604-pro-gcs/version
+    file: ubuntu-pro-1604-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -959,7 +959,7 @@ jobs:
     params:
       skip_download: "true"
   - load_var: source-version
-    file: ubuntu-1804-pro-gcs/version
+    file: ubuntu-pro-1804-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -985,7 +985,7 @@ jobs:
     params:
       skip_download: "true"
   - load_var: source-version
-    file: ubuntu-2004-pro-gcs/version
+    file: ubuntu-pro-2004-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
