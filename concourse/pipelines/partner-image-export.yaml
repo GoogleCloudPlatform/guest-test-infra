@@ -121,35 +121,35 @@ resources:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "partner/ubuntu/ubuntu-1804-lts-v([0-9]+).tar.gz"
+    regexp: "partner/ubuntu/ubuntu-1804-v([0-9]+).tar.gz"
 - name: ubuntu-2004-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "partner/ubuntu/ubuntu-2004-lts-v([0-9]+).tar.gz"
+    regexp: "partner/ubuntu/ubuntu-2004-v([0-9]+).tar.gz"
 - name: ubuntu-pro-1604-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "partner/ubuntu/ubuntu-pro-1604-lts-v([0-9]+).tar.gz"
+    regexp: "partner/ubuntu/ubuntu-pro-1604-v([0-9]+).tar.gz"
 - name: ubuntu-pro-1804-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "partner/ubuntu/ubuntu-pro-1804-lts-v([0-9]+).tar.gz"
+    regexp: "partner/ubuntu/ubuntu-pro-1804-v([0-9]+).tar.gz"
 - name: ubuntu-pro-2004-gcs
   type: gcs
   source:
     bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
-    regexp: "partner/ubuntu/ubuntu-pro-2004-lts-v([0-9]+).tar.gz"
+    regexp: "partner/ubuntu/ubuntu-pro-2004-v([0-9]+).tar.gz"
 
 jobs:
 # Export jobs
