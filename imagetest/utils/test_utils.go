@@ -20,7 +20,6 @@ const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 )
 
-
 //	OS Version Name
 const (
 	RedHat = "Red Hat"
