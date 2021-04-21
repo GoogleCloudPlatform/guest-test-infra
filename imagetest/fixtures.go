@@ -120,3 +120,68 @@ func (t *TestVM) Reboot() error {
 
 	return nil
 }
+
+// Stop stops the VM, waits for it to shutdown. The difference between Stop and
+// Reboot is Stop doesn't boot again.
+func (t *TestVM) Stop() error {
+	// Grab the wait step that was added with CreateTestVM.
+	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
+	if !ok {
+		return fmt.Errorf("wait-%s step missing", t.name)
+	}
+
+	stopInstancesStep, err := t.testWorkflow.addStopStep(t.name, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, waitStep); err != nil {
+		return err
+	}
+
+	waitStopStep, err := t.testWorkflow.addWaitStep("stopped-"+t.name, t.name, true)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(waitStopStep, stopInstancesStep); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Boot start a stopped VM, waits for it to start. Your test package must
+// handle being run twice.
+func (t *TestVM) Boot() error {
+	// Grab the wait step that was added with Stop.
+	waitStopStep, ok := t.testWorkflow.wf.Steps["stopped-"+t.name]
+	if !ok {
+		return fmt.Errorf("wait-%s step missing", t.name)
+	}
+
+	startInstancesStep, err := t.testWorkflow.addStartStep(t.name, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(startInstancesStep, waitStopStep); err != nil {
+		return err
+	}
+
+	waitStartedStep, err := t.testWorkflow.addWaitStep("started-"+t.name, t.name, false)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *TestVM) EnableSecureBoot() {
+	// TODO: support UpdateShieldedInstanceConfig method in daisy or in manager
+	// itself
+}
+
+
