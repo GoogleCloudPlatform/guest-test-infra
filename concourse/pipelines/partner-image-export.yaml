@@ -713,7 +713,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_81_lts.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # COS 85 LTS
 - name: publish-oslogin-cos-85-lts
   plan:
@@ -739,7 +739,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_85_lts.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # COS 89 LTS
 - name: publish-oslogin-cos-89-lts
   plan:
@@ -765,7 +765,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_89_lts.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # COS Dev
 - name: publish-oslogin-cos-dev
   plan:
@@ -791,7 +791,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_dev.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # openSUSE Leap 15
 - name: publish-oslogin-opensuse-leap-15
   plan:
@@ -817,7 +817,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/opensuse_leap_15.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # SLES 12
 - name: publish-oslogin-sles-12
   plan:
@@ -843,7 +843,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_12.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # SLES 15
 - name: publish-oslogin-sles-15
   plan:
@@ -869,7 +869,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_15.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # Ubuntu 18.04
 - name: publish-oslogin-ubuntu-1804
   plan:
@@ -895,7 +895,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_1804.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # Ubuntu 20.04
 - name: publish-oslogin-ubuntu-2004
   plan:
@@ -921,7 +921,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_2004.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # Ubuntu Pro 16.04
 - name: publish-oslogin-ubuntu-pro-1604
   plan:
@@ -947,7 +947,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1604.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # Ubuntu Pro 18.04
 - name: publish-oslogin-ubuntu-pro-1804
   plan:
@@ -973,7 +973,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 # Ubuntu Pro 20.04
 - name: publish-oslogin-ubuntu-pro-2004
   plan:
@@ -999,7 +999,7 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
-      environment: "oslogin_staging"
+      environment: "oslogin-staging"
 
 # Groups
 groups:
