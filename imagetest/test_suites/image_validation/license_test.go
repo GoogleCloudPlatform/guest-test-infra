@@ -158,9 +158,9 @@ func isValidLicense(licenseCheck string) bool {
 
 func TestArePackagesLegal(t *testing.T) {
 	var filenames []string
-	if utils.IsTargetOSVersion(utils.RedHat) || utils.IsTargetOSVersion(utils.SUSE) {
+	if utils.IsTargetLinuxVersion(utils.RedHat) || utils.IsTargetLinuxVersion(utils.SUSE) {
 		filenames, _ = filepath.Glob(license)
-	} else if utils.IsTargetOSVersion(utils.Debian) || utils.IsTargetOSVersion(utils.Ubuntu) {
+	} else if utils.IsTargetLinuxVersion(utils.Debian) || utils.IsTargetLinuxVersion(utils.Ubuntu) {
 		filenames, _ = filepath.Glob(copyright)
 	} else {
 		t.Skip("can not run test on other os")
