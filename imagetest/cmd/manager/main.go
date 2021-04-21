@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	network "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 )
@@ -50,6 +51,10 @@ func main() {
 		{
 			network.Name,
 			network.TestSetup,
+		},
+		{
+			imageboot.Name,
+			imageboot.TestSetup,
 		},
 	}
 
