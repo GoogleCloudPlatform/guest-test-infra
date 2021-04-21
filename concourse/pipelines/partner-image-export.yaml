@@ -967,6 +967,9 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-ubuntu-pro-1804
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
