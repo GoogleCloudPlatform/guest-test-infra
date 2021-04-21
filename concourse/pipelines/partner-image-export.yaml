@@ -308,7 +308,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: fedora-coreos-next/url
+    file: fedora-coreos-next-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -336,7 +336,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: fedora-coreos-stable/url
+    file: fedora-coreos-stable-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -364,7 +364,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: fedora-coreos-testing/url
+    file: fedora-coreos-testing-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -392,7 +392,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: freebsd-11/url
+    file: freebsd-11-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -420,7 +420,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: freebsd-12/url
+    file: freebsd-12-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -448,7 +448,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: freebsd-13/url
+    file: freebsd-13-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -476,7 +476,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: opensuse-leap-15/url
+    file: opensuse-leap-15-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -504,7 +504,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: sles-12/url
+    file: sles-12-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -532,7 +532,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: sles-15/url
+    file: sles-15-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -560,7 +560,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: ubuntu-1804/url
+    file: ubuntu-1804-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -588,7 +588,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: ubuntu-2004/url
+    file: ubuntu-2004-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -616,7 +616,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: ubuntu-pro-1604/url
+    file: ubuntu-pro-1604-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -644,7 +644,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: ubuntu-pro-1804/url
+    file: ubuntu-pro-1804-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -672,7 +672,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: ubuntu-pro-2004/url
+    file: ubuntu-pro-2004-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
