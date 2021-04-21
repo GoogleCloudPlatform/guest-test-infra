@@ -1013,7 +1013,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: almalinux-8-gcs
-    passed: [publish-to-testing-almalinux-8]
+    passed: [build-almalinux-8]
     trigger: false
     params:
       skip_download: "true"
