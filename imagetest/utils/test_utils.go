@@ -20,11 +20,10 @@ const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 )
 
-//	OS Version Name
+// OS Version Name
 const (
 	RedHat = "Red Hat"
 	Debian = "Debian GNU/Linux"
-	Ubuntu = "Ubuntu"
 	SUSE   = "SLES"
 )
 
@@ -101,8 +100,8 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 	return nil
 }
 
-// IsTargetLinuxVersion check if the vm is target linux distribution.
-func IsTargetLinuxVersion(version string) bool {
+// IsTargetLinux check if the vm is target linux distribution.
+func IsTargetLinux(version string) bool {
 	file, err := os.Open(osVersionFile)
 	if err != nil {
 		log.Printf("can not determine linux version")

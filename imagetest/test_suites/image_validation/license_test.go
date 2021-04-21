@@ -152,15 +152,11 @@ func isValidLicenseText(licenseCheck string) bool {
 	return false
 }
 
-func isValidLicense(licenseCheck string) bool {
-	return isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck)
-}
-
 func TestArePackagesLegal(t *testing.T) {
 	var filenames []string
-	if utils.IsTargetLinuxVersion(utils.RedHat) || utils.IsTargetLinuxVersion(utils.SUSE) {
+	if utils.IsTargetLinux(utils.RedHat) || utils.IsTargetLinux(utils.SUSE) {
 		filenames, _ = filepath.Glob(license)
-	} else if utils.IsTargetLinuxVersion(utils.Debian) || utils.IsTargetLinuxVersion(utils.Ubuntu) {
+	} else if utils.IsTargetLinux(utils.Debian) {
 		filenames, _ = filepath.Glob(copyright)
 	} else {
 		t.Skip("can not run test on other os")
@@ -188,8 +184,8 @@ func isPackageLegal(filepath string) bool {
 	}
 	// Replace all whitespace with one space
 	licenseCheck = strings.Join(strings.Fields(licenseCheck), " ")
-	if !isValidLicense(licenseCheck) {
-		fmt.Printf("The package %s are not legal to use.", filepath)
+	if !isValidLicenseName(licenseCheck) && isValidLicenseText(licenseCheck) {
+		log.Printf("The package %s are not legal to use.", filepath)
 		return false
 	}
 	return true
