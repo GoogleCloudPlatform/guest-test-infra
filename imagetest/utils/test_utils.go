@@ -20,9 +20,8 @@ const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 )
 
-/**
-OS Version Name
-*/
+
+//	OS Version Name
 const (
 	RedHat = "Rad Hat"
 	Debian = "Debian GNU/Linux"
@@ -103,11 +102,11 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 	return nil
 }
 
-// IsTargetOSVersion check if the vm is target linux distribution.
-func IsTargetOSVersion(version string) bool {
+// IsTargetLinuxVersion check if the vm is target linux distribution.
+func IsTargetLinuxVersion(version string) bool {
 	file, err := os.Open(osVersionFile)
 	if err != nil {
-		log.Printf("can not determine os version")
+		log.Printf("can not determine linux version")
 		return false
 	}
 	sc := bufio.NewScanner(file)
