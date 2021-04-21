@@ -19,3 +19,5 @@ jobs:
     file: guest-test-infra/concourse/pipelines/dev-image-build.yaml
   - set_pipeline: bare-metal-image-build
     file: guest-test-infra/concourse/pipelines/bare-metal-image-build.yaml
+  - set_pipeline: partner-image-export
+    file: guest-test-infra/concourse/pipelines/partner-image-export.yaml
