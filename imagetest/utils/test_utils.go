@@ -23,7 +23,7 @@ const (
 
 //	OS Version Name
 const (
-	RedHat = "Rad Hat"
+	RedHat = "Red Hat"
 	Debian = "Debian GNU/Linux"
 	Ubuntu = "Ubuntu"
 	SUSE   = "SLES"
