@@ -1,3 +1,4 @@
+# Export partner images and publish relevant images for OS Login staging tests.
 ---
 resource_types:
 - name: gcs
@@ -965,7 +966,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-pro-1804- export-sles-15archive/partner/ubuntu"
+  - task: publish-ubuntu-pro-1804
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
