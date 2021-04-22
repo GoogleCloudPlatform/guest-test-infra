@@ -179,9 +179,8 @@ func (t *TestVM) Boot() error {
 	return nil
 }
 
+// EnableSecureBoot enable secure boot for an exist instance
 func (t *TestVM) EnableSecureBoot() {
 	// TODO: support UpdateShieldedInstanceConfig method in daisy or in manager
 	// itself
 }
-
-
