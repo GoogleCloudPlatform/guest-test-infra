@@ -184,7 +184,6 @@ func isPackageLegal(filepath string) bool {
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	licenseCheck = whitespaceRegex.ReplaceAllString(licenseCheck, " ")
 	if !isValidLicenseName(licenseCheck) && isValidLicenseText(licenseCheck) {
-		log.Printf("The package %s are not legal to use.", filepath)
 		return false
 	}
 	return true
