@@ -143,7 +143,7 @@ func isValidLicenseName(licenseCheck string) bool {
 func isValidLicenseText(licenseCheck string) bool {
 	for _, licenseText := range licenses {
 		// (?i) case insensitive
-		re := regexp.MustCompile(`(?i)(` + licenseText + `)`)
+		re := regexp.MustCompile(`(?i)` + licenseText)
 
 		if re.MatchString(licenseCheck) {
 			return true
