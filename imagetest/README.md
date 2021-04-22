@@ -54,5 +54,3 @@ It is suggested to start by copying an existing test package.
 From the root of this repository:
 
     $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
-
- 
