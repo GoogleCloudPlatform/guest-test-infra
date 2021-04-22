@@ -43,3 +43,23 @@ It is suggested to start by copying an existing test package.
 From the root of this repository:
 
     $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
+
+## Running test ##
+
+### Running test in machine ###
+
+Go to imagetest subfolder to build manager, wrapper, and each test suites. Move all
+build binaries to /out
+
+    $ /out/manager -projct $PROJECT -zone $ZONE -image $IMAGE
+
+For example:
+    $  /out/manager -projct gcp-guest -zone us-west1-c -image projects/debian-cloud/global/images/debian-10-buster-v20210316
+
+### Running test in docker ###
+
+    $ docker run it --entrypoint /bin/sh  cloud-image-tests
+    $ /manager -projct $PROJECT -zone $ZONE -image $IMAGE
+    $ cat junit.xml
+Or 
+    $ docker run cloud-image-tests -projct $PROJECT -zone $ZONE -image $IMAGE 
