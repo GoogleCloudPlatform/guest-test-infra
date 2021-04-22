@@ -11,18 +11,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce")
+	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce|TestArePackagesLegal")
 
 	vm2, err := t.CreateTestVM("vm2.custom.domain")
 	if err != nil {
 		return err
 	}
 	vm2.RunTests("TestCustomHostname")
-
-	vm3, err := t.CreateTestVM("vm3.license")
-	if err != nil {
-		return err
-	}
-	vm3.RunTests("TestArePackagesLegal")
 	return nil
 }
