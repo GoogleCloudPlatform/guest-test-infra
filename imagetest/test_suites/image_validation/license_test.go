@@ -159,7 +159,7 @@ func TestArePackagesLegal(t *testing.T) {
 	} else if utils.IsTargetLinux(utils.Debian) {
 		filenames, _ = filepath.Glob(copyrightPathGlob)
 	} else {
-		t.Skip("OS %s not supported")
+		t.Skip("OS not supported")
 	}
 	for _, filename := range filenames {
 		if !isPackageLegal(filename) {

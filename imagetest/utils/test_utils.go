@@ -100,11 +100,11 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 
 // IsTargetLinux check if the vm is target linux distribution.
 func IsTargetLinux(version string) bool {
-	image, err := GetMetadata("image")
+	imageMetadata, err := GetMetadata("image")
 	if err != nil {
 		log.Fatalf("Failed to get image from metadata server: %v\n", err)
 	}
-	if strings.Contains(image, version) {
+	if strings.Contains(imageMetadata, version) {
 		return true
 	}
 	return false
