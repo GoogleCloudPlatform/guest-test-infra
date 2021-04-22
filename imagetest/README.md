@@ -16,6 +16,17 @@ Testing components are built into a container image. The entrypoint is
 The manager will exit with 0 if all tests completed successfully, 1 otherwise.
 JUnit format XML will also be output.
 
+### Running test locally ###
+
+Go to imagetest subfolders to build manager, wrapper, and each test suites. Move 
+all build binaries to `/out`
+
+    $ /out/manager -project $PROJECT -zone $ZONE -image $IMAGE
+
+For example:
+
+    $ /out/manager -project gcp-guest -zone us-west1-c -image projects/debian \
+    -cloud/global/images/family/debian-10
 ## Writing tests ##
 
 Tests are organized into go packages in the test\_suites directory and are
@@ -44,22 +55,4 @@ From the root of this repository:
 
     $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
 
-## Running test ##
-
-### Running test in machine ###
-
-Go to imagetest subfolder to build manager, wrapper, and each test suites. Move all
-build binaries to /out
-
-    $ /out/manager -projct $PROJECT -zone $ZONE -image $IMAGE
-
-For example:
-    $  /out/manager -projct gcp-guest -zone us-west1-c -image projects/debian-cloud/global/images/debian-10-buster-v20210316
-
-### Running test in docker ###
-
-    $ docker run it --entrypoint /bin/sh  cloud-image-tests
-    $ /manager -projct $PROJECT -zone $ZONE -image $IMAGE
-    $ cat junit.xml
-Or 
-    $ docker run cloud-image-tests -projct $PROJECT -zone $ZONE -image $IMAGE 
+ 
