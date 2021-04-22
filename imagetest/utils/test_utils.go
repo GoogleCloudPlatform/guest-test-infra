@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -16,15 +15,14 @@ import (
 )
 
 const (
-	osVersionFile     = "/etc/os-release"
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 )
 
 // OS Version Name
 const (
-	RedHat = "Red Hat"
-	Debian = "Debian GNU/Linux"
-	SUSE   = "SLES"
+	RedHat = "rhel"
+	Debian = "debian"
+	SUSE   = "suse"
 )
 
 // GetRealVMName returns the real name of a VM running in the same test.
@@ -102,20 +100,12 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 
 // IsTargetLinux check if the vm is target linux distribution.
 func IsTargetLinux(version string) bool {
-	file, err := os.Open(osVersionFile)
+	image, err := GetMetadata("image")
 	if err != nil {
-		log.Printf("can not determine linux version")
-		return false
+		log.Fatalf("Failed to get image from metadata server: %v\n", err)
 	}
-	sc := bufio.NewScanner(file)
-	for sc.Scan() {
-		items := strings.Split(sc.Text(), "=")
-		if items[0] == "NAME" && strings.Contains(items[1], version) {
-			return true
-		}
-	}
-	if err := sc.Err(); err != nil {
-		log.Fatal(err)
+	if strings.Contains(image, version) {
+		return true
 	}
 	return false
 }
