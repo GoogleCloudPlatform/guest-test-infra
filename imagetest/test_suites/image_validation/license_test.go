@@ -3,9 +3,9 @@ package imagevalidation
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -129,7 +129,6 @@ const (
 
 func isValidLicenseName(licenseCheck string) bool {
 	for _, name := range licenseNames {
-		// (?i) case insensitive
 		var regexString = fmt.Sprintf(licenseNameRegex, name)
 		re := regexp.MustCompile(regexString)
 
@@ -153,25 +152,39 @@ func isValidLicenseText(licenseCheck string) bool {
 }
 
 func TestArePackagesLegal(t *testing.T) {
-	var filenames []string
-	if utils.IsTargetLinux(utils.RedHat) || utils.IsTargetLinux(utils.SUSE) {
-		filenames, _ = filepath.Glob(licensePathGlob)
-	} else if utils.IsTargetLinux(utils.Debian) {
-		filenames, _ = filepath.Glob(copyrightPathGlob)
-	} else {
-		t.Skip("OS not supported")
+	var pathGlob string
+
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
 	}
+
+	switch {
+	case strings.Contains(image, "rhel"), strings.Contains(image, "suse"):
+		pathGlob = licensePathGlob
+	default:
+		pathGlob = copyrightPathGlob
+	}
+	filenames, err := filepath.Glob(pathGlob)
+	if err != nil {
+		t.Fatalf("couldnt resolve glob %s", pathGlob)
+	}
+
 	for _, filename := range filenames {
-		if !isPackageLegal(filename) {
+		isLagel, err := isPackageLegal(filename)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+		if !isLagel {
 			t.Fatalf("Found illegal package: %v", filename)
 		}
 	}
 }
 
-func isPackageLegal(filepath string) bool {
+func isPackageLegal(filepath string) (bool, error) {
 	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		log.Printf("error read file")
+		return false, fmt.Errorf("error read file")
 	}
 
 	var licenseCheck string = string(bytes)
@@ -183,8 +196,8 @@ func isPackageLegal(filepath string) bool {
 	// Replace all whitespace with one space
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	licenseCheck = whitespaceRegex.ReplaceAllString(licenseCheck, " ")
-	if !isValidLicenseName(licenseCheck) && isValidLicenseText(licenseCheck) {
-		return false
+	if !isValidLicenseName(licenseCheck) && !isValidLicenseText(licenseCheck) {
+		return false, nil
 	}
-	return true
+	return true, nil
 }

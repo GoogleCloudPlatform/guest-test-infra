@@ -14,16 +14,7 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-const (
-	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
-)
-
-// OS Version Name
-const (
-	RedHat = "rhel"
-	Debian = "debian"
-	SUSE   = "suse"
-)
+const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
@@ -96,16 +87,4 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 		return err
 	}
 	return nil
-}
-
-// IsTargetLinux check if the vm is target linux distribution.
-func IsTargetLinux(version string) bool {
-	imageMetadata, err := GetMetadata("image")
-	if err != nil {
-		log.Fatalf("Failed to get image from metadata server: %v\n", err)
-	}
-	if strings.Contains(imageMetadata, version) {
-		return true
-	}
-	return false
 }

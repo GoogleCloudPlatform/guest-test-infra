@@ -18,5 +18,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm2.RunTests("TestCustomHostname")
+
 	return nil
 }
