@@ -171,11 +171,11 @@ func TestArePackagesLegal(t *testing.T) {
 	}
 
 	for _, filename := range filenames {
-		isLagel, err := isPackageLegal(filename)
+		isLegal, err := isPackageLegal(filename)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
-		if !isLagel {
+		if !isLegal {
 			t.Fatalf("Found illegal package: %v", filename)
 		}
 	}
@@ -190,14 +190,14 @@ func isPackageLegal(filepath string) (bool, error) {
 	var licenseCheck string = string(bytes)
 
 	// Remove comment
-	re := regexp.MustCompile(`(\*|#).`)
+	re := regexp.MustCompile(`(\*|#)*`)
 	re.ReplaceAllString(licenseCheck, "")
 
 	// Replace all whitespace with one space
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	licenseCheck = whitespaceRegex.ReplaceAllString(licenseCheck, " ")
-	if !isValidLicenseName(licenseCheck) && !isValidLicenseText(licenseCheck) {
-		return false, nil
+	if isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck) {
+		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
