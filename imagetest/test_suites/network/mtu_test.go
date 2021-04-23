@@ -45,27 +45,23 @@ func TestDefaultMTU(t *testing.T) {
 		networkInterface = defaultInterface
 	}
 
-	isDefault, err := isDefaultGCEMTU(networkInterface)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	if !isDefault {
+	if err := isDefaultGCEMTU(networkInterface); err != nil {
 		t.Fatal(err.Error())
 	}
 }
 
-func isDefaultGCEMTU(interfaceName string) (bool, error) {
+func isDefaultGCEMTU(interfaceName string) error {
 	ifs, err := net.Interfaces()
 	if err != nil {
-		return false, fmt.Errorf("can't get network interface")
+		return err
 	}
 	for _, i := range ifs {
 		if i.Name == interfaceName {
 			if i.MTU != gceMTU {
-				return false, fmt.Errorf("expected MTU %d on interface %s, got MTU %s", gceMTU, i.Name, i.MTU)
+				return fmt.Errorf("expected MTU %d on interface %s, got MTU %d", gceMTU, i.Name, i.MTU)
 			}
-			return true, nil
+			return nil
 		}
 	}
-	return false, fmt.Errorf("can't find network interface %s", interfaceName)
+	return fmt.Errorf("can't find network interface %s", interfaceName)
 }
