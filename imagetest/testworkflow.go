@@ -35,8 +35,7 @@ var (
 )
 
 const (
-	testBinariesPath = "/out"
-	testWrapperPath  = testBinariesPath + "/wrapper"
+	testWrapperPath = "/wrapper"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -233,7 +232,7 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 		ts.wf.Project = project
 
 		ts.wf.Sources["wrapper"] = testWrapperPath
-		ts.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.test", testBinariesPath, ts.Name)
+		ts.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", ts.Name)
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to ts.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
