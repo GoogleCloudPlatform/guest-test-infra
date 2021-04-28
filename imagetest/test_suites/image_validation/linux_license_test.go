@@ -8,7 +8,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-var licenseCodeMap = map[string]string{
+var imageLicenseCodeMap = map[string]string{
 	"centos-7":                    "1000207",
 	"centos-8":                    "5731035067256925298",
 	"centos-stream":               "3197331720697687881",
@@ -57,7 +57,7 @@ func TestLinuxLicense(t *testing.T) {
 		return unicode.IsDigit(r) || r == 'v' || r == '-'
 	})
 
-	if code, found := licenseCodeMap[imagePrefix]; found == true && code == licenseCode {
+	if code, found := imageLicenseCodeMap[imagePrefix]; found == true && code == licenseCode {
 		t.Logf("Image %s has licenseCode %s, %s", imageName, licenseCode)
 	}
 	t.Fatalf("Image has unkown licenseCode %s", licenseCode)
