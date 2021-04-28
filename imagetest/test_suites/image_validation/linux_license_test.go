@@ -58,7 +58,7 @@ func TestLinuxLicense(t *testing.T) {
 	})
 
 	if code, found := imageLicenseCodeMap[imagePrefix]; found == true && code == licenseCode {
-		t.Logf("Image %s has licenseCode %s, %s", imageName, licenseCode)
+		t.Logf("Image %s has licenseCode %s", imageName, licenseCode)
 	}
 	t.Fatalf("Image has unkown licenseCode %s", licenseCode)
 }
