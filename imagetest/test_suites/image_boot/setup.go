@@ -12,7 +12,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	if err := vm.Reboot(); err != nil {
-		t.Skip("reboot workflow failed")
+		return err
 	}
 	vm.RunTests("TestGuestBoot|TestGuestReboot")
 

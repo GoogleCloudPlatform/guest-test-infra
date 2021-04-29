@@ -1,13 +1,10 @@
 package imageboot
 
 import (
-	"encoding/hex"
 	"flag"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
-	"time"
 )
 
 var (
@@ -46,9 +43,6 @@ func TestGuestReboot(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
-	// UEFI vars are (apparently) not immediately available, but sleeping for
-	// some time allows them to be read.
-	time.Sleep(10 * time.Second)
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
 		t.Skip("not supported on non-uefi boot disk")
 	}
@@ -56,8 +50,7 @@ func TestGuestSecureBoot(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed reading secure boot file")
 	}
-	if !strings.Contains(hex.Dump(data), "00000000  01") {
+	if data[0] != 1 {
 		t.Fatal("secure boot is not enabled as expected")
 	}
-	t.Log("verify secure boot enabled")
 }

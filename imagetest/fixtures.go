@@ -125,8 +125,10 @@ func (t *TestVM) Reboot() error {
 // EnableSecureBoot make all test VMs in workflow with secure boot.
 func (t *TestVM) EnableSecureBoot() {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
-		i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
-			EnableSecureBoot: true,
+		if i.Name == t.name {
+			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
+				EnableSecureBoot: true,
+			}
 		}
 	}
 }
