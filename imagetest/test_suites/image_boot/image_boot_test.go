@@ -50,6 +50,7 @@ func TestGuestSecureBoot(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed reading secure boot file")
 	}
+	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
 	if data[0] != 1 {
 		t.Fatal("secure boot is not enabled as expected")
 	}

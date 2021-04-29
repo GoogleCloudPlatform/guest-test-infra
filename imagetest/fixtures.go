@@ -122,7 +122,7 @@ func (t *TestVM) Reboot() error {
 	return nil
 }
 
-// EnableSecureBoot make all test VMs in workflow with secure boot.
+// EnableSecureBoot make the current test VMs in workflow with secure boot.
 func (t *TestVM) EnableSecureBoot() {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
