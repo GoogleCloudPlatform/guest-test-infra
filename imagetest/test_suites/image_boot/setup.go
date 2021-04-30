@@ -11,5 +11,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	return vm.Reboot()
+	if err := vm.Reboot(); err != nil {
+		return err
+	}
+	vm.RunTests("TestGuestBoot|TestGuestReboot")
+
+	vm2, err := t.CreateTestVM("vm2")
+	if err != nil {
+		return err
+	}
+
+	vm2.EnableSecureBoot()
+	vm2.RunTests("TestGuestSecureBoot")
+	return nil
 }

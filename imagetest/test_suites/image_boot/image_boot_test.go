@@ -2,6 +2,7 @@ package imageboot
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -10,7 +11,10 @@ var (
 	runtest = flag.Bool("runtest", false, "really run the test")
 )
 
-const markerFile = "/boot-marker"
+const (
+	markerFile     = "/boot-marker"
+	secureBootFile = "/sys/firmware/efi/vars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c/data"
+)
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -36,4 +40,18 @@ func TestGuestReboot(t *testing.T) {
 	}
 	// second boot
 	t.Log("marker file exist signal the guest reboot successful")
+}
+
+func TestGuestSecureBoot(t *testing.T) {
+	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
+		t.Fatal("efi var is missing")
+	}
+	data, err := ioutil.ReadFile(secureBootFile)
+	if err != nil {
+		t.Fatal("failed reading secure boot file")
+	}
+	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
+	if data[0] != 1 {
+		t.Fatal("secure boot is not enabled as expected")
+	}
 }

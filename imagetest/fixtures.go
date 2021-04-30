@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	"google.golang.org/api/compute/v1"
 )
 
 const (
@@ -119,4 +120,16 @@ func (t *TestVM) Reboot() error {
 	}
 
 	return nil
+}
+
+// EnableSecureBoot make the current test VMs in workflow with secure boot.
+func (t *TestVM) EnableSecureBoot() {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
+				EnableSecureBoot: true,
+			}
+			break
+		}
+	}
 }
