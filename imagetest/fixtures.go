@@ -129,6 +129,7 @@ func (t *TestVM) EnableSecureBoot() {
 			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
 				EnableSecureBoot: true,
 			}
+			break
 		}
 	}
 }
