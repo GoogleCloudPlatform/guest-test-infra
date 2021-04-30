@@ -59,7 +59,7 @@ func TestLinuxLicense(t *testing.T) {
 		t.Fatal(err)
 	}
 	splits := strings.Split(imageName, "-")
-	if len(splits) < 2{
+	if len(splits) < 2 {
 		t.Fatal("malformed base image name")
 	}
 	imagePrefix := strings.Join(splits[:len(splits)-1], "-")
