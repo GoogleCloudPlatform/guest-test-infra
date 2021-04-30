@@ -12,10 +12,9 @@ import (
 )
 
 const (
-	gceMTU            = 1460
-	defaultInterface  = "eth0"
-	debian10Interface = "ens4"
-	ubuntuInterface   = "ens4"
+	gceMTU                      = 1460
+	defaultInterface            = "eth0"
+	defaultPredictableInterface = "ens4"
 )
 
 var (
@@ -40,10 +39,8 @@ func TestDefaultMTU(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10"):
-		networkInterface = debian10Interface
-	case strings.Contains(image, "ubuntu"):
-		networkInterface = ubuntuInterface
+	case strings.Contains(image, "debian-10") || strings.Contains(image, "ubuntu"):
+		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
 	}

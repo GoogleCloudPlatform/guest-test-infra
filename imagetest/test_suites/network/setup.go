@@ -7,10 +7,6 @@ var Name = "network"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM("vm")
-	if err != nil {
-		return err
-	}
-	vm.RunTests("TestDefaultMTU")
-	return nil
+	_, err := t.CreateTestVM("vm")
+	return err
 }
