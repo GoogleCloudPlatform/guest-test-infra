@@ -44,7 +44,7 @@ func TestGuestReboot(t *testing.T) {
 
 func TestGuestSecureBoot(t *testing.T) {
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
-		t.Skip("not supported on non-uefi boot disk")
+		t.Fatal("efi var is missing")
 	}
 	data, err := ioutil.ReadFile(secureBootFile)
 	if err != nil {
