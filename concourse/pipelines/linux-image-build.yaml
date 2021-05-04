@@ -109,6 +109,14 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-2-sap-v([0-9]+).tar.gz"
+# rocky-linux
+- name: rocky-linux-8-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "rocky-linux/rocky-linux-8-v([0-9]+).tar.gz"
 # debian
 - name: debian-9-gcs
   type: gcs
@@ -512,6 +520,36 @@ jobs:
       wf: "enterprise_linux/rhel_8_2_sap.wf.json"
       gcs_url: ((.:gcs-url))
       iso: ((iso-paths.rhel-8-2))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+# rocky-linux
+- name: build-rocky-linux-8
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "rocky-linux-8"
+  - put: rocky-linux-8-gcs
+    params:
+      file: build-id-dir/rocky-linux-8*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: rocky-linux-8-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
+    vars:
+      wf: "enterprise_linux/rocky_linux_8.wf.json"
+      gcs_url: ((.:gcs-url))
+      iso: ((iso-paths.rocky-linux-8))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 # debian
@@ -929,6 +967,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "test"
+# rocky-linux
+- name: publish-to-testing-rocky-linux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rocky-linux-8-gcs
+    passed: [build-rocky-linux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rocky-linux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rocky_linux_8.publish.json"
+      environment: "test"
 # debian
 - name: publish-to-testing-debian-9
   plan:
@@ -1334,6 +1398,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "staging"
+# rocky-linux
+- name: publish-to-staging-rocky-linux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rocky-linux-8-gcs
+    passed: [publish-to-testing-rocky-linux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rocky-linux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rocky_linux_8.publish.json"
+      environment: "staging"
 # debian
 - name: publish-to-staging-debian-9
   plan:
@@ -1736,6 +1826,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "prod"
+# rocky-linux
+- name: publish-to-prod-rocky-linux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rocky-linux-8-gcs
+    passed: [publish-to-testing-rocky-linux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rocky-linux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rocky_linux_8.publish.json"
+      environment: "prod"
 # debian
 - name: publish-to-prod-debian-9
   plan:
@@ -1860,6 +1976,12 @@ groups:
   - publish-to-testing-almalinux-8
   - publish-to-staging-almalinux-8
   - publish-to-prod-almalinux-8
+- name: rocky-linux
+  jobs:
+  - build-rocky-linux-8
+  - publish-to-testing-rocky-linux-8
+  - publish-to-staging-rocky-linux-8
+  - publish-to-prod-rocky-linux-8
 - name: rhel
   jobs:
   - build-rhel-7
