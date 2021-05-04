@@ -1976,6 +1976,12 @@ groups:
   - publish-to-testing-almalinux-8
   - publish-to-staging-almalinux-8
   - publish-to-prod-almalinux-8
+- name: rocky-linux
+  jobs:
+  - build-rocky-linux-8
+  - publish-to-testing-rocky-linux-8
+  - publish-to-staging-rocky-linux-8
+  - publish-to-prod-rocky-linux-8
 - name: rhel
   jobs:
   - build-rhel-7
