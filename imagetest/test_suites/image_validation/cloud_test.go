@@ -22,18 +22,17 @@ func TestNTPService(t *testing.T) {
 	}
 	lines := strings.Split(string(bytes), "\n")
 
-	/**The logic here expects at least one 'server' line in /etc/ntp.conf,
-	  where the first 'server' line points to our metadata server, but without
-	  caring where any subsequent server lines point. For example, Ubuntu uses
-	  metadata.google.internal in the first server line and ntp.ubuntu.com on
-	  the second.**/
+	// The logic here expects at least one 'server' line in /etc/ntp.conf,
+	// where the first 'server' line points to our metadata server, but without
+	// caring where any subsequent server lines point. For example, Ubuntu uses
+	// metadata.google.internal in the first server line and ntp.ubuntu.com on
+	// the second.
 	for _, line := range lines {
 		if strings.HasPrefix(line, "server") {
 			// Usually the line is like "server serverName url"
 			serverName := strings.Split(line, " ")[1]
-			if serverName != "metadata.google.internal" &&
-					serverName != "metadata" && serverName != "169.254.169.254" {
-				t.Fatalf("ntp.conf contains wrong server information %s', line")
+			if !hasCorrectMetadataServer(serverName) {
+				t.Fatalf("ntp.conf contains wrong server information %s'", line)
 			}
 			break
 		}
@@ -54,4 +53,8 @@ func TestNTPService(t *testing.T) {
 	if !strings.Contains(out, "active (running)") {
 		t.Fatalf("ntpd process is of wrong state %s", out)
 	}
+}
+
+func hasCorrectMetadataServer(serverName string) bool {
+	return serverName == "metadata.google.internal" || serverName == "metadata" || serverName == "169.254.169.254"
 }
