@@ -1,7 +1,6 @@
 package imagevalidation
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -58,12 +57,7 @@ func TestLinuxLicense(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	splits := strings.Split(imageName, "-")
-	if len(splits) < 2 {
-		t.Fatal("malformed base image name")
-	}
-	imagePrefix := strings.Join(splits[:len(splits)-1], "-")
-	if code, found := imageLicenseCodeMap[imagePrefix]; !found || code != licenseCode {
+	if code, found := imageLicenseCodeMap[imageName]; !found || code != licenseCode {
 		t.Fatalf("Image %s has incorrect licenseCode %s", imageName, licenseCode)
 	}
 }

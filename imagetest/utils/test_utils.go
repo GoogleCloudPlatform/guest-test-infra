@@ -97,5 +97,10 @@ func ExtractBaseImageName(image string) (string, error) {
 		return "", fmt.Errorf("malformed image metadata")
 	}
 
-	return splits[4], nil
+	splits = strings.Split(splits[4], "-")
+	if len(splits) < 2 {
+		return "", fmt.Errorf("malformed base image name")
+	}
+	imageName := strings.Join(splits[:len(splits)-1], "-")
+	return imageName, nil
 }
