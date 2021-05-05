@@ -193,7 +193,8 @@ func isPackageLegal(filepath string) (bool, error) {
 	re.ReplaceAllString(licenseCheck, "")
 
 	// Replace all whitespace with one space
-	licenseCheck = strings.ReplaceAll(licenseCheck, "\n", " ")
+	whitespaceRegex := regexp.MustCompile(`\s+`)
+	licenseCheck = whitespaceRegex.ReplaceAllString(licenseCheck, " ")
 	if isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck) {
 		return true, nil
 	}
