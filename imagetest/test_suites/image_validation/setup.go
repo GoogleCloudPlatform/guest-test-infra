@@ -11,7 +11,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce|TestArePackagesLegal|TestStandardPrograms|TestGuestPackages|TestSystemClock")
+	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce|TestArePackagesLegal|TestStandardPrograms|TestGuestPackages|TestNTPService")
 
 	vm2, err := t.CreateTestVM("vm2.custom.domain")
 	if err != nil {
