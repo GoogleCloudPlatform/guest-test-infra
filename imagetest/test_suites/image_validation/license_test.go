@@ -122,16 +122,18 @@ var licenses = []string{
 }
 
 const (
-	copyrightPathGlob = "/usr/share/doc/*/copyrightPathGlob"
+	copyrightPathGlob = "/usr/share/doc/*/copyright"
 	licensePathGlob   = "/usr/share/doc/*/LICENSE"
-	licenseNameRegex  = `(?i)((?:(?:License|Copyright)\s*:\s*%[1]s)|(?:(?:covered )*under (?:the )?%[1]s)|(?:under (?:the terms of )*the %[1]s))`
+	licenseNameRegex  = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
 )
 
 func isValidLicenseName(licenseCheck string) bool {
 	for _, name := range licenseNames {
 		var regexString = fmt.Sprintf(licenseNameRegex, name)
-		re := regexp.MustCompile(regexString)
-
+		re, err := regexp.Compile(regexString)
+		if err != nil {
+			return false
+		}
 		if re.MatchString(licenseCheck) {
 			return true
 		}
@@ -142,7 +144,10 @@ func isValidLicenseName(licenseCheck string) bool {
 func isValidLicenseText(licenseCheck string) bool {
 	for _, licenseText := range licenses {
 		// (?i) case insensitive
-		re := regexp.MustCompile(`(?i)` + licenseText)
+		re, err := regexp.Compile(`(?i)` + licenseText)
+		if err != nil {
+			return false
+		}
 
 		if re.MatchString(licenseCheck) {
 			return true
@@ -166,7 +171,7 @@ func TestArePackagesLegal(t *testing.T) {
 		pathGlob = copyrightPathGlob
 	}
 	filenames, err := filepath.Glob(pathGlob)
-	if err != nil {
+	if err != nil || len(filenames) == 0 {
 		t.Fatalf("couldnt resolve glob %s", pathGlob)
 	}
 
@@ -184,18 +189,27 @@ func TestArePackagesLegal(t *testing.T) {
 func isPackageLegal(filepath string) (bool, error) {
 	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return false, fmt.Errorf("error read file")
+		return false, fmt.Errorf("error reading file: %v", err)
 	}
 
 	var licenseCheck string = string(bytes)
 
-	re := regexp.MustCompile(`\*|#`)
+	// Strip comments.
+	re, err := regexp.Compile(`\*|#`)
+	if err != nil {
+		return false, fmt.Errorf("invalid regular expression: %v", err)
+	}
 	re.ReplaceAllString(licenseCheck, "")
 
-	// Replace all whitespace with one space
-	licenseCheck = strings.ReplaceAll(licenseCheck, "\n", " ")
+	// Replace repeated whitespace and newlines with one space.
+	whitespaceRegex, err := regexp.Compile(`\s+`)
+	if err != nil {
+		return false, fmt.Errorf("invalid regular expression: %v", err)
+	}
+	licenseCheck = whitespaceRegex.ReplaceAllString(licenseCheck, " ")
 	if isValidLicenseName(licenseCheck) || isValidLicenseText(licenseCheck) {
 		return true, nil
 	}
+
 	return false, nil
 }

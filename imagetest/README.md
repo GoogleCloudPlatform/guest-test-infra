@@ -9,6 +9,8 @@ Testing components are built into a container image. The entrypoint is
 `/manager`, which supports the following options:
 
     Usage:
+      -filter string
+            only run tests matching filter
       -images string
             comma separated list of images to test
       -out_path string
@@ -23,7 +25,6 @@ Testing components are built into a container image. The entrypoint is
             validate all the test workflows and exit
       -zone string
             zone to be used for tests
-
 
 It can be invoked via docker as:
 
