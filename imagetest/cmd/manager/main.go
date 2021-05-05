@@ -12,6 +12,7 @@ import (
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 )
 
 var (
@@ -114,6 +115,10 @@ func main() {
 		{
 			network.Name,
 			network.TestSetup,
+		},
+		{
+			security.Name,
+			security.TestSetup,
 		},
 	}
 
