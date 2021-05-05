@@ -46,9 +46,10 @@ var specialAccountShells = map[string]string{
 }
 
 const (
-	unattendedUpgradeConfigPath  = "/etc/apt/apt.conf.d/50unattended-upgrades"
-	unattendedUpgradeRegexDebian = "Unattended-Upgrade::Origins-Pattern.*?};"
-	unattendedUpgradeRegexUbuntu = "Unattended-Upgrade::Origins-Pattern.*?};"
+	unattendedUpgradeConfigPath = "/etc/apt/apt.conf.d/50unattended-upgrades"
+	// (?s) Dot match new line character
+	unattendedUpgradeRegexDebian = `(?s)Unattended-Upgrade::Origins-Pattern.*?};`
+	unattendedUpgradeRegexUbuntu = `(?s)Unattended-Upgrade::Allowed-Origins.*?};`
 	expectedDebian               = `\s*"origin=Debian,codename=\${distro_codename},label=Debian-Security";.*`
 	expectedUbuntu               = `\s*"\${distro_id}:\${distro_codename}-security";.*`
 	minUID                       = 1000
@@ -89,17 +90,26 @@ func TestAutomaticUpdates(t *testing.T) {
 
 	switch {
 	case strings.Contains(image, "rhel-8"):
-		verifyServiceEnabled(t, "dnf-automatic.timer")
+		if err := verifyServiceEnabled("dnf-automatic.timer"); err != nil {
+			t.Fatal(err)
+		}
 	case strings.Contains(image, "rhel-7"):
-		verifyServiceEnabled(t, "yum-cron")
-	case strings.Contains(image, "debian"):
-		verifyPackageInstalled(t)
+		if err := verifyServiceEnabled("yum-cron"); err != nil {
+			t.Fatal(err)
+		}
+	case strings.Contains(image, "debian") || strings.Contains(image, "ubuntu"):
+		if err := verifyPackageInstalled(); err != nil {
+			t.Fatal(err)
+		}
 		// Check that the security packages are marked for automatic update
-		verifySecurityUpgradeEnabled(t, unattendedUpgradeRegexDebian, expectedDebian)
-	case strings.Contains(image, "ubuntu"):
-		verifyPackageInstalled(t)
-		// Check that the security packages are marked for automatic update
-		verifySecurityUpgradeEnabled(t, unattendedUpgradeRegexUbuntu, expectedUbuntu)
+		// https://wiki.debian.org/UnattendedUpgrades
+		// https://help.ubuntu.com/community/AutomaticSecurityUpdates
+		if err := verifySecurityUpgradeEnabled(image); err != nil {
+			t.Fatal(err)
+		}
+		if err := verifyAutomaticUpdate(image); err != nil {
+			t.Fatal(err)
+		}
 	case strings.Contains(image, "sles"):
 		t.Skip("Skipping test on openSUSE.")
 	}
@@ -112,40 +122,33 @@ func TestPasswordSecurity(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 	if strings.Contains(image, "rhel") {
-		out, err := runCommand("yum", "list", "installed", "cracklib")
-		if err != nil {
+		if err := verifyCracklibInstalled(); err != nil {
 			t.Fatal(err)
-		}
-		if !strings.Contains(out, "cracklib") {
-			t.Fatal("Package cracklib is not installed.")
-		}
-		out, err = runCommand("yum", "list", "installed", "cracklib-dicts")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !strings.Contains(out, "cracklib-dicts") {
-			t.Fatal("Package cracklib-dicts is not installed.")
 		}
 	}
 
-	bytes, err := ioutil.ReadFile("/etc/ssh/sshd_config")
-	sshdConfig := string(bytes)
-	if strings.Contains(sshdConfig, "PasswordAuthentication no") {
-		t.Fatal("PasswordAuthentication was not set to \"no\".")
-	}
-
-	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
-	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
-	if !noRootSSH && !noRootPasswordSSH {
-		t.Fatal("PermitRootLogin was not set to \"no\" or \"without-password\".")
+	if err := verifySSHConfig(); err != nil {
+		t.Fatal(err)
 	}
 
 	// Root password/login is disabled.
-	bytes, err = ioutil.ReadFile("/etc/passwd")
+	if err := verifyPassword(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func verifyPassword() error {
+	bytes, err := ioutil.ReadFile("/etc/passwd")
+	if err != nil {
+		return err
+	}
 	passwdContent := string(bytes)
 	passwd := strings.Split(passwdContent, "\n")
-	//passwd = filter(len, passwd)
 	for _, line := range passwd {
+		// ignore empty line
+		if len(line) == 0 {
+			continue
+		}
 		passwdItems := strings.Split(line, ":")
 		loginname := passwdItems[0]
 		passwd := passwdItems[1]
@@ -153,73 +156,181 @@ func TestPasswordSecurity(t *testing.T) {
 		shell := passwdItems[6]
 		// A passwd entry of length 1 is a disabled password.
 		if len(passwd) != 1 {
-			t.Fatalf("Login for %s does not look disabled", loginname)
+			return fmt.Errorf("Login for %s does not look disabled", loginname)
 		}
 
 		uidValue, err := strconv.Atoi(uid)
 		if err != nil {
-			t.Fatal(err)
+			return err
 		}
 		// Don't check user account
 		if uidValue >= minUID || uidValue == 0 {
 			continue
 		}
+		var isSpecialAccount = false
 		for user, shell := range specialAccountShells {
 			if loginname == user {
+				isSpecialAccount = true
 				if specialAccountShells[loginname] != shell {
-					t.Fatalf("Account %s has wrong login shell %s", loginname, shell)
+					return fmt.Errorf("Account %s has wrong login shell %s", loginname, shell)
 				} else {
 					break
 				}
 			}
 		}
-		if !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
-			t.Fatalf("Account %s has the login shell %s", loginname, shell)
+		if !isSpecialAccount && !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
+			return fmt.Errorf("Account %s has the login shell %s", loginname, shell)
 		}
 	}
+	return nil
 }
 
-func verifySecurityUpgradeEnabled(t *testing.T, regexString string, expectedLine string) {
+func verifySSHConfig() error {
+	bytes, err := ioutil.ReadFile("/etc/ssh/sshd_config")
+	if err != nil {
+		return err
+	}
+	sshdConfig := string(bytes)
+	if !strings.Contains(sshdConfig, "PasswordAuthentication no") {
+		return fmt.Errorf("PasswordAuthentication was not set to \"no\".")
+	}
+
+	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
+	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
+	if !noRootSSH && !noRootPasswordSSH {
+		return fmt.Errorf("PermitRootLogin was not set to \"no\" or \"without-password\".")
+	}
+	return nil
+}
+
+func verifyCracklibInstalled() error {
+	out, err := runCommand("yum", "list", "installed", "cracklib")
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(out, "cracklib") {
+		return fmt.Errorf("Package cracklib is not installed.")
+	}
+	out, err = runCommand("yum", "list", "installed", "cracklib-dicts")
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(out, "cracklib-dicts") {
+		return fmt.Errorf("Package cracklib-dicts is not installed.")
+	}
+	return nil
+}
+
+func verifySecurityUpgradeEnabled(image string) error {
+	var regexString, expectedLine string
+	if strings.Contains(image, "debian") {
+		regexString = unattendedUpgradeRegexDebian
+		expectedLine = expectedDebian
+	} else if strings.Contains(image, "ubuntu") {
+		regexString = unattendedUpgradeRegexUbuntu
+		expectedLine = expectedUbuntu
+	}
 	bytes, err := ioutil.ReadFile(unattendedUpgradeConfigPath)
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 	re, err := regexp.Compile(regexString)
 	if err != nil {
-		t.Fatalf("failed compiling regex %s", regexString)
+		return err
 	}
 	enabledUpgrades := strings.Split(re.FindString(string(bytes)), "\n")
 
 	for _, line := range enabledUpgrades {
 		res, err := regexp.MatchString(expectedLine, line)
 		if err != nil {
-			t.Fatal(err)
+			return err
 		}
 		if res {
-			return
+			return nil
 		}
 	}
-	t.Fatal("security upgrades not enabled")
+	return fmt.Errorf("security upgrades is not enabled")
 }
 
-func verifyPackageInstalled(t *testing.T) {
+func verifyPackageInstalled() error {
 	out, err := runCommand("dpkg", "--get-selections", "unattended-upgrades")
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if !strings.Contains(out, "install") {
-		t.Fatal("unattended-upgrades is not installed")
+		return fmt.Errorf("unattended-upgrades is not installed")
 	}
+	return nil
 }
 
-func verifyServiceEnabled(t *testing.T, service string) {
-	out, err := runCommand("systemctl", "isenabled", service)
+func verifyServiceEnabled(service string) error {
+	out, err := runCommand("systemctl", "is-enabled", service)
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
+	out = strings.Trim(out, "\n")
 	if out != "enabled" {
-		t.Fatalf("%s is not enabled", service)
+		return fmt.Errorf("%s is not enabled", service)
 	}
+	return nil
+}
+
+func verifyAutomaticUpdate(image string) error {
+	automaticUpdateConfig, err := readAPTConfig(image)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(image, "debian-9") {
+		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
+			return fmt.Errorf("APT::Periodic::Enable  is not set to 1")
+		}
+	}
+	if strings.Contains(image, "ubuntu") {
+		// Ensure that we clean out obsolete debs within 7 days so that customer VMs
+		// don't leak disk space. The value below is in days, with 0 as
+		// disabled.
+		re := regexp.MustCompile(`APT::Periodic::AutocleanInterval "(\d+)";`)
+		found := re.FindString(automaticUpdateConfig)
+		if found == "" {
+			return fmt.Errorf("No autoclean interval was specified.")
+		}
+		intervalStr := strings.Trim(strings.Split(found, " ")[1], "\"")
+		interval, err := strconv.Atoi(intervalStr)
+		if err != nil {
+			return err
+		}
+		if interval > 9 || interval < 1 {
+			return fmt.Errorf("Autoclean interval is invalid or an unexpected length")
+		}
+	}
+	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
+		return fmt.Errorf("APT::Periodic::Update-Package-Lists is not set to 1")
+	}
+	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Unattended-Upgrade "1";`) {
+		return fmt.Errorf("APT::Periodic::Unattended- is not set to 1")
+	}
+	return nil
+}
+
+func readAPTConfig(image string) (string, error) {
+	var configPaths []string
+	var bytes []byte
+	if strings.Contains(image, "debian-9") {
+		configPaths = []string{"/etc/apt/apt.conf.d/02periodic"}
+	} else if strings.Contains(image, "debian-10") {
+		configPaths = []string{"/etc/apt/apt.conf.d/20auto-upgrades"}
+	} else if strings.Contains(image, "ubuntu") {
+		configPaths = []string{"/etc/apt/apt.conf.d/10periodic", "/etc/apt/apt.conf.d/20auto-upgrades"}
+	}
+	for _, path := range configPaths {
+		newByte, err := ioutil.ReadFile(path)
+		if err != nil {
+			return "", err
+		}
+		bytes = append(bytes, newByte...)
+	}
+	return string(bytes), nil
 }
 
 func runCommand(name string, arg ...string) (string, error) {
