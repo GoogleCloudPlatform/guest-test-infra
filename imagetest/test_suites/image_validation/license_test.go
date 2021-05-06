@@ -63,7 +63,7 @@ var licenseNames = []string{
 }
 
 var licenses = []string{
-	`Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyrightPathGlob notice appear in all copies and that both that copyrightPathGlob notice and this permission notice appear in supporting documentation, and that the name of the authors not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. The authors makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.`,
+	`Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permission notice appear in supporting documentation, and that the name of the authors not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. The authors makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.`,
 	`free software; you can redistribute it and/or modify it under the terms of the GNU.*General Public License.*as published by the Free Software Foundation`,
 	`The main library is licensed under GNU Lesser General Public License (LGPL) version 2.1+, Gnutls Extra (i.e. openssl wrapper library, and library for code for "GnuTLS Inner Application" support) build system, testsuite and commandline utilities are licenced under the GNU General Public License version 3+. The Guile bindings use the same license as the respective underlying library, i.e. LGPLv2.1+ for the main library and GPLv3+ for Gnutls extra.`,
 	`Permission is granted to anyone to use this.*for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions`,
@@ -97,7 +97,7 @@ var licenses = []string{
 	`has been placed in the public domain`,
 	`And licensed under the terms of the GPL license`,
 	`are distributed under the terms of the GNU.*General Public License`,
-	`The keys in the keyrings don\'t fall under any copyrightPathGlob. Everything else in the package is covered by the GNU GPL.`,
+	`The keys in the keyrings don\'t fall under any copyright. Everything else in the package is covered by the GNU GPL.`,
 	`the complete text of the GNU General Public License and of the GNU Lesser Public License can be found in`,
 	`THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS IBM PUBLIC LICENSE`,
 	`THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC LICENSE`,
@@ -108,7 +108,7 @@ var licenses = []string{
 	`LICENSE. You may copy and use the Software, subject to these conditions: 1. This Software is licensed for use only in conjunction with Intel component products. Use of the Software in conjunction with non-Intel component products is not licensed hereunder.`,
 	`Brocade Linux Fibre Channel HBA Firmware`,
 	`QLogic Linux Fibre Channel HBA Firmware`,
-	`Unlimited distribution and/or modification is allowed as long as this copyrightPathGlob notice remains intact.`,
+	`Unlimited distribution and/or modification is allowed as long as this copyright notice remains intact.`,
 	`Permission is hereby granted to use.*this.*for any purpose`,
 	`are in the public domain`,
 	`is (available|distributed) under the terms of the GNU.*Public License`,
@@ -117,14 +117,15 @@ var licenses = []string{
 	`Some portions of os-prober`,
 	`Netcat and the associated package is a product of Avian Research, and is freely available in full source form with no restrictions save an obligation to give credit where due.`,
 	`Permission is hereby granted, without written agreement and without licence or royalty fees, to use, copy, modify, and distribute this software`,
-	`Open Market permits you to use, copy, modify, distribute, and license this Software and the Documentation for any purpose, provided that existing copyrightPathGlob notices are retained in all copies and that this notice is included verbatim in any distributions. No written agreement, license, or royalty fee is required for any of the authorized uses.`,
+	`Open Market permits you to use, copy, modify, distribute, and license this Software and the Documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. No written agreement, license, or royalty fee is required for any of the authorized uses.`,
 	`This software is made available under the terms of *either* of the licenses found in LICENSE.APACHE or LICENSE.BSD. Contributions to cryptography are made under the terms of *both* these licenses.`,
 }
 
 const (
-	copyrightPathGlob = "/usr/share/doc/*/copyright"
-	licensePathGlob   = "/usr/share/doc/*/LICENSE"
-	licenseNameRegex  = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
+	copyrightPathGlob     = "/usr/share/doc/*/copyright"
+	licensePathGlob       = "/usr/share/doc/*/LICENSE"
+	centosLicensePathGlob = "/usr/share/doc/*/LICENSE"
+	licenseNameRegex      = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
 )
 
 func isValidLicenseName(licenseCheck string) bool {
@@ -165,6 +166,8 @@ func TestArePackagesLegal(t *testing.T) {
 	}
 
 	switch {
+	case strings.Contains(image, "centos-8"):
+		pathGlob = centosLicensePathGlob
 	case strings.Contains(image, "rhel"), strings.Contains(image, "suse"):
 		pathGlob = licensePathGlob
 	default:
@@ -194,12 +197,12 @@ func isPackageLegal(filepath string) (bool, error) {
 
 	var licenseCheck string = string(bytes)
 
-	// Strip comments.
-	re, err := regexp.Compile(`\*|#`)
+	// Remove comments.
+	commentRegex, err := regexp.Compile(`\*|#`)
 	if err != nil {
 		return false, fmt.Errorf("invalid regular expression: %v", err)
 	}
-	re.ReplaceAllString(licenseCheck, "")
+	licenseCheck = commentRegex.ReplaceAllString(licenseCheck, "")
 
 	// Replace repeated whitespace and newlines with one space.
 	whitespaceRegex, err := regexp.Compile(`\s+`)
