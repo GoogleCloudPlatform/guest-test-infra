@@ -4,7 +4,7 @@ image_resource:
   type: docker-image
   source:
     repository: gcr.io/compute-image-tools/daisy
-    tag: latest
+    tag: release
 
 inputs:
 - name: compute-image-tools
