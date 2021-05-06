@@ -5,10 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
-
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var licenseNames = []string{
@@ -122,11 +119,14 @@ var licenses = []string{
 }
 
 const (
-	copyrightPathGlob     = "/usr/share/doc/*/copyright"
-	licensePathGlob       = "/usr/share/doc/*/LICENSE"
-	centosLicensePathGlob = "/usr/share/doc/*/LICENSE"
-	licenseNameRegex      = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
+	licenseNameRegex = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
 )
+
+var licenseGlobs = []string{
+	"/usr/share/doc/*/copyright",
+	"/usr/share/doc/*/LICENSE",
+	"/usr/share/licenses/*/LICENSE",
+}
 
 func isValidLicenseName(licenseCheck string) bool {
 	for _, name := range licenseNames {
@@ -158,33 +158,21 @@ func isValidLicenseText(licenseCheck string) bool {
 }
 
 func TestArePackagesLegal(t *testing.T) {
-	var pathGlob string
-
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
-
-	switch {
-	case strings.Contains(image, "centos-8"):
-		pathGlob = centosLicensePathGlob
-	case strings.Contains(image, "rhel"), strings.Contains(image, "suse"):
-		pathGlob = licensePathGlob
-	default:
-		pathGlob = copyrightPathGlob
-	}
-	filenames, err := filepath.Glob(pathGlob)
-	if err != nil || len(filenames) == 0 {
-		t.Fatalf("couldnt resolve glob %s", pathGlob)
-	}
-
-	for _, filename := range filenames {
-		isLegal, err := isPackageLegal(filename)
-		if err != nil {
-			t.Fatalf(err.Error())
+	for _, pathGlob := range licenseGlobs {
+		filenames, err := filepath.Glob(pathGlob)
+		if err != nil || len(filenames) == 0 {
+			t.Logf("couldnt resolve glob %s", pathGlob)
+			continue
 		}
-		if !isLegal {
-			t.Fatalf("Found illegal package: %v", filename)
+
+		for _, filename := range filenames {
+			isLegal, err := isPackageLegal(filename)
+			if err != nil {
+				t.Fatalf(err.Error())
+			}
+			if !isLegal {
+				t.Fatalf("Found illegal package: %v", filename)
+			}
 		}
 	}
 }
