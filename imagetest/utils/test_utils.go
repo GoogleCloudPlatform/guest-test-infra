@@ -88,3 +88,19 @@ func DownloadGCSObjectToFile(ctx context.Context, client *storage.Client, gcsPat
 	}
 	return nil
 }
+
+// ExtractBaseImageName extract the base image name from full image resource.
+func ExtractBaseImageName(image string) (string, error) {
+	// Example: projects/rhel-cloud/global/images/rhel-8-v20210217
+	splits := strings.SplitN(image, "/", 5)
+	if len(splits) < 5 {
+		return "", fmt.Errorf("malformed image metadata")
+	}
+
+	splits = strings.Split(splits[4], "-")
+	if len(splits) < 2 {
+		return "", fmt.Errorf("malformed base image name")
+	}
+	imageName := strings.Join(splits[:len(splits)-1], "-")
+	return imageName, nil
+}
