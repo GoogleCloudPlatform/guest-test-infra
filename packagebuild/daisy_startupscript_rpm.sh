@@ -97,11 +97,12 @@ for spec in $TOBUILD; do
   PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
 
-  if [[ $VERSION_ID -ne 6 ]]; then
-    sed -i"" "/^Source/aVcs: ${COMMITURL}" "./packaging/${spec}"
-  fi
-
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
+  cp ./packaging/*.tar.gz "${RPMDIR}/SOURCES/"
+  cp ./packaging/*.patch "${RPMDIR}/SOURCES/"
+
+  sed -i"" "/^Version/aVcs: ${COMMITURL}" "${RPMDIR}/SPECS/${spec}"
+
   tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" \
     --exclude .git --exclude packaging \
     --transform "s/^\./${PKGNAME}-${VERSION}/" .
