@@ -429,6 +429,99 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
 
+- name: build-artifact-registry-el-plugins
+  plan:
+  - get: artifact-registry-yum-plugin
+    trigger: true
+    params:
+      skip_download: true
+  - load_var: commit-sha
+    file: artifact-registry-yum-plugin/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    input_mapping: {repo: artifact-registry-yum-plugin}
+  - load_var: package-version
+    file: package-version/version
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-package-build-artifact-registry-yum-plugin-el7
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          gcs_path: gs://gcp-guest-package-uploads/yum-plugin-artifact-registry
+          repo-name: artifact-registry-yum-plugin
+          version: ((.:package-version))
+          wf: build_el7.wf.json
+      - task: guest-package-build-artifact-registry-yum-plugin-el8
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          gcs_path: gs://gcp-guest-package-uploads/dnf-plugin-artifact-registry
+          repo-name: artifact-registry-yum-plugin
+          version: ((.:package-version))
+          wf: build_el8.wf.json
+  - put: artifact-registry-yum-plugin-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: artifact-registry-yum-plugin/.git/ref
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-artifact-registry-yum-plugin-el7-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm
+          universe: cloud-yum
+          repo: yum-plugin-artifact-registry
+      - task: inject-artifact-registry-dnf-plugin-el8-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
+          universe: cloud-yum
+          repo: dnf-plugin-artifact-registry
+
+- name: build-artifact-registry-apt-transport
+  plan:
+  - get: artifact-registry-apt-transport
+    trigger: true
+    params:
+      skip_download: true
+  - load_var: commit-sha
+    file: artifact-registry-apt-transport/.git/ref
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    input_mapping: {repo: artifact-registry-apt-transport}
+  - load_var: package-version
+    file: package-version/version
+  - task: guest-package-build-artifact-registry-apt-transport-deb9
+    file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+    vars:
+      gcs_path: gs://gcp-guest-package-uploads/apt-transport-artifact-registry
+      repo-name: artifact-registry-apt-transport
+      version: ((.:package-version))
+      wf: build_deb9.wf.json
+  - put: artifact-registry-apt-transport-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: artifact-registry-apt-transport/.git/ref
+  - task: inject-artifact-registry-apt-transport-unstable
+    file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+    vars:
+      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_all.deb
+      universe: cloud-apt
+      repo: apt-transport-artifact-registry
+
 resources:
 - name: guest-agent
   type: git
@@ -489,6 +582,30 @@ resources:
   source:
     owner: GoogleCloudPlatform
     repository: guest-configs
+    access_token: ((github-token.token))
+- name: artifact-registry-yum-plugin
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/artifact-registry-yum-plugin.git
+    branch: main
+    fetch_tags: true
+- name: artifact-registry-yum-plugin-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: artifact-registry-yum-plugin
+    access_token: ((github-token.token))
+- name: artifact-registry-apt-transport
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/artifact-registry-apt-transport.git
+    branch: main
+    fetch_tags: true
+- name: artifact-registry-apt-transport-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: artifact-registry-apt-transport
     access_token: ((github-token.token))
 - name: guest-test-infra
   type: git
