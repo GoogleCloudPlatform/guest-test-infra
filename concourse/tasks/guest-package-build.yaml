@@ -21,7 +21,7 @@ run:
   - -zone=us-west1-a
   - -var:repo_owner=GoogleCloudPlatform
   - -var:repo_name=((repo-name))
-  - -var:git_ref=master
+  - -var:git_ref=((git-ref))
   - -var:version=((version))
   - -var:gcs_path=((gcs_path))
   - -var:build_dir=

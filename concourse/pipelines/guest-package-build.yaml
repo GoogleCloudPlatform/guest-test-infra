@@ -53,6 +53,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
+          git_ref: master
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -60,6 +61,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
+          git_ref: master
       - task: guest-package-build-guest-agent-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -67,6 +69,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
+          git_ref: master
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -74,6 +77,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
+          git_ref: master
   - put: guest-agent-tag
     params:
       name: package-version/version
@@ -141,6 +145,7 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
       - task: guest-package-build-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -148,6 +153,7 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
       - task: guest-package-build-guest-oslogin-deb11
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -155,6 +161,7 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -162,6 +169,7 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
       - task: guest-package-build-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -169,6 +177,7 @@ jobs:
           repo-name: guest-oslogin
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
   - put: guest-oslogin-tag
     params:
       name: package-version/version
@@ -204,7 +213,6 @@ jobs:
       - task: inject-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          gcs_path: gs://gcp-guest-package-uploads/oslogin
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
@@ -237,6 +245,7 @@ jobs:
           repo-name: osconfig
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/osconfig
+          git_ref: master
       - task: guest-package-build-osconfig-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -244,6 +253,7 @@ jobs:
           repo-name: osconfig
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/osconfig
+          git_ref: master
       - task: guest-package-build-osconfig-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -251,6 +261,7 @@ jobs:
           repo-name: osconfig
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/osconfig
+          git_ref: master
       - task: guest-package-build-osconfig-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -258,6 +269,7 @@ jobs:
           repo-name: osconfig
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/osconfig
+          git_ref: master
   - put: osconfig-tag
     params:
       name: package-version/version
@@ -319,6 +331,7 @@ jobs:
           repo-name: guest-diskexpand
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
+          git_ref: master
       - task: guest-package-build-guest-diskexpand-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -326,6 +339,7 @@ jobs:
           repo-name: guest-diskexpand
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
+          git_ref: master
       - task: guest-package-build-guest-diskexpand-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -333,6 +347,7 @@ jobs:
           repo-name: guest-diskexpand
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/gce-disk-expand
+          git_ref: master
   - put: guest-diskexpand-tag
     params:
       name: package-version/version
@@ -385,6 +400,7 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          git_ref: master
           repo-name: guest-configs
           version: ((.:package-version))
           wf: build_deb9.wf.json
@@ -392,6 +408,7 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          git_ref: master
           repo-name: guest-configs
           version: ((.:package-version))
           wf: build_el7.wf.json
@@ -399,6 +416,7 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/google-compute-engine
+          git_ref: master
           repo-name: guest-configs
           version: ((.:package-version))
           wf: build_el8.wf.json
@@ -454,6 +472,7 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/yum-plugin-artifact-registry
+          git_ref: main
           repo-name: artifact-registry-yum-plugin
           version: ((.:package-version))
           wf: build_el7.wf.json
@@ -461,6 +480,7 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           gcs_path: gs://gcp-guest-package-uploads/dnf-plugin-artifact-registry
+          git_ref: main
           repo-name: artifact-registry-yum-plugin
           version: ((.:package-version))
           wf: build_el8.wf.json
@@ -507,6 +527,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/guest-package-build.yaml
     vars:
       gcs_path: gs://gcp-guest-package-uploads/apt-transport-artifact-registry
+      git_ref: main
       repo-name: artifact-registry-apt-transport
       version: ((.:package-version))
       wf: build_deb9.wf.json
