@@ -102,6 +102,9 @@ for spec in $TOBUILD; do
   fi
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
+  cp ./packaging/*.tar.gz "${RPMDIR}/SOURCES/"
+  cp ./packaging/*.patch "${RPMDIR}/SOURCES/"
+
   tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_${VERSION}.orig.tar.gz" \
     --exclude .git --exclude packaging \
     --transform "s/^\./${PKGNAME}-${VERSION}/" .
