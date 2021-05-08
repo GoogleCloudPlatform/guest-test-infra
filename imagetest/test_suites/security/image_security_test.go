@@ -173,9 +173,8 @@ func verifyPassword() error {
 				isSpecialAccount = true
 				if specialAccountShells[loginname] != shell {
 					return fmt.Errorf("Account %s has wrong login shell %s", loginname, shell)
-				} else {
-					break
 				}
+				break
 			}
 		}
 		if !isSpecialAccount && !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
@@ -192,13 +191,13 @@ func verifySSHConfig() error {
 	}
 	sshdConfig := string(bytes)
 	if !strings.Contains(sshdConfig, "PasswordAuthentication no") {
-		return fmt.Errorf("PasswordAuthentication was not set to \"no\".")
+		return fmt.Errorf("\"PasswordAuthentication\" was not set to \"no\"")
 	}
 
 	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
 	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
 	if !noRootSSH && !noRootPasswordSSH {
-		return fmt.Errorf("PermitRootLogin was not set to \"no\" or \"without-password\".")
+		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\" or \"without-password\"")
 	}
 	return nil
 }
@@ -209,14 +208,14 @@ func verifyCracklibInstalled() error {
 		return err
 	}
 	if !strings.Contains(out, "cracklib") {
-		return fmt.Errorf("Package cracklib is not installed.")
+		return fmt.Errorf("package cracklib is not installed")
 	}
 	out, err = runCommand("yum", "list", "installed", "cracklib-dicts")
 	if err != nil {
 		return err
 	}
 	if !strings.Contains(out, "cracklib-dicts") {
-		return fmt.Errorf("Package cracklib-dicts is not installed.")
+		return fmt.Errorf("package cracklib-dicts is not installed")
 	}
 	return nil
 }
@@ -283,32 +282,34 @@ func verifyAutomaticUpdate(image string) error {
 
 	if strings.Contains(image, "debian-9") {
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
-			return fmt.Errorf("APT::Periodic::Enable  is not set to 1")
+			return fmt.Errorf(`"APT::Periodic::Enable" is not set to 1`)
 		}
 	}
 	if strings.Contains(image, "ubuntu") {
 		// Ensure that we clean out obsolete debs within 7 days so that customer VMs
 		// don't leak disk space. The value below is in days, with 0 as
 		// disabled.
-		re := regexp.MustCompile(`APT::Periodic::AutocleanInterval "(\d+)";`)
-		found := re.FindString(automaticUpdateConfig)
-		if found == "" {
-			return fmt.Errorf("No autoclean interval was specified.")
+		re, err := regexp.Compile(`APT::Periodic::AutocleanInterval "(\d+)";`)
+		if err != nil {
+			return err
 		}
-		intervalStr := strings.Trim(strings.Split(found, " ")[1], "\"")
-		interval, err := strconv.Atoi(intervalStr)
+		found := re.FindStringSubmatch(automaticUpdateConfig)
+		if len(found) == 0 {
+			return fmt.Errorf("no autoclean interval was specified")
+		}
+		interval, err := strconv.Atoi(found[1])
 		if err != nil {
 			return err
 		}
 		if interval > 9 || interval < 1 {
-			return fmt.Errorf("Autoclean interval is invalid or an unexpected length")
+			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
 		}
 	}
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
-		return fmt.Errorf("APT::Periodic::Update-Package-Lists is not set to 1")
+		return fmt.Errorf(`"APT::Periodic::Update-Package-Lists" is not set to 1`)
 	}
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Unattended-Upgrade "1";`) {
-		return fmt.Errorf("APT::Periodic::Unattended- is not set to 1")
+		return fmt.Errorf(`"APT::Periodic::Unattended" is not set to 1`)
 	}
 	return nil
 }
