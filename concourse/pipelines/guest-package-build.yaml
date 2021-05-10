@@ -501,7 +501,7 @@ jobs:
       - task: inject-artifact-registry-dnf-plugin-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
+          package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
 
