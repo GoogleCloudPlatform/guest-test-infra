@@ -1070,6 +1070,22 @@ jobs:
       wf: "debian/debian_11.publish.json"
       environment: "test"
 
+# Image test
+# centos
+- name: image-test-centos-7
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-centos-7]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-centos-7
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/centos-7
+
 # Publish to staging
 # almalinux
 - name: publish-to-staging-almalinux-8
@@ -1531,11 +1547,11 @@ jobs:
 - name: publish-to-prod-centos-7
   plan:
   - get: guest-test-infra
+    passed: [ image-test-centos-7 ]
+    trigger: false
+    params: { skip_download: "true" }
   - get: compute-image-tools
   - get: centos-7-gcs
-    passed: [publish-to-testing-centos-7]
-    trigger: false
-    params: {skip_download: "true"}
   - load_var: source-version
     file: centos-7-gcs/version
   - task: get-credential
@@ -1964,6 +1980,7 @@ groups:
   - publish-to-testing-centos-7
   - publish-to-testing-centos-8
   - publish-to-testing-centos-stream-8
+  - image-test-centos-7
   - publish-to-staging-centos-7
   - publish-to-staging-centos-8
   - publish-to-staging-centos-stream-8
