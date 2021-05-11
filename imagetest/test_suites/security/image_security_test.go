@@ -1,6 +1,7 @@
 package security
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -138,18 +139,17 @@ func TestPasswordSecurity(t *testing.T) {
 }
 
 func verifyPassword() error {
-	bytes, err := ioutil.ReadFile("/etc/passwd")
+	fileBytes, err := ioutil.ReadFile("/etc/passwd")
 	if err != nil {
 		return err
 	}
-	passwdContent := string(bytes)
-	passwd := strings.Split(passwdContent, "\n")
-	for _, line := range passwd {
-		// ignore empty line
-		if len(line) == 0 {
+	passwards := strings.Split(string(fileBytes), "\n")
+	for _, pwd := range passwards {
+		// ignore empty pwd
+		if len(pwd) == 0 {
 			continue
 		}
-		passwdItems := strings.Split(line, ":")
+		passwdItems := strings.Split(pwd, ":")
 		loginname := passwdItems[0]
 		passwd := passwdItems[1]
 		uid := passwdItems[2]
@@ -167,17 +167,12 @@ func verifyPassword() error {
 		if uidValue >= minUID || uidValue == 0 {
 			continue
 		}
-		var isSpecialAccount = false
-		for user, shell := range specialAccountShells {
-			if loginname == user {
-				isSpecialAccount = true
-				if specialAccountShells[loginname] != shell {
-					return fmt.Errorf("Account %s has wrong login shell %s", loginname, shell)
-				}
-				break
+		if targetShell, found := specialAccountShells[loginname]; found {
+			if targetShell != shell {
+				return fmt.Errorf("Account %s has wrong login shell %s", loginname, shell)
 			}
 		}
-		if !isSpecialAccount && !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
+		if !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
 			return fmt.Errorf("Account %s has the login shell %s", loginname, shell)
 		}
 	}
@@ -185,11 +180,11 @@ func verifyPassword() error {
 }
 
 func verifySSHConfig() error {
-	bytes, err := ioutil.ReadFile("/etc/ssh/sshd_config")
+	fileBytes, err := ioutil.ReadFile("/etc/ssh/sshd_config")
 	if err != nil {
 		return err
 	}
-	sshdConfig := string(bytes)
+	sshdConfig := string(fileBytes)
 	if !strings.Contains(sshdConfig, "PasswordAuthentication no") {
 		return fmt.Errorf("\"PasswordAuthentication\" was not set to \"no\"")
 	}
@@ -203,14 +198,14 @@ func verifySSHConfig() error {
 }
 
 func verifyCracklibInstalled() error {
-	out, err := runCommand("yum", "list", "installed", "cracklib")
+	out, _, err := runCommand("yum", "list", "installed", "cracklib")
 	if err != nil {
 		return err
 	}
 	if !strings.Contains(out, "cracklib") {
 		return fmt.Errorf("package cracklib is not installed")
 	}
-	out, err = runCommand("yum", "list", "installed", "cracklib-dicts")
+	out, _, err = runCommand("yum", "list", "installed", "cracklib-dicts")
 	if err != nil {
 		return err
 	}
@@ -252,18 +247,15 @@ func verifySecurityUpgradeEnabled(image string) error {
 }
 
 func verifyPackageInstalled() error {
-	out, err := runCommand("dpkg", "--get-selections", "unattended-upgrades")
+	_, _, err := runCommand("dpkg-query", "-s", "unattended-upgrades")
 	if err != nil {
 		return err
-	}
-	if !strings.Contains(out, "install") {
-		return fmt.Errorf("unattended-upgrades is not installed")
 	}
 	return nil
 }
 
 func verifyServiceEnabled(service string) error {
-	out, err := runCommand("systemctl", "is-enabled", service)
+	out, _, err := runCommand("systemctl", "is-enabled", service)
 	if err != nil {
 		return err
 	}
@@ -334,11 +326,16 @@ func readAPTConfig(image string) (string, error) {
 	return string(bytes), nil
 }
 
-func runCommand(name string, arg ...string) (string, error) {
+func runCommand(name string, arg ...string) (string, string, error) {
 	cmd := exec.Command(name, arg...)
-	bytes, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed running cmd %s", cmd.String())
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+	if err := cmd.Start(); err != nil {
+		return outBuf.String(), errBuf.String(), fmt.Errorf("failed starting cmd %s with error %v", cmd.String(), err)
 	}
-	return string(bytes), nil
+	if err := cmd.Wait(); err != nil {
+		return outBuf.String(), errBuf.String(), fmt.Errorf("failed waiting cmd %s with error %v", cmd.String(), err)
+	}
+	return outBuf.String(), errBuf.String(), nil
 }
