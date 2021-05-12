@@ -18,7 +18,7 @@ var ntpConfig = []string{"/etc/ntp.conf"}
 var chronyConfig = []string{"/etc/chrony.conf", "/etc/chrony/chrony.conf", "/etc/chrony.d/gce.conf"}
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
-// For SUSE, the ntp service is ntpd. For others, the ntp service is chronyd
+// debian 9, ubuntu 16.04 and sles-12 ntpd other distros chronyd
 func TestNTPService(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
@@ -27,33 +27,21 @@ func TestNTPService(t *testing.T) {
 	var servicename string
 	var configPaths []string
 	switch {
-	case strings.Contains(image, "debian-10"):
-	case strings.Contains(image, "debian-11"):
-	case strings.Contains(image, "rhel"):
-	case strings.Contains(image, "centos"):
-	case strings.Contains(image, "sles"):
-		servicename = chronyService
-		configPaths = chronyConfig
-	case strings.Contains(image, "ubuntu"):
-		switch {
-		case strings.Contains(image, "ubuntu-1604"):
-		case strings.Contains(image, "ubuntu-minimal-1604"):
-			servicename = ntpdService
-			configPaths = ntpConfig
-		default:
-			servicename = chronyService
-			configPaths = chronyConfig
-		}
-	default:
+	case strings.Contains(image, "debian-9"):
+	case strings.Contains(image, "sles-12"):
+	case strings.Contains(image, "ubuntu-1604"):
+	case strings.Contains(image, "ubuntu-minimal-1604"):
 		servicename = ntpdService
 		configPaths = ntpConfig
+	default:
+		servicename = chronyService
+		configPaths = chronyConfig
 	}
 
-	configContent, err := readNTPConfig(configPaths)
+	ntpConfigs, err := readNTPConfig(configPaths)
 	if err != nil {
 		t.Fatalf("failed reading ntp config file %s", err)
 	}
-	ntpConfigs := strings.Split(configContent, "\n")
 
 	// The logic here expects at least one 'server' line in /etc/ntp.conf or
 	// /etc/chrony.conf where the first 'server' line points to our metadata
@@ -84,7 +72,7 @@ func TestNTPService(t *testing.T) {
 	}
 }
 
-func readNTPConfig(configPaths []string) (string, error) {
+func readNTPConfig(configPaths []string) ([]string, error) {
 	var totalBytes []byte
 	for _, path := range configPaths {
 		bytes, err := ioutil.ReadFile(path)
@@ -93,5 +81,6 @@ func readNTPConfig(configPaths []string) (string, error) {
 		}
 		totalBytes = append(totalBytes, bytes...)
 	}
-	return string(totalBytes), nil
+
+	return strings.Split(string(totalBytes), "\n"), nil
 }
