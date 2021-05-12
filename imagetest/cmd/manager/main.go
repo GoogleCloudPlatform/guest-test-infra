@@ -164,9 +164,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
-	if suites.Errors != 0 || suites.Failures != 0 {
-		log.Fatalf("test suite has error or failure")
-	}
+
 	bytes, err := xml.MarshalIndent(suites, "", "\t")
 	if err != nil {
 		log.Fatalf("failed to marshall result: %v", err)
@@ -179,6 +177,9 @@ func main() {
 
 	outFile.Write(bytes)
 	outFile.Write([]byte{'\n'})
-
 	fmt.Printf("%s\n", bytes)
+	
+	if suites.Errors != 0 || suites.Failures != 0 {
+		log.Fatalf("test suite has error or failure")
+	}
 }
