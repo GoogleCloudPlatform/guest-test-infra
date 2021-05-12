@@ -1072,6 +1072,46 @@ jobs:
 
 # Image test
 # centos
+- name: image-test-debian-9
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-debian-9]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-debian-9
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/debian-9
+- name: image-test-debian-10
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-debian-10]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-debian-10
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/debian-10
+- name: image-test-debian-11
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-debian-11]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-debian-11
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/debian-11
+ # centos
 - name: image-test-centos-7
   plan:
   - get: guest-test-infra
@@ -1085,6 +1125,137 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
       images: projects/bct-prod-images/global/images/family/centos-7
+- name: image-test-centos-8
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-centos-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-centos-8
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/centos-8
+- name: image-test-rhel-7
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-7]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-7
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-7
+- name: image-test-rhel-8
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-8
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-8
+- name: image-test-rhel-7-byos
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-7-byos]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-7-byos
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-7-byos
+- name: image-test-rhel-8-byos
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-8-byos]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-8-byos
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-8-byos
+- name: image-test-rhel-7-4-sap
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-7-4-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-7-4-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-7-4-sap
+- name: image-test-rhel-7-6-sap
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-7-6-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-7-6-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-7-6-sap
+- name: image-test-rhel-7-7-sap
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-7-7-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-7-7-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-7-7-sap
+- name: image-test-rhel-8-1-sap
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-8-1-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-8-1-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-8-1-sap
+- name: image-test-rhel-8-2-sap
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-rhel-8-2-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: image-test-rhel-8-2-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/rhel-8-2-sap
+
 
 # Publish to staging
 # almalinux
@@ -1552,7 +1723,7 @@ jobs:
 - name: publish-to-prod-centos-7
   plan:
   - get: guest-test-infra
-    passed: [ image-test-centos-7 ]
+    passed: [image-test-centos-7]
     trigger: false
     params: { skip_download: "true" }
   - get: compute-image-tools
@@ -1576,11 +1747,11 @@ jobs:
 - name: publish-to-prod-centos-8
   plan:
   - get: guest-test-infra
+    passed: [ image-test-centos-8 ]
+    trigger: false
+    params: { skip_download: "true" }
   - get: compute-image-tools
   - get: centos-8-gcs
-    passed: [publish-to-testing-centos-8]
-    trigger: false
-    params: {skip_download: "true"}
   - load_var: source-version
     file: centos-8-gcs/version
   - task: get-credential
@@ -1600,11 +1771,11 @@ jobs:
 - name: publish-to-prod-centos-stream-8
   plan:
   - get: guest-test-infra
+    passed: [ publish-to-testing-centos-stream-8 ]
+    trigger: false
+    params: { skip_download: "true" }
   - get: compute-image-tools
   - get: centos-stream-8-gcs
-    passed: [publish-to-testing-centos-stream-8]
-    trigger: false
-    params: {skip_download: "true"}
   - load_var: source-version
     file: centos-stream-8-gcs/version
   - task: get-credential
@@ -1625,12 +1796,12 @@ jobs:
 - name: publish-to-prod-rhel-7
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-gcs
-    passed: [publish-to-testing-rhel-7]
+    passed: [ image-test-rhel-7 ]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-7-gcs
   - load_var: source-version
     file: rhel-7-gcs/version
   - task: get-credential
@@ -1650,12 +1821,12 @@ jobs:
 - name: publish-to-prod-rhel-8
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-8-gcs
-    passed: [publish-to-testing-rhel-8]
+    passed: [image-test-rhel-8]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-8-gcs
   - load_var: source-version
     file: rhel-8-gcs/version
   - task: get-credential
@@ -1675,12 +1846,12 @@ jobs:
 - name: publish-to-prod-rhel-7-byos
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-byos-gcs
-    passed: [publish-to-testing-rhel-7-byos]
+    passed: [image-test-rhel-7-byos]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-7-byos-gcs
   - load_var: source-version
     file: rhel-7-byos-gcs/version
   - task: get-credential
@@ -1700,12 +1871,12 @@ jobs:
 - name: publish-to-prod-rhel-8-byos
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-8-byos-gcs
-    passed: [publish-to-testing-rhel-8-byos]
+    passed: [image-test-rhel-8-byos]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-8-byos-gcs
   - load_var: source-version
     file: rhel-8-byos-gcs/version
   - task: get-credential
@@ -1725,12 +1896,12 @@ jobs:
 - name: publish-to-prod-rhel-7-4-sap
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-4-sap-gcs
-    passed: [publish-to-testing-rhel-7-4-sap]
+    passed: [image-test-rhel-7-4-sap]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-7-4-sap-gcs
   - load_var: source-version
     file: rhel-7-4-sap-gcs/version
   - task: get-credential
@@ -1750,12 +1921,12 @@ jobs:
 - name: publish-to-prod-rhel-7-6-sap
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-6-sap-gcs
-    passed: [publish-to-testing-rhel-7-6-sap]
+    passed: [image-test-rhel-7-6-sap]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-7-6-sap-gcs
   - load_var: source-version
     file: rhel-7-6-sap-gcs/version
   - task: get-credential
@@ -1775,12 +1946,12 @@ jobs:
 - name: publish-to-prod-rhel-7-7-sap
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-7-sap-gcs
-    passed: [publish-to-testing-rhel-7-7-sap]
+    passed: [image-test-rhel-7-7-sap]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-7-7-sap-gcs
   - load_var: source-version
     file: rhel-7-7-sap-gcs/version
   - task: get-credential
@@ -1800,12 +1971,12 @@ jobs:
 - name: publish-to-prod-rhel-8-1-sap
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-8-1-sap-gcs
-    passed: [publish-to-testing-rhel-8-1-sap]
+    passed: [image-test-rhel-8-1-sap]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-8-1-sap-gcs
   - load_var: source-version
     file: rhel-8-1-sap-gcs/version
   - task: get-credential
@@ -1825,12 +1996,12 @@ jobs:
 - name: publish-to-prod-rhel-8-2-sap
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-8-2-sap-gcs
-    passed: [publish-to-testing-rhel-8-2-sap]
+    passed: [image-test-rhel-8-2-sap]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: rhel-8-2-sap-gcs
   - load_var: source-version
     file: rhel-8-2-sap-gcs/version
   - task: get-credential
@@ -1877,12 +2048,12 @@ jobs:
 - name: publish-to-prod-debian-9
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: debian-9-gcs
-    passed: [publish-to-testing-debian-9]
+    passed: [image-test-debian-9]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: debian-9-gcs
   - load_var: source-version
     file: debian-9-gcs/version
   - task: get-credential
@@ -1902,12 +2073,12 @@ jobs:
 - name: publish-to-prod-debian-10
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: debian-10-gcs
-    passed: [publish-to-testing-debian-10]
+    passed: [image-test-debian-10]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: debian-10-gcs
   - load_var: source-version
     file: debian-10-gcs/version
   - task: get-credential
@@ -1927,12 +2098,12 @@ jobs:
 - name: publish-to-prod-debian-11
   plan:
   - get: guest-test-infra
-  - get: compute-image-tools
-  - get: debian-11-gcs
-    passed: [publish-to-testing-debian-11]
+    passed: [image-test-debian-11]
     trigger: false
     params:
       skip_download: "true"
+  - get: compute-image-tools
+  - get: debian-11-gcs
   - load_var: source-version
     file: debian-11-gcs/version
   - task: get-credential
@@ -1971,6 +2142,9 @@ groups:
   - publish-to-testing-debian-9
   - publish-to-testing-debian-10
   - publish-to-testing-debian-11
+  - image-test-debian-9
+  - image-test-debian-10
+  - image-test-debian-11
   - publish-to-staging-debian-9
   - publish-to-staging-debian-10
   - publish-to-staging-debian-11
@@ -1986,6 +2160,7 @@ groups:
   - publish-to-testing-centos-8
   - publish-to-testing-centos-stream-8
   - image-test-centos-7
+  - image-test-centos-8
   - publish-to-staging-centos-7
   - publish-to-staging-centos-8
   - publish-to-staging-centos-stream-8
@@ -2024,6 +2199,15 @@ groups:
   - publish-to-testing-rhel-7-7-sap
   - publish-to-testing-rhel-8-1-sap
   - publish-to-testing-rhel-8-2-sap
+  - image-test-rhel-7
+  - image-test-rhel-8
+  - image-test-rhel-7-byos
+  - image-test-rhel-8-byos
+  - image-test-rhel-7-4-sap
+  - image-test-rhel-7-6-sap
+  - image-test-rhel-7-7-sap
+  - image-test-rhel-8-1-sap
+  - image-test-rhel-8-2-sap
   - publish-to-staging-rhel-7
   - publish-to-staging-rhel-7-byos
   - publish-to-staging-rhel-8-byos
