@@ -376,6 +376,13 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 	for i := 0; i < len(testWorkflows); i++ {
 		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults))
 	}
+	for _, suite := range suites.TestSuite {
+		suites.Errors += suite.Errors
+		suites.Failures += suite.Failures
+		suites.Tests += suite.Tests
+		suites.Disabled += suite.Disabled
+		suites.Skipped += suite.Skipped
+	}
 
 	bytes, err := xml.MarshalIndent(suites, "", "\t")
 	if err != nil {
@@ -390,6 +397,9 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 	outFile.Write(bytes)
 	outFile.Write([]byte{'\n'})
 
+	if suites.Errors != 0 || suites.Failures != 0 {
+		return bytes, fmt.Errorf("test suite has error or failure")
+	}
 	return bytes, nil
 }
 

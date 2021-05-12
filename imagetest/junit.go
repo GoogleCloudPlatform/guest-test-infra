@@ -28,6 +28,8 @@ type testSuites struct {
 	Name      string       `xml:"name,attr"`
 	Errors    int          `xml:"errors,attr"`
 	Failures  int          `xml:"failures,attr"`
+	Disabled  int          `xml:"disabled,attr"`
+	Skipped   int          `xml:"skipped,attr"`
 	Tests     int          `xml:"tests,attr"`
 	Time      float64      `xml:"time,attr"`
 	TestSuite []*testSuite `xml:"testsuite"`

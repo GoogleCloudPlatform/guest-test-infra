@@ -159,8 +159,10 @@ func main() {
 	}
 
 	out, err := imagetest.RunTests(ctx, testWorkflows, *outPath, *project, *zone, *parallelCount)
+	if out != nil {
+		fmt.Printf("%s\n", out)
+	}
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
-	fmt.Printf("%s\n", out)
 }
