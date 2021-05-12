@@ -83,6 +83,80 @@ jobs:
       name: package-version/version
       tag: package-version/version
       commitish: guest-agent/.git/ref
+
+- name: guest-agent-image-tests
+  plan:
+  - get: guest-agent-tag
+    passed: [build-guest-agent]
+    trigger: true
+  - load_var: package-version
+    file: guest-agent-tag/version
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: build-package-image-debian-9
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/debian-cloud/global/images/family/debian-9
+          dest-image: debian-9-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+      - task: build-package-image-debian-10
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/debian-cloud/global/images/family/debian-10
+          dest-image: debian-10-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+      - task: build-package-image-centos-7
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/centos-cloud/global/images/family/centos-7
+          dest-image: centos-7-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
+      - task: build-package-image-rhel-7
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/rhel-cloud/global/images/family/rhel-7
+          dest-image: rhel-7-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
+      - task: build-package-image-centos-8
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/centos-cloud/global/images/family/centos-8
+          dest-image: centos-8-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
+      - task: build-package-image-rhel-8
+        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
+        vars:
+          source-image: projects/rhel-cloud/global/images/family/rhel-8
+          dest-image: rhel-8-((.:build-id))
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
+  - task: guest-agent-image-tests
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/centos-8-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/centos-8-((.:build-id))
+
+- name: inject-guest-agent-unstable
+  plan:
+  - get: guest-agent-tag
+    passed: [guest-agent-image-tests]
+    trigger: true
+    params:
+      skip_download: true
+  - load_var: package-version
+    file: guest-agent-tag/version
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -634,4 +708,8 @@ resources:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
     fetch_tags: true
-
+- name: compute-image-tools
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
