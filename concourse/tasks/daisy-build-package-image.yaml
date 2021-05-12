@@ -9,7 +9,6 @@ image_resource:
 inputs:
 - name: compute-image-tools
 - name: credentials
-- name: publish-version
 
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
