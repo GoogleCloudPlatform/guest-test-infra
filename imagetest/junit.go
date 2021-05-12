@@ -23,7 +23,8 @@ import (
 	junitParser "github.com/jstemmer/go-junit-report/parser"
 )
 
-type testSuites struct {
+// TestSuites represent a collection of test cases.
+type TestSuites struct {
 	XMLName   xml.Name     `xml:"testsuites"`
 	Name      string       `xml:"name,attr"`
 	Errors    int          `xml:"errors,attr"`
@@ -102,7 +103,7 @@ func convertToTestCase(in string) ([]*testCase, error) {
 		return nil, err
 	}
 
-	var tss testSuites
+	var tss TestSuites
 	if err := xml.Unmarshal(b.Bytes(), &tss); err != nil {
 		return nil, err
 	}

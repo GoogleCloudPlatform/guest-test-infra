@@ -16,9 +16,7 @@ package imagetest
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -341,7 +339,7 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, project, zone string, parallelCount int) ([]byte, error) {
+func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string, parallelCount int) (*TestSuites, error) {
 	var err error
 	client, err = storage.NewClient(ctx)
 	if err != nil {
@@ -372,7 +370,7 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 	close(testchan)
 	wg.Wait()
 
-	var suites testSuites
+	var suites TestSuites
 	for i := 0; i < len(testWorkflows); i++ {
 		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults))
 	}
@@ -382,25 +380,10 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, outPath, proje
 		suites.Tests += suite.Tests
 		suites.Disabled += suite.Disabled
 		suites.Skipped += suite.Skipped
+		suites.Time += suite.Time
 	}
 
-	bytes, err := xml.MarshalIndent(suites, "", "\t")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshall result: %v", err)
-	}
-	outFile, err := os.Create(outPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create output file: %v", err)
-	}
-	defer outFile.Close()
-
-	outFile.Write(bytes)
-	outFile.Write([]byte{'\n'})
-
-	if suites.Errors != 0 || suites.Failures != 0 {
-		return bytes, fmt.Errorf("test suite has error or failure")
-	}
-	return bytes, nil
+	return &suites, nil
 }
 
 func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {

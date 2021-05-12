@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/xml"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
@@ -158,11 +160,25 @@ func main() {
 		return
 	}
 
-	out, err := imagetest.RunTests(ctx, testWorkflows, *outPath, *project, *zone, *parallelCount)
-	if out != nil {
-		fmt.Printf("%s\n", out)
-	}
+	suites, err := imagetest.RunTests(ctx, testWorkflows, *project, *zone, *parallelCount)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
+	if suites.Errors != 0 || suites.Failures != 0 {
+		log.Fatalf("test suite has error or failure")
+	}
+	bytes, err := xml.MarshalIndent(suites, "", "\t")
+	if err != nil {
+		log.Fatalf("failed to marshall result: %v", err)
+	}
+	outFile, err := os.Create(*outPath)
+	if err != nil {
+		log.Fatalf("failed to create output file: %v", err)
+	}
+	defer outFile.Close()
+
+	outFile.Write(bytes)
+	outFile.Write([]byte{'\n'})
+
+	fmt.Printf("%s\n", bytes)
 }
