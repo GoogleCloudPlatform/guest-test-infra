@@ -16,6 +16,7 @@ package imagetest
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"google.golang.org/api/compute/v1"
@@ -132,4 +133,39 @@ func (t *TestVM) EnableSecureBoot() {
 			break
 		}
 	}
+}
+
+// AddAliasIP add alias ip to default Network. The range should be in the
+// automatically created subnets in an auto mode VPC network defined by Google
+// Cloud https://cloud.google.com/vpc/docs/vpc#ip-ranges
+func (t *TestVM) AddAliasIP(aliasIP string) {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			i.NetworkInterfaces = []*compute.NetworkInterface{
+				{
+					Kind:       "compute#networkInterface",
+					Subnetwork: fmt.Sprintf("projects/%s/regions/%s/subnetworks/default", t.testWorkflow.wf.Project, regionFromZone(t.testWorkflow.wf.Zone)),
+					AccessConfigs: []*compute.AccessConfig{
+						{
+							Kind:        "compute#accessConfig",
+							Name:        "External NAT",
+							Type:        "ONE_TO_ONE_NAT",
+							NetworkTier: "PREMIUM",
+						},
+					},
+					AliasIpRanges: []*compute.AliasIpRange{
+						{
+							IpCidrRange: aliasIP,
+						},
+					},
+				},
+			}
+			break
+		}
+	}
+}
+
+func regionFromZone(zone string) string {
+	splits := strings.Split(zone, "-")[:2]
+	return strings.Join(splits, "-")
 }

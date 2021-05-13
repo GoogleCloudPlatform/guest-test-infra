@@ -133,7 +133,7 @@ func main() {
 				image = fullimage
 			}
 
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image)
+			test, err := imagetest.NewTestWorkflow(testPackage.name, *project, *zone, image)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}

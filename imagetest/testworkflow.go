@@ -280,7 +280,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, project, zone, image string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.Name = name
 	t.Image = image
@@ -290,6 +290,8 @@ func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
+	t.wf.Project = project
+	t.wf.Zone = zone
 
 	return t, nil
 }

@@ -7,6 +7,20 @@ var Name = "network"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	_, err := t.CreateTestVM("vm")
-	return err
+	vm, err := t.CreateTestVM("vm")
+	if err != nil {
+		return err
+	}
+	vm.RunTests("TestDefaultMTU|TestAliasAgentRestart")
+
+	vm2, err := t.CreateTestVM("vm2")
+	if err != nil {
+		return err
+	}
+	vm2.AddAliasIP("10.138.2.0/24")
+	if err := vm2.Reboot(); err != nil {
+		return err
+	}
+	vm2.RunTests("TestAliasAfterReboot")
+	return nil
 }
