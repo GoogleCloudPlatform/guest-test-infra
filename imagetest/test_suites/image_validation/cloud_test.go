@@ -19,7 +19,8 @@ var ntpConfig = []string{"/etc/ntp.conf"}
 var chronyConfig = []string{"/etc/chrony.conf", "/etc/chrony/chrony.conf", "/etc/chrony.d/gce.conf"}
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
-// debian 9, ubuntu 16.04 and sles-12 ntpd
+// debian 9, ubuntu 16.04 ntp
+// sles-12 ntpd
 // other distros chronyd
 func TestNTPService(t *testing.T) {
 	image, err := utils.GetMetadata("image")
