@@ -11,14 +11,16 @@ import (
 
 const (
 	chronyService = "chronyd"
-	ntpdService   = "ntp"
+	ntpService    = "ntp"
+	ntpdService   = "ntpd"
 )
 
 var ntpConfig = []string{"/etc/ntp.conf"}
 var chronyConfig = []string{"/etc/chrony.conf", "/etc/chrony/chrony.conf", "/etc/chrony.d/gce.conf"}
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
-// debian 9, ubuntu 16.04 and sles-12 ntpd other distros chronyd
+// debian 9, ubuntu 16.04 and sles-12 ntpd
+// other distros chronyd
 func TestNTPService(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
@@ -28,9 +30,11 @@ func TestNTPService(t *testing.T) {
 	var configPaths []string
 	switch {
 	case strings.Contains(image, "debian-9"):
-	case strings.Contains(image, "sles-12"):
 	case strings.Contains(image, "ubuntu-1604"):
 	case strings.Contains(image, "ubuntu-minimal-1604"):
+		servicename = ntpService
+		configPaths = ntpConfig
+	case strings.Contains(image, "sles-12"):
 		servicename = ntpdService
 		configPaths = ntpConfig
 	default:
@@ -64,11 +68,10 @@ func TestNTPService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := string(bytes)
 
 	// Make sure that ntp service is running.
-	if !strings.Contains(out, "active (running)") {
-		t.Fatalf("%s service is of wrong state %s", servicename, out)
+	if !strings.Contains(string(bytes), "active (running)") {
+		t.Fatalf("%s service is of wrong state %s", servicename, string(bytes))
 	}
 }
 
