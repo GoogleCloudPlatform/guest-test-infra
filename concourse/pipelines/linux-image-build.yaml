@@ -1536,11 +1536,11 @@ jobs:
 - name: publish-to-prod-centos-7
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-centos-7]
-    trigger: false
-    params: { skip_download: "true" }
   - get: compute-image-tools
   - get: centos-7-gcs
+    passed: [publish-to-testing-centos-7]
+    trigger: false
+    params: {skip_download: "true"}
   - load_var: source-version
     file: centos-7-gcs/version
   - task: get-credential
