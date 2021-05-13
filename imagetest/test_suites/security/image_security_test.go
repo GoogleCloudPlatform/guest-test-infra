@@ -112,7 +112,7 @@ func TestAutomaticUpdates(t *testing.T) {
 			t.Fatal(err)
 		}
 	case strings.Contains(image, "sles"):
-		t.Skip("Skipping test on openSUSE.")
+		t.Skip("skipping test on openSUSE.")
 	}
 }
 
@@ -156,24 +156,24 @@ func verifyPassword() error {
 		shell := passwdItems[6]
 		// A passwd entry of length 1 is a disabled password.
 		if len(passwd) != 1 {
-			return fmt.Errorf("Login for %s does not look disabled", loginname)
+			return fmt.Errorf("login for %s does not look disabled", loginname)
 		}
 
 		uidValue, err := strconv.Atoi(uid)
 		if err != nil {
 			return err
 		}
-		// Don't check user account
+		// Don't check user account and root account
 		if uidValue >= minUID || uidValue == 0 {
 			continue
 		}
 		if targetShell, found := specialAccountShells[loginname]; found {
 			if targetShell != shell {
-				return fmt.Errorf("Account %s has wrong login shell %s", loginname, shell)
+				return fmt.Errorf("account %s has wrong login shell %s", loginname, shell)
 			}
 		}
 		if !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
-			return fmt.Errorf("Account %s has the login shell %s", loginname, shell)
+			return fmt.Errorf("account %s has the login shell %s", loginname, shell)
 		}
 	}
 	return nil
@@ -308,7 +308,7 @@ func verifyAutomaticUpdate(image string) error {
 
 func readAPTConfig(image string) (string, error) {
 	var configPaths []string
-	var bytes []byte
+	var b []byte
 	if strings.Contains(image, "debian-9") {
 		configPaths = []string{"/etc/apt/apt.conf.d/02periodic"}
 	} else if strings.Contains(image, "debian-10") {
@@ -321,9 +321,9 @@ func readAPTConfig(image string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		bytes = append(bytes, newByte...)
+		b = append(b, newByte...)
 	}
-	return string(bytes), nil
+	return string(b), nil
 }
 
 func runCommand(name string, arg ...string) (string, string, error) {
