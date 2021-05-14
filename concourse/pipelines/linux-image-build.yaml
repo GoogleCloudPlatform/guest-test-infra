@@ -1122,6 +1122,11 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
       environment: "staging"
+  - task: image-test-centos-7
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/family/centos-7
+
 - name: publish-to-staging-centos-8
   plan:
   - get: guest-test-infra
