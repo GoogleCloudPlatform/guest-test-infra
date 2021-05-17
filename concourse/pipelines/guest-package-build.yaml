@@ -1,14 +1,19 @@
 ---
 jobs:
-- name: guest-agent-integration-test
+
+- name: build-guest-agent
   plan:
   - get: guest-agent
     trigger: true
     params:
       skip_download: true
+  - load_var: commit-sha
+    file: guest-agent/.git/ref
   - get: guest-test-infra
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-timestamp
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: timestamp
@@ -23,21 +28,6 @@ jobs:
     vars:
       timestamp: ((.:timestamp))
       repo-name: guest-agent
-
-- name: build-guest-agent
-  plan:
-  - get: guest-agent
-    passed: [guest-agent-integration-test]
-    trigger: true
-    params:
-      skip_download: true
-  - load_var: commit-sha
-    file: guest-agent/.git/ref
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: get-github-token
-    file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
     input_mapping: {repo: guest-agent}
