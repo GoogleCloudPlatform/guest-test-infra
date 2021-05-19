@@ -1,6 +1,7 @@
 package security
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"github.com/lorenzosaino/go-sysctl"
 )
 
 var (
@@ -47,13 +47,15 @@ var specialAccountShells = map[string]string{
 }
 
 const (
-	unattendedUpgradeConfigPath = "/etc/apt/apt.conf.d/50unattended-upgrades"
-	// (?s) Dot match new line character
-	unattendedUpgradeRegexDebian = `(?s)Unattended-Upgrade::Origins-Pattern.*?};`
-	unattendedUpgradeRegexUbuntu = `(?s)Unattended-Upgrade::Allowed-Origins.*?};`
-	expectedDebian               = `\s*"origin=Debian,codename=\${distro_codename},label=Debian-Security";.*`
-	expectedUbuntu               = `\s*"\${distro_id}:\${distro_codename}-security";.*`
-	minUID                       = 1000
+	unattendedUpgradeConfigPath  = "/etc/apt/apt.conf.d/50unattended-upgrades"
+	unattendedUpgradeBlockDebian = `Unattended-Upgrade::Origins-Pattern`
+	unattendedUpgradeBlockUbuntu = `Unattended-Upgrade::Allowed-Origins`
+	expectedDebian               = `origin=Debian,codename=${distro_codename},label=Debian-Security`
+	expectedUbuntu               = `${distro_id}:\${distro_codename}-security`
+	maxUID                       = 1000
+	maxInterval                  = 7
+	minInterval                  = 1
+	sysctlConfPath               = "/etc/sysctl.conf"
 )
 
 func TestMain(m *testing.M) {
@@ -67,17 +69,22 @@ func TestMain(m *testing.M) {
 
 // TestKernelSecuritySettings Checks that the given parameter has the given value in sysctl.
 func TestKernelSecuritySettings(t *testing.T) {
-	for key, value := range securitySettingMap {
-		found, err := sysctl.Get(key)
-		if err != nil {
-			t.Fatal("failed getting ")
+	sysctlMap, err := readSysctlConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for key, expect := range securitySettingMap {
+		v, found := sysctlMap[key]
+		if !found {
+			t.Fatalf("failed getting config %s", key)
 		}
-		v, err := strconv.Atoi(found)
+		value, err := strconv.Atoi(v)
 		if err != nil {
-			t.Fatal("failed convert to int")
+			t.Fatalf("failed convert config %s value %s to int", key, v)
 		}
-		if value != v {
-			t.Fatalf("expected %s = %d. Found %d.", key, value, v)
+		if expect != value {
+			t.Fatalf("expected %s = %d. found %d.", key, expect, value)
 		}
 	}
 }
@@ -90,16 +97,17 @@ func TestAutomaticUpdates(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "rhel-8"):
+	case strings.Contains(image, "rhel-8"), strings.Contains(image, "centos-8"),
+		strings.Contains(image, "centos-stream"), strings.Contains(image, "almalinux"):
 		if err := verifyServiceEnabled("dnf-automatic.timer"); err != nil {
 			t.Fatal(err)
 		}
-	case strings.Contains(image, "rhel-7"):
+	case strings.Contains(image, "rhel-7"), strings.Contains(image, "centos-7"):
 		if err := verifyServiceEnabled("yum-cron"); err != nil {
 			t.Fatal(err)
 		}
 	case strings.Contains(image, "debian") || strings.Contains(image, "ubuntu"):
-		if err := verifyPackageInstalled(); err != nil {
+		if err := verifyUpgradesPackageInstalled(); err != nil {
 			t.Fatal(err)
 		}
 		// Check that the security packages are marked for automatic update
@@ -111,23 +119,13 @@ func TestAutomaticUpdates(t *testing.T) {
 		if err := verifyAutomaticUpdate(image); err != nil {
 			t.Fatal(err)
 		}
-	case strings.Contains(image, "sles"):
-		t.Skip("skipping test on openSUSE.")
+	default:
+		t.Skipf("skipping test on image %s", image)
 	}
 }
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
-	if strings.Contains(image, "rhel") {
-		if err := verifyCracklibInstalled(); err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)
 	}
@@ -143,13 +141,13 @@ func verifyPassword() error {
 	if err != nil {
 		return err
 	}
-	passwards := strings.Split(string(fileBytes), "\n")
-	for _, pwd := range passwards {
-		// ignore empty pwd
-		if len(pwd) == 0 {
+	users := strings.Split(string(fileBytes), "\n")
+	for _, user := range users {
+		// ignore empty user
+		if len(user) == 0 {
 			continue
 		}
-		passwdItems := strings.Split(pwd, ":")
+		passwdItems := strings.Split(user, ":")
 		loginname := passwdItems[0]
 		passwd := passwdItems[1]
 		uid := passwdItems[2]
@@ -164,7 +162,7 @@ func verifyPassword() error {
 			return err
 		}
 		// Don't check user account and root account
-		if uidValue >= minUID || uidValue == 0 {
+		if uidValue >= maxUID || uidValue == 0 {
 			continue
 		}
 		if targetShell, found := specialAccountShells[loginname]; found {
@@ -197,56 +195,38 @@ func verifySSHConfig() error {
 	return nil
 }
 
-func verifyCracklibInstalled() error {
-	out, _, err := runCommand("yum", "list", "installed", "cracklib")
-	if err != nil {
-		return err
-	}
-	if !strings.Contains(out, "cracklib") {
-		return fmt.Errorf("package cracklib is not installed")
-	}
-	out, _, err = runCommand("yum", "list", "installed", "cracklib-dicts")
-	if err != nil {
-		return err
-	}
-	if !strings.Contains(out, "cracklib-dicts") {
-		return fmt.Errorf("package cracklib-dicts is not installed")
-	}
-	return nil
-}
-
 func verifySecurityUpgradeEnabled(image string) error {
-	var regexString, expectedLine string
+	var expecedBlock, expectedLine string
 	if strings.Contains(image, "debian") {
-		regexString = unattendedUpgradeRegexDebian
+		expecedBlock = unattendedUpgradeBlockDebian
 		expectedLine = expectedDebian
 	} else if strings.Contains(image, "ubuntu") {
-		regexString = unattendedUpgradeRegexUbuntu
+		expecedBlock = unattendedUpgradeBlockUbuntu
 		expectedLine = expectedUbuntu
 	}
 	bytes, err := ioutil.ReadFile(unattendedUpgradeConfigPath)
 	if err != nil {
 		return err
 	}
-	re, err := regexp.Compile(regexString)
-	if err != nil {
-		return err
-	}
-	enabledUpgrades := strings.Split(re.FindString(string(bytes)), "\n")
-
-	for _, line := range enabledUpgrades {
-		res, err := regexp.MatchString(expectedLine, line)
-		if err != nil {
-			return err
-		}
-		if res {
+	var inBlock bool
+	for _, line := range strings.Split(string(bytes), "\n") {
+		line = strings.TrimSpace(line)
+		switch {
+		case strings.Contains(line, "//"):
+			continue
+		case strings.Contains(line, expecedBlock):
+			inBlock = true
+		case inBlock && strings.Contains(line, expectedLine):
+			// Success!
 			return nil
+		case inBlock && strings.Contains(line, "};"):
+			return fmt.Errorf("incorrect Unattended-Upgrade config")
 		}
 	}
-	return fmt.Errorf("security upgrades is not enabled")
+	return fmt.Errorf("missing Unattended-Upgrade config")
 }
 
-func verifyPackageInstalled() error {
+func verifyUpgradesPackageInstalled() error {
 	_, _, err := runCommand("dpkg-query", "-s", "unattended-upgrades")
 	if err != nil {
 		return err
@@ -293,7 +273,7 @@ func verifyAutomaticUpdate(image string) error {
 		if err != nil {
 			return err
 		}
-		if interval > 9 || interval < 1 {
+		if interval > maxInterval || interval < minInterval {
 			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
 		}
 	}
@@ -324,6 +304,38 @@ func readAPTConfig(image string) (string, error) {
 		b = append(b, newByte...)
 	}
 	return string(b), nil
+}
+
+func readSysctlConfig() (map[string]string, error) {
+	var sysctlMap = make(map[string]string)
+	file, err := os.Open(sysctlConfPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not open file: %s", err.Error())
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		parsed := strings.Split(line, "#")[0]
+		parsed = strings.Split(parsed, ";")[0]
+		parsed = strings.TrimSpace(parsed)
+		if parsed == "" {
+			continue
+		}
+		tokens := strings.Split(parsed, "=")
+		if len(tokens) != 2 {
+			return nil, fmt.Errorf("could not parse line %s", line)
+		}
+		k := strings.TrimSpace(tokens[0])
+		v := strings.TrimSpace(tokens[1])
+		sysctlMap[k] = v
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading file: %s", err.Error())
+	}
+	return sysctlMap, nil
 }
 
 func runCommand(name string, arg ...string) (string, string, error) {
