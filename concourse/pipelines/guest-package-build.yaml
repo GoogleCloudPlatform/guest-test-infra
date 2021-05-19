@@ -74,15 +74,17 @@ jobs:
       tag: package-version/version
       commitish: guest-agent/.git/ref
 
-- name: guest-agent-image-tests
+- name: inject-guest-agent-staging
   plan:
-  - get: guest-agent-tag
-    passed: [build-guest-agent]
-    trigger: true
+  - in_parallel:
+      steps:
+      - get: guest-agent-tag
+        passed: [build-guest-agent]
+        trigger: true
+      - get: guest-test-infra
+      - get: compute-image-tools
   - load_var: package-version
     file: guest-agent-tag/version
-  - get: guest-test-infra
-  - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -134,19 +136,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
       images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/centos-8-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/centos-8-((.:build-id))
-
-- name: inject-guest-agent-unstable
-  plan:
-  - get: guest-agent-tag
-    passed: [guest-agent-image-tests]
-    trigger: true
-    params:
-      skip_download: true
-  - load_var: package-version
-    file: guest-agent-tag/version
-  - get: guest-test-infra
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -156,30 +145,79 @@ jobs:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-guest-agent
+        params:
+          ENVIRONMENT: staging
       - task: inject-guest-agent-el7
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: google-guest-agent-el7
+        params:
+          ENVIRONMENT: staging
       - task: inject-guest-agent-el8
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: google-guest-agent-el8
+        params:
+          ENVIRONMENT: staging
       - task: inject-compute-engine-windows
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
           repo: google-compute-engine-windows
+        params:
+          ENVIRONMENT: staging
       - task: inject-compute-engine-metadata-scripts
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
           repo: google-compute-engine-metadata-scripts
+        params:
+          ENVIRONMENT: staging
+
+- name: promote-guest-agent-stable
+  plan:
+  - get: guest-agent-tag
+    passed: [inject-guest-agent-staging]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      - task: promote-deb9-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: google-guest-agent-stretch
+          environment: stable
+      - task: promote-deb10-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: google-guest-agent-buster
+          environment: stable
+      - task: promote-deb11-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: google-guest-agent-bullseye
+          environment: stable
+      - task: promote-el7-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: google-guest-agent-el7
+          environment: stable
+      - task: promote-el8-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: google-guest-agent-el8
+          environment: stable
 
 - name: build-guest-oslogin
   plan:
