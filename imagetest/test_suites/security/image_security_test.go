@@ -1,13 +1,13 @@
 package security
 
 import (
-	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -51,11 +51,11 @@ const (
 	unattendedUpgradeBlockDebian = `Unattended-Upgrade::Origins-Pattern`
 	unattendedUpgradeBlockUbuntu = `Unattended-Upgrade::Allowed-Origins`
 	expectedDebian               = `origin=Debian,codename=${distro_codename},label=Debian-Security`
-	expectedUbuntu               = `${distro_id}:\${distro_codename}-security`
+	expectedUbuntu               = `${distro_id}:${distro_codename}-security`
 	maxUID                       = 1000
 	maxInterval                  = 7
 	minInterval                  = 1
-	sysctlConfPath               = "/etc/sysctl.conf"
+	sysctlBase                   = "/proc/sys/"
 )
 
 func TestMain(m *testing.M) {
@@ -69,15 +69,10 @@ func TestMain(m *testing.M) {
 
 // TestKernelSecuritySettings Checks that the given parameter has the given value in sysctl.
 func TestKernelSecuritySettings(t *testing.T) {
-	sysctlMap, err := readSysctlConfig()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	for key, expect := range securitySettingMap {
-		v, found := sysctlMap[key]
-		if !found {
-			t.Fatalf("failed getting config %s", key)
+		v, err := sysctlGet(key)
+		if err != nil {
+			t.Fatalf("failed getting key %s", key)
 		}
 		value, err := strconv.Atoi(v)
 		if err != nil {
@@ -126,17 +121,22 @@ func TestAutomaticUpdates(t *testing.T) {
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Root password/login is disabled.
-	if err := verifyPassword(); err != nil {
+	if err := verifyPassword(image); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func verifyPassword() error {
+func verifyPassword(image string) error {
 	fileBytes, err := ioutil.ReadFile("/etc/passwd")
 	if err != nil {
 		return err
@@ -169,9 +169,11 @@ func verifyPassword() error {
 			if targetShell != shell {
 				return fmt.Errorf("account %s has wrong login shell %s", loginname, shell)
 			}
-		}
-		if !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
-			return fmt.Errorf("account %s has the login shell %s", loginname, shell)
+		} else {
+			// SUSE has bin user with login access
+			if !strings.Contains(image, "sles") && !strings.Contains(shell, "false") && !strings.Contains(shell, "nologin") {
+				return fmt.Errorf("account %s has the login shell %s", loginname, shell)
+			}
 		}
 	}
 	return nil
@@ -306,36 +308,14 @@ func readAPTConfig(image string) (string, error) {
 	return string(b), nil
 }
 
-func readSysctlConfig() (map[string]string, error) {
-	var sysctlMap = make(map[string]string)
-	file, err := os.Open(sysctlConfPath)
+// sysctlGet returns a sysctl from a given key.
+func sysctlGet(key string) (string, error) {
+	path := filepath.Join(sysctlBase, strings.Replace(key, ".", "/", -1))
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("could not open file: %s", err.Error())
+		return "", err
 	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parsed := strings.Split(line, "#")[0]
-		parsed = strings.Split(parsed, ";")[0]
-		parsed = strings.TrimSpace(parsed)
-		if parsed == "" {
-			continue
-		}
-		tokens := strings.Split(parsed, "=")
-		if len(tokens) != 2 {
-			return nil, fmt.Errorf("could not parse line %s", line)
-		}
-		k := strings.TrimSpace(tokens[0])
-		v := strings.TrimSpace(tokens[1])
-		sysctlMap[k] = v
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading file: %s", err.Error())
-	}
-	return sysctlMap, nil
+	return strings.TrimSpace(string(data)), nil
 }
 
 func runCommand(name string, arg ...string) (string, string, error) {
