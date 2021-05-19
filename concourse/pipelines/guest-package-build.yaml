@@ -43,7 +43,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: master
+          git_ref: main
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -51,7 +51,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: master
+          git_ref: main
       - task: guest-package-build-guest-agent-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -59,7 +59,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: master
+          git_ref: main
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -67,7 +67,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: master
+          git_ref: main
   - put: guest-agent-tag
     params:
       name: package-version/version
