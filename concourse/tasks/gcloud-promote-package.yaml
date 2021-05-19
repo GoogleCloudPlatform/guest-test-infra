@@ -13,7 +13,6 @@ inputs:
 # let's start with this..
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
-  ENVIRONMENT: "unstable"
 
 run:
   path: sh
@@ -21,4 +20,4 @@ run:
   - -exc
   - |
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "inject", "request": {"bucket": "gcp-guest-package-uploads", "object": "((package_path))", "universe": "((universe))", "repo": "((repo))", "environment": "'$ENVIRONMENT'"}}'
+    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'
