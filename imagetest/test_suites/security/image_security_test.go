@@ -229,21 +229,15 @@ func verifySecurityUpgradeEnabled(image string) error {
 }
 
 func verifyUpgradesPackageInstalled() error {
-	_, _, err := runCommand("dpkg-query", "-s", "unattended-upgrades")
-	if err != nil {
+	if _, _, err := runCommand("dpkg-query", "-s", "unattended-upgrades"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func verifyServiceEnabled(service string) error {
-	out, _, err := runCommand("systemctl", "is-enabled", service)
-	if err != nil {
+	if _, _, err := runCommand("systemctl", "is-enabled", service); err != nil {
 		return err
-	}
-	out = strings.Trim(out, "\n")
-	if out != "enabled" {
-		return fmt.Errorf("%s is not enabled", service)
 	}
 	return nil
 }
