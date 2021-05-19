@@ -30,9 +30,7 @@ func TestNTPService(t *testing.T) {
 	var servicename string
 	var configPaths []string
 	switch {
-	case strings.Contains(image, "debian-9"):
-	case strings.Contains(image, "ubuntu-1604"):
-	case strings.Contains(image, "ubuntu-minimal-1604"):
+	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-1604"), strings.Contains(image, "ubuntu-minimal-1604"):
 		servicename = ntpService
 		configPaths = ntpConfig
 	case strings.Contains(image, "sles-12"):
@@ -58,21 +56,16 @@ func TestNTPService(t *testing.T) {
 			// Usually the line is like "server serverName url"
 			serverName := strings.Split(config, " ")[1]
 			if !(serverName == "metadata.google.internal" || serverName == "metadata" || serverName == "169.254.169.254") {
-				t.Fatalf("ntp.conf contains wrong server information %s'", config)
+				t.Fatalf("ntp config contains wrong server information %s'", config)
 			}
 			break
 		}
 	}
 
-	cmd := exec.Command("systemctl", "status", servicename)
-	bytes, err := cmd.Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// Make sure that ntp service is running.
-	if !strings.Contains(string(bytes), "active (running)") {
-		t.Fatalf("%s service is of wrong state %s", servicename, string(bytes))
+	cmd := exec.Command("systemctl", "is-active", servicename)
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("%s service is not running", servicename)
 	}
 }
 
