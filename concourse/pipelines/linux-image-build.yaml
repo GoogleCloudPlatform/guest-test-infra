@@ -719,7 +719,7 @@ jobs:
   - task: image-test-centos-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/centos-8
+      images: projects/bct-prod-images/global/images/centos-8-v((.:source-version))
 - name: publish-to-testing-centos-stream-8
   plan:
   - get: guest-test-infra
@@ -748,7 +748,7 @@ jobs:
   - task: image-test-centos-stream-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/centos-stream-8
+      images: projects/bct-prod-images/global/images/centos-stream-8-v((.:source-version))
 # rhel
 - name: publish-to-testing-rhel-7
   plan:
@@ -778,7 +778,7 @@ jobs:
   - task: image-test-rhel-7
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-7
+      images: projects/bct-prod-images/global/images/rhel-7-v((.:source-version))
 - name: publish-to-testing-rhel-8
   plan:
   - get: guest-test-infra
@@ -807,7 +807,7 @@ jobs:
   - task: image-test-rhel-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-8
+      images: projects/bct-prod-images/global/images/rhel-8-v((.:source-version))
 - name: publish-to-testing-rhel-7-byos
   plan:
   - get: guest-test-infra
@@ -836,7 +836,7 @@ jobs:
   - task: image-test-rhel-7-byos
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-7-byos
+      images: projects/bct-prod-images/global/images/rhel-7-byos-v((.:source-version))
 - name: publish-to-testing-rhel-8-byos
   plan:
   - get: guest-test-infra
@@ -865,7 +865,7 @@ jobs:
   - task: image-test-rhel-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-8-byos
+      images: projects/bct-prod-images/global/images/rhel-8-byos-v((.:source-version))
 - name: publish-to-testing-rhel-7-4-sap
   plan:
   - get: guest-test-infra
@@ -894,7 +894,7 @@ jobs:
   - task: image-test-rhel-7-4-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-7-4-sap
+      images: projects/bct-prod-images/global/images/rhel-7-4-sap-v((.:source-version))
 - name: publish-to-testing-rhel-7-6-sap
   plan:
   - get: guest-test-infra
@@ -923,7 +923,7 @@ jobs:
   - task: image-test-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-7-6-sap
+      images: projects/bct-prod-images/global/images/rhel-7-6-sap-v((.:source-version))
 - name: publish-to-testing-rhel-7-7-sap
   plan:
   - get: guest-test-infra
@@ -952,7 +952,7 @@ jobs:
   - task: image-test-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-7-7-sap
+      images: projects/bct-prod-images/global/images/rhel-7-7-sap-v((.:source-version))
 - name: publish-to-testing-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -981,7 +981,7 @@ jobs:
   - task: image-test-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-8-1-sap
+      images: projects/bct-prod-images/global/images/rhel-8-1-sap-v((.:source-version))
 - name: publish-to-testing-rhel-8-2-sap
   plan:
   - get: guest-test-infra
@@ -1010,7 +1010,7 @@ jobs:
   - task: image-test-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/rhel-8-2-sap
+      images: projects/bct-prod-images/global/images/rhel-8-2-sap-v((.:source-version))
 # rocky-linux
 - name: publish-to-testing-rocky-linux-8
   plan:
@@ -1066,7 +1066,7 @@ jobs:
   - task: image-test-debian-9
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/debian-9
+      images: projects/bct-prod-images/global/images/debian-9-v((.:source-version))
 - name: publish-to-testing-debian-10
   plan:
   - get: guest-test-infra
@@ -1095,7 +1095,7 @@ jobs:
   - task: image-test-debian-10
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/debian-10
+      images: projects/bct-prod-images/global/images/debian-10-v((.:source-version))
 - name: publish-to-testing-debian-11
   plan:
   - get: guest-test-infra
@@ -1124,7 +1124,7 @@ jobs:
   - task: image-test-debian-11
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/family/debian-11
+      images: projects/bct-prod-images/global/images/debian-11-v((.:source-version))
 
 # Publish to staging
 # almalinux
