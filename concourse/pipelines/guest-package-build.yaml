@@ -741,3 +741,26 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
     branch: master
+
+groups:
+- name: guest-agent
+  jobs:
+  - build-guest-agent
+  - inject-guest-agent-staging
+  - promote-guest-agent-stable
+- name: guest-oslogin
+  jobs:
+  - build-guest-oslogin
+- name: osconfig
+  jobs:
+  - build-osconfig
+- name: disk-expand
+  jobs:
+  - build-guest-diskexpand
+- name: google-compute-engine
+  jobs:
+  - build-guest-configs
+- name: artifact-registry-plugins
+  jobs:
+  - build-artifact-registry-el-plugins
+  - build-artifact-registry-apt-transport
