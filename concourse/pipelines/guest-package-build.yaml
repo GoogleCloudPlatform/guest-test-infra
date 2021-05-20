@@ -696,7 +696,7 @@ resources:
   type: git
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: master
+    branch: main
     fetch_tags: true
 - name: compute-image-tools
   type: git
