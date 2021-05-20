@@ -84,59 +84,43 @@ func TestKernelSecuritySettings(t *testing.T) {
 	}
 }
 
-// TestAutomaticUpdates Check automatic security updates are installed and enabled.
+// TestAutomaticUpdates Check automatic security updates are installed or enabled.
 func TestAutomaticUpdates(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-
-	switch {
-	case strings.Contains(image, "rhel-8"), strings.Contains(image, "centos-8"),
-		strings.Contains(image, "centos-stream"), strings.Contains(image, "almalinux"):
-		if err := verifyServiceEnabled("dnf-automatic.timer"); err != nil {
-			t.Fatal(err)
-		}
-	case strings.Contains(image, "rhel-7"), strings.Contains(image, "centos-7"):
-		if err := verifyServiceEnabled("yum-cron"); err != nil {
-			t.Fatal(err)
-		}
-	case strings.Contains(image, "debian") || strings.Contains(image, "ubuntu"):
-		if err := verifyUpgradesPackageInstalled(); err != nil {
-			t.Fatal(err)
-		}
-		// Check that the security packages are marked for automatic update
-		// https://wiki.debian.org/UnattendedUpgrades
-		// https://help.ubuntu.com/community/AutomaticSecurityUpdates
-		if err := verifySecurityUpgradeEnabled(image); err != nil {
-			t.Fatal(err)
-		}
-		if err := verifyAutomaticUpdate(image); err != nil {
-			t.Fatal(err)
-		}
-	default:
-		t.Skipf("skipping test on image %s", image)
+	if err := verifyServiceEnabled(image); err != nil {
+		t.Fatal(err)
+	}
+	// Check that the security packages are marked for automatic update
+	// https://wiki.debian.org/UnattendedUpgrades
+	// https://help.ubuntu.com/community/AutomaticSecurityUpdates
+	if err := verifySecurityUpgrade(image); err != nil {
+		t.Fatal(err)
+	}
+	if err := verifyAutomaticUpdate(image); err != nil {
+		t.Fatal(err)
 	}
 }
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
-
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Root password/login is disabled.
-	if err := verifyPassword(image); err != nil {
+	if err := verifyPassword(); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func verifyPassword(image string) error {
+func verifyPassword() error {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		return fmt.Errorf("couldn't get image from metadata")
+	}
 	fileBytes, err := ioutil.ReadFile("/etc/passwd")
 	if err != nil {
 		return err
@@ -197,15 +181,30 @@ func verifySSHConfig() error {
 	return nil
 }
 
-func verifySecurityUpgradeEnabled(image string) error {
-	var expecedBlock, expectedLine string
-	if strings.Contains(image, "debian") {
-		expecedBlock = unattendedUpgradeBlockDebian
-		expectedLine = expectedDebian
-	} else if strings.Contains(image, "ubuntu") {
-		expecedBlock = unattendedUpgradeBlockUbuntu
-		expectedLine = expectedUbuntu
+func verifySecurityUpgrade(image string) error {
+	var expectedBlock, expectedLine string
+	if isRhelbasedLinux(image) {
+		return nil
 	}
+	switch {
+	case strings.Contains(image, "debian"):
+		expectedBlock = unattendedUpgradeBlockDebian
+		expectedLine = expectedDebian
+	case strings.Contains(image, "ubuntu"):
+		expectedBlock = unattendedUpgradeBlockUbuntu
+		expectedLine = expectedUbuntu
+	default:
+		return fmt.Errorf("unsupport image %s", image)
+	}
+	// First verify package installed
+	stdout, _, err := runCommand("dpkg-query", "-W", "--showformat", "${Status}", "unattended-upgrades")
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(stdout) != "install ok installed" {
+		return fmt.Errorf("package is not correctly installed")
+	}
+	// Second verify config is correct
 	bytes, err := ioutil.ReadFile(unattendedUpgradeConfigPath)
 	if err != nil {
 		return err
@@ -216,7 +215,7 @@ func verifySecurityUpgradeEnabled(image string) error {
 		switch {
 		case strings.Contains(line, "//"):
 			continue
-		case strings.Contains(line, expecedBlock):
+		case strings.Contains(line, expectedBlock):
 			inBlock = true
 		case inBlock && strings.Contains(line, expectedLine):
 			// Success!
@@ -228,32 +227,43 @@ func verifySecurityUpgradeEnabled(image string) error {
 	return fmt.Errorf("missing Unattended-Upgrade config")
 }
 
-func verifyUpgradesPackageInstalled() error {
-	if _, _, err := runCommand("dpkg-query", "-s", "unattended-upgrades"); err != nil {
-		return err
-	}
-	return nil
+func isRhelbasedLinux(image string) bool {
+	return strings.Contains(image, "centos") || strings.Contains(image, "rhel") ||
+			strings.Contains(image, "rocky-linux") || strings.Contains(image, "almalinux") ||
+			strings.Contains(image, "sles")
 }
 
-func verifyServiceEnabled(service string) error {
-	if _, _, err := runCommand("systemctl", "is-enabled", service); err != nil {
+func verifyServiceEnabled(image string) error {
+	var serviceName string
+	switch {
+	case strings.Contains(image, "debian"), strings.Contains(image, "ubuntu"), strings.Contains(image, "sles"):
+		return nil
+	case strings.Contains(image, "rhel-7") || strings.Contains(image, "centos-7"):
+		serviceName = "yum-cron"
+	default:
+		serviceName = "dnf-automatic.timer"
+	}
+	if _, _, err := runCommand("systemctl", "is-enabled", serviceName); err != nil {
 		return err
 	}
 	return nil
 }
 
 func verifyAutomaticUpdate(image string) error {
+	if isRhelbasedLinux(image) {
+		return nil
+	}
+
 	automaticUpdateConfig, err := readAPTConfig(image)
 	if err != nil {
 		return err
 	}
-
-	if strings.Contains(image, "debian-9") {
+	switch {
+	case strings.Contains(image, "debian"):
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
 			return fmt.Errorf(`"APT::Periodic::Enable" is not set to 1`)
 		}
-	}
-	if strings.Contains(image, "ubuntu") {
+	case strings.Contains(image, "ubuntu"):
 		// Ensure that we clean out obsolete debs within 7 days so that customer VMs
 		// don't leak disk space. The value below is in days, with 0 as
 		// disabled.
@@ -272,6 +282,8 @@ func verifyAutomaticUpdate(image string) error {
 		if interval > maxInterval || interval < minInterval {
 			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
 		}
+	default:
+		return fmt.Errorf("unsupport image %s", image)
 	}
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
 		return fmt.Errorf(`"APT::Periodic::Update-Package-Lists" is not set to 1`)
