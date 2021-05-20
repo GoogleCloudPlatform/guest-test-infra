@@ -30,15 +30,17 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
-git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
-
-if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
-fi
-
 # We always install go, needed for goopack.
 echo "Installing go"
 install_go
+
+# Install goopack.
+GO111MODULE=on $GO get -v github.com/google/googet/v2/goopack
+
+git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+if [[ -n "$BUILD_DIR" ]]; then
+    cd "$BUILD_DIR"
+fi
 
 if find . -type f -iname '*.go' >/dev/null; then
   echo "Installing go dependencies"
@@ -46,7 +48,6 @@ if find . -type f -iname '*.go' >/dev/null; then
 fi
 
 echo "Building package(s)"
-go get github.com/google/googet/v2/goopack
 for spec in packaging/googet/*.goospec; do
   goopack -var:version="$VERSION" "$spec"
 done
