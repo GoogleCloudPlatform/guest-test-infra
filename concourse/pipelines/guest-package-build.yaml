@@ -650,7 +650,7 @@ resources:
   type: git
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-agent.git
-    branch: master
+    branch: main
     fetch_tags: true
 - name: guest-agent-tag
   type: github-release
@@ -734,7 +734,7 @@ resources:
   type: git
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: main
+    branch: master
     fetch_tags: true
 - name: compute-image-tools
   type: git
