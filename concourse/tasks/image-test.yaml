@@ -1,0 +1,22 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/cloud-image-tests
+    tag: latest
+
+inputs:
+- name: credentials
+- name: guest-test-infra
+
+
+params:
+  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+
+run:
+  path: /manager
+  args:
+  - -project=gcp-guest
+  - -zone=us-west1-a
+  - -images=((images))
