@@ -133,3 +133,22 @@ func (t *TestVM) EnableSecureBoot() {
 		}
 	}
 }
+
+// ResizeDisk resize the disk of the current test VMs in workflow.
+func (t *TestVM) ResizeDisk(diskSize int) error {
+	// Grab the wait step that was added with CreateTestVM.
+	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
+	if !ok {
+		return fmt.Errorf("wait-%s step missing", t.name)
+	}
+
+	diskResizeStep, err := t.testWorkflow.addResizeDisk(t.name, t.name, int64(diskSize))
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(diskResizeStep, waitStep); err != nil {
+		return err
+	}
+	return nil
+}

@@ -209,6 +209,19 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 	return startInstancesStep, nil
 }
 
+func (t *TestWorkflow) addResizeDisk(stepname string, vmname string, size int64) (*daisy.Step, error) {
+	resizeDisk := &daisy.ResizeDisk{}
+	resizeDisk.DisksResizeRequest.SizeGb = size
+	resizeDisk.Name = vmname
+
+	resizeDiskStep, err := t.wf.NewStep("resize-disk-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	resizeDiskStep.ResizeDisks = &daisy.ResizeDisks{resizeDisk}
+	return resizeDiskStep, nil
+}
+
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
 func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) error {
