@@ -229,8 +229,8 @@ func verifySecurityUpgrade(image string) error {
 
 func isRhelbasedLinux(image string) bool {
 	return strings.Contains(image, "centos") || strings.Contains(image, "rhel") ||
-			strings.Contains(image, "rocky-linux") || strings.Contains(image, "almalinux") ||
-			strings.Contains(image, "sles")
+		strings.Contains(image, "rocky-linux") || strings.Contains(image, "almalinux") ||
+		strings.Contains(image, "sles")
 }
 
 func verifyServiceEnabled(image string) error {
