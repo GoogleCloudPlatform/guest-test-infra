@@ -665,6 +665,10 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
       environment: "test"
+  - task: image-test-almalinux-8
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/almalinux-8-v((.:source-version))
 # centos
 - name: publish-to-testing-centos-7
   plan:
@@ -1041,6 +1045,10 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
       environment: "test"
+  - task: image-test-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/rocky-linux-8-v((.:source-version))
 # debian
 - name: publish-to-testing-debian-9
   plan:
