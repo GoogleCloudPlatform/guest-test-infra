@@ -297,12 +297,11 @@ func verifyAutomaticUpdate(image string) error {
 func readAPTConfig(image string) (string, error) {
 	var configPaths []string
 	var b []byte
+	configPaths = append(configPaths, "/etc/apt/apt.conf.d/20auto-upgrades")
 	if strings.Contains(image, "debian-9") {
-		configPaths = []string{"/etc/apt/apt.conf.d/02periodic"}
-	} else if strings.Contains(image, "debian-10") {
-		configPaths = []string{"/etc/apt/apt.conf.d/20auto-upgrades"}
+		configPaths = append(configPaths, "/etc/apt/apt.conf.d/02periodic")
 	} else if strings.Contains(image, "ubuntu") {
-		configPaths = []string{"/etc/apt/apt.conf.d/10periodic", "/etc/apt/apt.conf.d/20auto-upgrades"}
+		configPaths = append(configPaths, "/etc/apt/apt.conf.d/10periodic")
 	}
 	for _, path := range configPaths {
 		newByte, err := ioutil.ReadFile(path)
