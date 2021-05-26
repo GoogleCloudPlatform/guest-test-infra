@@ -214,7 +214,7 @@ func (t *TestWorkflow) addCreateNetworkStep(stepname, networkName string) (*dais
 	pFalse := false
 	network := &daisy.Network{
 		Network: compute.Network{
-			Name:                  networkName,
+			Name: networkName,
 		},
 		AutoCreateSubnetworks: &pFalse,
 	}

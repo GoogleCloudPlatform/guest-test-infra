@@ -144,7 +144,7 @@ func (t *TestVM) AddAliasIP(networkName, subnetworkName, subnetworkRangeName, al
 					Subnetwork: subnetworkName,
 					AccessConfigs: []*compute.AccessConfig{
 						{
-							Type:        "ONE_TO_ONE_NAT",
+							Type: "ONE_TO_ONE_NAT",
 						},
 					},
 					AliasIpRanges: []*compute.AliasIpRange{
@@ -160,6 +160,7 @@ func (t *TestVM) AddAliasIP(networkName, subnetworkName, subnetworkRangeName, al
 	}
 }
 
+// AddCustomNetwork add network and subnetwork with custom name and ip range.
 func (t *TestVM) AddCustomNetwork(networkName, subnetworkName, rangeName, primary, secondary string) error {
 	createInstancesStep, ok := t.testWorkflow.wf.Steps[createVMsStepName]
 	if !ok {

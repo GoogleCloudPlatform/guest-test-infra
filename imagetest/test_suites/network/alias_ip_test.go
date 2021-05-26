@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	markerFile  = "/boot-marker"
+	markerFile = "/boot-marker"
 )
 
 func TestAliasAfterReboot(t *testing.T) {
