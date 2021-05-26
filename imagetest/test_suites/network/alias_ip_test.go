@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,7 +12,6 @@ import (
 
 const (
 	markerFile  = "/boot-marker"
-	aliasipFile = "/aliasip"
 )
 
 func TestAliasAfterReboot(t *testing.T) {
@@ -37,25 +35,19 @@ func TestAliasAfterReboot(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		b, err := getAliasIP(networkInterface)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := ioutil.WriteFile(aliasipFile, b, 0644); err != nil {
-			t.Fatal("failed writing alias ip to file")
-		}
+		t.Fatalf("failed on first boot")
 	}
 	// second boot
-	before, err := getAliasIP(networkInterface)
+	actual, err := getAliasIP(networkInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, err := ioutil.ReadFile(aliasipFile)
+	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0/")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(before) != string(after) {
-		t.Fatalf("routes are inconsistent after reboot, before %s, after %s", before, after)
+	if string(actual) != string(expected) {
+		t.Fatalf("alias ip is not as expected after reboot, expected %s, actual %s", expected, actual)
 	}
 }
 
@@ -101,6 +93,6 @@ func TestAliasAgentRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(beforeRestart) != string(afterRestart) {
-		t.Fatalf("routes are inconsistent after reboot, before %s after %s", beforeRestart, afterRestart)
+		t.Fatalf("routes are inconsistent after restart, before %s after %s", beforeRestart, afterRestart)
 	}
 }

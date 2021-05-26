@@ -16,7 +16,6 @@ package imagetest
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"google.golang.org/api/compute/v1"
@@ -135,27 +134,23 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-// AddAliasIP add alias ip to default Network. The range should be in the
-// automatically created subnets in an auto mode VPC network defined by Google
-// Cloud https://cloud.google.com/vpc/docs/vpc#ip-ranges
-func (t *TestVM) AddAliasIP(aliasIP string) {
+// AddAliasIP add alias IP to the network and subnetwork.
+func (t *TestVM) AddAliasIP(networkName, subnetworkName, subnetworkRangeName, aliasIP string) {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
 			i.NetworkInterfaces = []*compute.NetworkInterface{
 				{
-					Kind:       "compute#networkInterface",
-					Subnetwork: fmt.Sprintf("projects/%s/regions/%s/subnetworks/default", t.testWorkflow.wf.Project, regionFromZone(t.testWorkflow.wf.Zone)),
+					Network:    networkName,
+					Subnetwork: subnetworkName,
 					AccessConfigs: []*compute.AccessConfig{
 						{
-							Kind:        "compute#accessConfig",
-							Name:        "External NAT",
 							Type:        "ONE_TO_ONE_NAT",
-							NetworkTier: "PREMIUM",
 						},
 					},
 					AliasIpRanges: []*compute.AliasIpRange{
 						{
-							IpCidrRange: aliasIP,
+							IpCidrRange:         aliasIP,
+							SubnetworkRangeName: subnetworkRangeName,
 						},
 					},
 				},
@@ -165,7 +160,28 @@ func (t *TestVM) AddAliasIP(aliasIP string) {
 	}
 }
 
-func regionFromZone(zone string) string {
-	splits := strings.Split(zone, "-")[:2]
-	return strings.Join(splits, "-")
+func (t *TestVM) AddCustomNetwork(networkName, subnetworkName, rangeName, primary, secondary string) error {
+	createInstancesStep, ok := t.testWorkflow.wf.Steps[createVMsStepName]
+	if !ok {
+		return fmt.Errorf("create-%s step missing", t.name)
+	}
+
+	addCreateNetworkStep, err := t.testWorkflow.addCreateNetworkStep(t.name, networkName)
+	if err != nil {
+		return err
+	}
+
+	addCreateSubnetworkStep, err := t.testWorkflow.addCreateSubnetworkStep(t.name, networkName, subnetworkName, rangeName, primary, secondary)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(addCreateSubnetworkStep, addCreateNetworkStep); err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(createInstancesStep, addCreateSubnetworkStep); err != nil {
+		return err
+	}
+	return nil
 }

@@ -209,6 +209,52 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 	return startInstancesStep, nil
 }
 
+func (t *TestWorkflow) addCreateNetworkStep(stepname, networkName string) (*daisy.Step, error) {
+	createNetworks := &daisy.CreateNetworks{}
+	pFalse := false
+	network := &daisy.Network{
+		Network: compute.Network{
+			Name:                  networkName,
+		},
+		AutoCreateSubnetworks: &pFalse,
+	}
+	*createNetworks = append(*createNetworks, network)
+
+	createNetworksStep, err := t.wf.NewStep("create-network-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	createNetworksStep.CreateNetworks = createNetworks
+
+	return createNetworksStep, nil
+}
+
+func (t *TestWorkflow) addCreateSubnetworkStep(stepname, networkName, subnetworkName, rangeName, primaryRange, secondaryRange string) (*daisy.Step, error) {
+	createSubnetworks := &daisy.CreateSubnetworks{}
+	subnetwork := &daisy.Subnetwork{
+		Subnetwork: compute.Subnetwork{
+			Name:        subnetworkName,
+			IpCidrRange: primaryRange,
+			Network:     networkName,
+			SecondaryIpRanges: []*compute.SubnetworkSecondaryRange{
+				{
+					IpCidrRange: secondaryRange,
+					RangeName:   rangeName,
+				},
+			},
+		},
+	}
+	*createSubnetworks = append(*createSubnetworks, subnetwork)
+
+	createSubnetworksStep, err := t.wf.NewStep("create-sub-network-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	createSubnetworksStep.CreateSubnetworks = createSubnetworks
+
+	return createSubnetworksStep, nil
+}
+
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
 func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) error {
