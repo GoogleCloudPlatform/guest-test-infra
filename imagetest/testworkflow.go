@@ -78,7 +78,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, err := t.appendCreateVMStep(vmname, name)
+	createVMStep, err := t.appendCreateVMStep(vmname, name, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,75 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	return &TestVM{name: vmname, testWorkflow: t}, nil
 }
 
-func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, error) {
+// CreateTestVMWithCustomNetwork creates the necessary steps to create a VM with  the specified name and custom network to the workflow.
+func (t *TestWorkflow) CreateTestVMWithCustomNetwork(name, networkName,
+	subnetworkName, rangeName, primaryIPRange, secondaryIPRange, aliasIPRange string) (*TestVM, error) {
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	createDisksStep, err := t.appendCreateDisksStep(vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	addCreateNetworkStep, err := t.addCreateNetworkStep(vmname, networkName)
+	if err != nil {
+		return nil, err
+	}
+
+	addCreateSubnetworkStep, err := t.addCreateSubnetworkStep(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(addCreateSubnetworkStep, addCreateNetworkStep); err != nil {
+		return nil, err
+	}
+
+	networkinterface := []*compute.NetworkInterface{
+		{
+			Network:    networkName,
+			Subnetwork: subnetworkName,
+			AccessConfigs: []*compute.AccessConfig{
+				{
+					Type: "ONE_TO_ONE_NAT",
+				},
+			},
+			AliasIpRanges: []*compute.AliasIpRange{
+				{
+					IpCidrRange:         aliasIPRange,
+					SubnetworkRangeName: rangeName,
+				},
+			},
+		},
+	}
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, err := t.appendCreateVMStep(vmname, name, networkinterface)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, addCreateSubnetworkStep); err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	waitStep, err := t.addWaitStep(vmname, vmname, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t}, nil
+}
+
+func (t *TestWorkflow) appendCreateVMStep(name, hostname string, networkInterface []*compute.NetworkInterface) (*daisy.Step, error) {
 	attachedDisk := &compute.AttachedDisk{Source: name}
 
 	instance := &daisy.Instance{}
@@ -116,7 +184,10 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, e
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
 
+	instance.NetworkInterfaces = networkInterface
+
 	createInstances := &daisy.CreateInstances{}
+
 	createInstances.Instances = append(createInstances.Instances, instance)
 
 	createVMStep, ok := t.wf.Steps[createVMsStepName]
@@ -326,7 +397,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, project, zone, image string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.Name = name
 	t.Image = image
@@ -336,8 +407,6 @@ func NewTestWorkflow(name, project, zone, image string) (*TestWorkflow, error) {
 
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
-	t.wf.Project = project
-	t.wf.Zone = zone
 
 	return t, nil
 }

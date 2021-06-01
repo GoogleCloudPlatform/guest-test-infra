@@ -119,6 +119,15 @@ func (t *TestVM) Reboot() error {
 		return err
 	}
 
+	stopInstancesAfterRebootStep, err := t.testWorkflow.addStopStep("stoped-"+t.name, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesAfterRebootStep, waitStartedStep); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -132,57 +141,4 @@ func (t *TestVM) EnableSecureBoot() {
 			break
 		}
 	}
-}
-
-// AddAliasIP add alias IP to the network and subnetwork.
-func (t *TestVM) AddAliasIP(networkName, subnetworkName, subnetworkRangeName, aliasIP string) {
-	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
-		if i.Name == t.name {
-			i.NetworkInterfaces = []*compute.NetworkInterface{
-				{
-					Network:    networkName,
-					Subnetwork: subnetworkName,
-					AccessConfigs: []*compute.AccessConfig{
-						{
-							Type: "ONE_TO_ONE_NAT",
-						},
-					},
-					AliasIpRanges: []*compute.AliasIpRange{
-						{
-							IpCidrRange:         aliasIP,
-							SubnetworkRangeName: subnetworkRangeName,
-						},
-					},
-				},
-			}
-			break
-		}
-	}
-}
-
-// AddCustomNetwork add network and subnetwork with custom name and ip range.
-func (t *TestVM) AddCustomNetwork(networkName, subnetworkName, rangeName, primary, secondary string) error {
-	createInstancesStep, ok := t.testWorkflow.wf.Steps[createVMsStepName]
-	if !ok {
-		return fmt.Errorf("create-%s step missing", t.name)
-	}
-
-	addCreateNetworkStep, err := t.testWorkflow.addCreateNetworkStep(t.name, networkName)
-	if err != nil {
-		return err
-	}
-
-	addCreateSubnetworkStep, err := t.testWorkflow.addCreateSubnetworkStep(t.name, networkName, subnetworkName, rangeName, primary, secondary)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(addCreateSubnetworkStep, addCreateNetworkStep); err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(createInstancesStep, addCreateSubnetworkStep); err != nil {
-		return err
-	}
-	return nil
 }

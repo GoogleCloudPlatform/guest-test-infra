@@ -16,14 +16,13 @@ const (
 
 func TestAliasAfterReboot(t *testing.T) {
 	var networkInterface string
-
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10") || strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
@@ -38,30 +37,30 @@ func TestAliasAfterReboot(t *testing.T) {
 		t.Fatalf("failed on first boot")
 	}
 	// second boot
-	actual, err := getAliasIP(networkInterface)
+	actual, err := getGoogleRoutes(networkInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0/")
+	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(actual) != string(expected) {
+	if actual != expected {
 		t.Fatalf("alias ip is not as expected after reboot, expected %s, actual %s", expected, actual)
 	}
 }
 
-func getAliasIP(networkInterface string) ([]byte, error) {
+func getGoogleRoutes(networkInterface string) (string, error) {
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if len(b) == 0 {
-		return nil, fmt.Errorf("alias IPs not configured")
+		return "", fmt.Errorf("alias IPs not configured")
 	}
-	return b, nil
+	return strings.Split(string(b), " ")[1], nil
 }
 
 func TestAliasAgentRestart(t *testing.T) {
@@ -79,7 +78,7 @@ func TestAliasAgentRestart(t *testing.T) {
 		networkInterface = defaultInterface
 	}
 
-	beforeRestart, err := getAliasIP(networkInterface)
+	beforeRestart, err := getGoogleRoutes(networkInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,11 +87,11 @@ func TestAliasAgentRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	afterRestart, err := getAliasIP(networkInterface)
+	afterRestart, err := getGoogleRoutes(networkInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(beforeRestart) != string(afterRestart) {
+	if beforeRestart != afterRestart {
 		t.Fatalf("routes are inconsistent after restart, before %s after %s", beforeRestart, afterRestart)
 	}
 }

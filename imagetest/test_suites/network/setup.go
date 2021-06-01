@@ -22,14 +22,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestDefaultMTU")
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVMWithCustomNetwork("vm2", networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange, aliasIPRange)
 	if err != nil {
 		return err
 	}
-	if err := vm2.AddCustomNetwork(networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
-		return err
-	}
-	vm2.AddAliasIP(networkName, subnetworkName, rangeName, aliasIPRange)
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}

@@ -21,7 +21,7 @@ import (
 )
 
 func TestAddStartStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestAddStartStep(t *testing.T) {
 }
 
 func TestAddStopStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestAddStopStep(t *testing.T) {
 }
 
 func TestAddWaitStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestAddWaitStep(t *testing.T) {
 }
 
 func TestAddWaitStoppedStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 }
 
 func TestAppendCreateDisksStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -184,7 +184,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 }
 
 func TestAppendCreateVMStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "")
+	step, err := twf.appendCreateVMStep("vmname", "", nil)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateVMStep("vmname2", "")
+	step2, err := twf.appendCreateVMStep("vmname2", "", nil)
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -229,7 +229,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 }
 
 func TestAppendCreateVMStepCustomHostname(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -239,7 +239,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
+	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com", nil)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -259,7 +259,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 }
 
 func TestNewTestWorkflow(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "project", "zone", "image")
+	twf, err := NewTestWorkflow("name", "image")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
