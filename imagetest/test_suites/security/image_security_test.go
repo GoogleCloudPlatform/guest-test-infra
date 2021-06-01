@@ -90,9 +90,12 @@ func TestAutomaticUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-	if err := verifyServiceEnabled(image); err != nil {
-		t.Fatal(err)
+	if !strings.Contains(image, "debian") && !strings.Contains(image, "ubuntu") && !strings.Contains(image, "sles") {
+		if err := verifyServiceEnabled(image); err != nil {
+			t.Fatal(err)
+		}
 	}
+
 	// Check that the security packages are marked for automatic update
 	// https://wiki.debian.org/UnattendedUpgrades
 	// https://help.ubuntu.com/community/AutomaticSecurityUpdates
@@ -183,10 +186,9 @@ func verifySSHConfig() error {
 
 func verifySecurityUpgrade(image string) error {
 	var expectedBlock, expectedLine string
-	if isRhelbasedLinux(image) {
-		return nil
-	}
 	switch {
+	case isRhelbasedLinux(image):
+		return nil
 	case strings.Contains(image, "debian"):
 		expectedBlock = unattendedUpgradeBlockDebian
 		expectedLine = expectedDebian
@@ -236,17 +238,13 @@ func isRhelbasedLinux(image string) bool {
 func verifyServiceEnabled(image string) error {
 	var serviceName string
 	switch {
-	case strings.Contains(image, "debian"), strings.Contains(image, "ubuntu"), strings.Contains(image, "sles"):
-		return nil
 	case strings.Contains(image, "rhel-7") || strings.Contains(image, "centos-7"):
 		serviceName = "yum-cron"
 	default:
 		serviceName = "dnf-automatic.timer"
 	}
-	if _, _, err := runCommand("systemctl", "is-enabled", serviceName); err != nil {
-		return err
-	}
-	return nil
+	_, _, err := runCommand("systemctl", "is-enabled", serviceName)
+	return err
 }
 
 func verifyAutomaticUpdate(image string) error {
