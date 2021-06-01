@@ -83,12 +83,57 @@ func (t *TestVM) Reboot() error {
 		return fmt.Errorf("wait-%s step missing", t.name)
 	}
 
+	if err := t.RebootWithDependent(waitStep); err != nil {
+		return err
+	}
+	return nil
+}
+
+// EnableSecureBoot make the current test VMs in workflow with secure boot.
+func (t *TestVM) EnableSecureBoot() {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
+				EnableSecureBoot: true,
+			}
+			break
+		}
+	}
+}
+
+// ResizeDisk resize the disk of the current test VMs in workflow.
+func (t *TestVM) ResizeDiskAndReboot(diskSize int, isReboot bool) error {
+	// Grab the wait step that was added with CreateTestVM.
+	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
+	if !ok {
+		return fmt.Errorf("wait-%s step missing", t.name)
+	}
+
+	diskResizeStep, err := t.testWorkflow.addResizeDisk(t.name, t.name, int64(diskSize))
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(diskResizeStep, waitStep); err != nil {
+		return err
+	}
+	if isReboot {
+		if err := t.RebootWithDependent(diskResizeStep); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// RebootWithDependent same with Reboot except the last dependent step provided
+// by dependencyStep.
+func (t *TestVM) RebootWithDependent(dependencyStep *daisy.Step) error {
 	stopInstancesStep, err := t.testWorkflow.addStopStep(t.name, t.name)
 	if err != nil {
 		return err
 	}
 
-	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, waitStep); err != nil {
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, dependencyStep); err != nil {
 		return err
 	}
 
@@ -116,38 +161,6 @@ func (t *TestVM) Reboot() error {
 	}
 
 	if err := t.testWorkflow.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// EnableSecureBoot make the current test VMs in workflow with secure boot.
-func (t *TestVM) EnableSecureBoot() {
-	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
-		if i.Name == t.name {
-			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
-				EnableSecureBoot: true,
-			}
-			break
-		}
-	}
-}
-
-// ResizeDisk resize the disk of the current test VMs in workflow.
-func (t *TestVM) ResizeDisk(diskSize int) error {
-	// Grab the wait step that was added with CreateTestVM.
-	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
-	if !ok {
-		return fmt.Errorf("wait-%s step missing", t.name)
-	}
-
-	diskResizeStep, err := t.testWorkflow.addResizeDisk(t.name, t.name, int64(diskSize))
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(diskResizeStep, waitStep); err != nil {
 		return err
 	}
 	return nil

@@ -13,11 +13,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := vm.ResizeDisk(resizeDiskSize); err != nil {
+	if err := vm.ResizeDiskAndReboot(resizeDiskSize, true); err != nil {
 		return err
 	}
-	if err := vm.Reboot(); err != nil {
-		return err
-	}
+
 	return nil
 }
