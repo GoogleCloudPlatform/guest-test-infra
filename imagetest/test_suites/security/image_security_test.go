@@ -107,7 +107,9 @@ func TestAutomaticUpdates(t *testing.T) {
 			t.Fatal(err)
 		}
 	case strings.Contains(image, "sles"):
+		t.Skip("Not supported on SLES")
 	case strings.Contains(image, "fedora"):
+		t.Skip("Not supported on Fedora")
 	case strings.Contains(image, "centos"):
 		if err := verifyServiceEnabled(image); err != nil {
 			t.Fatal(err)
