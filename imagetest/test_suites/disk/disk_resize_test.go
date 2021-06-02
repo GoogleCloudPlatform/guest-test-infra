@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	gb              = 1024.0 * 1024.0 * 1024.0
+	gb = 1024.0 * 1024.0 * 1024.0
 )
 
 var (
@@ -35,7 +35,7 @@ func TestDiskResize(t *testing.T) {
 
 func verifyDiskSize(expectedGb int) error {
 	var stat unix.Statfs_t
-	if err := unix.Statfs("/", &stat); err !=nil{
+	if err := unix.Statfs("/", &stat); err != nil {
 		return err
 	}
 

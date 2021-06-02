@@ -101,7 +101,7 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-// ResizeDisk resize the disk of the current test VMs in workflow.
+// ResizeDiskAndReboot resize the disk of the current test VMs in workflow and reboot vm.
 func (t *TestVM) ResizeDiskAndReboot(diskSize int, isReboot bool) error {
 	// Grab the wait step that was added with CreateTestVM.
 	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
