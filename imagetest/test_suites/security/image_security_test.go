@@ -90,20 +90,42 @@ func TestAutomaticUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-	if !strings.Contains(image, "debian") && !strings.Contains(image, "ubuntu") && !strings.Contains(image, "sles") {
+
+	switch {
+	case strings.Contains(image, "debian"):
+		if err := verifySecurityUpgrade(image); err != nil {
+			t.Fatal(err)
+		}
+		if err := verifyAutomaticUpdate(image); err != nil {
+			t.Fatal(err)
+		}
+	case strings.Contains(image, "ubuntu"):
+		if err := verifySecurityUpgrade(image); err != nil {
+			t.Fatal(err)
+		}
+		if err := verifyAutomaticUpdate(image); err != nil {
+			t.Fatal(err)
+		}
+	case strings.Contains(image, "sles"):
+	case strings.Contains(image, "fedora"):
+	case strings.Contains(image, "centos"):
 		if err := verifyServiceEnabled(image); err != nil {
 			t.Fatal(err)
 		}
-	}
-
-	// Check that the security packages are marked for automatic update
-	// https://wiki.debian.org/UnattendedUpgrades
-	// https://help.ubuntu.com/community/AutomaticSecurityUpdates
-	if err := verifySecurityUpgrade(image); err != nil {
-		t.Fatal(err)
-	}
-	if err := verifyAutomaticUpdate(image); err != nil {
-		t.Fatal(err)
+	case strings.Contains(image, "rhel"):
+		if err := verifyServiceEnabled(image); err != nil {
+			t.Fatal(err)
+		}
+	case strings.Contains(image, "almalinux"):
+		if err := verifyServiceEnabled(image); err != nil {
+			t.Fatal(err)
+		}
+	case strings.Contains(image, "rocky-linux"):
+		if err := verifyServiceEnabled(image); err != nil {
+			t.Fatal(err)
+		}
+	default:
+		t.Fatalf("image %s not support", image)
 	}
 }
 
@@ -184,11 +206,12 @@ func verifySSHConfig() error {
 	return nil
 }
 
+// verifySecurityUpgrade Check that the security packages are marked for automatic update.
+// https://wiki.debian.org/UnattendedUpgrades
+// https://help.ubuntu.com/community/AutomaticSecurityUpdates
 func verifySecurityUpgrade(image string) error {
 	var expectedBlock, expectedLine string
 	switch {
-	case isRhelbasedLinux(image):
-		return nil
 	case strings.Contains(image, "debian"):
 		expectedBlock = unattendedUpgradeBlockDebian
 		expectedLine = expectedDebian
@@ -229,12 +252,6 @@ func verifySecurityUpgrade(image string) error {
 	return fmt.Errorf("missing Unattended-Upgrade config")
 }
 
-func isRhelbasedLinux(image string) bool {
-	return strings.Contains(image, "centos") || strings.Contains(image, "rhel") ||
-		strings.Contains(image, "rocky-linux") || strings.Contains(image, "almalinux") ||
-		strings.Contains(image, "sles")
-}
-
 func verifyServiceEnabled(image string) error {
 	var serviceName string
 	switch {
@@ -248,10 +265,6 @@ func verifyServiceEnabled(image string) error {
 }
 
 func verifyAutomaticUpdate(image string) error {
-	if isRhelbasedLinux(image) {
-		return nil
-	}
-
 	automaticUpdateConfig, err := readAPTConfig(image)
 	if err != nil {
 		return err
