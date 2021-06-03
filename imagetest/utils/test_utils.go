@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -26,7 +27,7 @@ func GetRealVMName(name string) (string, error) {
 	if len(parts) != 3 {
 		return "", errors.New("hostname doesn't match scheme")
 	}
-	return strings.Join([]string{parts[0], name, parts[2]}, "-"), nil
+	return strings.Join([]string{name, parts[1], parts[2]}, "-"), nil
 }
 
 // GetMetadataAttribute returns an attribute from metadata if present, and error if not.
@@ -103,4 +104,15 @@ func ExtractBaseImageName(image string) (string, error) {
 	}
 	imageName := strings.Join(splits[:len(splits)-1], "-")
 	return imageName, nil
+}
+
+// GenerateSSHKeyPair generate ssh key pair.
+func GenerateSSHKeyPair(user string) error {
+	email := fmt.Sprintf("%s@google.com", user)
+	commandArgs := []string{"-t", "rsa", "-C", email, "-f", "id_rsa", "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }

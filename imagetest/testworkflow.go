@@ -140,6 +140,7 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, e
 	instance.Metadata = make(map[string]string)
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
+	instance.Metadata["_ssh_key_url"] = "${SOURCESPATH}/ssh-key"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
 
 	createInstances := &daisy.CreateInstances{}
@@ -369,6 +370,7 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 
 		ts.wf.Sources["wrapper"] = testWrapperPath
 		ts.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", ts.Name)
+		ts.wf.Sources["ssh-key"] = "id_rsa"
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to ts.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
