@@ -7,7 +7,10 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "ssh"
 
-const user = "test-user"
+const (
+	user        = "test-user"
+	osloginUser = "test-oslogin-user"
+)
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -21,7 +24,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm.AddMetadata("block-project-ssh-keys", "true")
-	vm.RunTests("TestSSH")
+	vm.RunTests("TestSSH|TestGetentPasswdAllUsers|TestGetentPasswdOsLoginUser|TestGetentPasswdOsLoginUid")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
@@ -30,5 +33,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.AddUser(user, publicKey)
 	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
+
+	publicKeyOslogin, err := t.AddSSHKey(osloginUser)
+	if err != nil {
+		return err
+	}
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.AddUser(osloginUser, publicKeyOslogin)
+	vm3.AddMetadata("enable-oslogin", "true")
+	vm3.RunTests("TestEmptyTest")
 	return nil
 }
