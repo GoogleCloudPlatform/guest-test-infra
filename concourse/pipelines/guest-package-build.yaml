@@ -144,7 +144,23 @@ jobs:
         vars:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
-          repo: google-guest-agent
+          repo: google-guest-agent-stretch
+        params:
+          ENVIRONMENT: staging
+      - task: inject-guest-agent-deb10
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          universe: cloud-apt
+          repo: google-guest-agent-buster
+        params:
+          ENVIRONMENT: staging
+      - task: inject-guest-agent-deb11
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          universe: cloud-apt
+          repo: google-guest-agent-bullseye
         params:
           ENVIRONMENT: staging
       - task: inject-guest-agent-el7
