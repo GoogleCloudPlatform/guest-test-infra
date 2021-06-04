@@ -123,7 +123,8 @@ func main() {
 			disk.Name,
 			disk.TestSetup,
 		},
-		{ 	security.Name,
+		{
+			security.Name,
 			security.TestSetup,
 		},
 	}
