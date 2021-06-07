@@ -119,15 +119,6 @@ func (t *TestVM) Reboot() error {
 		return err
 	}
 
-	stopInstancesAfterRebootStep, err := t.testWorkflow.addStopStep("stoped-"+t.name, t.name)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(stopInstancesAfterRebootStep, waitStartedStep); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -141,4 +132,31 @@ func (t *TestVM) EnableSecureBoot() {
 			break
 		}
 	}
+}
+
+// EnableNetwork make the current test VMs in workflow use the provided network.
+func (t *TestVM) EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeName string) error {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			network := compute.NetworkInterface{
+				Network:    networkName,
+				Subnetwork: subnetworkName,
+				AccessConfigs: []*compute.AccessConfig{
+					{
+						Type: "ONE_TO_ONE_NAT",
+					},
+				},
+				AliasIpRanges: []*compute.AliasIpRange{
+					{
+						IpCidrRange:         aliasIPRange,
+						SubnetworkRangeName: rangeName,
+					},
+				},
+			}
+
+			i.NetworkInterfaces = append(i.NetworkInterfaces, &network)
+			break
+		}
+	}
+	return nil
 }

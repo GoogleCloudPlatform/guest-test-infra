@@ -194,7 +194,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "", nil)
+	step, err := twf.appendCreateVMStep("vmname", "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateVMStep("vmname2", "", nil)
+	step2, err := twf.appendCreateVMStep("vmname2", "")
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -239,7 +239,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com", nil)
+	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
