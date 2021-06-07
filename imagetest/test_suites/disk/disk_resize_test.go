@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	gb = 1024.0 * 1024.0 * 1024.0
+	markerFile      = "/boot-marker"
+	gb              = 1024.0 * 1024.0 * 1024.0
+	defaultDiskSize = 20
 )
 
 var (
@@ -30,6 +32,19 @@ func TestMain(m *testing.M) {
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
+	_, err := os.Stat(markerFile)
+
+	if os.IsNotExist(err) {
+		// first boot
+		if _, err := os.Create(markerFile); err != nil {
+			t.Fatalf("failed creating marker file: %v", err)
+		}
+		if err := verifyDiskSize(defaultDiskSize); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Total blocks * size per block = total space in bytes
 	if err := verifyDiskSize(resizeDiskSize); err != nil {
 		t.Fatal(err)
 	}
@@ -40,9 +55,8 @@ func verifyDiskSize(expectedGb int) error {
 	if err := unix.Statfs("/", &stat); err != nil {
 		return err
 	}
-
 	// Total blocks * size per block = total space in bytes
-	diskSize := uint64(stat.Blocks) * uint64(stat.Bsize)
+	diskSize := stat.Blocks * uint64(stat.Bsize)
 	expectedSize := expectedGb * gb
 	maxDiff := float64(expectedSize) * 0.1
 	if math.Abs(float64(diskSize)-float64(expectedSize)) > maxDiff {

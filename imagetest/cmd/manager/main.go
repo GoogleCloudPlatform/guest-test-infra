@@ -120,12 +120,12 @@ func main() {
 			network.TestSetup,
 		},
 		{
-			disk.Name,
-			disk.TestSetup,
-		},
-		{
 			security.Name,
 			security.TestSetup,
+		},
+		{
+			disk.Name,
+			disk.TestSetup,
 		},
 	}
 

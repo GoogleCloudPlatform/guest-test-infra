@@ -16,6 +16,7 @@ package imagetest
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"google.golang.org/api/compute/v1"
@@ -77,16 +78,72 @@ func (t *TestVM) SetStartupScript(script string) {
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your
 // test package must handle being run twice.
 func (t *TestVM) Reboot() error {
-	// Grab the wait step that was added with CreateTestVM.
-	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
-	if !ok {
-		return fmt.Errorf("wait-%s step missing", t.name)
+	t.testWorkflow.counter++
+	stepSuffix := fmt.Sprintf("%s-%s", t.name, strconv.Itoa(t.testWorkflow.counter))
+
+	lastStep, err := t.testWorkflow.lastResolveStep()
+	if err != nil {
+		return fmt.Errorf("failed resolve last step")
 	}
 
-	if err := t.RebootWithDependent(waitStep); err != nil {
+	stopInstancesStep, err := t.testWorkflow.addStopStep(stepSuffix, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, lastStep); err != nil {
+		return err
+	}
+
+	waitStopStep, err := t.testWorkflow.addWaitStep("stopped-"+stepSuffix, t.name, true)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(waitStopStep, stopInstancesStep); err != nil {
+		return err
+	}
+
+	startInstancesStep, err := t.testWorkflow.addStartStep(stepSuffix, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(startInstancesStep, waitStopStep); err != nil {
+		return err
+	}
+
+	waitStartedStep, err := t.testWorkflow.addWaitStep("started-"+stepSuffix, t.name, false)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
 		return err
 	}
 	return nil
+}
+
+// ResizeDiskAndReboot resize the disk of the current test VMs and reboot
+func (t *TestVM) ResizeDiskAndReboot(vmname string, diskSize int) error {
+	t.testWorkflow.counter++
+	stepSuffix := fmt.Sprintf("%s-%s", t.name, strconv.Itoa(t.testWorkflow.counter))
+
+	lastStep, err := t.testWorkflow.lastResolveStep()
+	if err != nil {
+		return fmt.Errorf("failed resolve last step")
+	}
+
+	diskResizeStep, err := t.testWorkflow.addDiskResizeStep(stepSuffix, vmname, diskSize)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(diskResizeStep, lastStep); err != nil {
+		return err
+	}
+
+	return t.Reboot()
 }
 
 // EnableSecureBoot make the current test VMs in workflow with secure boot.
@@ -99,69 +156,4 @@ func (t *TestVM) EnableSecureBoot() {
 			break
 		}
 	}
-}
-
-// ResizeDiskAndReboot resize the disk of the current test VMs in workflow and reboot vm.
-func (t *TestVM) ResizeDiskAndReboot(diskSize int, isReboot bool) error {
-	// Grab the wait step that was added with CreateTestVM.
-	waitStep, ok := t.testWorkflow.wf.Steps["wait-"+t.name]
-	if !ok {
-		return fmt.Errorf("wait-%s step missing", t.name)
-	}
-
-	diskResizeStep, err := t.testWorkflow.addResizeDisk(t.name, t.name, int64(diskSize))
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(diskResizeStep, waitStep); err != nil {
-		return err
-	}
-	if isReboot {
-		if err := t.RebootWithDependent(diskResizeStep); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// RebootWithDependent same with Reboot except the last dependent step provided
-// by dependencyStep.
-func (t *TestVM) RebootWithDependent(dependencyStep *daisy.Step) error {
-	stopInstancesStep, err := t.testWorkflow.addStopStep(t.name, t.name)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, dependencyStep); err != nil {
-		return err
-	}
-
-	waitStopStep, err := t.testWorkflow.addWaitStep("stopped-"+t.name, t.name, true)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(waitStopStep, stopInstancesStep); err != nil {
-		return err
-	}
-
-	startInstancesStep, err := t.testWorkflow.addStartStep(t.name, t.name)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(startInstancesStep, waitStopStep); err != nil {
-		return err
-	}
-
-	waitStartedStep, err := t.testWorkflow.addWaitStep("started-"+t.name, t.name, false)
-	if err != nil {
-		return err
-	}
-
-	if err := t.testWorkflow.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
-		return err
-	}
-	return nil
 }
