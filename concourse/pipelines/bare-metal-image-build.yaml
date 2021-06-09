@@ -295,7 +295,7 @@ jobs:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-metal-dev-gcs
-    passed: [built-rhel-8-metal-dev]
+    passed: [build-rhel-8-metal-dev]
     trigger: false
     params:
       skip_download: "true"
