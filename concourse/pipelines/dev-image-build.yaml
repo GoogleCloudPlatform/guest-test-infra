@@ -65,20 +65,6 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "dev/ubuntu-1804-dev-v([0-9]+).tar.gz"
-- name: rhel-7-metal-dev-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "rhel/rhel-7-metal-dev-v([0-9]+).tar.gz"
-- name: rhel-8-metal-dev-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "rhel/rhel-8-metal-dev-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -272,60 +258,6 @@ jobs:
       wf: "linux_dev/ubuntu_1804_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
-- name: build-rhel-7-metal-dev
-  plan:
-  - get: compute-image-tools
-  - get: guest-test-infra
-  - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
-    vars:
-      prefix: "rhel-7-metal-dev"
-  - put: rhel-7-metal-dev-gcs
-    params:
-      file: build-id-dir/rhel-7-metal-dev*
-    get_params:
-      skip_download: "true"
-  - load_var: gcs-url
-    file: rhel-7-metal-dev-gcs/url
-  - task: generate-build-date
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
-    file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-rhel-7-metal-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
-    vars:
-      wf: "linux_dev/rhel_7_metal_dev.wf.json"
-      gcs_url: ((.:gcs-url))
-      build_date: ((.:build-date))
-- name: build-rhel-8-metal-dev
-  plan:
-  - get: compute-image-tools
-  - get: guest-test-infra
-  - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
-    vars:
-      prefix: "rhel-8-metal-dev"
-  - put: rhel-8-metal-dev-gcs
-    params:
-      file: build-id-dir/rhel-8-metal-dev*
-    get_params:
-      skip_download: "true"
-  - load_var: gcs-url
-    file: rhel-8-metal-dev-gcs/url
-  - task: generate-build-date
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: build-date
-    file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: daisy-build-rhel-8-metal-dev
-    file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
-    vars:
-      wf: "linux_dev/rhel_8_metal_dev.wf.json"
-      gcs_url: ((.:gcs-url))
-      build_date: ((.:build-date))
 
 # Publish to dev stage
 - name: publish-debian-staging
@@ -434,56 +366,6 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
       environment: "prod"
-- name: publish-to-staging-rhel-7-metal-dev
-  plan:
-  - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-7-metal-dev-gcs
-    passed: [build-rhel-7-metal-dev]
-    trigger: false
-    params:
-      skip_download: "true"
-  - load_var: source-version
-    file: rhel-7-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: generate-version
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: publish-version
-    file: publish-version/version  # produced from generate-version task
-  - task: publish-rhel-7-metal-dev
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
-    vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
-      source_version: v((.:source-version))
-      publish_version: ((.:publish-version))
-      wf: "linux_dev/rhel_7_metal_dev.publish.json"
-      environment: "dev"
-- name: publish-to-staging-rhel-8-metal-dev
-  plan:
-  - get: guest-test-infra
-  - get: compute-image-tools
-  - get: rhel-8-metal-dev-gcs
-    passed: [build-rhel-8-metal-dev]
-    trigger: false
-    params:
-      skip_download: "true"
-  - load_var: source-version
-    file: rhel-8-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: generate-version
-    file: guest-test-infra/concourse/tasks/generate-version.yaml
-  - load_var: publish-version
-    file: publish-version/version  # produced from generate-version task
-  - task: publish-rhel-8-metal-dev
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
-    vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
-      source_version: v((.:source-version))
-      publish_version: ((.:publish-version))
-      wf: "linux_dev/rhel_8_metal_dev.publish.json"
-      environment: "dev"
 
 groups:
 - name: debian
@@ -503,11 +385,3 @@ groups:
   jobs:
   - build-ubuntu-1604-dev
   - build-ubuntu-1804-dev
-- name: rhel
-  jobs:
-  - build-rhel-7-metal-dev
-  - build-rhel-8-metal-dev
-  - publish-to-staging-rhel-7-metal-dev
-  - publish-to-staging-rhel-8-metal-dev
-
-
