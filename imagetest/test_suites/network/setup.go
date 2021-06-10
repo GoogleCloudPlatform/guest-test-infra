@@ -12,7 +12,7 @@ const (
 	networkName      = "test-net"
 	subnetworkName   = "test-subnet"
 	rangeName        = "secondary-range"
-	VM2              = "vm2"
+	vm2              = "vm2"
 )
 
 // TestSetup sets up the test workflow.
@@ -23,13 +23,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestDefaultMTU")
 
-	if err := t.CreateNetwork(VM2, networkName); err != nil {
+	if err := t.CreateNetwork(vm2, networkName); err != nil {
 		return err
 	}
-	if err := t.CreateSubNetwork(VM2, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
+	if err := t.CreateSubNetwork(vm2, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
 		return err
 	}
-	vm2, err := t.CreateTestVM(VM2)
+	vm2, err := t.CreateTestVM(vm2)
 	if err != nil {
 		return err
 	}

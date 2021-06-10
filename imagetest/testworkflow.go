@@ -272,7 +272,7 @@ func (t *TestWorkflow) CreateSubNetwork(vmname, networkName, subnetworkName, ran
 		return fmt.Errorf("create-sub-net-%s step missing", vmname)
 	}
 
-	createNetworkStepName, ok := t.wf.Steps["create-network-" + vmname]
+	createNetworkStepName, ok := t.wf.Steps["create-network-"+vmname]
 	if !ok {
 		return fmt.Errorf("create-network-%s step missing", vmname)
 	}
