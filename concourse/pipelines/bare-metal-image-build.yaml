@@ -340,7 +340,7 @@ jobs:
       source_gcs_path: "gs://gce-image-archive/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "bare_metal/rhel_7.publish_metal.json"
+      wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "prod"
 - name: publish-to-prod-rhel-8-metal
   plan:
@@ -365,5 +365,5 @@ jobs:
       source_gcs_path: "gs://gce-image-archive/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "bare_metal/rhel_8.publish_metal.json"
+      wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "prod"
