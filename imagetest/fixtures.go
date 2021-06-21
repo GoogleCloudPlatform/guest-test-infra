@@ -16,7 +16,6 @@ package imagetest
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"google.golang.org/api/compute/v1"
@@ -79,9 +78,9 @@ func (t *TestVM) SetStartupScript(script string) {
 // test package must handle being run twice.
 func (t *TestVM) Reboot() error {
 	t.testWorkflow.counter++
-	stepSuffix := fmt.Sprintf("%s-%s", t.name, strconv.Itoa(t.testWorkflow.counter))
+	stepSuffix := fmt.Sprintf("%s-%d", t.name, t.testWorkflow.counter)
 
-	lastStep, err := t.testWorkflow.lastResolveStep()
+	lastStep, err := t.testWorkflow.getLastStepForVM(t.name)
 	if err != nil {
 		return fmt.Errorf("failed resolve last step")
 	}
@@ -127,9 +126,9 @@ func (t *TestVM) Reboot() error {
 // ResizeDiskAndReboot resize the disk of the current test VMs and reboot
 func (t *TestVM) ResizeDiskAndReboot(vmname string, diskSize int) error {
 	t.testWorkflow.counter++
-	stepSuffix := fmt.Sprintf("%s-%s", t.name, strconv.Itoa(t.testWorkflow.counter))
+	stepSuffix := fmt.Sprintf("%s-%d", t.name, t.testWorkflow.counter)
 
-	lastStep, err := t.testWorkflow.lastResolveStep()
+	lastStep, err := t.testWorkflow.getLastStepForVM(vmname)
 	if err != nil {
 		return fmt.Errorf("failed resolve last step")
 	}
