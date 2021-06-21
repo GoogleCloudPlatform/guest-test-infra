@@ -48,6 +48,8 @@ type TestWorkflow struct {
 	skipped        bool
 	skippedMessage string
 	wf             *daisy.Workflow
+	// Global counter for all daisy steps on all VMs
+	counter int
 }
 
 // SingleVMTest configures one VM running tests.
@@ -194,6 +196,20 @@ func (t *TestWorkflow) addStopStep(stepname, vmname string) (*daisy.Step, error)
 	stopInstancesStep.StopInstances = stopInstances
 
 	return stopInstancesStep, nil
+}
+
+func (t *TestWorkflow) addDiskResizeStep(stepname, vmname string, diskSize int) (*daisy.Step, error) {
+	resizeDisk := &daisy.ResizeDisk{}
+	resizeDisk.DisksResizeRequest.SizeGb = int64(diskSize)
+	resizeDisk.Name = vmname
+	resizeDiskStepName := "resize-disk-" + stepname
+	resizeDiskStep, err := t.wf.NewStep(resizeDiskStepName)
+	if err != nil {
+		return nil, err
+	}
+	resizeDiskStep.ResizeDisks = &daisy.ResizeDisks{resizeDisk}
+
+	return resizeDiskStep, nil
 }
 
 func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error) {
@@ -364,6 +380,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 // NewTestWorkflow returns a new TestWorkflow.
 func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
+	t.counter = 0
 	t.Name = name
 	t.Image = image
 
@@ -515,4 +532,26 @@ func parseResult(res testResult) *testSuite {
 
 	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
 	return ret
+}
+
+func (t *TestWorkflow) lastResolveStep() (*daisy.Step, error) {
+	reverseDependencies := make(map[string]string)
+	for dependent, dependencies := range t.wf.Dependencies {
+		for _, dependency := range dependencies {
+			if _, ok := reverseDependencies[dependency]; ok {
+				return nil, fmt.Errorf("dependency %s is not linear", dependency)
+			}
+			reverseDependencies[dependency] = dependent
+		}
+	}
+
+	lastStepName := resolveStep(reverseDependencies, createDisksStepName)
+	return t.wf.Steps[lastStepName], nil
+}
+
+func resolveStep(reverseDependencies map[string]string, currentStep string) string {
+	if _, ok := reverseDependencies[currentStep]; !ok {
+		return currentStep
+	}
+	return resolveStep(reverseDependencies, reverseDependencies[currentStep])
 }

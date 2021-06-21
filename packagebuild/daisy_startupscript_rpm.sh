@@ -98,8 +98,8 @@ for spec in $TOBUILD; do
   yum-builddep -y "./packaging/${spec}"
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
-  cp ./packaging/*.tar.gz "${RPMDIR}/SOURCES/"
-  cp ./packaging/*.patch "${RPMDIR}/SOURCES/"
+  cp ./packaging/*.tar.gz "${RPMDIR}/SOURCES/" || :
+  cp ./packaging/*.patch "${RPMDIR}/SOURCES/" || :
 
   sed -i"" "/^Version/aVcs: ${COMMITURL}" "${RPMDIR}/SPECS/${spec}"
 
