@@ -24,6 +24,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-20h2-dc-core-v([0-9]+).tar.gz"
+- name: windows-20h2-core-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-20h2-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2004-core-gcs
   type: gcs
   source:
@@ -31,6 +38,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2004-dc-core-v([0-9]+).tar.gz"
+- name: windows-2004-core-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2004-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2019-gcs
   type: gcs
   source:
@@ -38,6 +52,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-v([0-9]+).tar.gz"
+- name: windows-2019-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2019-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2019-core-gcs
   type: gcs
   source:
@@ -45,6 +66,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-core-v([0-9]+).tar.gz"
+- name: windows-2019-core-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2019-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2016-gcs
   type: gcs
   source:
@@ -52,6 +80,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-v([0-9]+).tar.gz"
+- name: windows-2016-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2016-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2016-core-gcs
   type: gcs
   source:
@@ -59,6 +94,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-core-v([0-9]+).tar.gz"
+- name: windows-2016-core-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2016-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2012r2-gcs
   type: gcs
   source:
@@ -66,6 +108,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-v([0-9]+).tar.gz"
+- name: windows-2012r2-internal-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2012-r2-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2012r2-core-gcs
   type: gcs
   source:
@@ -73,6 +122,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-core-v([0-9]+).tar.gz"
+- name: windows-2012r2-internal-core-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2012-r2-dc-core-internal-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -92,6 +148,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-20h2-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-20h2-core-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -103,6 +161,7 @@ jobs:
     vars:
       wf: "windows/windows-server-20h2-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.winserver-20h2-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -126,6 +185,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2004-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2004-core-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -137,6 +198,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2004-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.winserver-2004-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -160,6 +222,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2019-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2019-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -171,6 +235,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2019-dc-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2019-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -194,6 +259,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2019-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2019-core-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -205,6 +272,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2019-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2019-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -228,6 +296,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2016-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2016-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -239,6 +309,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2016-dc-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2016-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -262,6 +333,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2016-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2016-core-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -273,6 +346,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2016-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2016-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -296,6 +370,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2012r2-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2012r2-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -307,6 +383,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2012r2-dc-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2012-r2-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
@@ -330,6 +407,8 @@ jobs:
       skip_download: "true"
   - load_var: gcs-url
     file: windows-2012r2-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2012r2-core-internal-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -341,6 +420,7 @@ jobs:
     vars:
       wf: "windows/windows-server-2012r2-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
+      gcs_interal_url: ((.:gcs-internal-url))
       iso: ((iso-paths.win2012-r2-64))
       pwsh: ((windows-paths.gcs_pwsh))
       dotnet48: ((windows-paths.gcs_dotnet48))
