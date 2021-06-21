@@ -158,8 +158,29 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-// EnableNetwork make the current test VMs in workflow use the provided network.
+// EnableNetwork ensure the create network step run before create test VMs and
+// current test VMs in workflow use it
 func (t *TestVM) EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeName string) error {
+	firstStep, ok := t.testWorkflow.wf.Steps[createDisksStepName]
+	if !ok {
+		return fmt.Errorf("failed resolve first step")
+	}
+
+	createNetworkStepName, ok := t.testWorkflow.wf.Steps["create-network-" + t.name]
+	if !ok {
+		return fmt.Errorf("create-network-%s step missing", t.name)
+	}
+	createSubNetworkStepName, ok := t.testWorkflow.wf.Steps["create-sub-network-"+t.name]
+	if !ok {
+		return fmt.Errorf("create-sub-network-%s step missing", t.name)
+	}
+	if err := t.testWorkflow.wf.AddDependency(createSubNetworkStepName, createNetworkStepName); err != nil {
+		return err
+	}
+	if err := t.testWorkflow.wf.AddDependency(firstStep, createSubNetworkStepName); err != nil {
+		return err
+	}
+
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
 			network := compute.NetworkInterface{

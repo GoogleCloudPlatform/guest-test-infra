@@ -271,39 +271,21 @@ func (t *TestWorkflow) addCreateSubnetworkStep(vmname, networkName, subnetworkNa
 	return createSubnetworksStep, nil
 }
 
-// CreateNetwork creates custom network
-// Using EnableNetwork method provided by TestVM to config network on vm
+// CreateNetwork creates custom network. Using EnableNetwork method provided by
+// TestVM to config network on vm
 func (t *TestWorkflow) CreateNetwork(vmname, networkName string) error {
-	_, err := t.addCreateNetworkStep(vmname, networkName)
-	if err != nil {
+	if _, err := t.addCreateNetworkStep(vmname, networkName); err != nil {
 		return err
 	}
 	return nil
 }
 
-// CreateSubNetwork creates custom subnetwork.
+// CreateSubNetwork creates custom subnetwork. Using EnableNetwork method
+// provided by TestVM to config network on vm
 func (t *TestWorkflow) CreateSubNetwork(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange string) error {
-	addCreateSubnetworkStep, err := t.addCreateSubnetworkStep(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange)
-	if err != nil {
+	if _, err := t.addCreateSubnetworkStep(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
 		return fmt.Errorf("create-sub-net-%s step missing", vmname)
 	}
-
-	createNetworkStepName, ok := t.wf.Steps["create-network-"+vmname]
-	if !ok {
-		return fmt.Errorf("create-network-%s step missing", vmname)
-	}
-	if err := t.wf.AddDependency(addCreateSubnetworkStep, createNetworkStepName); err != nil {
-		return err
-	}
-
-	createVMStep, ok := t.wf.Steps[createVMsStepName]
-	if !ok {
-		return fmt.Errorf("%s step missing", createVMsStepName)
-	}
-	if err := t.wf.AddDependency(createVMStep, addCreateSubnetworkStep); err != nil {
-		return err
-	}
-
 	return nil
 }
 
