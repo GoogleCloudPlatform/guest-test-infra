@@ -48,6 +48,8 @@ type TestWorkflow struct {
 	skipped        bool
 	skippedMessage string
 	wf             *daisy.Workflow
+	// Global counter for all daisy steps on all VMs. This is an interim solution in order to prevent step-name collisions.
+	counter int
 }
 
 // SingleVMTest configures one VM running tests.
@@ -196,6 +198,20 @@ func (t *TestWorkflow) addStopStep(stepname, vmname string) (*daisy.Step, error)
 	return stopInstancesStep, nil
 }
 
+func (t *TestWorkflow) addDiskResizeStep(stepname, vmname string, diskSize int) (*daisy.Step, error) {
+	resizeDisk := &daisy.ResizeDisk{}
+	resizeDisk.DisksResizeRequest.SizeGb = int64(diskSize)
+	resizeDisk.Name = vmname
+	resizeDiskStepName := "resize-disk-" + stepname
+	resizeDiskStep, err := t.wf.NewStep(resizeDiskStepName)
+	if err != nil {
+		return nil, err
+	}
+	resizeDiskStep.ResizeDisks = &daisy.ResizeDisks{resizeDisk}
+
+	return resizeDiskStep, nil
+}
+
 func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error) {
 	startInstances := &daisy.StartInstances{}
 	startInstances.Instances = append(startInstances.Instances, vmname)
@@ -282,6 +298,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 // NewTestWorkflow returns a new TestWorkflow.
 func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
+	t.counter = 0
 	t.Name = name
 	t.Image = image
 
@@ -433,4 +450,30 @@ func parseResult(res testResult) *testSuite {
 
 	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
 	return ret
+}
+
+func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
+	step := "wait-" + vmname
+	if _, ok := t.wf.Steps[step]; !ok {
+		return nil, fmt.Errorf("no step " + step)
+	}
+	rdeps := make(map[string][]string)
+	for dependent, dependencies := range t.wf.Dependencies {
+		for _, dependency := range dependencies {
+			rdeps[dependency] = append(rdeps[dependency], dependent)
+		}
+	}
+
+	for {
+		deps, ok := rdeps[step]
+		if !ok {
+			// no more steps depend on this one
+			break
+		}
+		if len(deps) > 1 {
+			return nil, fmt.Errorf("workflow has non-linear dependencies")
+		}
+		step = deps[0]
+	}
+	return t.wf.Steps[step], nil
 }
