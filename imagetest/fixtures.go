@@ -165,7 +165,7 @@ func (t *TestVM) EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeN
 		return fmt.Errorf("failed resolve first step")
 	}
 
-	createNetworkStepName, ok := t.testWorkflow.wf.Steps["create-network-" + t.name]
+	createNetworkStepName, ok := t.testWorkflow.wf.Steps["create-network-"+t.name]
 	if !ok {
 		return fmt.Errorf("create-network-%s step missing", t.name)
 	}
