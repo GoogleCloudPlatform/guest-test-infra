@@ -270,3 +270,99 @@ func TestNewTestWorkflow(t *testing.T) {
 		t.Error("test workflow has initial steps")
 	}
 }
+
+func TestGetLastStepForVM(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	_, err = twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	step, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if twf.wf.Steps["wait-vm"] != step {
+		t.Error("not wait vm step")
+	}
+}
+
+func TestGetLastStepForVMWhenReboot(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if err := tvm.Reboot(); err != nil{
+		t.Errorf("failed to reboot: %v", err)
+	}
+	step, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if twf.wf.Steps["wait-started-vm-1"] != step {
+		t.Error("not wait-started-vm-1 step")
+	}
+}
+
+func TestGetLastStepForVMWhenMultipleReboot(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if err := tvm.Reboot(); err != nil{
+		t.Errorf("failed to reboot: %v", err)
+	}
+	if err := tvm.Reboot(); err != nil{
+		t.Errorf("failed to reboot: %v", err)
+	}
+	step, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if twf.wf.Steps["wait-started-vm-2"] != step {
+		t.Error("not wait-started-vm-2 step")
+	}
+}
+
+func TestResizeDiskAndReboot(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if err := tvm.ResizeDiskAndReboot("vm", 200); err != nil{
+		t.Errorf("failed to reboot: %v", err)
+	}
+	step, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if twf.wf.Steps["wait-started-vm-2"] != step {
+		t.Error("not wait-started-vm-2 step")
+	}
+}
