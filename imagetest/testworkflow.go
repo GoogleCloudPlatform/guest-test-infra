@@ -452,7 +452,7 @@ func parseResult(res testResult) *testSuite {
 	return ret
 }
 
-func  (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
+func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 	step := "wait-" + vmname
 	if _, ok := t.wf.Steps[step]; !ok {
 		return nil, fmt.Errorf("no step " + step)
