@@ -16,13 +16,14 @@ done`
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	vm, err := t.CreateTestVM("vm")
+	vm.SetShutdownScript(script)
 	if err != nil {
 		return err
 	}
 	if err := vm.Reboot(); err != nil {
 		return err
 	}
-	vm.RunTests("TestGuestBoot|TestGuestReboot")
+	vm.RunTests("TestGuestBoot|TestGuestReboot|TestGuestShutdownScript")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
@@ -31,15 +32,5 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm2.EnableSecureBoot()
 	vm2.RunTests("TestGuestSecureBoot")
-
-	vm3, err := t.CreateTestVM("vm3")
-	if err != nil {
-		return err
-	}
-	vm3.SetShutdownScript(script)
-	if err := vm3.Reboot(); err != nil {
-		return err
-	}
-	vm3.RunTests("TestGuestShutdownScript")
 	return nil
 }

@@ -24,7 +24,7 @@ func TestGuestShutdownScript(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
-	lines := strings.Split(strings.TrimRight(string(bytes), ` \t\r\n\0`), "\n")
+	lines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
 	if len(lines) < shutdownTime {
 		t.Fatalf("shut down time less than %d seconds.", shutdownTime)
 	}
