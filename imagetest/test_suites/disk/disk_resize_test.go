@@ -39,9 +39,7 @@ func TestDiskResize(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		if err := verifyDiskSize(defaultDiskSize); err != nil {
-			t.Fatal(err)
-		}
+		t.Fatalf("First boot")
 	}
 
 	// Total blocks * size per block = total space in bytes

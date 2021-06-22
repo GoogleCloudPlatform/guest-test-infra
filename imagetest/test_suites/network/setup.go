@@ -17,11 +17,11 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	//vm, err := t.CreateTestVM("vm")
-	//if err != nil {
-	//	return err
-	//}
-	//vm.RunTests("TestDefaultMTU")
+	vm, err := t.CreateTestVM("vm")
+	if err != nil {
+		return err
+	}
+	vm.RunTests("TestDefaultMTU")
 
 	if err := t.CreateNetwork(vm2, networkName); err != nil {
 		return err

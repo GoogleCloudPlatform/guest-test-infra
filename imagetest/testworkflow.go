@@ -48,7 +48,7 @@ type TestWorkflow struct {
 	skipped        bool
 	skippedMessage string
 	wf             *daisy.Workflow
-	// Global counter for all daisy steps on all VMs
+	// Global counter for all daisy steps on all VMs. This is an interim solution in order to prevent step-name collisions.
 	counter int
 }
 
@@ -516,24 +516,28 @@ func parseResult(res testResult) *testSuite {
 	return ret
 }
 
-func (t *TestWorkflow) lastResolveStep() (*daisy.Step, error) {
-	reverseDependencies := make(map[string]string)
+func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
+	step := "wait-" + vmname
+	if _, ok := t.wf.Steps[step]; !ok {
+		return nil, fmt.Errorf("no step " + step)
+	}
+	rdeps := make(map[string][]string)
 	for dependent, dependencies := range t.wf.Dependencies {
 		for _, dependency := range dependencies {
-			if _, ok := reverseDependencies[dependency]; ok {
-				return nil, fmt.Errorf("dependency %s is not linear", dependency)
-			}
-			reverseDependencies[dependency] = dependent
+			rdeps[dependency] = append(rdeps[dependency], dependent)
 		}
 	}
 
-	lastStepName := resolveStep(reverseDependencies, createDisksStepName)
-	return t.wf.Steps[lastStepName], nil
-}
-
-func resolveStep(reverseDependencies map[string]string, currentStep string) string {
-	if _, ok := reverseDependencies[currentStep]; !ok {
-		return currentStep
+	for {
+		deps, ok := rdeps[step]
+		if !ok {
+			// no more steps depend on this one
+			break
+		}
+		if len(deps) > 1 {
+			return nil, fmt.Errorf("workflow has non-linear dependencies")
+		}
+		step = deps[0]
 	}
-	return resolveStep(reverseDependencies, reverseDependencies[currentStep])
+	return t.wf.Steps[step], nil
 }
