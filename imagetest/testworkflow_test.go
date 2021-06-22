@@ -300,7 +300,7 @@ func TestGetLastStepForVMWhenReboot(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
-	if err := tvm.Reboot(); err != nil{
+	if err := tvm.Reboot(); err != nil {
 		t.Errorf("failed to reboot: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
@@ -324,10 +324,10 @@ func TestGetLastStepForVMWhenMultipleReboot(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
-	if err := tvm.Reboot(); err != nil{
+	if err := tvm.Reboot(); err != nil {
 		t.Errorf("failed to reboot: %v", err)
 	}
-	if err := tvm.Reboot(); err != nil{
+	if err := tvm.Reboot(); err != nil {
 		t.Errorf("failed to reboot: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
@@ -351,7 +351,7 @@ func TestResizeDiskAndReboot(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
-	if err := tvm.ResizeDiskAndReboot("vm", 200); err != nil{
+	if err := tvm.ResizeDiskAndReboot("vm", 200); err != nil {
 		t.Errorf("failed to reboot: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
