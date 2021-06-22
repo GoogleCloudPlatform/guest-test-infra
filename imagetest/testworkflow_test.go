@@ -276,8 +276,7 @@ func TestGetLastStepForVM(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
-	_, err = twf.CreateTestVM("vm")
-	if err != nil {
+	if _, err = twf.CreateTestVM("vm"); err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
@@ -288,7 +287,7 @@ func TestGetLastStepForVM(t *testing.T) {
 		t.Error("not wait step")
 	}
 	if twf.wf.Steps["wait-vm"] != step {
-		t.Error("not wait vm step")
+		t.Error("not wait-vm step")
 	}
 }
 
