@@ -676,7 +676,7 @@ jobs:
   - get: compute-image-tools
   - get: centos-7-gcs
     passed: [build-centos-7]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -698,14 +698,14 @@ jobs:
   - task: image-test-centos-7
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/centos-7-v((.:source-version))
+      images: projects/bct-prod-images/global/images/centos-7-((.:publish-version))
 - name: publish-to-testing-centos-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-8-gcs
     passed: [build-centos-8]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -727,14 +727,14 @@ jobs:
   - task: image-test-centos-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/centos-8-v((.:source-version))
+      images: projects/bct-prod-images/global/images/centos-8-((.:publish-version))
 - name: publish-to-testing-centos-stream-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: centos-stream-8-gcs
     passed: [build-centos-stream-8]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -756,7 +756,7 @@ jobs:
   - task: image-test-centos-stream-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/centos-stream-8-v((.:source-version))
+      images: projects/bct-prod-images/global/images/centos-stream-8-((.:publish-version))
 # rhel
 - name: publish-to-testing-rhel-7
   plan:
@@ -764,7 +764,7 @@ jobs:
   - get: compute-image-tools
   - get: rhel-7-gcs
     passed: [build-rhel-7]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -786,14 +786,14 @@ jobs:
   - task: image-test-rhel-7
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-7-((.:publish-version))
 - name: publish-to-testing-rhel-8
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-gcs
     passed: [build-rhel-8]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -815,14 +815,14 @@ jobs:
   - task: image-test-rhel-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-8-((.:publish-version))
 - name: publish-to-testing-rhel-7-byos
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-byos-gcs
     passed: [build-rhel-7-byos]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -844,14 +844,14 @@ jobs:
   - task: image-test-rhel-7-byos
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-byos-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-7-byos-((.:publish-version))
 - name: publish-to-testing-rhel-8-byos
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-byos-gcs
     passed: [build-rhel-8-byos]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -873,14 +873,14 @@ jobs:
   - task: image-test-rhel-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-byos-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-8-byos-((.:publish-version))
 - name: publish-to-testing-rhel-7-4-sap
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-4-sap-gcs
     passed: [build-rhel-7-4-sap]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -902,14 +902,14 @@ jobs:
   - task: image-test-rhel-7-4-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-4-sap-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-7-4-sap-((.:publish-version))
 - name: publish-to-testing-rhel-7-6-sap
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-6-sap-gcs
     passed: [build-rhel-7-6-sap]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -931,14 +931,14 @@ jobs:
   - task: image-test-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-6-sap-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-7-6-sap-((.:publish-version))
 - name: publish-to-testing-rhel-7-7-sap
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-7-7-sap-gcs
     passed: [build-rhel-7-7-sap]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -960,14 +960,14 @@ jobs:
   - task: image-test-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-7-sap-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-7-7-sap-((.:publish-version))
 - name: publish-to-testing-rhel-8-1-sap
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-1-sap-gcs
     passed: [build-rhel-8-1-sap]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -989,14 +989,14 @@ jobs:
   - task: image-test-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-1-sap-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-8-1-sap-((.:publish-version))
 - name: publish-to-testing-rhel-8-2-sap
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: rhel-8-2-sap-gcs
     passed: [build-rhel-8-2-sap]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1018,7 +1018,7 @@ jobs:
   - task: image-test-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-2-sap-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rhel-8-2-sap-((.:publish-version))
 # rocky-linux
 - name: publish-to-testing-rocky-linux-8
   plan:
@@ -1026,7 +1026,7 @@ jobs:
   - get: compute-image-tools
   - get: rocky-linux-8-gcs
     passed: [build-rocky-linux-8]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1048,7 +1048,7 @@ jobs:
   - task: image-test-rocky-linux-8
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/rocky-linux-8-v((.:source-version))
+      images: projects/bct-prod-images/global/images/rocky-linux-8-((.:publish-version))
 # debian
 - name: publish-to-testing-debian-9
   plan:
@@ -1056,7 +1056,7 @@ jobs:
   - get: compute-image-tools
   - get: debian-9-gcs
     passed: [build-debian-9]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1078,14 +1078,14 @@ jobs:
   - task: image-test-debian-9
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-9-v((.:source-version))
+      images: projects/bct-prod-images/global/images/debian-9-((.:publish-version))
 - name: publish-to-testing-debian-10
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: debian-10-gcs
     passed: [build-debian-10]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1107,14 +1107,14 @@ jobs:
   - task: image-test-debian-10
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-10-v((.:source-version))
+      images: projects/bct-prod-images/global/images/debian-10-((.:publish-version))
 - name: publish-to-testing-debian-11
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
   - get: debian-11-gcs
     passed: [build-debian-11]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1136,7 +1136,7 @@ jobs:
   - task: image-test-debian-11
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-11-v((.:source-version))
+      images: projects/bct-prod-images/global/images/debian-11-((.:publish-version))
 
 # Publish to staging
 # almalinux
