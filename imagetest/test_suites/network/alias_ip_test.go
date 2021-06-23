@@ -15,12 +15,29 @@ const (
 )
 
 func TestAliasAfterReboot(t *testing.T) {
+	_, err := os.Stat(markerFile)
+	if os.IsNotExist(err) {
+		// first boot
+		if _, err := os.Create(markerFile); err != nil {
+			t.Fatalf("failed creating marker file: %v", err)
+		}
+		if err := verifyIPAliases(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// second boot
+	if err := verifyIPAliases(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func verifyIPAliases() error {
 	var networkInterface string
+
 	image, err := utils.GetMetadata("image")
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		return fmt.Errorf("couldn't get image from metadata: %v", err)
 	}
-
 	switch {
 	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
@@ -28,39 +45,31 @@ func TestAliasAfterReboot(t *testing.T) {
 		networkInterface = defaultInterface
 	}
 
-	_, err = os.Stat(markerFile)
-	if os.IsNotExist(err) {
-		// first boot
-		if _, err := os.Create(markerFile); err != nil {
-			t.Fatalf("failed creating marker file: %v", err)
-		}
-		t.Fatalf("failed on first boot")
-	}
-	// second boot
-	actual, err := getGoogleRoutes(networkInterface)
+	actualIPs, err := getGoogleRoutes(networkInterface)
 	if err != nil {
-		t.Fatal(err)
+		return fmt.Errorf("failed get ip alises")
 	}
-	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0")
-	if err != nil {
-		t.Fatal(err)
+	if err := verifyIPExist(actualIPs); err != nil {
+		return err
 	}
-	if actual != expected {
-		t.Fatalf("alias ip is not as expected after reboot, expected %s, actual %s", expected, actual)
-	}
+	return nil
 }
 
-func getGoogleRoutes(networkInterface string) (string, error) {
+func getGoogleRoutes(networkInterface string) ([]string, error) {
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
 	b, err := cmd.Output()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if len(b) == 0 {
-		return "", fmt.Errorf("alias IPs not configured")
+		return nil, fmt.Errorf("alias IPs not configured")
 	}
-	return strings.Split(string(b), " ")[1], nil
+	var res []string
+	for _, line := range strings.Split(string(b), "\n") {
+		res = append(res, strings.Split(line, " ")[1])
+	}
+	return res, nil
 }
 
 func TestAliasAgentRestart(t *testing.T) {
@@ -72,7 +81,7 @@ func TestAliasAgentRestart(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10") || strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
@@ -91,7 +100,35 @@ func TestAliasAgentRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if beforeRestart != afterRestart {
-		t.Fatalf("routes are inconsistent after restart, before %s after %s", beforeRestart, afterRestart)
+	if !compare(beforeRestart, afterRestart) {
+		t.Fatalf("routes are inconsistent after restart, before %v after %v", beforeRestart, afterRestart)
 	}
+	if err := verifyIPExist(afterRestart); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func verifyIPExist(afterRestart []string) error {
+	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0")
+	if err != nil {
+		return fmt.Errorf("couldn't get image from metadata: %v", err)
+	}
+	for _, ip := range afterRestart {
+		if ip == expected {
+			return nil
+		}
+	}
+	return fmt.Errorf("alias ip %s is not exist after reboot", expected)
+}
+
+func compare(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

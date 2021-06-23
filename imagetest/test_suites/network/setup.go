@@ -23,17 +23,23 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestDefaultMTU")
 
-	if err := t.CreateNetwork(vm2, networkName); err != nil {
+	network, err := t.CreateNetwork(networkName, false)
+	if err != nil {
 		return err
 	}
-	if err := t.CreateSubNetwork(vm2, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
+	subNetwork, err := network.CreateSubNetwork(subnetworkName, primaryIPRange)
+	if err != nil {
 		return err
 	}
+	subNetwork.AddSecondaryRange(secondaryIPRange, rangeName)
 	vm2, err := t.CreateTestVM(vm2)
 	if err != nil {
 		return err
 	}
-	if err := vm2.EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeName); err != nil {
+	if err := vm2.SetCustomNetwork(networkName, subnetworkName); err != nil {
+		return err
+	}
+	if err := vm2.AddAliasIPRanges(aliasIPRange, rangeName); err != nil {
 		return err
 	}
 	if err := vm2.Reboot(); err != nil {

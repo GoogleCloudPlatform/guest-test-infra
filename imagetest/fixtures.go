@@ -22,9 +22,11 @@ import (
 )
 
 const (
-	createVMsStepName   = "create-vms"
-	createDisksStepName = "create-disks"
-	successMatch        = "FINISHED-TEST"
+	createVMsStepName        = "create-vms"
+	createDisksStepName      = "create-disks"
+	createNetworkStepName    = "create-network"
+	createSubNetworkStepName = "create-sub-network"
+	successMatch             = "FINISHED-TEST"
 )
 
 // TestVM is a test VM.
@@ -157,32 +159,12 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-// EnableNetwork ensure the create network step run before create test VMs and
-// current test VMs in workflow use it
-func (t *TestVM) EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeName string) error {
-	firstStep, ok := t.testWorkflow.wf.Steps[createDisksStepName]
-	if !ok {
-		return fmt.Errorf("failed resolve first step")
-	}
-
-	createNetworkStepName, ok := t.testWorkflow.wf.Steps["create-network-"+t.name]
-	if !ok {
-		return fmt.Errorf("create-network-%s step missing", t.name)
-	}
-	createSubNetworkStepName, ok := t.testWorkflow.wf.Steps["create-sub-network-"+t.name]
-	if !ok {
-		return fmt.Errorf("create-sub-network-%s step missing", t.name)
-	}
-	if err := t.testWorkflow.wf.AddDependency(createSubNetworkStepName, createNetworkStepName); err != nil {
-		return err
-	}
-	if err := t.testWorkflow.wf.AddDependency(firstStep, createSubNetworkStepName); err != nil {
-		return err
-	}
-
+// SetCustomNetwork set current test VMs in workflow using provided network and
+// subnetwork.
+func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
-			network := compute.NetworkInterface{
+			networkInterface := compute.NetworkInterface{
 				Network:    networkName,
 				Subnetwork: subnetworkName,
 				AccessConfigs: []*compute.AccessConfig{
@@ -190,15 +172,23 @@ func (t *TestVM) EnableNetwork(networkName, subnetworkName, aliasIPRange, rangeN
 						Type: "ONE_TO_ONE_NAT",
 					},
 				},
-				AliasIpRanges: []*compute.AliasIpRange{
-					{
-						IpCidrRange:         aliasIPRange,
-						SubnetworkRangeName: rangeName,
-					},
-				},
 			}
 
-			i.NetworkInterfaces = append(i.NetworkInterfaces, &network)
+			i.NetworkInterfaces[0] = &networkInterface
+			break
+		}
+	}
+	return nil
+}
+
+// AddAliasIPRanges add alias ip range to current test VMs.
+func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			i.NetworkInterfaces[0].AliasIpRanges = append(i.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
+				IpCidrRange:         aliasIPRange,
+				SubnetworkRangeName: rangeName,
+			})
 			break
 		}
 	}

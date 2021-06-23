@@ -52,6 +52,35 @@ type TestWorkflow struct {
 	counter int
 }
 
+// Network defines the parameter which used by compute network.
+type Network struct {
+	Name         string
+	autoMode     bool
+	testWorkflow *TestWorkflow
+}
+
+// SecondaryIPRange defines the parameter used by compute secondaryIPRange.
+type SecondaryIPRange struct {
+	rangeName string
+	ipRange   string
+}
+
+// SubNetwork defines the parameter used by compute subnetwork.
+type SubNetwork struct {
+	Network        *Network
+	Name           string
+	primaryIPRange string
+	secondaryRange []*SecondaryIPRange
+}
+
+// AddSecondaryRange add secondary IP range to SubNetwork
+func (s SubNetwork) AddSecondaryRange(name, ipRange string) {
+	s.secondaryRange = append(s.secondaryRange, &SecondaryIPRange{
+		rangeName: name,
+		ipRange:   ipRange,
+	})
+}
+
 // SingleVMTest configures one VM running tests.
 func SingleVMTest(t *TestWorkflow) error {
 	_, err := t.CreateTestVM("vm")
@@ -225,7 +254,7 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 	return startInstancesStep, nil
 }
 
-func (t *TestWorkflow) addCreateNetworkStep(vmname, networkName string) (*daisy.Step, error) {
+func (t *TestWorkflow) addCreateNetworkStep(networkName string) (*daisy.Step, error) {
 	createNetworks := &daisy.CreateNetworks{}
 	pFalse := false
 	network := &daisy.Network{
@@ -236,7 +265,7 @@ func (t *TestWorkflow) addCreateNetworkStep(vmname, networkName string) (*daisy.
 	}
 	*createNetworks = append(*createNetworks, network)
 
-	createNetworksStep, err := t.wf.NewStep("create-network-" + vmname)
+	createNetworksStep, err := t.wf.NewStep(createNetworkStepName)
 	if err != nil {
 		return nil, err
 	}
@@ -271,22 +300,69 @@ func (t *TestWorkflow) addCreateSubnetworkStep(vmname, networkName, subnetworkNa
 	return createSubnetworksStep, nil
 }
 
-// CreateNetwork creates custom network. Using EnableNetwork method provided by
-// TestVM to config network on vm
-func (t *TestWorkflow) CreateNetwork(vmname, networkName string) error {
-	if _, err := t.addCreateNetworkStep(vmname, networkName); err != nil {
-		return err
-	}
-	return nil
-}
-
 // CreateSubNetwork creates custom subnetwork. Using EnableNetwork method
 // provided by TestVM to config network on vm
-func (t *TestWorkflow) CreateSubNetwork(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange string) error {
-	if _, err := t.addCreateSubnetworkStep(vmname, networkName, subnetworkName, rangeName, primaryIPRange, secondaryIPRange); err != nil {
-		return fmt.Errorf("create-sub-net-%s step missing", vmname)
+func (n Network) CreateSubNetwork(name string, ipRange string) (*SubNetwork, error) {
+	createSubnetworks := &daisy.CreateSubnetworks{}
+	subnetwork := &daisy.Subnetwork{
+		Subnetwork: compute.Subnetwork{
+			Name:        name,
+			IpCidrRange: ipRange,
+			Network:     n.Name,
+		},
 	}
-	return nil
+	*createSubnetworks = append(*createSubnetworks, subnetwork)
+
+	createSubnetworksStep, err := n.testWorkflow.wf.NewStep(createSubNetworkStepName)
+	if err != nil {
+		return nil, err
+	}
+	createSubnetworksStep.CreateSubnetworks = createSubnetworks
+
+	firstStep, ok := n.testWorkflow.wf.Steps[createDisksStepName]
+	if !ok {
+		return nil, fmt.Errorf("failed resolve first step")
+	}
+	createNetworkStep, ok := n.testWorkflow.wf.Steps[createNetworkStepName]
+	if !ok {
+		return nil, fmt.Errorf("create-network step missing")
+	}
+	if err := n.testWorkflow.wf.AddDependency(createSubnetworksStep, createNetworkStep); err != nil {
+		return nil, err
+	}
+	if err := n.testWorkflow.wf.AddDependency(firstStep, createSubnetworksStep); err != nil {
+		return nil, err
+	}
+	return &SubNetwork{&n, name, ipRange, nil}, nil
+}
+
+// CreateNetwork creates custom network. Using EnableNetwork method provided by
+// TestVM to config network on vm
+func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks bool) (*Network, error) {
+	createNetworks := &daisy.CreateNetworks{}
+	network := &daisy.Network{
+		Network: compute.Network{
+			Name: networkName,
+		},
+		AutoCreateSubnetworks: &autoCreateSubnetworks,
+	}
+	*createNetworks = append(*createNetworks, network)
+
+	createNetworksStep, err := t.wf.NewStep(createNetworkStepName)
+	if err != nil {
+		return nil, err
+	}
+	createNetworksStep.CreateNetworks = createNetworks
+	if autoCreateSubnetworks {
+		firstStep, ok := t.wf.Steps[createDisksStepName]
+		if !ok {
+			return nil, fmt.Errorf("failed resolve first step")
+		}
+		if err := t.wf.AddDependency(firstStep, createNetworksStep); err != nil {
+			return nil, err
+		}
+	}
+	return &Network{networkName, false, t}, nil
 }
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
@@ -400,7 +476,7 @@ func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, 
 	return nil
 }
 
-// daisyBucket returns the bucket name for outputs, creating it if needed.
+// daisyBucket returns the bucket Name for outputs, creating it if needed.
 func daisyBucket(ctx context.Context, client *storage.Client, project string) (string, error) {
 	bucketName := strings.Replace(project, ":", "-", -1) + "-cloud-test-outputs"
 	it := client.Buckets(ctx, project)
