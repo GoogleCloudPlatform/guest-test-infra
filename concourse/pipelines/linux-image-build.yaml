@@ -1136,7 +1136,7 @@ jobs:
   - task: image-test-debian-11
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-11-bullesys-((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-11-bullseye-((.:publish-version))
 
 # Publish to staging
 # almalinux
