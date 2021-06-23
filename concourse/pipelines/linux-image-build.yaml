@@ -1078,7 +1078,7 @@ jobs:
   - task: image-test-debian-9
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-9-((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-9-stretch-((.:publish-version))
 - name: publish-to-testing-debian-10
   plan:
   - get: guest-test-infra
@@ -1107,7 +1107,7 @@ jobs:
   - task: image-test-debian-10
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-10-((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-10-buster-((.:publish-version))
 - name: publish-to-testing-debian-11
   plan:
   - get: guest-test-infra
@@ -1136,7 +1136,7 @@ jobs:
   - task: image-test-debian-11
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
-      images: projects/bct-prod-images/global/images/debian-11-((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-11-bullesys-((.:publish-version))
 
 # Publish to staging
 # almalinux
