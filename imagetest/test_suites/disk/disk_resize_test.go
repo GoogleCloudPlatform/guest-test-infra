@@ -32,19 +32,28 @@ func TestMain(m *testing.M) {
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
-	_, err := os.Stat(markerFile)
-
-	if os.IsNotExist(err) {
-		// first boot
-		if _, err := os.Create(markerFile); err != nil {
-			t.Fatalf("failed creating marker file: %v", err)
-		}
-		t.Fatalf("First boot")
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
 	}
+	switch {
+	case strings.Contains(image, "rhel-7-4-sap"):
+		t.Skip("disk expansion not supported on RHEL 7.4")
+	default:
+		_, err := os.Stat(markerFile)
 
-	// Total blocks * size per block = total space in bytes
-	if err := verifyDiskSize(resizeDiskSize); err != nil {
-		t.Fatal(err)
+		if os.IsNotExist(err) {
+			// first boot
+			if _, err := os.Create(markerFile); err != nil {
+				t.Fatalf("failed creating marker file: %v", err)
+			}
+			t.Fatalf("First boot")
+		}
+
+		// Total blocks * size per block = total space in bytes
+		if err := verifyDiskSize(resizeDiskSize); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

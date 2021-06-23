@@ -43,15 +43,25 @@ func TestGuestReboot(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
-	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
-		t.Fatal("efi var is missing")
-	}
-	data, err := ioutil.ReadFile(secureBootFile)
+	image, err := utils.GetMetadata("image")
 	if err != nil {
-		t.Fatal("failed reading secure boot file")
+		t.Fatalf("couldn't get image from metadata")
 	}
-	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
-	if data[0] != 1 {
-		t.Fatal("secure boot is not enabled as expected")
+
+	switch {
+	case strings.Contains(image, "debian-9"):
+		t.Skip("secure boot is not supported on Debian 9")
+	default:
+		if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
+			t.Fatal("efi var is missing")
+		}
+		data, err := ioutil.ReadFile(secureBootFile)
+		if err != nil {
+			t.Fatal("failed reading secure boot file")
+		}
+		// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
+		if data[0] != 1 {
+			t.Fatal("secure boot is not enabled as expected")
+		}
 	}
 }
