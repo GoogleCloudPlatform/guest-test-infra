@@ -5,16 +5,25 @@ import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 // Name is the name of the test package. It must match the directory name.
 var Name = "image_boot"
 
+const script = `#!/bin/bash
+
+while [[ 1 ]]; do
+  date +%s >> /shutdown.txt
+  sync
+  sleep 1
+done`
+
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	vm, err := t.CreateTestVM("vm")
+	vm.SetShutdownScript(script)
 	if err != nil {
 		return err
 	}
 	if err := vm.Reboot(); err != nil {
 		return err
 	}
-	vm.RunTests("TestGuestBoot|TestGuestReboot")
+	vm.RunTests("TestGuestBoot|TestGuestReboot|TestGuestShutdownScript")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
