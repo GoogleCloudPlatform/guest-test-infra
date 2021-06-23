@@ -122,7 +122,7 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-core-v([0-9]+).tar.gz"
-- name: windows-2012r2-internal-core-gcs
+- name: windows-2012r2-core-internal-gcs
   type: gcs
   source:
     bucket: gce-image-archive
