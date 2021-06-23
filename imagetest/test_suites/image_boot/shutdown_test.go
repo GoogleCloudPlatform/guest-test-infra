@@ -2,7 +2,6 @@ package imageboot
 
 import (
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 )
