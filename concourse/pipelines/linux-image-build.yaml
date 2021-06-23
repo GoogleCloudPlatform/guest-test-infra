@@ -2487,7 +2487,7 @@ groups:
   - build-rocky-linux-8
   - publish-to-testing-rocky-linux-8
   - publish-to-staging-rocky-linux-8
-  - publish-to-oslogin-rocky-linux-8
+  - publish-to-oslogin-staging-rocky-linux-8
   - publish-to-prod-rocky-linux-8
 - name: rhel
   jobs:
