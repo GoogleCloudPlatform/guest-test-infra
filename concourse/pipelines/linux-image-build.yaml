@@ -1157,7 +1157,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-almalinux-8
+  - task: publish-staging-almalinux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/almalinux"
@@ -1182,7 +1182,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-centos-7
+  - task: publish-staging-centos-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
@@ -1207,7 +1207,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-centos-8
+  - task: publish-staging-centos-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
@@ -1232,7 +1232,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-centos-stream-8
+  - task: publish-staging-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/centos"
@@ -1258,7 +1258,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-7
+  - task: publish-staging-rhel-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1283,7 +1283,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-7-byos
+  - task: publish-staging-rhel-7-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1308,7 +1308,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-rhel-8-byos
+  - task: publish-staging-rhel-8-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1333,7 +1333,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-rhel-8
+  - task: publish-staging-rhel-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1358,7 +1358,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-7-4-sap
+  - task: publish-staging-rhel-7-4-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1383,7 +1383,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-7-6-sap
+  - task: publish-staging-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1408,7 +1408,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-7-7-sap
+  - task: publish-staging-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1433,7 +1433,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-8-1-sap
+  - task: publish-staging-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1458,7 +1458,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-rhel-8-2-sap
+  - task: publish-staging-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rhel"
@@ -1484,7 +1484,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-rocky-linux-8
+  - task: publish-staging-rocky-linux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/rocky-linux"
@@ -1510,7 +1510,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-debian-9
+  - task: publish-staging-debian-9
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/debian"
@@ -1535,7 +1535,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-debian-10
+  - task: publish-staging-debian-10
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/debian"
@@ -1560,7 +1560,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
-  - task: publish-debian-11
+  - task: publish-staging-debian-11
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/debian"
@@ -1568,6 +1568,437 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
       environment: "staging"
+
+# Publish to OS Login staging project
+# almalinux
+- name: publish-to-oslogin-staging-almalinux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: almalinux-8-gcs
+    passed: [publish-to-testing-almalinux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: almalinux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-almalinux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/almalinux_8.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-centos-7
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: centos-7-gcs
+    passed: [publish-to-testing-centos-7]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: centos-7-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-centos-7
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/centos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/centos_7.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-centos-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: centos-8-gcs
+    passed: [publish-to-testing-centos-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: centos-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-centos-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/centos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/centos_8.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-centos-stream-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: centos-stream-8-gcs
+    passed: [publish-to-testing-centos-stream-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: centos-stream-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-centos-stream-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/centos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/centos_stream_8.publish.json"
+      environment: "oslogin-staging"
+# rhel
+- name: publish-to-oslogin-staging-rhel-7
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-gcs
+    passed: [publish-to-testing-rhel-7]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-7-byos
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-byos-gcs
+    passed: [publish-to-testing-rhel-7-byos]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-byos-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7-byos
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_byos.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-8-byos
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-byos-gcs
+    passed: [publish-to-testing-rhel-8-byos]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-byos-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-8-byos
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_byos.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-gcs
+    passed: [publish-to-testing-rhel-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-7-4-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-4-sap-gcs
+    passed: [publish-to-testing-rhel-7-4-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-4-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_4_sap.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-7-6-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-6-sap-gcs
+    passed: [publish-to-testing-rhel-7-6-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-6-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7-6-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_6_sap.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-7-7-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-7-sap-gcs
+    passed: [publish-to-testing-rhel-7-7-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-7-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7-7-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_7_sap.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-8-1-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-1-sap-gcs
+    passed: [publish-to-testing-rhel-8-1-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-1-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-8-1-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_1_sap.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-8-2-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-2-sap-gcs
+    passed: [publish-to-testing-rhel-8-2-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-2-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-8-2-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_2_sap.publish.json"
+      environment: "oslogin-staging"
+# rocky-linux
+- name: publish-to-oslogin-staging-rocky-linux-8
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rocky-linux-8-gcs
+    passed: [publish-to-testing-rocky-linux-8]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rocky-linux-8-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rocky_linux_8.publish.json"
+      environment: "oslogin-staging"
+# debian
+- name: publish-to-oslogin-staging-debian-9
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-9-gcs
+    passed: [publish-to-testing-debian-9]
+    trigger: false
+    params:
+      skip_download: "false"
+  - load_var: source-version
+    file: debian-9-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-debian-9
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_9.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-debian-10
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-10-gcs
+    passed: [publish-to-testing-debian-10]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-10-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-debian-10
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_10.publish.json"
+      environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-debian-11
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: debian-11-gcs
+    passed: [publish-to-testing-debian-11]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-11-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version  # produced from generate-version task
+  - task: publish-oslogin-staging-debian-11
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/debian"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_11.publish.json"
+      environment: "oslogin-staging"
 
 # Publish to prod
 # almalinux
@@ -2021,6 +2452,9 @@ groups:
   - publish-to-staging-debian-9
   - publish-to-staging-debian-10
   - publish-to-staging-debian-11
+  - publish-to-oslogin-staging-debian-9
+  - publish-to-oslogin-staging-debian-10
+  - publish-to-oslogin-staging-debian-11
   - publish-to-prod-debian-9
   - publish-to-prod-debian-10
   - publish-to-prod-debian-11
@@ -2035,6 +2469,9 @@ groups:
   - publish-to-staging-centos-7
   - publish-to-staging-centos-8
   - publish-to-staging-centos-stream-8
+  - publish-to-oslogin-staging-centos-7
+  - publish-to-oslogin-staging-centos-8
+  - publish-to-oslogin-staging-centos-stream-8
   - publish-to-prod-centos-7
   - publish-to-prod-centos-8
   - publish-to-prod-centos-stream-8
@@ -2043,12 +2480,14 @@ groups:
   - build-almalinux-8
   - publish-to-testing-almalinux-8
   - publish-to-staging-almalinux-8
+  - publish-to-oslogin-staging-almalinux-8
   - publish-to-prod-almalinux-8
 - name: rocky-linux
   jobs:
   - build-rocky-linux-8
   - publish-to-testing-rocky-linux-8
   - publish-to-staging-rocky-linux-8
+  - publish-to-oslogin-staging-rocky-linux-8
   - publish-to-prod-rocky-linux-8
 - name: rhel
   jobs:
@@ -2079,6 +2518,15 @@ groups:
   - publish-to-staging-rhel-7-7-sap
   - publish-to-staging-rhel-8-1-sap
   - publish-to-staging-rhel-8-2-sap
+  - publish-to-oslogin-staging-rhel-7
+  - publish-to-oslogin-staging-rhel-7-byos
+  - publish-to-oslogin-staging-rhel-8-byos
+  - publish-to-oslogin-staging-rhel-8
+  - publish-to-oslogin-staging-rhel-7-4-sap
+  - publish-to-oslogin-staging-rhel-7-6-sap
+  - publish-to-oslogin-staging-rhel-7-7-sap
+  - publish-to-oslogin-staging-rhel-8-1-sap
+  - publish-to-oslogin-staging-rhel-8-2-sap
   - publish-to-prod-rhel-7
   - publish-to-prod-rhel-8
   - publish-to-prod-rhel-7-byos

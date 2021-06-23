@@ -52,6 +52,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-33-v([0-9]+).tar.gz"
+- name: fedora-34-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "partner/fedora/fedora-34-v([0-9]+).tar.gz"
 - name: fedora-coreos-next-gcs
   type: gcs
   source:
@@ -291,6 +298,34 @@ jobs:
     file: guest-test-infra/concourse/tasks/daisy-export-images-partner.yaml
     vars:
       wf: "partner/fedora_33_export.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+# Fedora 34
+- name: export-fedora-34
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "fedora-34"
+  - put: fedora-34-gcs
+    params:
+      file: build-id-dir/fedora-34*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: fedora-34-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-export-fedora-34
+    file: guest-test-infra/concourse/tasks/daisy-export-images-partner.yaml
+    vars:
+      wf: "partner/fedora_34_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
 # Fedora CoreOS Next
@@ -706,7 +741,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-cos-81-lts
+  - task: publish-oslogin-cos-81-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/cos"
@@ -732,7 +767,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-cos-85-lts
+  - task: publish-oslogin-cos-85-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/cos"
@@ -758,7 +793,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-cos-89-lts
+  - task: publish-oslogin-cos-89-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/cos"
@@ -784,7 +819,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-cos-dev
+  - task: publish-oslogin-cos-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/cos"
@@ -810,7 +845,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-opensuse-leap-15
+  - task: publish-oslogin-opensuse-leap-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/suse"
@@ -836,7 +871,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-sles-12
+  - task: publish-oslogin-sles-12
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/suse"
@@ -862,7 +897,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-sles-15
+  - task: publish-oslogin-sles-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/suse"
@@ -888,7 +923,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-1804
+  - task: publish-oslogin-ubuntu-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
@@ -914,7 +949,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-2004
+  - task: publish-oslogin-ubuntu-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
@@ -940,7 +975,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-pro-1604
+  - task: publish-oslogin-ubuntu-pro-1604
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
@@ -966,7 +1001,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-pro-1804
+  - task: publish-oslogin-ubuntu-pro-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
@@ -992,7 +1027,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-ubuntu-pro-2004
+  - task: publish-oslogin-ubuntu-pro-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
       source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
@@ -1000,6 +1035,528 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
       environment: "oslogin-staging"
+
+# Publish partner images to staging project.
+# COS 81 LTS
+- name: publish-staging-cos-81-lts
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: cos-81-lts-gcs
+    passed: [export-cos-81-lts]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: cos-81-lts-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-cos-81-lts
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/cos_81_lts.publish.json"
+      environment: "staging"
+# COS 85 LTS
+- name: publish-staging-cos-85-lts
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: cos-85-lts-gcs
+    passed: [export-cos-85-lts]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: cos-85-lts-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-cos-85-lts
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/cos_85_lts.publish.json"
+      environment: "staging"
+# COS 89 LTS
+- name: publish-staging-cos-89-lts
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: cos-89-lts-gcs
+    passed: [export-cos-89-lts]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: cos-89-lts-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-cos-89-lts
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/cos_89_lts.publish.json"
+      environment: "staging"
+# COS Dev
+- name: publish-staging-cos-dev
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: cos-dev-gcs
+    passed: [export-cos-dev]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: cos-dev-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-cos-dev
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/cos_dev.publish.json"
+      environment: "staging"
+# Fedora 33
+- name: publish-staging-fedora-33
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: fedora-33-gcs
+    passed: [export-fedora-33]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: fedora-33-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-fedora-33
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/fedora_33.publish.json"
+      environment: "staging"
+# Fedora 34
+- name: publish-staging-fedora-34
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: fedora-34-gcs
+    passed: [export-fedora-34]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: fedora-34-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-fedora-34
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/fedora_34.publish.json"
+      environment: "staging"
+# Fedora CoreOS Next
+- name: publish-staging-fedora-coreos-next
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: fedora-coreos-next-gcs
+    passed: [export-fedora-coreos-next]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: fedora-coreos-next-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-fedora-coreos-next
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/fedora_coreos_next.publish.json"
+      environment: "staging"
+# Fedora CoreOS Stable
+- name: publish-staging-fedora-coreos-stable
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: fedora-coreos-stable-gcs
+    passed: [export-fedora-coreos-stable]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: fedora-coreos-stable-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-fedora-coreos-stable
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/fedora_coreos_stable.publish.json"
+      environment: "staging"
+# Fedora CoreOS Testing
+- name: publish-staging-fedora-coreos-testing
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: fedora-coreos-testing-gcs
+    passed: [export-fedora-coreos-testing]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: fedora-coreos-testing-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-fedora-coreos-testing
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/fedora_coreos_testing.publish.json"
+      environment: "staging"
+# FreeBSD 11
+- name: publish-staging-freebsd-11
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: freebsd-11-gcs
+    passed: [export-freebsd-11]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: freebsd-11-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-freebsd-11
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/freebsd_11.publish.json"
+      environment: "staging"
+# FreeBSD 12
+- name: publish-staging-freebsd-12
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: freebsd-12-gcs
+    passed: [export-freebsd-12]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: freebsd-12-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-freebsd-12
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/freebsd_12.publish.json"
+      environment: "staging"
+# FreeBSD 13
+- name: publish-staging-freebsd-13
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: freebsd-13-gcs
+    passed: [export-freebsd-13]
+    trigger: true
+    params:
+      skip_download: "true"     
+  - load_var: source-version
+    file: freebsd-13-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-freebsd-13
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/freebsd_13.publish.json"
+      environment: "staging"
+# openSUSE Leap 15
+- name: publish-staging-opensuse-leap-15
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: opensuse-leap-15-gcs
+    passed: [export-opensuse-leap-15]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: opensuse-leap-15-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-opensuse-leap-15
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/opensuse_leap_15.publish.json"
+      environment: "staging"
+# SLES 12
+- name: publish-staging-sles-12
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sles-12-gcs
+    passed: [export-sles-12]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sles-12-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-sles-12
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/sles_12.publish.json"
+      environment: "staging"
+# SLES 15
+- name: publish-staging-sles-15
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sles-15-gcs
+    passed: [export-sles-15]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sles-15-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-sles-15
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/sles_15.publish.json"
+      environment: "staging"
+# Ubuntu 18.04
+- name: publish-staging-ubuntu-1804
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: ubuntu-1804-gcs
+    passed: [export-ubuntu-1804]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: ubuntu-1804-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-ubuntu-1804
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/ubuntu_1804.publish.json"
+      environment: "staging"
+# Ubuntu 20.04
+- name: publish-staging-ubuntu-2004
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: ubuntu-2004-gcs
+    passed: [export-ubuntu-2004]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: ubuntu-2004-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-ubuntu-2004
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/ubuntu_2004.publish.json"
+      environment: "staging"
+# Ubuntu Pro 16.04
+- name: publish-staging-ubuntu-pro-1604
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: ubuntu-pro-1604-gcs
+    passed: [export-ubuntu-pro-1604]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: ubuntu-pro-1604-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-ubuntu-pro-1604
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/ubuntu_pro_1604.publish.json"
+      environment: "staging"
+# Ubuntu Pro 18.04
+- name: publish-staging-ubuntu-pro-1804
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: ubuntu-pro-1804-gcs
+    passed: [export-ubuntu-pro-1804]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: ubuntu-pro-1804-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-ubuntu-pro-1804
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/ubuntu_pro_1804.publish.json"
+      environment: "staging"
+# Ubuntu Pro 20.04
+- name: publish-staging-ubuntu-pro-2004
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: ubuntu-pro-2004-gcs
+    passed: [export-ubuntu-pro-2004]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: ubuntu-pro-2004-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-ubuntu-pro-2004
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "partner/ubuntu_pro_2004.publish.json"
+      environment: "staging"
 
 # Groups
 groups:
@@ -1013,17 +1570,30 @@ groups:
   - publish-oslogin-cos-85-lts
   - publish-oslogin-cos-89-lts
   - publish-oslogin-cos-dev
+  - publish-staging-cos-81-lts
+  - publish-staging-cos-85-lts
+  - publish-staging-cos-89-lts
+  - publish-staging-cos-dev
 - name: fedora
   jobs:
   - export-fedora-33
+  - export-fedora-34
   - export-fedora-coreos-next
   - export-fedora-coreos-stable
   - export-fedora-coreos-testing
+  - publish-staging-fedora-33
+  - publish-staging-fedora-34
+  - publish-staging-fedora-coreos-next
+  - publish-staging-fedora-coreos-stable
+  - publish-staging-fedora-coreos-testing
 - name: freebsd
   jobs:
   - export-freebsd-11
   - export-freebsd-12
   - export-freebsd-13
+  - publish-staging-freebsd-11
+  - publish-staging-freebsd-12
+  - publish-staging-freebsd-13
 - name: suse
   jobs:
   - export-opensuse-leap-15
@@ -1032,6 +1602,9 @@ groups:
   - publish-oslogin-opensuse-leap-15
   - publish-oslogin-sles-12
   - publish-oslogin-sles-15
+  - publish-staging-opensuse-leap-15
+  - publish-staging-sles-12
+  - publish-staging-sles-15
 - name: ubuntu
   jobs:
   - export-ubuntu-1804
@@ -1044,3 +1617,8 @@ groups:
   - publish-oslogin-ubuntu-pro-1604
   - publish-oslogin-ubuntu-pro-1804
   - publish-oslogin-ubuntu-pro-2004
+  - publish-staging-ubuntu-1804
+  - publish-staging-ubuntu-2004
+  - publish-staging-ubuntu-pro-1604
+  - publish-staging-ubuntu-pro-1804
+  - publish-staging-ubuntu-pro-2004
