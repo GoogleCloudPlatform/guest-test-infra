@@ -146,6 +146,11 @@ jobs:
       file: build-id-dir/windows-server-20h2-dc-core*
     get_params:
       skip_download: "true"
+  - put: windows-20h2-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-20h2-dc-core-internal*
+    get_params:
+      skip_download: "true"
   - load_var: gcs-url
     file: windows-20h2-core-gcs/url
   - load_var: gcs-internal-url
@@ -181,6 +186,11 @@ jobs:
   - put: windows-2004-core-gcs
     params:
       file: build-id-dir/windows-server-2004-dc-core*
+    get_params:
+      skip_download: "true"
+  - put: windows-2004-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2004-dc-core-internal*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -220,6 +230,11 @@ jobs:
       file: build-id-dir/windows-server-2019-dc*
     get_params:
       skip_download: "true"
+  - put: windows-2019-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2019-dc-internal*
+    get_params:
+      skip_download: "true"
   - load_var: gcs-url
     file: windows-2019-gcs/url
   - load_var: gcs-internal-url
@@ -255,6 +270,11 @@ jobs:
   - put: windows-2019-core-gcs
     params:
       file: build-id-dir/windows-server-2019-dc-core*
+    get_params:
+      skip_download: "true"
+  - put: windows-2019-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2019-dc-core-internal*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -294,6 +314,11 @@ jobs:
       file: build-id-dir/windows-server-2016-dc*
     get_params:
       skip_download: "true"
+  - put: windows-2016-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2016-dc-internal*
+    get_params:
+      skip_download: "true"
   - load_var: gcs-url
     file: windows-2016-gcs/url
   - load_var: gcs-internal-url
@@ -329,6 +354,11 @@ jobs:
   - put: windows-2016-core-gcs
     params:
       file: build-id-dir/windows-server-2016-dc-core*
+    get_params:
+      skip_download: "true"
+  - put: windows-2016-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2016-dc-core-internal*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -368,6 +398,11 @@ jobs:
       file: build-id-dir/windows-server-2012-r2-dc*
     get_params:
       skip_download: "true"
+  - put: windows-2012r2-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2012-r2-dc-internal*
+    get_params:
+      skip_download: "true"
   - load_var: gcs-url
     file: windows-2012r2-gcs/url
   - load_var: gcs-internal-url
@@ -403,6 +438,11 @@ jobs:
   - put: windows-2012r2-core-gcs
     params:
       file: build-id-dir/windows-server-2012-r2-dc-core*
+    get_params:
+      skip_download: "true"
+  - put: windows-2012r2-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2012-r2-dc-core-internal*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
