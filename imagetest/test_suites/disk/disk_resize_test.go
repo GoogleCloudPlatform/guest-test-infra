@@ -18,6 +18,7 @@ const (
 	markerFile      = "/boot-marker"
 	gb              = 1024.0 * 1024.0 * 1024.0
 	defaultDiskSize = 20
+  resizeDiskSize  = 200
 )
 
 var (
@@ -44,7 +45,7 @@ func TestDiskResize(t *testing.T) {
 		t.Skip("disk expansion not supported on RHEL 7.4")
 	}
 
-	_, err := os.Stat(markerFile)
+	_, err = os.Stat(markerFile)
 
 	if os.IsNotExist(err) {
 		// first boot
