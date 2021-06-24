@@ -138,17 +138,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-20h2-dc-core"
   - put: windows-20h2-core-gcs
     params:
-      file: build-id-dir/windows-server-20h2-dc-core*
+      file: build-id-dir/windows-server-20h2-dc-core-v*
     get_params:
       skip_download: "true"
   - put: windows-20h2-core-internal-gcs
     params:
-      file: build-id-dir/windows-server-20h2-dc-core-internal*
+      file: build-id-dir/windows-server-20h2-dc-core-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -180,17 +180,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2004-dc-core"
   - put: windows-2004-core-gcs
     params:
-      file: build-id-dir/windows-server-2004-dc-core*
+      file: build-id-dir/windows-server-2004-dc-core-v*
     get_params:
       skip_download: "true"
   - put: windows-2004-core-internal-gcs
     params:
-      file: build-id-dir/windows-server-2004-dc-core-internal*
+      file: build-id-dir/windows-server-2004-dc-core-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -222,17 +222,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2019-dc"
   - put: windows-2019-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc*
+      file: build-id-dir/windows-server-2019-dc-v*
     get_params:
       skip_download: "true"
   - put: windows-2019-internal-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc-internal*
+      file: build-id-dir/windows-server-2019-dc-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -264,17 +264,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2019-dc-core"
   - put: windows-2019-core-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc-core*
+      file: build-id-dir/windows-server-2019-dc-core-v*
     get_params:
       skip_download: "true"
   - put: windows-2019-core-internal-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc-core-internal*
+      file: build-id-dir/windows-server-2019-dc-core-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -306,17 +306,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2016-dc"
   - put: windows-2016-gcs
     params:
-      file: build-id-dir/windows-server-2016-dc*
+      file: build-id-dir/windows-server-2016-dc-v*
     get_params:
       skip_download: "true"
   - put: windows-2016-internal-gcs
     params:
-      file: build-id-dir/windows-server-2016-dc-internal*
+      file: build-id-dir/windows-server-2016-dc-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -348,17 +348,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2016-dc-core"
   - put: windows-2016-core-gcs
     params:
-      file: build-id-dir/windows-server-2016-dc-core*
+      file: build-id-dir/windows-server-2016-dc-core-v*
     get_params:
       skip_download: "true"
   - put: windows-2016-core-internal-gcs
     params:
-      file: build-id-dir/windows-server-2016-dc-core-internal*
+      file: build-id-dir/windows-server-2016-dc-core-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -390,17 +390,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2012-r2-dc"
   - put: windows-2012r2-gcs
     params:
-      file: build-id-dir/windows-server-2012-r2-dc*
+      file: build-id-dir/windows-server-2012-r2-dc-v*
     get_params:
       skip_download: "true"
   - put: windows-2012r2-internal-gcs
     params:
-      file: build-id-dir/windows-server-2012-r2-dc-internal*
+      file: build-id-dir/windows-server-2012-r2-dc-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
@@ -432,17 +432,17 @@ jobs:
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
-    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2012-r2-dc-core"
   - put: windows-2012r2-core-gcs
     params:
-      file: build-id-dir/windows-server-2012-r2-dc-core*
+      file: build-id-dir/windows-server-2012-r2-dc-core-v*
     get_params:
       skip_download: "true"
   - put: windows-2012r2-core-internal-gcs
     params:
-      file: build-id-dir/windows-server-2012-r2-dc-core-internal*
+      file: build-id-dir/windows-server-2012-r2-dc-core-internal-v*
     get_params:
       skip_download: "true"
   - load_var: gcs-url
