@@ -18,7 +18,6 @@ const (
 	markerFile      = "/boot-marker"
 	gb              = 1024.0 * 1024.0 * 1024.0
 	defaultDiskSize = 20
-	resizeDiskSize  = 200
 )
 
 var (
