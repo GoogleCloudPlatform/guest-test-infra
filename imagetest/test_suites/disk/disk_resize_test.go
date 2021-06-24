@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sys/unix"
 	"math"
 	"os"
+  "strings"
 	"testing"
 
   "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"

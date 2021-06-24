@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+  "strings"
 	"testing"
 
   "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
