@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+  "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var (

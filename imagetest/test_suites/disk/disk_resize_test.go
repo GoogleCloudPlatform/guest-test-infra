@@ -9,6 +9,8 @@ import (
 	"math"
 	"os"
 	"testing"
+
+  "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
