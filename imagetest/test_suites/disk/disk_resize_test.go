@@ -8,10 +8,10 @@ import (
 	"golang.org/x/sys/unix"
 	"math"
 	"os"
-  "strings"
+	"strings"
 	"testing"
 
-  "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (

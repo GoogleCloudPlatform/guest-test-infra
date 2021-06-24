@@ -4,10 +4,10 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
-  "strings"
+	"strings"
 	"testing"
 
-  "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var (
