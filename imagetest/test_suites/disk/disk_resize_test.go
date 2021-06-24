@@ -8,7 +8,10 @@ import (
 	"golang.org/x/sys/unix"
 	"math"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
@@ -32,7 +35,16 @@ func TestMain(m *testing.M) {
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
-	_, err := os.Stat(markerFile)
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "rhel-7-4-sap") {
+		t.Skip("disk expansion not supported on RHEL 7.4")
+	}
+
+	_, err = os.Stat(markerFile)
 
 	if os.IsNotExist(err) {
 		// first boot

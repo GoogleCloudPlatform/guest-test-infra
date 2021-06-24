@@ -4,7 +4,10 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var (
@@ -43,6 +46,15 @@ func TestGuestReboot(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "debian-9") {
+		t.Skip("secure boot is not supported on Debian 9")
+	}
+
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
 		t.Fatal("efi var is missing")
 	}

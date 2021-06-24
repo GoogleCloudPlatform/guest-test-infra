@@ -50,6 +50,7 @@ var licenseNames = []string{
 	"REGCOMP",
 	"S2P",
 	"SDBM-PUBLIC-DOMAIN",
+	"SIL Open Font License",
 	"TEXT-SOUNDEX",
 	"TEXT-TABS",
 	"The OpenLDAP Public License",
@@ -117,6 +118,7 @@ var licenses = []string{
 	`Open Market permits you to use, copy, modify, distribute, and license this Software and the Documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. No written agreement, license, or royalty fee is required for any of the authorized uses.`,
 	`This software is made available under the terms of *either* of the licenses found in LICENSE.APACHE or LICENSE.BSD. Contributions to cryptography are made under the terms of *both* these licenses.`,
 	`This library.*is public domain software`,
+	`This Font Software is licensed under the SIL Open Font License`,
 }
 
 const (

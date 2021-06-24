@@ -39,7 +39,7 @@ func TestDefaultMTU(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10") || strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") || strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
