@@ -174,7 +174,7 @@ func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
 				},
 			}
 
-			i.NetworkInterfaces[0] = &networkInterface
+			i.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
 			break
 		}
 	}
