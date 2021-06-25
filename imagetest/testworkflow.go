@@ -296,7 +296,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
@@ -307,6 +307,7 @@ func NewTestWorkflow(name, image string) (*TestWorkflow, error) {
 
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
+	t.wf.DefaultTimeout = timeout
 
 	return t, nil
 }

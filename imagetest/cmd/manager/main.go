@@ -25,6 +25,7 @@ var (
 	validate      = flag.Bool("validate", false, "validate all the test workflows and exit")
 	outPath       = flag.String("out_path", "junit.xml", "junit xml path")
 	images        = flag.String("images", "", "comma separated list of images to test")
+	timeout        = flag.String("timeout", "30m", "timeout for the test suite")
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 )
@@ -53,6 +54,7 @@ var (
 		"rhel-8":                  "projects/rhel-cloud/global/images/family/rhel-8",
 		"rhel-8-1-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-8-1-sap-ha",
 		"rhel-8-2-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-8-2-sap-ha",
+		"rocky-linux-8":           "projects/rocky-linux-cloud/global/images/family/rocky-linux-8",
 		"sles-12":                 "projects/suse-cloud/global/images/family/sles-12",
 		"sles-12-sp3-sap":         "projects/suse-sap-cloud/global/images/family/sles-12-sp3-sap",
 		"sles-12-sp4-sap":         "projects/suse-sap-cloud/global/images/family/sles-12-sp4-sap",
@@ -143,7 +145,7 @@ func main() {
 				image = fullimage
 			}
 
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image)
+			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}
