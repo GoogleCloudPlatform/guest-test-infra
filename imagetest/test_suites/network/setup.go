@@ -31,7 +31,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	subNetwork.AddSecondaryRange(secondaryIPRange, rangeName)
+	if err := subNetwork.AddSecondaryRange(rangeName, secondaryIPRange); err != nil {
+		return err
+	}
+
 	vm2, err := t.CreateTestVM(vm2)
 	if err != nil {
 		return err

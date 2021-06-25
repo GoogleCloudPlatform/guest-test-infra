@@ -59,26 +59,26 @@ type Network struct {
 	testWorkflow *TestWorkflow
 }
 
-// SecondaryIPRange defines the parameter used by compute secondaryIPRange.
-type SecondaryIPRange struct {
-	rangeName string
-	ipRange   string
-}
-
 // SubNetwork defines the parameter used by compute subnetwork.
 type SubNetwork struct {
 	Network        *Network
 	Name           string
 	primaryIPRange string
-	secondaryRange []*SecondaryIPRange
 }
 
 // AddSecondaryRange add secondary IP range to SubNetwork
-func (s SubNetwork) AddSecondaryRange(name, ipRange string) {
-	s.secondaryRange = append(s.secondaryRange, &SecondaryIPRange{
-		rangeName: name,
-		ipRange:   ipRange,
+func (s SubNetwork) AddSecondaryRange(rangeName, ipRange string) error {
+	createSubnetworksStep, ok := s.Network.testWorkflow.wf.Steps[createSubNetworkStepName]
+	if !ok {
+		return fmt.Errorf("create-sub-network step missing")
+	}
+
+	subnetwork := (*createSubnetworksStep.CreateSubnetworks)[0]
+	subnetwork.SecondaryIpRanges = append(subnetwork.SecondaryIpRanges, &compute.SubnetworkSecondaryRange{
+		IpCidrRange: ipRange,
+		RangeName:   rangeName,
 	})
+	return nil
 }
 
 // SingleVMTest configures one VM running tests.
@@ -300,7 +300,7 @@ func (t *TestWorkflow) addCreateSubnetworkStep(vmname, networkName, subnetworkNa
 	return createSubnetworksStep, nil
 }
 
-// CreateSubNetwork creates custom subnetwork. Using EnableNetwork method
+// CreateSubNetwork creates custom subnetwork. Using SetCustomNetwork method
 // provided by TestVM to config network on vm
 func (n Network) CreateSubNetwork(name string, ipRange string) (*SubNetwork, error) {
 	createSubnetworks := &daisy.CreateSubnetworks{}
@@ -333,10 +333,10 @@ func (n Network) CreateSubNetwork(name string, ipRange string) (*SubNetwork, err
 	if err := n.testWorkflow.wf.AddDependency(firstStep, createSubnetworksStep); err != nil {
 		return nil, err
 	}
-	return &SubNetwork{&n, name, ipRange, nil}, nil
+	return &SubNetwork{&n, name, ipRange}, nil
 }
 
-// CreateNetwork creates custom network. Using EnableNetwork method provided by
+// CreateNetwork creates custom network. Using SetCustomNetwork method provided by
 // TestVM to config network on vm
 func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks bool) (*Network, error) {
 	createNetworks := &daisy.CreateNetworks{}
@@ -353,6 +353,7 @@ func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks b
 		return nil, err
 	}
 	createNetworksStep.CreateNetworks = createNetworks
+	// Use default subnetwork, no create custom subnetwork step.
 	if autoCreateSubnetworks {
 		firstStep, ok := t.wf.Steps[createDisksStepName]
 		if !ok {
@@ -476,7 +477,7 @@ func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, 
 	return nil
 }
 
-// daisyBucket returns the bucket Name for outputs, creating it if needed.
+// daisyBucket returns the bucket name for outputs, creating it if needed.
 func daisyBucket(ctx context.Context, client *storage.Client, project string) (string, error) {
 	bucketName := strings.Replace(project, ":", "-", -1) + "-cloud-test-outputs"
 	it := client.Buckets(ctx, project)
