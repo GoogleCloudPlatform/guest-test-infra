@@ -271,12 +271,12 @@ func verifyAutomaticUpdate(image string) error {
 	if err != nil {
 		return err
 	}
-	switch {
-	case strings.Contains(image, "debian-9"):
+	if strings.Contains(image, "debian-9") {
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
 			return fmt.Errorf(`"APT::Periodic::Enable" is not set to 1`)
 		}
-	case strings.Contains(image, "ubuntu"):
+  }
+  if strings.Contains(image, "ubuntu") {
 		// Ensure that we clean out obsolete debs within 7 days so that customer VMs
 		// don't leak disk space. The value below is in days, with 0 as
 		// disabled.
@@ -295,9 +295,7 @@ func verifyAutomaticUpdate(image string) error {
 		if interval > maxInterval || interval < minInterval {
 			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
 		}
-	default:
-		return fmt.Errorf("unsupported image %s", image)
-	}
+  }
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
 		return fmt.Errorf(`"APT::Periodic::Update-Package-Lists" is not set to 1`)
 	}
