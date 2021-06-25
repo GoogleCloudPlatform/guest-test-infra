@@ -120,6 +120,7 @@ var licenses = []string{
 	`This library.*is public domain software`,
 	`Apache License`,
 	`The Artistic License 2.0`,
+	`FULLTEXT`,
 }
 
 const (
@@ -175,10 +176,6 @@ func TestArePackagesLegal(t *testing.T) {
 				t.Fatalf(err.Error())
 			}
 			if !isLegal {
-				if filename == "/usr/share/licenses/perl-Module-Build/LICENSE" {
-					// EL8's perl-Module-Build license is simply "FULLTEXT", Pretty sure its fine though.
-					continue
-				}
 				t.Errorf("Found illegal package: %v", filename)
 			}
 		}

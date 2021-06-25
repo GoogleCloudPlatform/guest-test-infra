@@ -271,12 +271,12 @@ func verifyAutomaticUpdate(image string) error {
 	if err != nil {
 		return err
 	}
-	if strings.Contains(image, "debian-9") {
+  switch {
+	case strings.Contains(image, "debian-9"):
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
 			return fmt.Errorf(`"APT::Periodic::Enable" is not set to 1`)
 		}
-	}
-	if strings.Contains(image, "ubuntu") {
+	case strings.Contains(image, "ubuntu"):
 		// Ensure that we clean out obsolete debs within 7 days so that customer VMs
 		// don't leak disk space. The value below is in days, with 0 as
 		// disabled.
