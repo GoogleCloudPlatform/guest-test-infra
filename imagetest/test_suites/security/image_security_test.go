@@ -295,8 +295,6 @@ func verifyAutomaticUpdate(image string) error {
 		if interval > maxInterval || interval < minInterval {
 			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
 		}
-	default:
-		return fmt.Errorf("unsupported image %s", image)
 	}
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
 		return fmt.Errorf(`"APT::Periodic::Update-Package-Lists" is not set to 1`)
