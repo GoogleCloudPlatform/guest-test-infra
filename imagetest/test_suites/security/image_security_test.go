@@ -271,7 +271,7 @@ func verifyAutomaticUpdate(image string) error {
 	if err != nil {
 		return err
 	}
-  switch {
+	switch {
 	case strings.Contains(image, "debian-9"):
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
 			return fmt.Errorf(`"APT::Periodic::Enable" is not set to 1`)
