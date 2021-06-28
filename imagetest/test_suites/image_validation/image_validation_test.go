@@ -64,14 +64,21 @@ func TestFQDN(t *testing.T) {
 	}
 
 	// This command is not safe on multi-NIC VMs. See HOSTNAME(1), section 'THE FQDN'.
-	cmd := exec.Command("/bin/hostname", "-A")
+	cmd := exec.Command("/bin/hostname", "-a")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("hostname command failed")
 	}
 	hostname := strings.TrimRight(string(out), " \n")
 
-	if hostname != metadataHostname {
+	cmd = exec.Command("/bin/hostname", "-d")
+	out, err = cmd.Output()
+	if err != nil {
+		t.Fatalf("hostname command failed")
+	}
+	domain := strings.TrimRight(string(out), " \n")
+
+	if hostname+"."+domain != metadataHostname {
 		t.Errorf("hostname does not match metadata. Expected: %q got: %q", metadataHostname, hostname)
 	}
 }
