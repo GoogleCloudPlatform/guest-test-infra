@@ -335,6 +335,47 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
 
+- name: promote-guest-oslogin-stable
+  plan:
+  - get: guest-oslogin-tag
+    passed: [build-guest-oslogin]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-deb9-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-stretch
+          environment: stable
+      - task: promote-deb10-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-buster
+          environment: stable
+      - task: promote-deb11-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-bullseye
+          environment: stable
+      - task: promote-el7-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el7
+          environment: stable
+      - task: promote-el8-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el8
+          environment: stable
+
 - name: build-osconfig
   plan:
   - get: osconfig
@@ -767,6 +808,7 @@ groups:
 - name: guest-oslogin
   jobs:
   - build-guest-oslogin
+  - promote-guest-oslogin-stable
 - name: osconfig
   jobs:
   - build-osconfig
