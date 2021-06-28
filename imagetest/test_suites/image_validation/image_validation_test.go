@@ -58,6 +58,15 @@ func TestCustomHostname(t *testing.T) {
 
 // TestFQDN tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestFQDN(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "rhel-7-4-sap") {
+		t.Skip("hostname is not working well on RHEL 7-4-Sap")
+	}
+
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
