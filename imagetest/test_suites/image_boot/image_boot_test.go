@@ -56,8 +56,8 @@ func TestGuestSecureBoot(t *testing.T) {
 	}
 
 	if strings.Contains(image, "rocky-linux-8") {
-                t.Skip("secure boot is not yet supported on Rocky Linux")
-        }
+		t.Skip("secure boot is not yet supported on Rocky Linux")
+	}
 
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
 		t.Fatal("efi var is missing")
