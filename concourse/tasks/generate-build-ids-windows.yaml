@@ -13,6 +13,4 @@ run:
   path: sh
   args:
   - -exc
-  - |
-    "buildid=$(date '+%s'); echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-v${buildid}.tar.gz"
-    "echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-internal-v${buildid}.tar.gz"
+  - "buildid=$(date '+%s'); echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-v${buildid}.tar.gz; touch build-id-dir/((prefix))-internal-v${buildid}.tar.gz"
