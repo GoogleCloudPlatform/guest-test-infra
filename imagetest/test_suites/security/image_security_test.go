@@ -195,7 +195,15 @@ func verifySSHConfig() error {
 	if err != nil {
 		return err
 	}
-	sshdConfig := string(fileBytes)
+	sshdlines := strings.Split(string(fileBytes), "\n")
+	var noComments []string
+	for _, line := range sshdlines {
+		if !strings.HasPrefix(strings.TrimLeft(line, " "), "#") {
+			noComments = append(noComments, line)
+		}
+	}
+	sshdConfig := strings.Join(noComments, "\n")
+
 	if !strings.Contains(sshdConfig, "PasswordAuthentication no") {
 		return fmt.Errorf("\"PasswordAuthentication\" was not set to \"no\"")
 	}
