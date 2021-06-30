@@ -14,6 +14,12 @@ const (
 	markerFile = "/boot-marker"
 )
 
+func TestAliasAfterOnBoot(t *testing.T) {
+	if err := verifyIPAliases(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestAliasAfterReboot(t *testing.T) {
 	_, err := os.Stat(markerFile)
 	if os.IsNotExist(err) {
@@ -21,9 +27,7 @@ func TestAliasAfterReboot(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		if err := verifyIPAliases(); err != nil {
-			t.Fatal(err)
-		}
+		t.Fatal("first boot")
 	}
 	// second boot
 	if err := verifyIPAliases(); err != nil {
@@ -67,7 +71,10 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 	}
 	var res []string
 	for _, line := range strings.Split(string(b), "\n") {
-		res = append(res, strings.Split(line, " ")[1])
+		ip := strings.Split(line, " ")
+		if len(ip) >= 2 {
+			res = append(res, ip[1])
+		}
 	}
 	return res, nil
 }

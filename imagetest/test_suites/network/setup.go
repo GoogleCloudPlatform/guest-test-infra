@@ -48,6 +48,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-	vm2.RunTests("TestAliasAfterReboot|TestAliasAgentRestart")
+	vm2.RunTests("TestAliasAfterOnBoot|TestAliasAfterReboot|TestAliasAgentRestart")
 	return nil
 }
