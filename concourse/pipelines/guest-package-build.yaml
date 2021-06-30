@@ -587,12 +587,24 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-configs-deb-unstable
+      - task: inject-guest-configs-deb9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
           universe: cloud-apt
-          repo: gce-google-compute-engine
+          repo: gce-google-compute-engine-stretch
+      - task: inject-guest-configs-deb10-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine-buster
+      - task: inject-guest-configs-deb11-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          universe: cloud-apt
+          repo: gce-google-compute-engine-bullseye
       - task: inject-guest-configs-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
@@ -605,6 +617,84 @@ jobs:
           package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
+
+- name: promote-guest-configs-staging
+  plan:
+  - get: guest-configs-tag
+    passed: [build-guest-configs]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      - task: promote-deb9-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-stretch
+          environment: staging
+      - task: promote-deb10-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-buster
+          environment: staging
+      - task: promote-deb11-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-bullseye
+          environment: staging
+      - task: promote-el7-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el7
+          environment: staging
+      - task: promote-el8-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el8
+          environment: staging
+
+- name: promote-guest-configs-stable
+  plan:
+  - get: guest-configs-tag
+    passed: [promote-guest-configs-staging]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      - task: promote-deb9-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-stretch
+          environment: stable
+      - task: promote-deb10-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-buster
+          environment: stable
+      - task: promote-deb11-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-bullseye
+          environment: stable
+      - task: promote-el7-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el7
+          environment: stable
+      - task: promote-el8-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-el8
+          environment: stable
 
 - name: build-artifact-registry-el-plugins
   plan:
@@ -818,6 +908,8 @@ groups:
 - name: google-compute-engine
   jobs:
   - build-guest-configs
+  - promote-guest-configs-staging
+  - promote-guest-configs-stable
 - name: artifact-registry-plugins
   jobs:
   - build-artifact-registry-el-plugins
