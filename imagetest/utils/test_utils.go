@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -56,6 +57,25 @@ func GetMetadata(path string) (string, error) {
 	return string(val), nil
 }
 
+// SetMetadata set a metadata value for the specified key in metadata server
+func SetMetadata(key, value string) (error) {
+	body := bytes.NewBuffer([]byte(value))
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s%s", metadataURLPrefix, key), body)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return  err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("http response code is %v", resp.StatusCode)
+	}
+	return nil
+}
+
 // DownloadGCSObject downloads a GCS object.
 func DownloadGCSObject(ctx context.Context, client *storage.Client, gcsPath string) ([]byte, error) {
 	u, err := url.Parse(gcsPath)
@@ -75,6 +95,38 @@ func DownloadGCSObject(ctx context.Context, client *storage.Client, gcsPath stri
 	}
 
 	return data, nil
+}
+
+// GetGuestAttributesAsMap return the VM's guest attributes as a map.
+func GetGuestAttributesAsMap() (map[string]string, error) {
+	response, err := GetMetadata("guest-attributes/")
+	if err != nil {
+		return nil, err
+	}
+
+	resMap := make(map[string]string)
+	items := strings.Split(response, "\n")
+	for _, item := range items {
+		value, err := GetMetadata("guest-attributes/" + item)
+		if err != nil {
+			return nil, err
+		}
+		resMap[item] = value
+	}
+	return resMap, nil
+}
+
+// GetOsLoginMetadataWithResponse makes a oslogin request to the metadata server and returns the response.
+func GetOsLoginMetadataWithResponse(path, urlParams string) (string, error) {
+	os_login_path := fmt.Sprintf("oslogin/%s", path)
+	if urlParams != "" {
+		os_login_path += fmt.Sprintf("?%s", url.QueryEscape(urlParams))
+	}
+	response, err := GetMetadata(os_login_path)
+	if err != nil {
+		return "",err
+	}
+	return response, nil
 }
 
 // DownloadGCSObjectToFile downloads a GCS object, writing it to the specified file.
