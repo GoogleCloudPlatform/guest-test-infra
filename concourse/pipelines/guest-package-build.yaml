@@ -335,10 +335,51 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
 
-- name: promote-guest-oslogin-stable
+- name: promote-guest-oslogin-staging
   plan:
   - get: guest-oslogin-tag
     passed: [build-guest-oslogin]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-deb9-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-stretch
+          environment: staging
+      - task: promote-deb10-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-buster
+          environment: staging
+      - task: promote-deb11-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: gce-google-compute-engine-oslogin-bullseye
+          environment: staging
+      - task: promote-el7-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el7
+          environment: staging
+      - task: promote-el8-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: gce-google-compute-engine-oslogin-el8
+          environment: staging
+
+- name: promote-guest-oslogin-stable
+  plan:
+  - get: guest-oslogin-tag
+    passed: [promote-guest-oslogin-staging]
   - get: guest-test-infra
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
@@ -898,6 +939,7 @@ groups:
 - name: guest-oslogin
   jobs:
   - build-guest-oslogin
+  - promote-guest-oslogin-staging
   - promote-guest-oslogin-stable
 - name: osconfig
   jobs:
