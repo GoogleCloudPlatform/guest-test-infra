@@ -62,8 +62,8 @@ func SingleVMTest(t *TestWorkflow) error {
 	return err
 }
 
-func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *daisy.Instance, error) {
-	attachedDisk := &compute.AttachedDisk{Source: name}
+func (t *TestWorkflow) appendCreateVMStep(name, diskname, hostname string, isSharedName bool) (*daisy.Step, *daisy.Instance, error) {
+	attachedDisk := &compute.AttachedDisk{Source: diskname}
 
 	instance := &daisy.Instance{}
 	instance.StartupScript = "wrapper"
@@ -81,20 +81,23 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *
 
 	createInstances := &daisy.CreateInstances{}
 	createInstances.Instances = append(createInstances.Instances, instance)
-
-	createVMStep, ok := t.wf.Steps[createVMsStepName]
-	if ok {
-		// append to existing step.
-		createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
-	} else {
-		var err error
-		createVMStep, err = t.wf.NewStep(createVMsStepName)
-		if err != nil {
-			return nil, nil, err
+	var createVMStepName string
+	if isSharedName {
+		createVMStep, ok := t.wf.Steps[createVMsStepName]
+		if ok {
+			// append to existing step.
+			createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
+			return createVMStep, instance, nil
 		}
-		createVMStep.CreateInstances = createInstances
+		createVMStepName = createVMsStepName
+	} else {
+		createVMStepName = createVMsStepPrefix + name
 	}
-
+	createVMStep, err := t.wf.NewStep(createVMStepName)
+	if err != nil {
+		return nil, nil, err
+	}
+	createVMStep.CreateInstances = createInstances
 	return createVMStep, instance, nil
 }
 
@@ -298,15 +301,22 @@ type testResult struct {
 
 func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 	results := []string{}
-	createVMsStep := ts.wf.Steps[createVMsStepName]
-	for _, vm := range createVMsStep.CreateInstances.Instances {
-		out, err := utils.DownloadGCSObject(ctx, client, vm.Metadata["_test_results_url"])
-		if err != nil {
-			return nil, fmt.Errorf("failed to get results for test %s vm %s: %v", ts.Name, vm.Name, err)
+	var createVMSteps []*daisy.Step
+	createVMSteps = append(createVMSteps, ts.wf.Steps[createVMsStepName])
+	for stepName, step := range ts.wf.Steps {
+		if strings.HasPrefix(stepName, createVMsStepPrefix) {
+			createVMSteps = append(createVMSteps, step)
 		}
-		results = append(results, string(out))
 	}
-
+	for _, step := range createVMSteps {
+		for _, vm := range step.CreateInstances.Instances {
+			out, err := utils.DownloadGCSObject(ctx, client, vm.Metadata["_test_results_url"])
+			if err != nil {
+				return nil, fmt.Errorf("failed to get results for test %s vm %s: %v", ts.Name, vm.Name, err)
+			}
+			results = append(results, string(out))
+		}
+	}
 	return results, nil
 }
 
@@ -514,4 +524,35 @@ func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
 	t.wf.Sources[sourcePath] = keyFileName
 
 	return string(publicKey), nil
+}
+
+func (t *TestWorkflow) addDetachDiskStep(diskname, vmname string) (*daisy.Step, error) {
+	detachDisk := &daisy.DetachDisk{}
+	detachDisk.DeviceName = diskname
+	detachDisk.Instance = vmname
+
+	detachDisks := &daisy.DetachDisks{detachDisk}
+
+	detachDiskStep, err := t.wf.NewStep(fmt.Sprintf("detach-%s-disk-%s", vmname, diskname))
+	if err != nil {
+		return nil, err
+	}
+	detachDiskStep.DetachDisks = detachDisks
+
+	return detachDiskStep, nil
+}
+
+func (t *TestWorkflow) addAttachDiskStep(diskname string, vmname string) (*daisy.Step, error) {
+	attachDisk := &daisy.AttachDisk{}
+	attachDisk.Instance = t.Name
+	attachDisk.Source = diskname
+	attachDisks := &daisy.AttachDisks{attachDisk}
+
+	attachiskStep, err := t.wf.NewStep(fmt.Sprintf("attach-%s-disk-%s", vmname, diskname))
+	if err != nil {
+		return nil, err
+	}
+	attachiskStep.AttachDisks = attachDisks
+
+	return attachiskStep, nil
 }

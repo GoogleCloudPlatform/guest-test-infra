@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	createVMsStepPrefix      = "create-vm-"
 	createVMsStepName        = "create-vms"
 	createDisksStepName      = "create-disks"
 	createNetworkStepName    = "create-networks"
@@ -68,7 +69,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep(vmname, name)
+	createVMStep, i, err := t.appendCreateVMStep(vmname, vmname, name, true)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +91,43 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		if err := t.wf.AddDependency(createVMStep, createNetworksStep); err != nil {
 			return nil, err
 		}
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
+}
+
+// CreateTestVMWithCustomDisk create the necessary steps to create a VM with the specified name and custom disk
+// The VM could dependent on other VM workflow.
+func (t *TestWorkflow) CreateTestVMWithCustomDisk(name, dependentVM, diskname string) (*TestVM, error) {
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+	var isSharedName = true
+	if dependentVM != "" {
+		isSharedName = false
+	}
+	createVMStep, i, err := t.appendCreateVMStep(vmname, diskname, name, isSharedName)
+	if err != nil {
+		return nil, err
+	}
+
+	// If dependentVM is not empty, this vm need to create after other vm.
+	if dependentVM != "" {
+		lastStep, err := t.getLastStepForVM(dependentVM)
+		if err != nil {
+			return nil, fmt.Errorf("failed resolve last step")
+		}
+		if err := t.wf.AddDependency(createVMStep, lastStep); err != nil {
+			return nil, err
+		}
+	}
+
+	waitStep, err := t.addWaitStep(vmname, vmname, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
 	}
 
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
@@ -310,4 +348,30 @@ func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 		IpCidrRange: ipRange,
 		RangeName:   rangeName,
 	})
+}
+
+// DetachDisk detach the disk for current vm.
+func (t *TestVM) DetachDisk() error {
+	lastStep, err := t.testWorkflow.getLastStepForVM(t.name)
+	if err != nil {
+		return fmt.Errorf("failed resolve last step")
+	}
+
+	stopInstancesStep, err := t.testWorkflow.addStopStep(t.name, t.name)
+	if err != nil {
+		return err
+	}
+
+	if err := t.testWorkflow.wf.AddDependency(stopInstancesStep, lastStep); err != nil {
+		return err
+	}
+
+	detachDiskStep, err := t.testWorkflow.addDetachDiskStep(t.name, t.name)
+	if err != nil {
+		return err
+	}
+	if err := t.testWorkflow.wf.AddDependency(detachDiskStep, stopInstancesStep); err != nil {
+		return err
+	}
+	return nil
 }
