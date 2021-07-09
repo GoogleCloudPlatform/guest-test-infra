@@ -16,7 +16,7 @@ var (
 
 const (
 	markerFile     = "/boot-marker"
-	secureBootFile = "/sys/firmware/efi/vars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c/data"
+	secureBootFile = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
 )
 
 func TestMain(m *testing.M) {
