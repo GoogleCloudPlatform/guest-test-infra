@@ -79,3 +79,13 @@ It is suggested to start by copying an existing test package.
 From the root of this repository:
 
     $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
+
+## What is being tested ##
+
+The tests are a combination of various types - end to end tests on certain
+software components, image validations and feature validations, etc. The
+collective whole represents the quality assurance bar for releasing a [supported
+GCE Image][gce-images], and the test suites here must all pass before Google
+engineers will release a new GCE image.
+
+The tests are documented in [the test\_suites directory](test_suites/README.md).
