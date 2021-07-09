@@ -33,9 +33,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		t.Skip("secure boot is not supported on Debian 9")
 	}
 
-  if strings.Contains(t.Image, "rocky-linux-8") {
-    t.Skip("secure boot is not supported on Rocky Linux")
-  }
+	if strings.Contains(t.Image, "rocky-linux-8") {
+		t.Skip("secure boot is not supported on Rocky Linux")
+	}
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
