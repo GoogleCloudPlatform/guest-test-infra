@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os/exec"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -22,7 +23,10 @@ const (
 func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
-	defer func() { log.Printf("FINISHED-TEST") }()
+	defer func() {
+		log.Printf("FINISHED-TEST")
+		time.Sleep(1 * time.Second)
+	}()
 
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
