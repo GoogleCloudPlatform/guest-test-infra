@@ -24,8 +24,8 @@ import (
 const (
 	createVMsStepName        = "create-vms"
 	createDisksStepName      = "create-disks"
-	createNetworkStepName    = "create-network"
-	createSubNetworkStepName = "create-sub-network"
+	createNetworkStepName    = "create-networks"
+	createSubNetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
 )
 
@@ -161,7 +161,7 @@ func (t *TestVM) EnableSecureBoot() {
 
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork.
-func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
+func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
 			networkInterface := compute.NetworkInterface{
@@ -178,7 +178,6 @@ func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
 			break
 		}
 	}
-	return nil
 }
 
 // AddAliasIPRanges add alias ip range to current test VMs.

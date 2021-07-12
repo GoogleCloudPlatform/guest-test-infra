@@ -65,30 +65,15 @@ type SubNetwork struct {
 }
 
 // AddSecondaryRange add secondary IP range to SubNetwork
-func (s SubNetwork) AddSecondaryRange(rangeName, ipRange string) error {
-	createSubnetworksStep, ok := s.testWorkflow.wf.Steps[createSubNetworkStepName]
-	if !ok {
-		return fmt.Errorf("create-sub-network step missing")
-	}
-
-	subnetwork, err := s.findSubNetwork(*createSubnetworksStep.CreateSubnetworks)
-	if err != nil {
-		return err
-	}
-	subnetwork.SecondaryIpRanges = append(subnetwork.SecondaryIpRanges, &compute.SubnetworkSecondaryRange{
-		IpCidrRange: ipRange,
-		RangeName:   rangeName,
-	})
-	return nil
-}
-
-func (s SubNetwork) findSubNetwork(subnetworks daisy.CreateSubnetworks) (*daisy.Subnetwork, error) {
-	for _, subnetwork := range subnetworks {
+func (s SubNetwork) AddSecondaryRange(rangeName, ipRange string) {
+	for _, subnetwork := range *s.testWorkflow.wf.Steps[createSubNetworkStepName].CreateSubnetworks {
 		if subnetwork.Name == s.name {
-			return subnetwork, nil
+			subnetwork.SecondaryIpRanges = append(subnetwork.SecondaryIpRanges, &compute.SubnetworkSecondaryRange{
+				IpCidrRange: ipRange,
+				RangeName:   rangeName,
+			})
 		}
 	}
-	return nil, fmt.Errorf("failed to find subnetwork in daisy create subnetwork step")
 }
 
 // SingleVMTest configures one VM running tests.
@@ -264,25 +249,40 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 	return startInstancesStep, nil
 }
 
-func (t *TestWorkflow) addCreateNetworkStep(network *daisy.Network) (*daisy.Step, error) {
+func (t *TestWorkflow) appendCreateNetworkStep(network *daisy.Network) (*daisy.Step, error) {
 	createNetworks := &daisy.CreateNetworks{}
 	*createNetworks = append(*createNetworks, network)
-	createNetworkStep, err := t.wf.NewStep(createNetworkStepName)
-	if err != nil {
-		return nil, err
+	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
+	if ok {
+		// append to existing step.
+		*createNetworkStep.CreateNetworks = append(*createNetworkStep.CreateNetworks, network)
+	} else {
+		createNetworkStep, err := t.wf.NewStep(createNetworkStepName)
+		if err != nil {
+			return nil, err
+		}
+		createNetworkStep.CreateNetworks = createNetworks
 	}
-	createNetworkStep.CreateNetworks = createNetworks
+
 	return createNetworkStep, nil
 }
 
-func (t *TestWorkflow) addCreateSubnetworksStep(subnetwork *daisy.Subnetwork) (*daisy.Step, error) {
-	createSubnetworksStep, err := t.wf.NewStep(createSubNetworkStepName)
-	if err != nil {
-		return nil, err
-	}
+func (t *TestWorkflow) appendCreateSubnetworksStep(subnetwork *daisy.Subnetwork) (*daisy.Step, error) {
 	createSubnetworks := &daisy.CreateSubnetworks{}
 	*createSubnetworks = append(*createSubnetworks, subnetwork)
-	createSubnetworksStep.CreateSubnetworks = createSubnetworks
+	createSubnetworksStep, ok := t.wf.Steps[createSubNetworkStepName]
+	if ok {
+		// append to existing step.
+		*createSubnetworksStep.CreateSubnetworks = append(*createSubnetworksStep.CreateSubnetworks, subnetwork)
+	} else {
+		createSubnetworksStep, err := t.wf.NewStep(createSubNetworkStepName)
+		if err != nil {
+			return nil, err
+		}
+
+		createSubnetworksStep.CreateSubnetworks = createSubnetworks
+	}
+
 	return createSubnetworksStep, nil
 }
 
@@ -296,30 +296,26 @@ func (n Network) CreateSubNetwork(name string, ipRange string) (*SubNetwork, err
 			Network:     n.name,
 		},
 	}
-	createSubnetworksStep, ok := n.testWorkflow.wf.Steps[createSubNetworkStepName]
+
+	createSubnetworksStep, err := n.testWorkflow.appendCreateSubnetworksStep(subnetwork)
+	if err != nil {
+		return nil, err
+	}
+	firstStep, ok := n.testWorkflow.wf.Steps[createVMsStepName]
 	if !ok {
-		createSubnetworksStep, err := n.testWorkflow.addCreateSubnetworksStep(subnetwork)
-		if err != nil {
-			return nil, err
-		}
-		firstStep, ok := n.testWorkflow.wf.Steps[createDisksStepName]
-		if !ok {
-			return nil, fmt.Errorf("failed resolve first step")
-		}
-		createNetworkStep, ok := n.testWorkflow.wf.Steps[createNetworkStepName]
-		if !ok {
-			return nil, fmt.Errorf("create-network step missing")
-		}
-		if err := n.testWorkflow.wf.AddDependency(createSubnetworksStep, createNetworkStep); err != nil {
-			return nil, err
-		}
-		if err := n.testWorkflow.wf.AddDependency(firstStep, createSubnetworksStep); err != nil {
-			return nil, err
-		}
-		return &SubNetwork{name, n.testWorkflow}, nil
+		return nil, fmt.Errorf("failed resolve first step")
+	}
+	createNetworkStep, ok := n.testWorkflow.wf.Steps[createNetworkStepName]
+	if !ok {
+		return nil, fmt.Errorf("create-network step missing")
+	}
+	if err := n.testWorkflow.wf.AddDependency(createSubnetworksStep, createNetworkStep); err != nil {
+		return nil, err
+	}
+	if err := n.testWorkflow.wf.AddDependency(firstStep, createSubnetworksStep); err != nil {
+		return nil, err
 	}
 
-	*createSubnetworksStep.CreateSubnetworks = append(*createSubnetworksStep.CreateSubnetworks, subnetwork)
 	return &SubNetwork{name, n.testWorkflow}, nil
 }
 
@@ -332,26 +328,20 @@ func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks b
 		},
 		AutoCreateSubnetworks: &autoCreateSubnetworks,
 	}
-	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
-	if !ok {
-		createNetworkStep, err := t.addCreateNetworkStep(network)
-		if err != nil {
-			return nil, err
-		}
-		// Use default subnetwork, no create custom subnetwork step.
-		if autoCreateSubnetworks {
-			firstStep, ok := t.wf.Steps[createDisksStepName]
-			if !ok {
-				return nil, fmt.Errorf("failed resolve first step")
-			}
-			if err := t.wf.AddDependency(firstStep, createNetworkStep); err != nil {
-				return nil, err
-			}
-		}
-		return &Network{networkName, t}, nil
+
+	createNetworkStep, err := t.appendCreateNetworkStep(network)
+	if err != nil {
+		return nil, err
 	}
 
-	*createNetworkStep.CreateNetworks = append(*createNetworkStep.CreateNetworks, network)
+	firstStep, ok := t.wf.Steps[createVMsStepName]
+	if !ok {
+		return nil, fmt.Errorf("failed resolve first step")
+	}
+	if err := t.wf.AddDependency(firstStep, createNetworkStep); err != nil {
+		return nil, err
+	}
+
 	return &Network{networkName, t}, nil
 }
 
