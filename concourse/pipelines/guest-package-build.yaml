@@ -829,7 +829,7 @@ jobs:
   - task: inject-artifact-registry-apt-transport-unstable
     file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
     vars:
-      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_all.deb
+      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb
       universe: cloud-apt
       repo: apt-transport-artifact-registry
 
