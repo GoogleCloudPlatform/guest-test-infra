@@ -11,15 +11,11 @@ import (
 
 func TestStandardPrograms(t *testing.T) {
 	cmd := exec.Command("gcloud", "-h")
-	cmd.Start()
-	err := cmd.Wait()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		t.Fatalf("gcloud not installed properly")
 	}
 	cmd = exec.Command("gsutil", "help")
-	cmd.Start()
-	err = cmd.Wait()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		t.Fatalf("gsutil not installed properly")
 	}
 }
@@ -42,15 +38,23 @@ func TestGuestPackages(t *testing.T) {
 		cmd.Stderr = stderr
 		stdout := &bytes.Buffer{}
 		cmd.Stdout = stdout
-		if err := cmd.Start(); err != nil {
-			t.Errorf("error starting check command: %v", err)
-			continue
-		}
-		if err := cmd.Wait(); err != nil {
+		if err := cmd.Run(); err != nil {
 			t.Errorf("error running check command: %v %s %s", err, stdout, stderr)
 			continue
 		}
-
 	}
+}
 
+// TestAppArmor: Verify that AppArmor is working correctly.
+func TestAppArmor(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't determine image from metadata")
+	}
+	if strings.Contains(image, "ubuntu") {
+		cmd := exec.Command("/usr/sbin/aa-status")
+		if err := cmd.Run(); err != nil {
+			t.Fatal("AppArmor is not working correctly")
+		}
+	}
 }
