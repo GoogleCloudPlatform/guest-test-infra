@@ -257,7 +257,8 @@ func (t *TestWorkflow) appendCreateNetworkStep(network *daisy.Network) (*daisy.S
 		// append to existing step.
 		*createNetworkStep.CreateNetworks = append(*createNetworkStep.CreateNetworks, network)
 	} else {
-		createNetworkStep, err := t.wf.NewStep(createNetworkStepName)
+		var err error
+		createNetworkStep, err = t.wf.NewStep(createNetworkStepName)
 		if err != nil {
 			return nil, err
 		}
@@ -275,7 +276,8 @@ func (t *TestWorkflow) appendCreateSubnetworksStep(subnetwork *daisy.Subnetwork)
 		// append to existing step.
 		*createSubnetworksStep.CreateSubnetworks = append(*createSubnetworksStep.CreateSubnetworks, subnetwork)
 	} else {
-		createSubnetworksStep, err := t.wf.NewStep(createSubNetworkStepName)
+		var err error
+		createSubnetworksStep, err = t.wf.NewStep(createSubNetworkStepName)
 		if err != nil {
 			return nil, err
 		}
