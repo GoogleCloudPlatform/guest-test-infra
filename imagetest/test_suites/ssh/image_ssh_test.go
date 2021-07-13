@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"testing"
-	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -34,15 +32,9 @@ func TestEmptyTest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get ssh public key from metadata")
 	}
-	cmd := exec.Command("useradd", "test-user")
-	if err := cmd.Run(); err != nil {
-		t.Fatal("failed add user test-user")
-	}
-	time.Sleep(600 * time.Second)
 }
 
-
-func TestSSHNonOsLogin(t *testing.T) {
+func TestSSH(t *testing.T) {
 	vmname, err := utils.GetRealVMName("vm2")
 	if err != nil {
 		t.Fatal("failed to get real vm name")
@@ -51,11 +43,7 @@ func TestSSHNonOsLogin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't get key path from metadata")
 	}
-	host := fmt.Sprintf("%s:22", vmname)
-	if err := prepareFolderAndFile(); err != nil {
-		t.Fatal(err)
-	}
-	client, session, err := connectToHost(user, host, keyURL)
+	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), keyURL)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
@@ -63,27 +51,11 @@ func TestSSHNonOsLogin(t *testing.T) {
 		t.Fatal("failed to run cmd hostname")
 	}
 	if err := client.Close(); err != nil {
-		t.Fatal("failed to close client")
+		t.Log("failed to close client")
 	}
 }
 
-func prepareFolderAndFile() error {
-	cmd := exec.Command("mkdir", "-p", "-m", "744", "/root/.ssh")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	cmd = exec.Command("touch", "/root/.ssh/authorized_keys")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	cmd = exec.Command("chmod", "600", "/root/.ssh/authorized_keys")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func connectToHost(user, host, keyPath string) (*ssh.Client, *ssh.Session, error) {
+func createSession(user, host, keyPath string) (*ssh.Client, *ssh.Session, error) {
 	pembytes, err := downloadPrivateKey(keyPath)
 	if err != nil {
 		panic(err)

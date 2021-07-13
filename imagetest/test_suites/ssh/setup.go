@@ -1,10 +1,9 @@
 package ssh
 
 import (
-	"io/ioutil"
+	"fmt"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -22,21 +21,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm.AddMetadata("block-project-ssh-keys", "true")
 
-	if err := utils.GenerateSSHKeyPair(user); err != nil {
+	publicKey, err := vm.AddTestUser()
+	if err != nil {
 		return err
 	}
-	vm.RunTests("TestSSHNonOsLogin")
+	vm.RunTests("TestSSH")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err
 	}
 	// add public key in metadata
-	publicKey, err := ioutil.ReadFile("id_rsa.pub")
-	if err != nil {
-		return err
-	}
-	vm2.AddMetadata("ssh-keys", string(publicKey))
+	vm2.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, string(publicKey)))
 	vm2.RunTests("TestEmptyTest")
 	return nil
 }

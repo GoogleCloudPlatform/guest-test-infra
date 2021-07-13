@@ -11,6 +11,11 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
+	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 )
 
@@ -105,26 +110,26 @@ func main() {
 		name      string
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
-		//{
-		//	imagevalidation.Name,
-		//	imagevalidation.TestSetup,
-		//},
-		//{
-		//	imageboot.Name,
-		//	imageboot.TestSetup,
-		//},
-		//{
-		//	network.Name,
-		//	network.TestSetup,
-		//},
-		//{
-		//	security.Name,
-		//	security.TestSetup,
-		//},
-		//{
-		//	disk.Name,
-		//	disk.TestSetup,
-		//},
+		{
+			imagevalidation.Name,
+			imagevalidation.TestSetup,
+		},
+		{
+			imageboot.Name,
+			imageboot.TestSetup,
+		},
+		{
+			network.Name,
+			network.TestSetup,
+		},
+		{
+			security.Name,
+			security.TestSetup,
+		},
+		{
+			disk.Name,
+			disk.TestSetup,
+		},
 		{
 			ssh.Name,
 			ssh.TestSetup,

@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -370,7 +371,6 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 
 		ts.wf.Sources["wrapper"] = testWrapperPath
 		ts.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", ts.Name)
-		ts.wf.Sources["ssh-key"] = "id_rsa"
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to ts.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
@@ -395,6 +395,12 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 
 	}
 	return nil
+}
+
+func (t *TestWorkflow) setKeyFileName() string {
+	keyFileName := "id_rsa_" + uuid.New().String()
+	t.wf.Sources["ssh-key"] = keyFileName
+	return keyFileName
 }
 
 type testResult struct {

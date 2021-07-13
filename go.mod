@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/uuid v1.1.2
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/lorenzosaino/go-sysctl v0.1.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9

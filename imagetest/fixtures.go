@@ -16,6 +16,8 @@ package imagetest
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os/exec"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"google.golang.org/api/compute/v1"
@@ -159,6 +161,7 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
+<<<<<<< HEAD
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
@@ -198,4 +201,22 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) {
 			break
 		}
 	}
+=======
+// AddTestUser generate ssh key pair and return public key.
+func (t *TestVM) AddTestUser() ([]byte, error) {
+	keyFileName := t.testWorkflow.setKeyFileName()
+	if keyFileName == "" {
+		return nil, fmt.Errorf("no key file found for user")
+	}
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
+>>>>>>> 5c75e0c (address comments, refactor)
 }

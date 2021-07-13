@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -104,15 +103,4 @@ func ExtractBaseImageName(image string) (string, error) {
 	}
 	imageName := strings.Join(splits[:len(splits)-1], "-")
 	return imageName, nil
-}
-
-// GenerateSSHKeyPair generate ssh key pair.
-func GenerateSSHKeyPair(user string) error {
-	email := fmt.Sprintf("%s@google.com", user)
-	commandArgs := []string{"-t", "rsa", "-C", email, "-f", "id_rsa", "-N", "", "-q"}
-	cmd := exec.Command("ssh-keygen", commandArgs...)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
 }
