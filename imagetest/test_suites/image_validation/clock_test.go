@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	chronyService = "chronyd"
-	ntpService    = "ntp"
-	ntpdService   = "ntpd"
+	chronyService   = "chronyd"
+	ntpService      = "ntp"
+	ntpdService     = "ntpd"
+	metadataAddress = "169.254.169.254"
 )
 
 var ntpConfig = []string{"/etc/ntp.conf"}
@@ -55,7 +56,7 @@ func TestNTPService(t *testing.T) {
 		if strings.HasPrefix(config, "server") {
 			// Usually the line is like "server serverName url"
 			serverName := strings.Split(config, " ")[1]
-			if !(serverName == "metadata.google.internal" || serverName == "metadata" || serverName == "169.254.169.254") {
+			if !(serverName == "metadata.google.internal" || serverName == "metadata" || serverName == metadataAddress) {
 				t.Fatalf("ntp config contains wrong server information %s'", config)
 			}
 			break
@@ -80,4 +81,69 @@ func readNTPConfig(configPaths []string) ([]string, error) {
 	}
 
 	return strings.Split(string(totalBytes), "\n"), nil
+}
+
+func TestNTPDate(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	// If NTP server running, ntpdate won't work. Turn it off.
+	if err := stopService(image); err != nil {
+		t.Fatal("could not stop ntp/ntpd service")
+	}
+	if err := installPackage(image); err != nil {
+		t.Fatal("could not install ntpdate package")
+	}
+	if err := runNtpdate(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func stopService(image string) error {
+	switch {
+	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-1604"), strings.Contains(image, "ubuntu-minimal-1604"):
+		cmd := exec.Command("service", ntpService, "stop")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	case strings.Contains(image, "sles-12"):
+		cmd := exec.Command("service", ntpdService, "stop")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	default:
+	}
+	return nil
+}
+
+func installPackage(image string) error {
+	switch {
+	case strings.Contains(image, "debian"), strings.Contains(image, "ubuntu-1604"), strings.Contains(image, "ubuntu-minimal-1604"):
+		cmd := exec.Command("apt", "install", "ntpdate")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	case strings.Contains(image, "rhel"):
+		cmd := exec.Command("yum", "install", "ntpdate")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	case strings.Contains(image, "suse"):
+		cmd := exec.Command("zyper", "install", "ntp")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	default:
+	}
+	return nil
+}
+
+// runNtpdate: Make a outgoing NTP exchange using the ntpdate command.
+func runNtpdate() error {
+	cmd := exec.Command("/usr/sbin/ntpdate", metadataAddress)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }
