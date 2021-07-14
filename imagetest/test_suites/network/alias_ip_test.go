@@ -14,7 +14,7 @@ const (
 	markerFile = "/boot-marker"
 )
 
-func TestAliasAfterOnBoot(t *testing.T) {
+func TestAliases(t *testing.T) {
 	if err := verifyIPAliases(); err != nil {
 		t.Fatal(err)
 	}
@@ -115,13 +115,13 @@ func TestAliasAgentRestart(t *testing.T) {
 	}
 }
 
-func verifyIPExist(afterRestart []string) error {
+func verifyIPExist(routes []string) error {
 	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0")
 	if err != nil {
-		return fmt.Errorf("couldn't get image from metadata: %v", err)
+		return fmt.Errorf("couldn't get first alias IP from metadata: %v", err)
 	}
-	for _, ip := range afterRestart {
-		if ip == expected {
+	for _, route := range routes {
+		if route == expected {
 			return nil
 		}
 	}
