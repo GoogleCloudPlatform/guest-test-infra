@@ -275,7 +275,7 @@ func (t *TestWorkflow) appendCreateNetworkStep(networkName string, autoCreateSub
 	return createNetworkStep, nil
 }
 
-func (t *TestWorkflow) appendCreateSubnetworksStep(name, networkName, ipRange) (*daisy.Step, error) {
+func (t *TestWorkflow) appendCreateSubnetworksStep(name, ipRange, networkName string) (*daisy.Step, error) {
 	subnetwork := &daisy.Subnetwork{
 		Subnetwork: compute.Subnetwork{
 			Name:        name,
@@ -306,7 +306,7 @@ func (t *TestWorkflow) appendCreateSubnetworksStep(name, networkName, ipRange) (
 // CreateSubNetwork creates custom subnetwork. Using SetCustomNetwork method
 // provided by TestVM to config network on vm
 func (n Network) CreateSubNetwork(name string, ipRange string) (*SubNetwork, error) {
-	createSubnetworksStep, err := n.testWorkflow.appendCreateSubnetworksStep(name, n.name, ipRange))
+	createSubnetworksStep, err := n.testWorkflow.appendCreateSubnetworksStep(name, ipRange, n.name)
 	if err != nil {
 		return nil, err
 	}
