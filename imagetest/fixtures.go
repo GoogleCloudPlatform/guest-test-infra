@@ -181,7 +181,7 @@ func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) {
 }
 
 // AddAliasIPRanges add alias ip range to current test VMs.
-func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
+func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) {
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
 			i.NetworkInterfaces[0].AliasIpRanges = append(i.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
@@ -191,5 +191,4 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 			break
 		}
 	}
-	return nil
 }

@@ -99,7 +99,7 @@ func TestAliasAgentRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	cmd := exec.Command("systemctl", "restart", "google-guest-agent")
-	_, err = cmd.Output()
+	err = cmd.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
