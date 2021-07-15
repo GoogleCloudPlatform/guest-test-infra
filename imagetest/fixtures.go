@@ -160,8 +160,14 @@ func (t *TestVM) EnableSecureBoot() {
 }
 
 // SetCustomNetwork set current test VMs in workflow using provided network and
-// subnetwork.
-func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) {
+// subnetwork. If subnetwork is empty, not using subnetwork, in this case
+// network has to be in auto mode VPC.
+func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
+	for _, n := range *(t.testWorkflow.wf.Steps[createNetworkStepName].CreateNetworks) {
+		if n.Name == networkName && *n.AutoCreateSubnetworks == false && subnetworkName == "" {
+			return fmt.Errorf("network %s with custom mode must provide subnetwork", networkName)
+		}
+	}
 	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
 		if i.Name == t.name {
 			networkInterface := compute.NetworkInterface{
@@ -178,6 +184,7 @@ func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) {
 			break
 		}
 	}
+	return nil
 }
 
 // AddAliasIPRanges add alias ip range to current test VMs.

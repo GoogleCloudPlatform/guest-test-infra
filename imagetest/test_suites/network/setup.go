@@ -37,7 +37,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm2.SetCustomNetwork(networkName, subnetworkName)
+	if err := vm2.SetCustomNetwork(networkName, ""); err != nil {
+		return err
+	}
 	vm2.AddAliasIPRanges(aliasIPRange, rangeName)
 	if err := vm2.Reboot(); err != nil {
 		return err
