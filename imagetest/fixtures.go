@@ -22,9 +22,11 @@ import (
 )
 
 const (
-	createVMsStepName   = "create-vms"
-	createDisksStepName = "create-disks"
-	successMatch        = "FINISHED-TEST"
+	createVMsStepName        = "create-vms"
+	createDisksStepName      = "create-disks"
+	createNetworkStepName    = "create-networks"
+	createSubNetworkStepName = "create-sub-networks"
+	successMatch             = "FINISHED-TEST"
 )
 
 // TestVM is a test VM.
@@ -152,6 +154,47 @@ func (t *TestVM) EnableSecureBoot() {
 			i.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
 				EnableSecureBoot: true,
 			}
+			break
+		}
+	}
+}
+
+// SetCustomNetwork set current test VMs in workflow using provided network and
+// subnetwork. If subnetwork is empty, not using subnetwork, in this case
+// network has to be in auto mode VPC.
+func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
+	for _, n := range *(t.testWorkflow.wf.Steps[createNetworkStepName].CreateNetworks) {
+		if n.Name == networkName && *n.AutoCreateSubnetworks == false && subnetworkName == "" {
+			return fmt.Errorf("network %s with custom mode must provide subnetwork", networkName)
+		}
+	}
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			networkInterface := compute.NetworkInterface{
+				Network:    networkName,
+				Subnetwork: subnetworkName,
+				AccessConfigs: []*compute.AccessConfig{
+					{
+						Type: "ONE_TO_ONE_NAT",
+					},
+				},
+			}
+
+			i.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+			break
+		}
+	}
+	return nil
+}
+
+// AddAliasIPRanges add alias ip range to current test VMs.
+func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) {
+	for _, i := range t.testWorkflow.wf.Steps[createVMsStepName].CreateInstances.Instances {
+		if i.Name == t.name {
+			i.NetworkInterfaces[0].AliasIpRanges = append(i.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
+				IpCidrRange:         aliasIPRange,
+				SubnetworkRangeName: rangeName,
+			})
 			break
 		}
 	}
