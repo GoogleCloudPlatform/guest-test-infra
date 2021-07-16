@@ -161,7 +161,6 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-<<<<<<< HEAD
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
@@ -201,7 +200,8 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) {
 			break
 		}
 	}
-=======
+}
+
 // AddTestUser generate ssh key pair and return public key.
 func (t *TestVM) AddTestUser() ([]byte, error) {
 	keyFileName := t.testWorkflow.setKeyFileName()
@@ -218,5 +218,4 @@ func (t *TestVM) AddTestUser() ([]byte, error) {
 		return nil, err
 	}
 	return publicKey, nil
->>>>>>> 5c75e0c (address comments, refactor)
 }
