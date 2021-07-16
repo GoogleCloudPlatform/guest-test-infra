@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -37,29 +36,29 @@ func TestEmptyTest(t *testing.T) {
 func TestSSH(t *testing.T) {
 	vmname, err := utils.GetRealVMName("vm2")
 	if err != nil {
-		t.Fatal("failed to get real vm name")
+		t.Fatalf("failed to get real vm name: %v", err)
 	}
 	keyURL, err := utils.GetMetadataAttribute("_ssh_key_url")
 	if err != nil {
-		t.Fatalf("Couldn't get key path from metadata")
+		t.Fatalf("Couldn't get key path from metadata: %v", err)
 	}
-	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), keyURL)
+	pembytes, err := downloadPrivateKey(keyURL)
+	if err != nil {
+		t.Fatalf("failed to download private key: %v", err)
+	}
+	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
 	if err := session.Run("hostname"); err != nil {
-		t.Fatal("failed to run cmd hostname")
+		t.Fatalf("failed to run cmd hostname: %v", err)
 	}
 	if err := client.Close(); err != nil {
-		t.Log("failed to close client")
+		t.Logf("failed to close client: %v", err)
 	}
 }
 
-func createSession(user, host, keyPath string) (*ssh.Client, *ssh.Session, error) {
-	pembytes, err := downloadPrivateKey(keyPath)
-	if err != nil {
-		panic(err)
-	}
+func createSession(user, host string, pembytes []byte) (*ssh.Client, *ssh.Session, error) {
 	// generate signer instance from plain key
 	signer, err := ssh.ParsePrivateKey(pembytes)
 	if err != nil {
@@ -89,7 +88,7 @@ func downloadPrivateKey(gcsPath string) ([]byte, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		log.Fatalf("failed to create cloud storage client: %v", err)
+		return nil, err
 	}
 	privateKey, err := utils.DownloadGCSObject(ctx, client, gcsPath)
 	if err != nil {

@@ -17,6 +17,8 @@ package imagetest
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -141,7 +143,6 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, e
 	instance.Metadata = make(map[string]string)
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
-	instance.Metadata["_ssh_key_url"] = "${SOURCESPATH}/ssh-key"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
 
 	createInstances := &daisy.CreateInstances{}
@@ -397,9 +398,10 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 	return nil
 }
 
-func (t *TestWorkflow) setKeyFileName() string {
-	keyFileName := "id_rsa_" + uuid.New().String()
-	t.wf.Sources["ssh-key"] = keyFileName
+func (t *TestWorkflow) setKeyFileName(user string) string {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
 	return keyFileName
 }
 
@@ -607,4 +609,19 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 		step = deps[0]
 	}
 	return t.wf.Steps[step], nil
+}
+
+// AddSSHKey generate ssh key pair and return public key.
+func (t *TestWorkflow) AddSSHKey(user string) ([]byte, error) {
+	keyFileName := t.setKeyFileName(user)
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
 }

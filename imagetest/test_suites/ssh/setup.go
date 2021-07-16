@@ -21,7 +21,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm.AddMetadata("block-project-ssh-keys", "true")
 
-	publicKey, err := vm.AddTestUser()
+	publicKey, err := t.AddSSHKey(user)
 	if err != nil {
 		return err
 	}
@@ -33,6 +33,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	// add public key in metadata
 	vm2.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, string(publicKey)))
+	vm2.AddMetadata(fmt.Sprintf("_%s_ssh_key_url", user), fmt.Sprintf("${SOURCESPATH}/%s-ssh-key", user))
 	vm2.RunTests("TestEmptyTest")
 	return nil
 }
