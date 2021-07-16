@@ -204,30 +204,20 @@ func (t *TestVM) EnableSecureBoot() {
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
-func (t *TestVM) SetCustomNetwork(networkName, subnetworkName string) error {
-	// If no subnet is provided, check the network is in auto mode.
-	createNetworksStep, ok := t.testWorkflow.wf.Steps[createNetworkStepName]
-	if !ok {
-		return fmt.Errorf("Missing create-networks step")
-	}
-
-	var found bool
-	for _, n := range *(createNetworksStep.CreateNetworks) {
-		if n.Name == networkName {
-			found = true
-			if subnetworkName == "" && *n.AutoCreateSubnetworks == false {
-				return fmt.Errorf("network %s is not auto mode, subnet is required", networkName)
-			}
-			break
+func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) error {
+	var subnetworkName string
+	if subnetwork == nil {
+		subnetworkName = ""
+		if !*network.network.AutoCreateSubnetworks {
+			return fmt.Errorf("network %s is not auto mode, subnet is required", network.name)
 		}
-	}
-	if !found {
-		return fmt.Errorf("Couldn't find network %s", networkName)
+	} else {
+		subnetworkName = subnetwork.name
 	}
 
 	// Add network config.
 	networkInterface := compute.NetworkInterface{
-		Network:    networkName,
+		Network:    network.name,
 		Subnetwork: subnetworkName,
 		AccessConfigs: []*compute.AccessConfig{
 			{

@@ -127,13 +127,11 @@ func TestAddAliasIPRanges(t *testing.T) {
 	if err := tvm.AddAliasIPRanges("aliasIPRange", "rangeName"); err == nil {
 		t.Fatalf("shouldn't be able to set alias IP without calling setcustomnetwork")
 	}
-	if err := tvm.SetCustomNetwork("network", ""); err == nil {
-		t.Errorf("shouldn't be able to set non-existent network")
-	}
-	if _, err := twf.CreateNetwork("network", true); err != nil {
+	network, err := twf.CreateNetwork("network", true)
+	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork("network", ""); err != nil {
+	if err := tvm.SetCustomNetwork(network, nil); err != nil {
 		t.Errorf("failed to set custom network: %v", err)
 	}
 	if err := tvm.AddAliasIPRanges("aliasIPRange", "rangeName"); err != nil {
@@ -155,14 +153,11 @@ func TestSetCustomNetwork(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
-	if err := tvm.SetCustomNetwork("fake", ""); err == nil {
-		t.Errorf("should have gotten an error using nonexistent network")
-	}
-	_, err = twf.CreateNetwork("network", true)
+	network, err := twf.CreateNetwork("network", true)
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork("network", ""); err != nil {
+	if err := tvm.SetCustomNetwork(network, nil); err != nil {
 		t.Errorf("failed to set custom network: %v", err)
 	}
 }
@@ -183,14 +178,14 @@ func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork("network", ""); err == nil {
+	if err := tvm.SetCustomNetwork(network, nil); err == nil {
 		t.Errorf("should have gotten an error using no subnet with custom mode network.")
 	}
-	_, err = network.CreateSubnetwork("subnet", "ipRange")
+	subnet, err := network.CreateSubnetwork("subnet", "ipRange")
 	if err != nil {
 		t.Errorf("failed to create subnetwork: %v", err)
 	}
-	if err := tvm.SetCustomNetwork("network", "subnet"); err != nil {
+	if err := tvm.SetCustomNetwork(network, subnet); err != nil {
 		t.Errorf("failed to set custom network and subnetwork: %v", err)
 	}
 }
