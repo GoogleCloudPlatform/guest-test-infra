@@ -16,5 +16,5 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	return vm.ResizeDiskAndReboot(vmName, resizeDiskSize)
+	return vm.ResizeDiskAndReboot(resizeDiskSize)
 }

@@ -194,7 +194,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "")
+	step, _, err := twf.appendCreateVMStep("vmname", "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateVMStep("vmname2", "")
+	step2, _, err := twf.appendCreateVMStep("vmname2", "")
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -239,7 +239,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
+	step, _, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -328,30 +328,6 @@ func TestGetLastStepForVMWhenMultipleReboot(t *testing.T) {
 		t.Errorf("failed to reboot: %v", err)
 	}
 	if err := tvm.Reboot(); err != nil {
-		t.Errorf("failed to reboot: %v", err)
-	}
-	step, err := twf.getLastStepForVM("vm")
-	if err != nil {
-		t.Errorf("failed to get last step for vm: %v", err)
-	}
-	if step.WaitForInstancesSignal == nil {
-		t.Error("not wait step")
-	}
-	if twf.wf.Steps["wait-started-vm-2"] != step {
-		t.Error("not wait-started-vm-2 step")
-	}
-}
-
-func TestResizeDiskAndReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
-	tvm, err := twf.CreateTestVM("vm")
-	if err != nil {
-		t.Errorf("failed to create test vm: %v", err)
-	}
-	if err := tvm.ResizeDiskAndReboot("vm", 200); err != nil {
 		t.Errorf("failed to reboot: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
