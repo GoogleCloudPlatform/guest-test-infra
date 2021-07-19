@@ -833,6 +833,86 @@ jobs:
       universe: cloud-apt
       repo: apt-transport-artifact-registry
 
+- name: promote-artifact-registry-el-plugins-staging
+  plan:
+  - get: artifact-registry-yum-plugin-tag
+    passed: [build-artifact-registry-el-plugins]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-yum-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: yum-plugin-artifact-registry
+          environment: staging
+      - task: promote-dnf-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: dnf-plugin-artifact-registry
+          environment: staging
+
+- name: promote-artifact-registry-el-plugins-stable
+  plan:
+  - get: artifact-registry-yum-plugin-tag
+    passed: [promote-artifact-registry-el-plugins-staging]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-yum-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: yum-plugin-artifact-registry
+          environment: stable
+      - task: promote-dnf-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: dnf-plugin-artifact-registry
+          environment: stable
+
+- name: promote-artifact-registry-apt-transport-staging
+  plan:
+  - get: artifact-registry-apt-transport-tag
+    passed: [build-artifact-registry-apt-transport]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-deb-staging
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: apt-transport-artifact-registry
+          environment: staging
+
+- name: promote-artifact-registry-apt-transport-stable
+  plan:
+  - get: artifact-registry-apt-transport-tag
+    passed: [promote-artifact-registry-apt-transport-staging]
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: promote-deb-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: apt-transport-artifact-registry
+          environment: stable
+
 resources:
 - name: guest-agent
   type: git
@@ -956,3 +1036,7 @@ groups:
   jobs:
   - build-artifact-registry-el-plugins
   - build-artifact-registry-apt-transport
+  - promote-artifact-registry-el-plugins-staging
+  - promote-artifact-registry-apt-transport-staging
+  - promote-artifact-registry-el-plugins-stable
+  - promote-artifact-registry-apt-transport-stable
