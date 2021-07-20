@@ -105,6 +105,7 @@ func ExtractBaseImageName(image string) (string, error) {
 	return imageName, nil
 }
 
+// DownloadPrivateKey download private key from daisy source.
 func DownloadPrivateKey(user string) ([]byte, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
@@ -116,6 +117,7 @@ func DownloadPrivateKey(user string) ([]byte, error) {
 		return nil, err
 	}
 	gcsPath := fmt.Sprintf("%s/%s-ssh-key", sourcesPath, user)
+
 	privateKey, err := DownloadGCSObject(ctx, client, gcsPath)
 	if err != nil {
 		return nil, err

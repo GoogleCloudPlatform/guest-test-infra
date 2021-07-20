@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -607,13 +608,15 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 // AddSSHKey generate ssh key pair and return public key.
 func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
 	keyFileName := "/id_rsa_" + uuid.New().String()
-	// TODO: check if file exists and return error
-
+	if _, err := os.Stat(keyFileName); os.IsExist(err) {
+		os.Remove(keyFileName)
+	}
 	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
 	cmd := exec.Command("ssh-keygen", commandArgs...)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
+
 	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
 	if err != nil {
 		return "", err

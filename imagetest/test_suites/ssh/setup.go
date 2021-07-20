@@ -16,7 +16,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-
 	vm, err := t.CreateTestVM("vm")
 	if err != nil {
 		return err
@@ -30,6 +29,5 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.AddUser(user, publicKey)
 	vm2.RunTests("TestEmptyTest")
-
 	return nil
 }

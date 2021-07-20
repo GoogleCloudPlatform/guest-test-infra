@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -36,9 +37,13 @@ type TestVM struct {
 	instance     *daisy.Instance
 }
 
+// AddUser add user public key to metadata ssh-keys.
 func (t *TestVM) AddUser(user, publicKey string) {
-	// TODO: if ssh-keys already exists, append to it instead
-	t.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, publicKey))
+	metadata, err := utils.GetMetadata("ssh-keys")
+	if err != nil {
+		t.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, publicKey))
+	}
+	t.AddMetadata("ssh-keys", metadata)
 }
 
 // AddMetadata adds the specified key:value pair to metadata during VM creation.
