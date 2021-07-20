@@ -27,17 +27,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	subNetwork, err := network.CreateSubNetwork(subnetworkName, primaryIPRange)
+	subnetwork, err := network.CreateSubnetwork(subnetworkName, primaryIPRange)
 	if err != nil {
 		return err
 	}
-	subNetwork.AddSecondaryRange(rangeName, secondaryIPRange)
+	subnetwork.AddSecondaryRange(rangeName, secondaryIPRange)
 
 	vm2, err := t.CreateTestVM(vm2)
 	if err != nil {
 		return err
 	}
-	if err := vm2.SetCustomNetwork(networkName, ""); err != nil {
+	if err := vm2.SetCustomNetwork(network, subnetwork); err != nil {
 		return err
 	}
 	vm2.AddAliasIPRanges(aliasIPRange, rangeName)
