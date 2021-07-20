@@ -1,8 +1,6 @@
 package ssh
 
 import (
-	"fmt"
-
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
 
@@ -13,27 +11,25 @@ const user = "test-user"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	// adds the private key to the t.wf.Sources
+	publicKey, err := t.AddSSHKey(user)
+	if err != nil {
+		return err
+	}
 
 	vm, err := t.CreateTestVM("vm")
 	if err != nil {
 		return err
 	}
-
 	vm.AddMetadata("block-project-ssh-keys", "true")
-
-	publicKey, err := t.AddSSHKey(user)
-	if err != nil {
-		return err
-	}
 	vm.RunTests("TestSSH")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err
 	}
-	// add public key in metadata
-	vm2.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, string(publicKey)))
-	vm2.AddMetadata(fmt.Sprintf("_%s_ssh_key_url", user), fmt.Sprintf("${SOURCESPATH}/%s-ssh-key", user))
+	vm2.AddUser(user, publicKey)
 	vm2.RunTests("TestEmptyTest")
+
 	return nil
 }

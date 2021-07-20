@@ -398,13 +398,6 @@ func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) erro
 	return nil
 }
 
-func (t *TestWorkflow) setKeyFileName(user string) string {
-	keyFileName := "/id_rsa_" + uuid.New().String()
-	sourcePath := fmt.Sprintf("%s-ssh-key", user)
-	t.wf.Sources[sourcePath] = keyFileName
-	return keyFileName
-}
-
 type testResult struct {
 	testWorkflow    *TestWorkflow
 	skipped         bool
@@ -612,16 +605,21 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 }
 
 // AddSSHKey generate ssh key pair and return public key.
-func (t *TestWorkflow) AddSSHKey(user string) ([]byte, error) {
-	keyFileName := t.setKeyFileName(user)
+func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	// TODO: check if file exists and return error
+
 	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
 	cmd := exec.Command("ssh-keygen", commandArgs...)
 	if err := cmd.Run(); err != nil {
-		return nil, err
+		return "", err
 	}
 	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return publicKey, nil
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
+
+	return string(publicKey), nil
 }

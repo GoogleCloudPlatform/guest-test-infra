@@ -1,13 +1,11 @@
 package ssh
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"testing"
 
-	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"golang.org/x/crypto/ssh"
 )
@@ -38,11 +36,7 @@ func TestSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
-	keyURL, err := utils.GetMetadataAttribute("_ssh_key_url")
-	if err != nil {
-		t.Fatalf("Couldn't get key path from metadata: %v", err)
-	}
-	pembytes, err := downloadPrivateKey(keyURL)
+	pembytes, err := utils.DownloadPrivateKey(user)
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
@@ -82,17 +76,4 @@ func createSession(user, host string, pembytes []byte) (*ssh.Client, *ssh.Sessio
 		return nil, nil, err
 	}
 	return client, session, nil
-}
-
-func downloadPrivateKey(gcsPath string) ([]byte, error) {
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		return nil, err
-	}
-	privateKey, err := utils.DownloadGCSObject(ctx, client, gcsPath)
-	if err != nil {
-		return nil, err
-	}
-	return privateKey, nil
 }

@@ -36,6 +36,11 @@ type TestVM struct {
 	instance     *daisy.Instance
 }
 
+func (t *TestVM) AddUser(user, publicKey string) {
+	// TODO: if ssh-keys already exists, append to it instead
+	t.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, publicKey))
+}
+
 // AddMetadata adds the specified key:value pair to metadata during VM creation.
 func (t *TestVM) AddMetadata(key, value string) {
 	createVMStep := t.testWorkflow.wf.Steps[createVMsStepName]
