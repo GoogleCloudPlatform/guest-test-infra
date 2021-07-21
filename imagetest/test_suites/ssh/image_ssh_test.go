@@ -40,23 +40,27 @@ func TestSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
-	if err := session.Run("hostname"); err != nil {
-		t.Fatalf("failed to run cmd hostname: %v", err)
+	if err := checkLocalUser(client, user); err != nil {
+		t.Fatalf("failed to check local user: %v", err)
+	}
+
+	if err := checkSudoGroup(client, user); err != nil {
+		t.Fatalf("failed to check sudo group: %v", err)
 	}
 	if err := client.Close(); err != nil {
 		t.Logf("failed to close client: %v", err)
 	}
 }
 
-func createSession(user, host string, pembytes []byte) (*ssh.Client, *ssh.Session, error) {
+func createClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 	// generate signer instance from plain key
 	signer, err := ssh.ParsePrivateKey(pembytes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parsing plain private key failed %v", err)
+		return nil, fmt.Errorf("parsing plain private key failed %v", err)
 	}
 
 	sshConfig := &ssh.ClientConfig{
@@ -67,13 +71,37 @@ func createSession(user, host string, pembytes []byte) (*ssh.Client, *ssh.Sessio
 
 	client, err := ssh.Dial("tcp", host, sshConfig)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+	return client, nil
+}
 
+// checkLocalUser test that the user account exists in /etc/passwd
+func checkLocalUser(client *ssh.Client, user string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		client.Close()
-		return nil, nil, err
+		return err
 	}
-	return client, session, nil
+	defer session.Close()
+	grepPasswdCmd := fmt.Sprintf("grep %s: /etc/passwd", user)
+	if err := session.Run(grepPasswdCmd); err != nil {
+		return err
+	}
+	return nil
+}
+
+// checkSudoGroup test that the user account exists in sudo group
+func checkSudoGroup(client *ssh.Client, user string) error {
+	session, err := client.NewSession()
+	if err != nil {
+		client.Close()
+		return err
+	}
+	defer session.Close()
+	grepGroupCmd := fmt.Sprintf("grep 'google-sudoers:.*%s' /etc/group", user)
+	if err := session.Run(grepGroupCmd); err != nil {
+		return err
+	}
+	return nil
 }
