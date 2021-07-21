@@ -31,18 +31,39 @@ func TestEmptyTest(t *testing.T) {
 	}
 }
 
-func TestSSH(t *testing.T) {
+func TestSSHInstanceKey(t *testing.T) {
 	vmname, err := utils.GetRealVMName("vm2")
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
-	pembytes, err := utils.DownloadPrivateKey(user)
+	pembytes, err := utils.DownloadPrivateKey(testUser)
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	client, session, err := createSession(testUser, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
-		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
+		t.Fatalf("testUser %s failed ssh to target host, %s, err %v", testUser, vmname, err)
+	}
+	if err := session.Run("hostname"); err != nil {
+		t.Fatalf("failed to run cmd hostname: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Logf("failed to close client: %v", err)
+	}
+}
+
+func TestSSHBlockProjectMetadataInvalidValue(t *testing.T) {
+	vmname, err := utils.GetRealVMName("vm2")
+	if err != nil {
+		t.Fatalf("failed to get real vm name: %v", err)
+	}
+	pembytes, err := utils.DownloadPrivateKey(testUser)
+	if err != nil {
+		t.Fatalf("failed to download private key: %v", err)
+	}
+	client, session, err := createSession(testUser, fmt.Sprintf("%s:22", vmname), pembytes)
+	if err != nil {
+		t.Fatalf("testUser %s failed ssh to target host, %s, err %v", testUser, vmname, err)
 	}
 	if err := session.Run("hostname"); err != nil {
 		t.Fatalf("failed to run cmd hostname: %v", err)

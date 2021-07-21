@@ -47,6 +47,15 @@ func (t *TestVM) AddUser(user, publicKey string) {
 	t.AddMetadata("ssh-keys", metadata)
 }
 
+// AddUserLegacyKey add user public key to metadata legacy sshKeys.
+func (t *TestVM) AddUserLegacyKey(user, publicKey string) {
+	metadata, err := utils.GetMetadata("sshKeys")
+	if err != nil {
+		t.AddMetadata("sshKeys", fmt.Sprintf("%s:%s", user, publicKey))
+	}
+	t.AddMetadata("sshKeys", metadata)
+}
+
 // Skip marks a test workflow to be skipped.
 func (t *TestWorkflow) Skip(message string) {
 	t.skipped = true
