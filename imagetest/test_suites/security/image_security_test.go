@@ -355,3 +355,80 @@ func runCommand(name string, arg ...string) (string, string, error) {
 	}
 	return outBuf.String(), errBuf.String(), nil
 }
+
+// TestSockets Ensure that nothing has an open socket that shouldn't.
+func TestSockets(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	switch {
+	case strings.Contains(image, "ubuntu"):
+		if err := installPackage(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	out, _, err := runCommand("netstat", "-ltu")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range strings.Split(out, "\n")[2:] {
+		entry, err := parseNetworkNetstatEntry(line)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if entry != nil && isListeningPublicly(entry) {
+			t.Fatal("listen open socket")
+		}
+	}
+}
+
+func installPackage() error {
+	cmd := exec.Command("apt", []string{"install", "net-tools"}...)
+	return cmd.Run()
+}
+
+/*
+	Active Internet connections (only servers)
+	Proto Recv-Q Send-Q Local Address           Foreign Address         State
+	tcp        0      0 0.0.0.0:ssh             0.0.0.0:*               LISTEN
+	tcp        0      0 localhost:smtp          0.0.0.0:*               LISTEN
+	tcp6       0      0 [::]:ssh                [::]:*                  LISTEN
+	tcp6       0      0 localhost:smtp          [::]:*                  LISTEN
+	udp        0      0 0.0.0.0:bootpc          0.0.0.0:*
+	udp        0      0 localhost:323           0.0.0.0:*
+	udp6       0      0 localhost:323           [::]:*
+*/
+func parseNetworkNetstatEntry(line string) ([]string, error) {
+	line = strings.TrimSpace(line)
+	regex, err := regexp.Compile(`(\S+)\s+(\d+)\s+(\d+)\S+(\s+)\s+(\S+)`)
+	if err != nil {
+		return nil, err
+	}
+	if !regex.MatchString(line) {
+		return nil, nil
+	}
+	whitespaceRegex, err := regexp.Compile(`\s+`)
+	if err != nil {
+		return nil, err
+	}
+	return whitespaceRegex.Split(line, 6), nil
+}
+
+// isListeningPublicly Is a netstat entry listening on anything other than localhost.
+func isListeningPublicly(entry []string) bool {
+	proto := entry[0]
+	listenspec := entry[3]
+	if !strings.Contains(proto, "tcp") && !strings.Contains(proto, "udp") {
+		return false
+	}
+	hostport := strings.Split(listenspec, ":")
+
+	// These will listen publicly, but it's OK.
+	if hostport[1] == "ssh" || hostport[1] == "bootpc" {
+		return false
+	}
+	return hostport[0] != "localhost"
+}
