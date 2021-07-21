@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -40,11 +39,11 @@ type TestVM struct {
 
 // AddUser add user public key to metadata ssh-keys.
 func (t *TestVM) AddUser(user, publicKey string) {
-	metadata, err := utils.GetMetadata("ssh-keys")
-	if err != nil {
-		t.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, publicKey))
+	keyline := fmt.Sprintf("%s:%s", user, publicKey)
+	if keys, ok := t.instance.Metadata["ssh-keys"]; ok {
+		keyline = fmt.Sprintf("%s\n%s", keys, keyline)
 	}
-	t.AddMetadata("ssh-keys", metadata)
+	t.AddMetadata("ssh-keys", keyline)
 }
 
 // Skip marks a test workflow to be skipped.

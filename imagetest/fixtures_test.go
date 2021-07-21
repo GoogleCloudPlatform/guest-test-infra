@@ -277,3 +277,29 @@ func TestCreateNetworkDependenciesReverse(t *testing.T) {
 		t.Errorf("create-vms step does not depend on create-networks step")
 	}
 }
+
+func TestAddUser(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create network: %v", err)
+	}
+	tvm.AddUser("username", "PUBKEY1")
+	if tvm.instance.Metadata == nil {
+		t.Fatalf("instance metadata is nil")
+	}
+	keys, ok := tvm.instance.Metadata["ssh-keys"]
+	if !ok {
+		t.Fatalf("\"ssh-keys\" key not added to instance")
+	}
+	if keys != "username:PUBKEY1" {
+		t.Fatalf("\"ssh-keys\" key malformed")
+	}
+	tvm.AddUser("username2", "PUBKEY2")
+	if keys, ok := tvm.instance.Metadata["ssh-keys"]; !ok || keys != "username:PUBKEY1\nusername2:PUBKEY2" {
+		t.Errorf("\"ssh-keys\" key malformed after repeated entry")
+	}
+}
