@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -35,6 +36,15 @@ type TestVM struct {
 	name         string
 	testWorkflow *TestWorkflow
 	instance     *daisy.Instance
+}
+
+// AddUser add user public key to metadata ssh-keys.
+func (t *TestVM) AddUser(user, publicKey string) {
+	metadata, err := utils.GetMetadata("ssh-keys")
+	if err != nil {
+		t.AddMetadata("ssh-keys", fmt.Sprintf("%s:%s", user, publicKey))
+	}
+	t.AddMetadata("ssh-keys", metadata)
 }
 
 // Skip marks a test workflow to be skipped.

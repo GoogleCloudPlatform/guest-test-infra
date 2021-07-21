@@ -17,6 +17,9 @@ package imagetest
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +27,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -488,4 +492,26 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 		step = deps[0]
 	}
 	return t.wf.Steps[step], nil
+}
+
+// AddSSHKey generate ssh key pair and return public key.
+func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	if _, err := os.Stat(keyFileName); os.IsExist(err) {
+		os.Remove(keyFileName)
+	}
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return "", err
+	}
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
+
+	return string(publicKey), nil
 }
