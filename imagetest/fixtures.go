@@ -37,6 +37,15 @@ type TestVM struct {
 	instance     *daisy.Instance
 }
 
+// AddUser add user public key to metadata ssh-keys.
+func (t *TestVM) AddUser(user, publicKey string) {
+	keyline := fmt.Sprintf("%s:%s", user, publicKey)
+	if keys, ok := t.instance.Metadata["ssh-keys"]; ok {
+		keyline = fmt.Sprintf("%s\n%s", keys, keyline)
+	}
+	t.AddMetadata("ssh-keys", keyline)
+}
+
 // Skip marks a test workflow to be skipped.
 func (t *TestWorkflow) Skip(message string) {
 	t.skipped = true
