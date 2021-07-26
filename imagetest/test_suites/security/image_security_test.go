@@ -1,11 +1,11 @@
+// +build cit
+
 package security
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -14,10 +14,6 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-)
-
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
 )
 
 var securitySettingMap = map[string]int{
@@ -57,15 +53,6 @@ const (
 	minInterval                  = 1
 	sysctlBase                   = "/proc/sys/"
 )
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
 
 // TestKernelSecuritySettings Checks that the given parameter has the given value in sysctl.
 func TestKernelSecuritySettings(t *testing.T) {
@@ -356,79 +343,96 @@ func runCommand(name string, arg ...string) (string, string, error) {
 	return outBuf.String(), errBuf.String(), nil
 }
 
-// TestSockets Ensure that nothing has an open socket that shouldn't.
+var (
+	allowedTCP = []string{
+		"22", // ssh
+	}
+	allowedUDP = []string{
+		"68",  // bootpc aka DHCP client port
+		"123", // ntp
+	}
+)
+
+// TestSockets tests that only whitelisted ports are listening globally.
 func TestSockets(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	// print listening TCP or UDP sockets with no header and no name
+	// resolution.
+	out, _, err := runCommand("ss", "-Hltun")
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		t.Fatalf("failed running ss command: %v", err)
 	}
+	var listenTCP []string
+	var listenUDP []string
+	for _, line := range strings.Split(out, "\n") {
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 6 {
+			t.Fatal("ss command format mismatch, should be 6-col output")
+		}
+		// 'Local Address:Port' column from ss output.
+		listen := fields[4]
 
-	switch {
-	case strings.Contains(image, "ubuntu"):
-		if err := installPackage(); err != nil {
-			t.Fatal(err)
+		switch {
+		// Check explicitly for these formats as a safeguard, even
+		// though this is all we requested with -l -t -u args.
+		case fields[0] == "tcp" && fields[1] == "LISTEN":
+			listenTCP = append(listenTCP, listen)
+		case fields[0] == "udp" && fields[1] == "UNCONN":
+			listenUDP = append(listenUDP, listen)
+		default:
+			t.Fatal("ss command format mismatch %q", line)
 		}
 	}
-
-	out, _, err := runCommand("netstat", "-ltu")
-	if err != nil {
-		t.Fatal(err)
+	if len(listenTCP) == 0 && len(listenUDP) == 0 {
+		// We should always have some listening sockets, such as for
+		// SSH. If we didn't match any above, test logic is faulty.
+		t.Fatalf("No listening sockets")
 	}
-	for _, line := range strings.Split(out, "\n")[2:] {
-		entry, err := parseNetworkNetstatEntry(line)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if entry != nil && isListeningPublicly(entry) {
-			t.Fatal("listen open socket")
-		}
+	if err := validateSockets(listenUDP, allowedUDP); err != nil {
+		t.Error(err)
+	}
+	if err := validateSockets(listenTCP, allowedTCP); err != nil {
+		t.Error(err)
 	}
 }
 
-func installPackage() error {
-	cmd := exec.Command("apt", []string{"install", "net-tools"}...)
-	return cmd.Run()
+func validateSockets(listening, allowed []string) error {
+	for _, entry := range listening {
+		idx := strings.LastIndex(entry, ":")
+		if idx == -1 {
+			return fmt.Errorf("malformed listening address: %s", entry)
+		}
+		address := entry[:idx]
+		port := entry[idx+1:]
+
+		switch {
+		case strings.HasPrefix(address, "127."):
+			// IPv4 loopback addresses, not global.
+			continue
+		case address == "::1":
+			// IPv6 localhost address, not global.
+			continue
+		case strings.HasPrefix(address, "fe80::"):
+			// IPv6 link-local address, not global.
+			continue
+		case isInSlice(port, allowed):
+			// Whitelisted global listening port.
+			continue
+		default:
+			return fmt.Errorf("forbidden listening socket address %s port %s", address, port)
+		}
+	}
+
+	return nil
 }
 
-/*
-	Active Internet connections (only servers)
-	Proto Recv-Q Send-Q Local Address           Foreign Address         State
-	tcp        0      0 0.0.0.0:ssh             0.0.0.0:*               LISTEN
-	tcp        0      0 localhost:smtp          0.0.0.0:*               LISTEN
-	tcp6       0      0 [::]:ssh                [::]:*                  LISTEN
-	tcp6       0      0 localhost:smtp          [::]:*                  LISTEN
-	udp        0      0 0.0.0.0:bootpc          0.0.0.0:*
-	udp        0      0 localhost:323           0.0.0.0:*
-	udp6       0      0 localhost:323           [::]:*
-*/
-func parseNetworkNetstatEntry(line string) ([]string, error) {
-	line = strings.TrimSpace(line)
-	regex, err := regexp.Compile(`(\S+)\s+(\d+)\s+(\d+)\S+(\s+)\s+(\S+)`)
-	if err != nil {
-		return nil, err
+func isInSlice(entry string, list []string) bool {
+	for _, listentry := range list {
+		if entry == listentry {
+			return true
+		}
 	}
-	if !regex.MatchString(line) {
-		return nil, nil
-	}
-	whitespaceRegex, err := regexp.Compile(`\s+`)
-	if err != nil {
-		return nil, err
-	}
-	return whitespaceRegex.Split(line, 6), nil
-}
-
-// isListeningPublicly Is a netstat entry listening on anything other than localhost.
-func isListeningPublicly(entry []string) bool {
-	proto := entry[0]
-	listenspec := entry[3]
-	if !strings.Contains(proto, "tcp") && !strings.Contains(proto, "udp") {
-		return false
-	}
-	hostport := strings.Split(listenspec, ":")
-
-	// These will listen publicly, but it's OK.
-	if hostport[1] == "ssh" || hostport[1] == "bootpc" {
-		return false
-	}
-	return hostport[0] != "localhost"
+	return false
 }
