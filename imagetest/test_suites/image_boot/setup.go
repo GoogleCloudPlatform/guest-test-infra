@@ -24,9 +24,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm.SetShutdownScript(script)
-	if err != nil {
-		return err
-	}
 	if err := vm.Reboot(); err != nil {
 		return err
 	}
