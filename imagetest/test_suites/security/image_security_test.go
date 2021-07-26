@@ -1,11 +1,11 @@
-// +build cit
-
 package security
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -14,6 +14,10 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+)
+
+var (
+	runtest = flag.Bool("runtest", false, "really run the test")
 )
 
 var securitySettingMap = map[string]int{
@@ -53,6 +57,15 @@ const (
 	minInterval                  = 1
 	sysctlBase                   = "/proc/sys/"
 )
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if *runtest {
+		os.Exit(m.Run())
+	} else {
+		os.Exit(0)
+	}
+}
 
 // TestKernelSecuritySettings Checks that the given parameter has the given value in sysctl.
 func TestKernelSecuritySettings(t *testing.T) {
