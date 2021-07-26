@@ -26,7 +26,7 @@ RUN go mod download
 RUN go build -o /out/wrapper ./imagetest/cmd/wrapper/main.go
 RUN go build -o /out/manager ./imagetest/cmd/manager/main.go
 RUN cd imagetest/test_suites; for suite in *; do \
-  cd $suite; go test -c; mv *.test /out; cd ..; \
+  cd $suite; go test -c -tags cit; mv *.test /out; cd ..; \
   done
 
 FROM alpine:edge

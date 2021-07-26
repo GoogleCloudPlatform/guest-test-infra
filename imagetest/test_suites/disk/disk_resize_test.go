@@ -1,15 +1,16 @@
 // +build linux
+// +build cit
 
 package disk
 
 import (
-	"flag"
 	"fmt"
-	"golang.org/x/sys/unix"
 	"math"
 	"os"
 	"strings"
 	"testing"
+
+	"golang.org/x/sys/unix"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -19,19 +20,6 @@ const (
 	gb              = 1024.0 * 1024.0 * 1024.0
 	defaultDiskSize = 20
 )
-
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
-)
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
