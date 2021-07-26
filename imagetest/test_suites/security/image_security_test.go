@@ -395,7 +395,7 @@ func TestSockets(t *testing.T) {
 		case fields[0] == "udp" && fields[1] == "UNCONN":
 			listenUDP = append(listenUDP, listen)
 		default:
-			t.Fatal("ss command format mismatch %q", line)
+			t.Fatalf("ss command format mismatch %q", line)
 		}
 	}
 	if len(listenTCP) == 0 && len(listenUDP) == 0 {
