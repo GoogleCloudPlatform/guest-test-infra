@@ -427,9 +427,6 @@ func validateSockets(listening, allowed []string) error {
 		case address == "::1", address == "[::1]":
 			// IPv6 localhost address, not global.
 			continue
-		case strings.HasPrefix(address, "fe80:"), strings.HasPrefix(address, "[fe80:"):
-			// IPv6 link-local address, not global.
-			continue
 		case isInSlice(port, allowed):
 			// Whitelisted global listening port.
 			continue
