@@ -424,10 +424,10 @@ func validateSockets(listening, allowed []string) error {
 		case strings.HasPrefix(address, "127."):
 			// IPv4 loopback addresses, not global.
 			continue
-		case address == "::1":
+		case address == "::1", address == "[::1]":
 			// IPv6 localhost address, not global.
 			continue
-		case strings.HasPrefix(address, "fe80::"):
+		case strings.HasPrefix(address, "fe80:"), strings.HasPrefix(address, "[fe80:"):
 			// IPv6 link-local address, not global.
 			continue
 		case isInSlice(port, allowed):
