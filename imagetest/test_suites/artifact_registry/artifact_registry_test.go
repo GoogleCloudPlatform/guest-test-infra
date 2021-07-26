@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	APT_CREATE_PRIVATE_REPO = `cat | sudo tee /etc/apt/sources.list.d/artifact-registry-private-repo.list <<EOF
+	aptCreatePrivateRepo = `cat | sudo tee /etc/apt/sources.list.d/artifact-registry-private-repo.list <<EOF
 deb [ trusted=yes ] ar+https://us-central1-apt.pkg.dev/projects/bct-prod-images apt main
 EOF
 sudo DEBIAN_FRONTEND=noninteractive apt update
 `
 
-	YUM_CREATE_PRIVATE_REPO = `cat | sudo tee /etc/yum.repos.d/artifact-registry-private-repo.repo <<EOF
+	yumCreatePrivateRepo = `cat | sudo tee /etc/yum.repos.d/artifact-registry-private-repo.repo <<EOF
 [artifact-registry-private-repo]
 name=Artifact Registry Private Repo
 baseurl=https://us-central1-yum.pkg.dev/projects/bct-prod-images/yum
@@ -77,10 +77,10 @@ func TestPrivateRepoDefaultAuth(t *testing.T) {
 	var listCmd []string
 	switch {
 	case strings.Contains(image, "debian"):
-		createCmdRaw = APT_CREATE_PRIVATE_REPO
+		createCmdRaw = aptCreatePrivateRepo
 		listCmd = strings.Split("apt-cache search dummy-package", " ")
 	default:
-		createCmdRaw = YUM_CREATE_PRIVATE_REPO
+		createCmdRaw = yumCreatePrivateRepo
 		listCmd = strings.Split("yum --disablerepo='*' --enablerepo='artifact-registry-private-repo' list available", " ")
 	}
 
