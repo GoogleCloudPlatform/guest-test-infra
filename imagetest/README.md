@@ -69,8 +69,8 @@ Tests themselves are written in the test file(s) as go unit tests. Tests may use
 any of the test fixtures provided by the standard `testing` package.  These will
 be packaged into a binary and run on the test VMs created during setup using the
 Google Compute Engine startup script runner. The test files must specify a
-TestMain function adding a command line flag, in order to prevent the presubmits
-on this repository from invoking the image tests.
+'cit' build constraint in order to prevent the presubmits on this repository
+from invoking the image tests.
 
 It is suggested to start by copying an existing test package.
 

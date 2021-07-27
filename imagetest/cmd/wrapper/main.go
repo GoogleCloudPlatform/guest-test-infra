@@ -50,10 +50,10 @@ func main() {
 		log.Fatalf("failed to get metadata _test_results_url: %v", err)
 	}
 
-	testRun, _ := utils.GetMetadataAttribute("_test_run")
+	var testArguments = []string{"-test.v"}
 
-	var testArguments = []string{"-test.v", "-runtest"}
-	if testRun != "" {
+	testRun, err := utils.GetMetadataAttribute("_test_run")
+	if err == nil && testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 

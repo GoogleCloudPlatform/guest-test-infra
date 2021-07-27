@@ -1,27 +1,14 @@
+// +build cit
+
 package ssh
 
 import (
-	"flag"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"golang.org/x/crypto/ssh"
 )
-
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
-)
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
 
 func TestEmptyTest(t *testing.T) {
 	t.Logf("SSH target boot succesfully")
