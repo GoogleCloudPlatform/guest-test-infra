@@ -49,27 +49,7 @@ func TestPrivateRepoDefaultAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-	var installCmd, checkCmd []string
-	switch {
-	case strings.Contains(image, "debian"):
-		pkg := "apt-transport-artifact-registry"
-		installCmd = []string{"apt-get", "-y", "-q", "install", pkg}
-		checkCmd = []string{"dpkg", "-l", pkg}
-	case strings.Contains(image, "centos-7"), strings.Contains(image, "rhel-7"):
-		pkg := "yum-plugin-artifact-registry"
-		installCmd = []string{"yum", "-y", "-q", "install", pkg}
-		checkCmd = []string{"rpm", "-qa", pkg, " "}
-	default:
-		pkg := "dnf-plugin-artifact-registry"
-		installCmd = []string{"yum", "-y", "-q", "install", pkg}
-		checkCmd = []string{"rpm", "-qa", pkg, " "}
-	}
-	cmd := exec.Command(installCmd[0], installCmd[1:]...)
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("failed to run cmd, err %v", err)
-	}
-	cmd = exec.Command(checkCmd[0], checkCmd[1:]...)
-	if err := cmd.Run(); err != nil {
+	if err := installPackage(image); err != nil {
 		t.Fatalf("plugin is not installed, err %v", err)
 	}
 
@@ -87,7 +67,7 @@ func TestPrivateRepoDefaultAuth(t *testing.T) {
 	if err := os.WriteFile("create.sh", []byte(createCmdRaw), 755); err != nil {
 		t.Fatalf("fail to write file, err %v", err)
 	}
-	cmd = exec.Command("sh", "create.sh")
+	cmd := exec.Command("sh", "create.sh")
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("faile to run cmd, err %v", err)
 	}
@@ -99,4 +79,31 @@ func TestPrivateRepoDefaultAuth(t *testing.T) {
 	if !strings.Contains(string(out), "dummy-package") {
 		t.Fatal("Failed to find package in private repo.")
 	}
+}
+
+func installPackage(image string) error {
+	var installCmd, checkCmd []string
+	switch {
+	case strings.Contains(image, "debian"):
+		pkg := "apt-transport-artifact-registry"
+		installCmd = []string{"apt-get", "-y", "-q", "install", pkg}
+		checkCmd = []string{"dpkg", "-l", pkg}
+	case strings.Contains(image, "centos-7"), strings.Contains(image, "rhel-7"):
+		pkg := "yum-plugin-artifact-registry"
+		installCmd = []string{"yum", "-y", "-q", "install", pkg}
+		checkCmd = []string{"rpm", "-qa", pkg, " "}
+	default:
+		pkg := "dnf-plugin-artifact-registry"
+		installCmd = []string{"yum", "-y", "-q", "install", pkg}
+		checkCmd = []string{"rpm", "-qa", pkg, " "}
+	}
+	cmd := exec.Command(installCmd[0], installCmd[1:]...)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	cmd = exec.Command(checkCmd[0], checkCmd[1:]...)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }
