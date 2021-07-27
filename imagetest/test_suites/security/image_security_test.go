@@ -342,3 +342,94 @@ func runCommand(name string, arg ...string) (string, string, error) {
 	}
 	return outBuf.String(), errBuf.String(), nil
 }
+
+var (
+	allowedTCP = []string{
+		"22", // ssh
+	}
+	allowedUDP = []string{
+		"68",  // bootpc aka DHCP client port
+		"123", // ntp
+	}
+)
+
+// TestSockets tests that only whitelisted ports are listening globally.
+func TestSockets(t *testing.T) {
+	// print listening TCP or UDP sockets with no header and no name
+	// resolution.
+	out, _, err := runCommand("ss", "-Hltun")
+	if err != nil {
+		t.Fatalf("failed running ss command: %v", err)
+	}
+	var listenTCP []string
+	var listenUDP []string
+	for _, line := range strings.Split(out, "\n") {
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 6 {
+			t.Fatal("ss command format mismatch, should be 6-col output")
+		}
+		// 'Local Address:Port' column from ss output.
+		listen := fields[4]
+
+		switch {
+		// Check explicitly for these formats as a safeguard, even
+		// though this is all we requested with -l -t -u args.
+		case fields[0] == "tcp" && fields[1] == "LISTEN":
+			listenTCP = append(listenTCP, listen)
+		case fields[0] == "udp" && fields[1] == "UNCONN":
+			listenUDP = append(listenUDP, listen)
+		default:
+			t.Fatalf("ss command format mismatch %q", line)
+		}
+	}
+	if len(listenTCP) == 0 && len(listenUDP) == 0 {
+		// We should always have some listening sockets, such as for
+		// SSH. If we didn't match any above, test logic is faulty.
+		t.Fatalf("No listening sockets")
+	}
+	if err := validateSockets(listenUDP, allowedUDP); err != nil {
+		t.Error(err)
+	}
+	if err := validateSockets(listenTCP, allowedTCP); err != nil {
+		t.Error(err)
+	}
+}
+
+func validateSockets(listening, allowed []string) error {
+	for _, entry := range listening {
+		idx := strings.LastIndex(entry, ":")
+		if idx == -1 {
+			return fmt.Errorf("malformed listening address: %s", entry)
+		}
+		address := entry[:idx]
+		port := entry[idx+1:]
+
+		switch {
+		case strings.HasPrefix(address, "127."):
+			// IPv4 loopback addresses, not global.
+			continue
+		case address == "::1", address == "[::1]":
+			// IPv6 localhost address, not global.
+			continue
+		case isInSlice(port, allowed):
+			// Whitelisted global listening port.
+			continue
+		default:
+			return fmt.Errorf("forbidden listening socket address %s port %s", address, port)
+		}
+	}
+
+	return nil
+}
+
+func isInSlice(entry string, list []string) bool {
+	for _, listentry := range list {
+		if entry == listentry {
+			return true
+		}
+	}
+	return false
+}
