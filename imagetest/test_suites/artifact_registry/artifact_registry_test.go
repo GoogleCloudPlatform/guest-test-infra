@@ -11,23 +11,22 @@ import (
 )
 
 const (
-	aptCreatePrivateRepo = `cat | sudo tee /etc/apt/sources.list.d/artifact-registry-private-repo.list <<EOF
-deb [ trusted=yes ] ar+https://us-central1-apt.pkg.dev/projects/bct-prod-images apt main
-EOF
-sudo DEBIAN_FRONTEND=noninteractive apt update
-`
-
-	yumCreatePrivateRepo = `cat | sudo tee /etc/yum.repos.d/artifact-registry-private-repo.repo <<EOF
-[artifact-registry-private-repo]
+	aptFileName          = "/etc/apt/sources.list.d/artifact-registry-private-repo.list"
+	aptCreatePrivateRepo = "deb [ trusted=yes ] ar+https://us-central1-apt.pkg.dev/projects/bct-prod-images apt main"
+	aptUpdateCmd         = "DEBIAN_FRONTEND=noninteractive apt update"
+	aptListCmd           = "apt-cache search dummy-package"
+	yumFileName          = "/etc/yum.repos.d/artifact-registry-private-repo.repo"
+	yumCreatePrivateRepo = `[artifact-registry-private-repo]
 name=Artifact Registry Private Repo
 baseurl=https://us-central1-yum.pkg.dev/projects/bct-prod-images/yum
 enabled=1
 gpgcheck=1
 repo_gpgcheck=0
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
-https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
-sudo yum makecache --disablerepo='*' --enablerepo='artifact-registry-private-repo'`
+       https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+`
+	yumUpdateCmd = "yum makecache --disablerepo='*' --enablerepo='artifact-registry-private-repo'"
+	yumListCmd   = "yum --disablerepo='*' --enablerepo='artifact-registry-private-repo' list available"
 )
 
 var (
@@ -49,36 +48,52 @@ func TestPrivateRepoDefaultAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
+	if !isSupportedImages(image) {
+		t.Skip("not supported image")
+	}
 	if err := installPackage(image); err != nil {
 		t.Fatalf("plugin is not installed, err %v", err)
 	}
 
-	var createCmdRaw string
-	var listCmd []string
+	var createCmdRaw, fileName string
+	var updateCmd, listCmd []string
 	switch {
 	case strings.Contains(image, "debian"):
+		fileName = aptFileName
 		createCmdRaw = aptCreatePrivateRepo
-		listCmd = strings.Split("apt-cache search dummy-package", " ")
+		updateCmd = strings.Split(aptUpdateCmd, " ")
+		listCmd = strings.Split(aptListCmd, " ")
 	default:
+		fileName = yumFileName
 		createCmdRaw = yumCreatePrivateRepo
-		listCmd = strings.Split("yum --disablerepo='*' --enablerepo='artifact-registry-private-repo' list available", " ")
+		updateCmd = strings.Split(yumUpdateCmd, " ")
+		listCmd = strings.Split(yumListCmd, " ")
 	}
-
-	if err := os.WriteFile("create.sh", []byte(createCmdRaw), 755); err != nil {
+	if err := os.WriteFile(fileName, []byte(createCmdRaw), 555); err != nil {
 		t.Fatalf("fail to write file, err %v", err)
 	}
-	cmd := exec.Command("sh", "create.sh")
+
+	cmd := exec.Command(updateCmd[0], updateCmd[1:]...)
 	if err := cmd.Run(); err != nil {
-		t.Fatalf("faile to run cmd, err %v", err)
+		t.Fatalf("faile to run update cmd, err %v", err)
 	}
 	cmd = exec.Command(listCmd[0], listCmd[1:]...)
 	out, err := cmd.Output()
 	if err != nil {
-		t.Fatalf("failed run cmd, err %v", err)
+		t.Fatalf("failed run list cmd, err %v", err)
 	}
 	if !strings.Contains(string(out), "dummy-package") {
-		t.Fatal("Failed to find package in private repo.")
+		t.Fatal("failed to find package in private repo.")
 	}
+}
+
+func isSupportedImages(image string) bool {
+	for _, prefix := range []string{"debian", "centos", "rhel", "almalinux", "rocky-linux"} {
+		if strings.Contains(image, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func installPackage(image string) error {
