@@ -9,18 +9,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
-)
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
 
 type Token struct {
 	AccessToken string `json:"access_token"`
