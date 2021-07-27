@@ -2,13 +2,10 @@ package metadata
 
 import (
 	"encoding/json"
-	"flag"
-	"os"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
-
 
 type Token struct {
 	AccessToken string `json:"access_token"`
