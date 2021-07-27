@@ -5,8 +5,10 @@ package imageboot
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -58,4 +60,16 @@ func TestGuestSecureBoot(t *testing.T) {
 	if data[len(data)-1] != 1 {
 		t.Fatal("secure boot is not enabled as expected")
 	}
+}
+
+func TestBootTime(t *testing.T) {
+	metadata, err := utils.GetMetadataAttribute("start-time")
+	if err != nil {
+		t.Fatalf("couldn't get start time from metadata")
+	}
+	startTime, err := strconv.Atoi(metadata)
+	if err != nil {
+		t.Fatalf("failed to convet start time %s", metadata)
+	}
+	t.Logf("image boot time is %d", time.Now().Second()-startTime)
 }
