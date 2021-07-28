@@ -5,6 +5,7 @@ package imageboot
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"testing"
@@ -28,6 +29,23 @@ func TestGuestReboot(t *testing.T) {
 		// first boot
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
+		}
+		t.Fatal("marker file does not exist")
+	}
+	// second boot
+	t.Log("marker file exist signal the guest reboot successful")
+}
+
+func TestGuestRebootOnHost(t *testing.T) {
+	_, err := os.Stat(markerFile)
+	if os.IsNotExist(err) {
+		// first boot
+		if _, err := os.Create(markerFile); err != nil {
+			t.Fatalf("failed creating marker file: %v", err)
+		}
+		cmd := exec.Command("sudo", "nohup", "reboot")
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("failed to run reboot command: %v", err)
 		}
 		t.Fatal("marker file does not exist")
 	}
