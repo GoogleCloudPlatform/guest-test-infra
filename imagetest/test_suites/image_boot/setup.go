@@ -1,7 +1,9 @@
 package imageboot
 
 import (
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
@@ -47,7 +49,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.EnableSecureBoot()
-	vm3.RunTests("TestGuestSecureBoot")
+	vm3.RunTests("TestGuestSecureBoot|TestBootTime")
 	return nil
 }

@@ -1,10 +1,10 @@
+// +build cit
+
 package network
 
 import (
-	"flag"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"testing"
 
@@ -16,19 +16,6 @@ const (
 	defaultInterface            = "eth0"
 	defaultPredictableInterface = "ens4"
 )
-
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
-)
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
 
 func TestDefaultMTU(t *testing.T) {
 	var networkInterface string

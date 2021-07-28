@@ -1,3 +1,5 @@
+// +build cit
+
 package network
 
 import (
