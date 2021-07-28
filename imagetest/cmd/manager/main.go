@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	artifactregistry "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/artifact_registry"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
@@ -138,6 +139,10 @@ func main() {
 		{
 			metadata.Name,
 			metadata.TestSetup,
+		},
+		{
+			artifactregistry.Name,
+			artifactregistry.TestSetup,
 		},
 	}
 
