@@ -1,9 +1,10 @@
+// +build cit
+
 package hostkey
 
 import (
 	"flag"
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 
@@ -31,15 +32,6 @@ func getHostKeysFromDisk() (map[string]string, error) {
 	return hostkeyMap, nil
 }
 
-func TestMain(m *testing.M) {
-	flag.Parse()
-	if *runtest {
-		os.Exit(m.Run())
-	} else {
-		os.Exit(0)
-	}
-}
-
 // TestMatchingKeysInGuestAttributes validate that host keys in guest attributes match those on disk.
 func TestMatchingKeysInGuestAttributes(t *testing.T) {
 	diskEntries, err := getHostKeysFromDisk()
@@ -65,8 +57,4 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 			t.Fatalf("host keys %s %s in guest attributes match those on disk %s", keyType, keyValue, valueFromDisk)
 		}
 	}
-}
-
-func TestHostKeysAreUnique(t *testing.T) {
-	t.SkipNow()
 }
