@@ -80,7 +80,6 @@ func createClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 func checkLocalUser(client *ssh.Client, user string) error {
 	session, err := client.NewSession()
 	if err != nil {
-		client.Close()
 		return err
 	}
 	defer session.Close()
@@ -95,7 +94,6 @@ func checkLocalUser(client *ssh.Client, user string) error {
 func checkSudoGroup(client *ssh.Client, user string) error {
 	session, err := client.NewSession()
 	if err != nil {
-		client.Close()
 		return err
 	}
 	defer session.Close()
