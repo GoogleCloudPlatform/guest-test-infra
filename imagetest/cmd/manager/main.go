@@ -15,8 +15,10 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hostkey"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 )
 
 var (
@@ -133,6 +135,14 @@ func main() {
 		{
 			hostkey.Name,
 			hostkey.TestSetup,
+    },
+    {			
+      ssh.Name,
+			ssh.TestSetup,
+		},
+		{
+			metadata.Name,
+			metadata.TestSetup,
 		},
 	}
 

@@ -109,6 +109,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-2-sap-v([0-9]+).tar.gz"
+- name: rhel-8-4-sap-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "rhel/rhel-8-4-sap-v([0-9]+).tar.gz"
 # rocky-linux
 - name: rocky-linux-8-gcs
   type: gcs
@@ -520,6 +527,35 @@ jobs:
       wf: "enterprise_linux/rhel_8_2_sap.wf.json"
       gcs_url: ((.:gcs-url))
       iso: ((iso-paths.rhel-8-2))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+- name: build-rhel-8-4-sap
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "rhel-8-4-sap"
+  - put: rhel-8-4-sap-gcs
+    params:
+      file: build-id-dir/rhel-8-4-sap*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: rhel-8-4-sap-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
+    vars:
+      wf: "enterprise_linux/rhel_8_4_sap.wf.json"
+      gcs_url: ((.:gcs-url))
+      iso: ((iso-paths.rhel-8-4))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 # rocky-linux
@@ -1019,6 +1055,35 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test.yaml
     vars:
       images: projects/bct-prod-images/global/images/rhel-8-2-sap-((.:publish-version))
+- name: publish-to-testing-rhel-8-4-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-4-sap-gcs
+    passed: [build-rhel-8-4-sap]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-4-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_4_sap.publish.json"
+      environment: "test"
+  - task: image-test-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/image-test.yaml
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-4-sap-((.:publish-version))
 # rocky-linux
 - name: publish-to-testing-rocky-linux-8
   plan:
@@ -1466,6 +1531,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "staging"
+- name: publish-to-staging-rhel-8-4-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-4-sap-gcs
+    passed: [publish-to-testing-rhel-8-4-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-4-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_4_sap.publish.json"
+      environment: "staging"
 # rocky-linux
 - name: publish-to-staging-rocky-linux-8
   plan:
@@ -1897,6 +1987,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-8-4-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-4-sap-gcs
+    passed: [publish-to-testing-rhel-8-4-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-4-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_4_sap.publish.json"
+      environment: "oslogin-staging"
 # rocky-linux
 - name: publish-to-oslogin-staging-rocky-linux-8
   plan:
@@ -2325,6 +2440,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "prod"
+- name: publish-to-prod-rhel-8-4-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-8-4-sap-gcs
+    passed: [publish-to-testing-rhel-8-4-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-8-4-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_8_4_sap.publish.json"
+      environment: "prod"
 # rocky-linux
 - name: publish-to-prod-rocky-linux-8
   plan:
@@ -2500,6 +2640,7 @@ groups:
   - build-rhel-7-7-sap
   - build-rhel-8-1-sap
   - build-rhel-8-2-sap
+  - build-rhel-8-4-sap
   - publish-to-testing-rhel-7
   - publish-to-testing-rhel-8
   - publish-to-testing-rhel-7-byos
@@ -2509,6 +2650,7 @@ groups:
   - publish-to-testing-rhel-7-7-sap
   - publish-to-testing-rhel-8-1-sap
   - publish-to-testing-rhel-8-2-sap
+  - publish-to-testing-rhel-8-4-sap
   - publish-to-staging-rhel-7
   - publish-to-staging-rhel-7-byos
   - publish-to-staging-rhel-8-byos
@@ -2518,6 +2660,7 @@ groups:
   - publish-to-staging-rhel-7-7-sap
   - publish-to-staging-rhel-8-1-sap
   - publish-to-staging-rhel-8-2-sap
+  - publish-to-staging-rhel-8-4-sap
   - publish-to-oslogin-staging-rhel-7
   - publish-to-oslogin-staging-rhel-7-byos
   - publish-to-oslogin-staging-rhel-8-byos
@@ -2527,6 +2670,7 @@ groups:
   - publish-to-oslogin-staging-rhel-7-7-sap
   - publish-to-oslogin-staging-rhel-8-1-sap
   - publish-to-oslogin-staging-rhel-8-2-sap
+  - publish-to-oslogin-staging-rhel-8-4-sap
   - publish-to-prod-rhel-7
   - publish-to-prod-rhel-8
   - publish-to-prod-rhel-7-byos
@@ -2536,6 +2680,7 @@ groups:
   - publish-to-prod-rhel-7-7-sap
   - publish-to-prod-rhel-8-1-sap
   - publish-to-prod-rhel-8-2-sap
+  - publish-to-prod-rhel-8-4-sap
 - name: test-manager-container
   jobs:
   - build-test-manager-container

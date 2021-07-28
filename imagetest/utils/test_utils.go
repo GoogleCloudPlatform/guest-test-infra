@@ -26,7 +26,7 @@ func GetRealVMName(name string) (string, error) {
 	if len(parts) != 3 {
 		return "", errors.New("hostname doesn't match scheme")
 	}
-	return strings.Join([]string{parts[0], name, parts[2]}, "-"), nil
+	return strings.Join([]string{name, parts[1], parts[2]}, "-"), nil
 }
 
 // GetMetadataAttribute returns an attribute from metadata if present, and error if not.
@@ -108,4 +108,24 @@ func ExtractBaseImageName(image string) (string, error) {
 	}
 	imageName := strings.Join(splits[:len(splits)-1], "-")
 	return imageName, nil
+}
+
+// DownloadPrivateKey download private key from daisy source.
+func DownloadPrivateKey(user string) ([]byte, error) {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sourcesPath, err := GetMetadataAttribute("daisy-sources-path")
+	if err != nil {
+		return nil, err
+	}
+	gcsPath := fmt.Sprintf("%s/%s-ssh-key", sourcesPath, user)
+
+	privateKey, err := DownloadGCSObject(ctx, client, gcsPath)
+	if err != nil {
+		return nil, err
+	}
+	return privateKey, nil
 }

@@ -17,6 +17,9 @@ package imagetest
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +27,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -58,50 +62,7 @@ func SingleVMTest(t *TestWorkflow) error {
 	return err
 }
 
-// Skip marks a test workflow to be skipped.
-func (t *TestWorkflow) Skip(message string) {
-	t.skipped = true
-	t.skippedMessage = message
-}
-
-// SkippedMessage returns the skip reason message for the workflow.
-func (t *TestWorkflow) SkippedMessage() string {
-	return t.skippedMessage
-}
-
-// CreateTestVM creates the necessary steps to create a VM with the specified name to the workflow.
-func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
-	parts := strings.Split(name, ".")
-	vmname := strings.ReplaceAll(parts[0], "_", "-")
-
-	createDisksStep, err := t.appendCreateDisksStep(vmname)
-	if err != nil {
-		return nil, err
-	}
-
-	// createDisksStep doesn't depend on any other steps.
-	createVMStep, err := t.appendCreateVMStep(vmname, name)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
-		return nil, err
-	}
-
-	waitStep, err := t.addWaitStep(vmname, vmname, false)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
-		return nil, err
-	}
-
-	return &TestVM{name: vmname, testWorkflow: t}, nil
-}
-
-func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, error) {
+func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *daisy.Instance, error) {
 	attachedDisk := &compute.AttachedDisk{Source: name}
 
 	instance := &daisy.Instance{}
@@ -129,12 +90,12 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, e
 		var err error
 		createVMStep, err = t.wf.NewStep(createVMsStepName)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		createVMStep.CreateInstances = createInstances
 	}
 
-	return createVMStep, nil
+	return createVMStep, instance, nil
 }
 
 func (t *TestWorkflow) appendCreateDisksStep(diskname string) (*daisy.Step, error) {
@@ -223,6 +184,60 @@ func (t *TestWorkflow) addStartStep(stepname, vmname string) (*daisy.Step, error
 	startInstancesStep.StartInstances = startInstances
 
 	return startInstancesStep, nil
+}
+
+func (t *TestWorkflow) appendCreateNetworkStep(networkName string, autoCreateSubnetworks bool) (*daisy.Step, *daisy.Network, error) {
+	network := &daisy.Network{
+		Network: compute.Network{
+			Name: networkName,
+		},
+		AutoCreateSubnetworks: &autoCreateSubnetworks,
+	}
+
+	createNetworks := &daisy.CreateNetworks{}
+	*createNetworks = append(*createNetworks, network)
+	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
+	if ok {
+		// append to existing step.
+		*createNetworkStep.CreateNetworks = append(*createNetworkStep.CreateNetworks, network)
+	} else {
+		var err error
+		createNetworkStep, err = t.wf.NewStep(createNetworkStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+		createNetworkStep.CreateNetworks = createNetworks
+	}
+
+	return createNetworkStep, network, nil
+}
+
+func (t *TestWorkflow) appendCreateSubnetworksStep(name, ipRange, networkName string) (*daisy.Step, *daisy.Subnetwork, error) {
+	subnetwork := &daisy.Subnetwork{
+		Subnetwork: compute.Subnetwork{
+			Name:        name,
+			IpCidrRange: ipRange,
+			Network:     networkName,
+		},
+	}
+	createSubnetworks := &daisy.CreateSubnetworks{}
+	*createSubnetworks = append(*createSubnetworks, subnetwork)
+
+	createSubnetworksStep, ok := t.wf.Steps[createSubnetworkStepName]
+	if ok {
+		// append to existing step.
+		*createSubnetworksStep.CreateSubnetworks = append(*createSubnetworksStep.CreateSubnetworks, subnetwork)
+	} else {
+		var err error
+		createSubnetworksStep, err = t.wf.NewStep(createSubnetworkStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		createSubnetworksStep.CreateSubnetworks = createSubnetworks
+	}
+
+	return createSubnetworksStep, subnetwork, nil
 }
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
@@ -477,4 +492,26 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 		step = deps[0]
 	}
 	return t.wf.Steps[step], nil
+}
+
+// AddSSHKey generate ssh key pair and return public key.
+func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	if _, err := os.Stat(keyFileName); os.IsExist(err) {
+		os.Remove(keyFileName)
+	}
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return "", err
+	}
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
+
+	return string(publicKey), nil
 }

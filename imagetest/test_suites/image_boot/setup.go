@@ -1,7 +1,9 @@
 package imageboot
 
 import (
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
@@ -33,12 +35,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		t.Skip("secure boot is not supported on Debian 9")
 	}
 
+	if strings.Contains(t.Image, "rocky-linux-8") {
+		t.Skip("secure boot is not supported on Rocky Linux")
+	}
+
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err
 	}
-
+	vm2.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm2.EnableSecureBoot()
-	vm2.RunTests("TestGuestSecureBoot")
+	vm2.RunTests("TestGuestSecureBoot|TestBootTime")
 	return nil
 }
