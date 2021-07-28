@@ -41,13 +41,7 @@ func GetMetadataGuestAttribute(attribute string) (string, error) {
 
 // GetMetadata returns a metadata value for the specified key if it is present, and error if not.
 func GetMetadata(path string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := GetMetadataHTTPResponse(path)
 	if err != nil {
 		return "", err
 	}
@@ -59,6 +53,21 @@ func GetMetadata(path string) (string, error) {
 		return "", err
 	}
 	return string(val), nil
+}
+
+// GetMetadataHTTPResponse returns http response for the specified key without checking status code.
+func GetMetadataHTTPResponse(path string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // DownloadGCSObject downloads a GCS object.
