@@ -136,7 +136,7 @@ func main() {
 			hostkey.Name,
 			hostkey.TestSetup,
 		},
-		{			
+		{
 			ssh.Name,
 			ssh.TestSetup,
 		},
