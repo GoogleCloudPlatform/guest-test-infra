@@ -30,6 +30,7 @@ RUN cd imagetest/test_suites; for suite in *; do \
   done
 
 FROM alpine:edge
+RUN apk add --no-cache openssh-keygen
 COPY --from=builder /out/* /
 
 ENTRYPOINT ["/manager"]
