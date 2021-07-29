@@ -115,7 +115,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
 	for keyType, keyValue := range localDiskEntries {
-		value, found := remoteDiskEntries[keyType];
+		value, found := remoteDiskEntries[keyType]
 		if !found {
 			t.Fatalf("ssh key %s not found on remote disk entries", keyType)
 		}
