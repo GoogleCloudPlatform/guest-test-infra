@@ -104,28 +104,27 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
-	bytes, err := getRemoteHostKey(client)
+	remoteDiskEntries, err := getRemoteHostKey(client)
 	if err != nil {
 		t.Fatalf("failed to get host key from remote err %v", err)
 	}
-	remoteDiskEntries := utils.ParseHostKey(bytes)
 
 	localDiskEntries, err := utils.GetHostKeysFromDisk()
 	if err != nil {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
-	for keyType, keyValue := range localDiskEntries {
-		value, found := remoteDiskEntries[keyType]
+	for keyType, localValue := range localDiskEntries {
+		remoteValue, found := remoteDiskEntries[keyType]
 		if !found {
 			t.Fatalf("ssh key %s not found on remote disk entries", keyType)
 		}
-		if value == keyValue {
+		if localValue == remoteValue {
 			t.Fatal("host key value is not unique")
 		}
 	}
 }
 
-func getRemoteHostKey(client *ssh.Client) ([]byte, error) {
+func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, err
@@ -135,5 +134,5 @@ func getRemoteHostKey(client *ssh.Client) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return bytes, nil
+	return utils.ParseHostKey(bytes), nil
 }
