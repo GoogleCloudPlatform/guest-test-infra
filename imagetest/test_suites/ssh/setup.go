@@ -22,7 +22,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.AddMetadata("block-project-ssh-keys", "true")
 	vm.AddMetadata("enable-guest-attributes", "true")
-	vm.RunTests("TestSSH")
+	vm.RunTests("TestSSH|TestHostKeysAreUnique")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {

@@ -4,7 +4,6 @@ package ssh
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -101,46 +100,40 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	client, session, err := createSession(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
-	bytes, err := session.Output("cat /etc/ssh/ssh_host_*_key.pub")
+	bytes, err := getRemoteHostKey(client)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to get host key from remote err %v", err)
 	}
-	remoteDiskEntries := parseHostKeyFile(bytes)
+	remoteDiskEntries := utils.ParseHostKey(bytes)
 
-	diskEntries, err = getHostKeysFromDisk()
+	localDiskEntries, err := utils.GetHostKeysFromDisk()
 	if err != nil {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
-	for keyType, keyValue := range diskEntries {
-		if value, found := remoteDiskEntries[keyType]; !found {
-			t.Fatalf("%s not found on remote disk entries", keyType)
+	for keyType, keyValue := range localDiskEntries {
+		value, found := remoteDiskEntries[keyType];
+		if !found {
+			t.Fatalf("ssh key %s not found on remote disk entries", keyType)
 		}
 		if value == keyValue {
-			t.Fatal("host key value not unique")
+			t.Fatal("host key value is not unique")
 		}
 	}
 }
 
-func getHostKeysFromDisk() (map[string]string, error) {
-	bytes, err := ioutil.ReadFile("/etc/ssh/ssh_host_*_key.pub")
+func getRemoteHostKey(client *ssh.Client) ([]byte, error) {
+	session, err := client.NewSession()
 	if err != nil {
 		return nil, err
 	}
-	return parseHostKeyFile(bytes), nil
-}
-
-func parseHostKeyFile(bytes []byte) map[string]string {
-	hostkeyLines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
-
-	var hostkeyMap = make(map[string]string)
-	for _, hostkey := range hostkeyLines {
-		keyType := strings.Split(hostkey, " ")[0]
-		keyValue := strings.Split(hostkey, " ")[1]
-		hostkeyMap[keyType] = keyValue
+	defer session.Close()
+	bytes, err := session.Output("cat /etc/ssh/ssh_host_*_key.pub")
+	if err != nil {
+		return nil, err
 	}
-	return hostkeyMap
+	return bytes, nil
 }

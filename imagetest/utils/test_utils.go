@@ -138,3 +138,25 @@ func DownloadPrivateKey(user string) ([]byte, error) {
 	}
 	return privateKey, nil
 }
+
+// GetHostKeysFromDisk read ssh host public key and parse
+func GetHostKeysFromDisk() (map[string]string, error) {
+	bytes, err := ioutil.ReadFile("/etc/ssh/ssh_host_*_key.pub")
+	if err != nil {
+		return nil, err
+	}
+	return ParseHostKey(bytes), nil
+}
+
+// ParseHostKey parse hostkey data from bytes.
+func ParseHostKey(bytes []byte) map[string]string {
+	hostkeyLines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
+
+	var hostkeyMap = make(map[string]string)
+	for _, hostkey := range hostkeyLines {
+		keyType := strings.Split(hostkey, " ")[0]
+		keyValue := strings.Split(hostkey, " ")[1]
+		hostkeyMap[keyType] = keyValue
+	}
+	return hostkeyMap
+}
