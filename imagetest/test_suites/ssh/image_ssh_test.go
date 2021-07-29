@@ -106,7 +106,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	}
 	remoteDiskEntries, err := getRemoteHostKey(client)
 	if err != nil {
-		t.Fatalf("failed to get host key from remote err %v", err)
+		t.Fatalf("failed to get host key from remote, err: %v", err)
 	}
 
 	localDiskEntries, err := utils.GetHostKeysFromDisk()
@@ -134,5 +134,5 @@ func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utils.ParseHostKey(bytes), nil
+	return utils.ParseHostKey(bytes)
 }

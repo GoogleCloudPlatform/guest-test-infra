@@ -141,22 +141,32 @@ func DownloadPrivateKey(user string) ([]byte, error) {
 
 // GetHostKeysFromDisk read ssh host public key and parse
 func GetHostKeysFromDisk() (map[string]string, error) {
-	bytes, err := ioutil.ReadFile("/etc/ssh/ssh_host_*_key.pub")
-	if err != nil {
-		return nil, err
+	var totalBytes []byte
+	for _, file := range []string{"/etc/ssh/ssh_host_ecdsa_key.pub", "/etc/ssh/ssh_host_ed25519_key.pub", "/etc/ssh/ssh_host_rsa_key.pub"} {
+		bytes, err := ioutil.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		totalBytes = append(totalBytes, bytes...)
 	}
-	return ParseHostKey(bytes), nil
+	return ParseHostKey(totalBytes)
 }
 
 // ParseHostKey parse hostkey data from bytes.
-func ParseHostKey(bytes []byte) map[string]string {
+func ParseHostKey(bytes []byte) (map[string]string, error) {
 	hostkeyLines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
-
+	if len(hostkeyLines) == 0 {
+		return nil, fmt.Errorf("hostkey does not exist")
+	}
 	var hostkeyMap = make(map[string]string)
 	for _, hostkey := range hostkeyLines {
+		splits := strings.Split(hostkey, " ")
+		if len(splits) < 2 {
+			return nil, fmt.Errorf("hostkey has wrong format %s", hostkey)
+		}
 		keyType := strings.Split(hostkey, " ")[0]
 		keyValue := strings.Split(hostkey, " ")[1]
 		hostkeyMap[keyType] = keyValue
 	}
-	return hostkeyMap
+	return hostkeyMap, nil
 }
