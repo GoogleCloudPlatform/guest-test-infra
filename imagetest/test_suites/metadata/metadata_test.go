@@ -4,7 +4,6 @@ package metadata
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,10 +13,6 @@ import (
 )
 
 const metadataURLIPPrefix = "http://169.254.169.254/computeMetadata/v1/instance/"
-
-var (
-	runtest              = flag.Bool("runtest", false, "really run the test")
-)
 
 type Token struct {
 	AccessToken string `json:"access_token"`
@@ -35,7 +30,6 @@ func TestTokenFetch(t *testing.T) {
 		t.Fatalf("token %s has incorrect format", metadata)
 	}
 }
-
 
 // TestMetaDataResponseHeaders verify that HTTP response headers do not include confidential data.
 func TestMetaDataResponseHeaders(t *testing.T) {
