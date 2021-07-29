@@ -22,7 +22,7 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
-    paths: ['imagetest/.*\.go']
+    paths: ['imagetest/*']
 - name: almalinux-8-gcs
   type: gcs
   source:
@@ -2584,8 +2584,9 @@ jobs:
     file: imagetest/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/cloud-image-tests:latest
-      context: imagetest
+      context: guest-test-infra
       dockerfile: imagetest/Dockerfile
+    input_mapping: {guest-test-infra: imagetest}
 
 groups:
 - name: debian
