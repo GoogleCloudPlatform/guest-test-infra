@@ -34,6 +34,11 @@ func GetMetadataAttribute(attribute string) (string, error) {
 	return GetMetadata("attributes/" + attribute)
 }
 
+// GetMetadataGuestAttribute returns an guest attribute from metadata if present, and error if not.
+func GetMetadataGuestAttribute(attribute string) (string, error) {
+	return GetMetadata("guest-attributes/" + attribute)
+}
+
 // GetMetadata returns a metadata value for the specified key if it is present, and error if not.
 func GetMetadata(path string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
