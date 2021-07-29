@@ -3,16 +3,11 @@
 package hostkey
 
 import (
-	"flag"
 	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-)
-
-var (
-	runtest = flag.Bool("runtest", false, "really run the test")
 )
 
 func getHostKeysFromDisk() (map[string]string, error) {
@@ -44,6 +39,8 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 		t.Fatal(err)
 
 	}
+	// validate that the guest agent copies the host keys from disk to the metadata.
+	// https://github.com/GoogleCloudPlatform/guest-agent/blob/main/google_guest_agent/instance_setup.go
 	for _, keyType := range strings.Split(hostkeys, "\n") {
 		keyValue, err := utils.GetMetadataGuestAttribute("hostkeys/" + keyType)
 		if err != nil {
