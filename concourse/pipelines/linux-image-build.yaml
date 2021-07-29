@@ -17,6 +17,12 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
+- name: imagetest
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
+    paths: ['imagetest/.*\.go']
 - name: almalinux-8-gcs
   type: gcs
   source:
@@ -2570,14 +2576,15 @@ jobs:
 
 - name: build-test-manager-container
   plan:
-  - get: guest-test-infra
+  - get: imagetest
+    trigger: true
   - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
+    file: imagetest/concourse/tasks/get-credential.yaml
   - task: build-test-manager-container-image
-    file: guest-test-infra/concourse/tasks/build-container-image.yaml
+    file: imagetest/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/cloud-image-tests:latest
-      context: guest-test-infra
+      context: imagetest
       dockerfile: imagetest/Dockerfile
 
 groups:
