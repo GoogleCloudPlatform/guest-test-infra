@@ -28,6 +28,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm2.AddUser(user, publicKey)
+	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
 	return nil
 }
