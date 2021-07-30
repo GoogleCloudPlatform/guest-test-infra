@@ -30,6 +30,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.AddUser(user, publicKey)
 	vm2.AddMetadata("enable-guest-attributes", "true")
+	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
 	return nil
 }
