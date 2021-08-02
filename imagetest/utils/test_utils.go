@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -142,7 +143,12 @@ func DownloadPrivateKey(user string) ([]byte, error) {
 // GetHostKeysFromDisk read ssh host public key and parse
 func GetHostKeysFromDisk() (map[string]string, error) {
 	var totalBytes []byte
-	for _, file := range []string{"/etc/ssh/ssh_host_ecdsa_key.pub", "/etc/ssh/ssh_host_ed25519_key.pub", "/etc/ssh/ssh_host_rsa_key.pub"} {
+	keyFiles, err := filepath.Glob("/etc/ssh/ssh_host_*_key.pub")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range keyFiles {
 		bytes, err := ioutil.ReadFile(file)
 		if err != nil {
 			return nil, err
