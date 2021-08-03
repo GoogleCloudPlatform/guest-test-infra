@@ -5,17 +5,18 @@ package ssh
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"golang.org/x/crypto/ssh"
 )
 
 func TestEmptyTest(t *testing.T) {
-	t.Logf("SSH target boot succesfully")
 	_, err := utils.GetMetadataAttribute("ssh-keys")
 	if err != nil {
 		t.Fatalf("couldn't get ssh public key from metadata")
 	}
+	t.Logf("ssh target boot succesfully at %d", time.Now().UnixNano())
 }
 
 func TestSSH(t *testing.T) {
@@ -27,6 +28,8 @@ func TestSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
+	time.Sleep(time.Second)
+	t.Logf("connect to remote host at %d", time.Now().UnixNano())
 	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
@@ -100,6 +103,8 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
+	time.Sleep(time.Second)
+	t.Logf("connect to remote host at %d", time.Now().UnixNano())
 	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
