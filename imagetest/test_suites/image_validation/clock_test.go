@@ -112,7 +112,6 @@ func stopService(image string) error {
 		if err := cmd.Run(); err != nil {
 			return err
 		}
-	default:
 	}
 	return nil
 }
@@ -134,7 +133,6 @@ func installPackage(image string) error {
 		if err := cmd.Run(); err != nil {
 			return err
 		}
-	default:
 	}
 	return nil
 }
