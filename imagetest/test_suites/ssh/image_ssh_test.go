@@ -90,3 +90,49 @@ func checkSudoGroup(client *ssh.Client, user string) error {
 	}
 	return nil
 }
+
+func TestHostKeysAreUnique(t *testing.T) {
+	vmname, err := utils.GetRealVMName("vm2")
+	if err != nil {
+		t.Fatalf("failed to get real vm name: %v", err)
+	}
+	pembytes, err := utils.DownloadPrivateKey(user)
+	if err != nil {
+		t.Fatalf("failed to download private key: %v", err)
+	}
+	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	if err != nil {
+		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
+	}
+	remoteDiskEntries, err := getRemoteHostKey(client)
+	if err != nil {
+		t.Fatalf("failed to get host key from remote, err: %v", err)
+	}
+
+	localDiskEntries, err := utils.GetHostKeysFromDisk()
+	if err != nil {
+		t.Fatalf("failed to get host key from disk %v", err)
+	}
+	for keyType, localValue := range localDiskEntries {
+		remoteValue, found := remoteDiskEntries[keyType]
+		if !found {
+			t.Fatalf("ssh key %s not found on remote disk entries", keyType)
+		}
+		if localValue == remoteValue {
+			t.Fatal("host key value is not unique")
+		}
+	}
+}
+
+func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	bytes, err := session.Output("cat /etc/ssh/ssh_host_*_key.pub")
+	if err != nil {
+		return nil, err
+	}
+	return utils.ParseHostKey(bytes)
+}

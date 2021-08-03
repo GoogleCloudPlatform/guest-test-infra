@@ -3,33 +3,15 @@
 package hostkey
 
 import (
-	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-func getHostKeysFromDisk() (map[string]string, error) {
-	bytes, err := ioutil.ReadFile("/etc/ssh/ssh_host_*_key.pub")
-	if err != nil {
-		return nil, err
-	}
-	hostkeyLines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
-
-	var hostkeyMap = make(map[string]string)
-	for _, hostkey := range hostkeyLines {
-		keyType := strings.Split(hostkey, " ")[0]
-		keyValue := strings.Split(hostkey, " ")[1]
-		hostkeyMap[keyType] = keyValue
-	}
-
-	return hostkeyMap, nil
-}
-
 // TestMatchingKeysInGuestAttributes validate that host keys in guest attributes match those on disk.
 func TestMatchingKeysInGuestAttributes(t *testing.T) {
-	diskEntries, err := getHostKeysFromDisk()
+	diskEntries, err := utils.GetHostKeysFromDisk()
 	if err != nil {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}

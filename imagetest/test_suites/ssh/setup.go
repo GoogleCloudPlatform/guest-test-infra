@@ -21,13 +21,15 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm.AddMetadata("block-project-ssh-keys", "true")
-	vm.RunTests("TestSSH")
+	vm.AddMetadata("enable-guest-attributes", "true")
+	vm.RunTests("TestSSH|TestHostKeysAreUnique")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err
 	}
 	vm2.AddUser(user, publicKey)
+	vm2.AddMetadata("enable-guest-attributes", "true")
 	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
 	return nil
