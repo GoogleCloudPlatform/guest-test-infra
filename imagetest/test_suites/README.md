@@ -21,7 +21,8 @@ Background
 
 A convenience feature offered on supported GCE Images, if you resize the
 underlying disk to be larger, then a set of scripts invoked during boot will
-automatically resize the root partition to take advantage of the new space.
+automatically resize the root partition and filesystem to take advantage of the
+new space.
 
 Test logic
 
@@ -77,7 +78,7 @@ script completes. For scripts which never complete, this would cause the server
 to remain in a 'shutting down' state forever. However, VMs that are stopped via
 the API are first sent an ACPI soft-shutdown signal which triggers the OS
 shutdown process, invoking this script. But after a set amount of time
-(currently 2 minutes), if the VM is still running, the GCE API will hard-reset
+(currently 90 seconds), if the VM is still running, the GCE API will hard-reset
 the VM. It's not possible to validate that the shutdown script will run
 'forever'. However, we validate that it will run at least until hard-reset
 occurs.
