@@ -26,6 +26,7 @@ const (
 	createVMsStepName        = "create-vms"
 	createDisksStepName      = "create-disks"
 	createNetworkStepName    = "create-networks"
+	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
 )
@@ -86,8 +87,14 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	if createNetworksStep, ok := t.wf.Steps[createNetworkStepName]; ok {
-		if err := t.wf.AddDependency(createVMStep, createNetworksStep); err != nil {
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
 			return nil, err
 		}
 	}
@@ -213,7 +220,7 @@ func (t *TestVM) EnableSecureBoot() {
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
-func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) error {
+func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork, networkIP string) error {
 	var subnetworkName string
 	if subnetwork == nil {
 		subnetworkName = ""
@@ -228,13 +235,19 @@ func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 	networkInterface := compute.NetworkInterface{
 		Network:    network.name,
 		Subnetwork: subnetworkName,
+		NetworkIP:  networkIP,
+
 		AccessConfigs: []*compute.AccessConfig{
 			{
 				Type: "ONE_TO_ONE_NAT",
 			},
 		},
 	}
-	t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+	if t.instance.NetworkInterfaces == nil {
+		t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+	} else {
+		t.instance.NetworkInterfaces = append(t.instance.NetworkInterfaces, &networkInterface)
+	}
 
 	return nil
 }
@@ -249,6 +262,16 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 		IpCidrRange:         aliasIPRange,
 		SubnetworkRangeName: rangeName,
 	})
+
+	return nil
+}
+
+// SetPrivateIP set IPv4 internal IP address to assign to the current test VMs.
+func (t *TestVM) SetPrivateIP(networkIP string) error {
+	if t.instance.NetworkInterfaces == nil {
+		return fmt.Errorf("Must call SetCustomNetwork prior to AddAliasIPRanges")
+	}
+	t.instance.NetworkInterfaces[0].NetworkIP = networkIP
 
 	return nil
 }
@@ -310,4 +333,36 @@ func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 		IpCidrRange: ipRange,
 		RangeName:   rangeName,
 	})
+}
+
+func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocal string, ports []string) (*daisy.Step, *daisy.FirewallRule, error) {
+	firewall := &daisy.FirewallRule{
+		Firewall: compute.Firewall{
+			Name:    firewallName,
+			Network: networkName,
+			Allowed: []*compute.FirewallAllowed{
+				{
+					IPProtocol: protocal,
+					Ports:      ports,
+				},
+			},
+		},
+	}
+
+	createFirewallRules := &daisy.CreateFirewallRules{}
+	*createFirewallRules = append(*createFirewallRules, firewall)
+	createFirewallStep, ok := t.wf.Steps[createFirewallStepName]
+	if ok {
+		// append to existing step.
+		*createFirewallStep.CreateFirewallRules = append(*createFirewallStep.CreateFirewallRules, firewall)
+	} else {
+		var err error
+		createFirewallStep, err = t.wf.NewStep(createFirewallStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+		createFirewallStep.CreateFirewallRules = createFirewallRules
+	}
+
+	return createFirewallStep, firewall, nil
 }

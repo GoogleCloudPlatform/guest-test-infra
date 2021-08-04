@@ -10,9 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/sys/unix"
-
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"golang.org/x/sys/unix"
 )
 
 const (

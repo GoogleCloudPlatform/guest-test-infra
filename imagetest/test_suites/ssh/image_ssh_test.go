@@ -27,7 +27,7 @@ func TestSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	client, err := utils.CreateClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
@@ -41,26 +41,6 @@ func TestSSH(t *testing.T) {
 	if err := client.Close(); err != nil {
 		t.Logf("failed to close client: %v", err)
 	}
-}
-
-func createClient(user, host string, pembytes []byte) (*ssh.Client, error) {
-	// generate signer instance from plain key
-	signer, err := ssh.ParsePrivateKey(pembytes)
-	if err != nil {
-		return nil, fmt.Errorf("parsing plain private key failed %v", err)
-	}
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
-	}
-	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-	client, err := ssh.Dial("tcp", host, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
 }
 
 // checkLocalUser test that the user account exists in /etc/passwd
@@ -100,7 +80,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	client, err := utils.CreateClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}

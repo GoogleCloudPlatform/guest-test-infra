@@ -515,3 +515,20 @@ func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
 
 	return string(publicKey), nil
 }
+
+// CreateFirewallRule create firewall rule.
+func (t *TestWorkflow) CreateFirewallRule(firewallName, networkName, protocal string, ports []string) error {
+	createFirewallStep, _, err := t.appendCreateFirewallStep(firewallName, networkName, protocal, ports)
+	if err != nil {
+		return err
+	}
+
+	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
+	if ok {
+		if err := t.wf.AddDependency(createFirewallStep, createNetworkStep); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
