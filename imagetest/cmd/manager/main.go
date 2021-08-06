@@ -27,6 +27,7 @@ var (
 	printwf       = flag.Bool("print", false, "print out the parsed test workflows and exit")
 	validate      = flag.Bool("validate", false, "validate all the test workflows and exit")
 	outPath       = flag.String("out_path", "junit.xml", "junit xml path")
+	gcsPath       = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
 	images        = flag.String("images", "", "comma separated list of images to test")
 	timeout       = flag.String("timeout", "30m", "timeout for the test suite")
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
@@ -176,18 +177,18 @@ func main() {
 	ctx := context.Background()
 
 	if *printwf {
-		imagetest.PrintTests(ctx, testWorkflows, *project, *zone)
+		imagetest.PrintTests(ctx, testWorkflows, *project, *zone, *gcsPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, testWorkflows, *project, *zone); err != nil {
+		if err := imagetest.ValidateTests(ctx, testWorkflows, *project, *zone, *gcsPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, testWorkflows, *project, *zone, *parallelCount)
+	suites, err := imagetest.RunTests(ctx, testWorkflows, *project, *zone, *gcsPath, *parallelCount)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
@@ -196,7 +197,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to marshall result: %v", err)
 	}
-	outFile, err := os.Create(*outPath)
+	var outFile *os.File
+	if artifacts := os.Getenv("ARTIFACTS"); artifacts != "" {
+		outFile, err = os.Create(artifacts + "/junit.xml")
+	} else {
+		outFile, err = os.Create(*outPath)
+	}
 	if err != nil {
 		log.Fatalf("failed to create output file: %v", err)
 	}
