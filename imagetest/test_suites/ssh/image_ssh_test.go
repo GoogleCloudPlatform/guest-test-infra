@@ -28,7 +28,7 @@ func TestSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(60 * time.Second)
 	t.Logf("connect to remote host at %d", time.Now().UnixNano())
 	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
@@ -103,7 +103,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(60 * time.Second)
 	t.Logf("connect to remote host at %d", time.Now().UnixNano())
 	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
 	if err != nil {
