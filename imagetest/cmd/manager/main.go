@@ -197,7 +197,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to marshall result: %v", err)
 	}
-	outFile, err := os.Create(*outPath)
+	var outFile *os.File
+	if artifacts := os.Getenv("ARTIFACTS"); artifacts != "" {
+		outFile, err = os.Create(artifacts + "/junit.xml")
+	} else {
+		outFile, err = os.Create(*outPath)
+	}
 	if err != nil {
 		log.Fatalf("failed to create output file: %v", err)
 	}
