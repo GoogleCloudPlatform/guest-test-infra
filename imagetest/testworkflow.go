@@ -257,17 +257,20 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, project
 		if err != nil {
 			return fmt.Errorf("failed to find or create daisy bucket: %v", err)
 		}
-		gcsPath = fmt.Sprintf("gs://%s/", bucket)
+		gcsPath = fmt.Sprintf("gs://%s", bucket)
+	} else {
+		gcsPath = strings.TrimSuffix(gcsPath, "/")
 	}
+	gcsPrefix := fmt.Sprintf("%s/%s", gcsPath, time.Now().Format(time.RFC3339))
+	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 
-	run := time.Now().Format(time.RFC3339)
 	for _, ts := range tests {
 		if ts.wf == nil {
 			return fmt.Errorf("found nil workflow in finalize")
 		}
 
 		// $GCS_PATH/2021-04-20T11:44:08-07:00/image_validation/debian-10
-		ts.gcsPath = fmt.Sprintf("%s/%s/%s/%s", gcsPath, run, ts.Name, ts.ShortImage)
+		ts.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, ts.Name, ts.ShortImage)
 		ts.wf.GCSPath = ts.gcsPath
 
 		ts.wf.DisableGCSLogging()
