@@ -98,6 +98,10 @@ func main() {
 		log.Fatal("Must provide project, zone and images arguments")
 		return
 	}
+	log.Printf("Running in project %s zone %s", *project, *zone)
+	if *gcsPath != "" {
+		log.Printf("gcs_path set to %s", *gcsPath)
+	}
 
 	var regex *regexp.Regexp
 	if *filter != "" {
@@ -106,6 +110,7 @@ func main() {
 		if err != nil {
 			log.Fatal("-filter flag not valid:", err)
 		}
+		log.Printf("using -filter %s", *filter)
 	}
 
 	// Setup tests.
@@ -161,6 +166,7 @@ func main() {
 				image = fullimage
 			}
 
+			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
 			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
