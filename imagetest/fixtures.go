@@ -220,7 +220,13 @@ func (t *TestVM) EnableSecureBoot() {
 // SetCustomNetwork set current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
-func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork, networkIP string) error {
+func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) error {
+	return t.SetCustomNetworkWithNetworkIP(network, subnetwork, "")
+}
+
+// SetCustomNetworkWithNetworkIP set current test VMs in workflow using provided
+// network, subnetwork and a static IP selected by user.
+func (t *TestVM) SetCustomNetworkWithNetworkIP(network *Network, subnetwork *Subnetwork, networkIP string) error {
 	var subnetworkName string
 	if subnetwork == nil {
 		subnetworkName = ""
@@ -266,10 +272,10 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	return nil
 }
 
-// SetPrivateIP set IPv4 internal IP address to assign to the current test VMs.
-func (t *TestVM) SetPrivateIP(networkIP string) error {
+// AddPrivateIP set IPv4 internal IP address to assign to the current test VMs.
+func (t *TestVM) AddPrivateIP(networkIP string) error {
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call SetCustomNetwork prior to AddAliasIPRanges")
+		return fmt.Errorf("Must call SetCustomNetwork prior to AddPrivateIP")
 	}
 	t.instance.NetworkInterfaces[0].NetworkIP = networkIP
 
