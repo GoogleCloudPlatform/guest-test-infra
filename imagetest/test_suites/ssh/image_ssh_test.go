@@ -4,6 +4,7 @@ package ssh
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
