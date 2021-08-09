@@ -463,26 +463,59 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 // gets result struct and converts to a jUnit TestSuite
 func parseResult(res testResult) *testSuite {
 	ret := &testSuite{}
+	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
 
 	switch {
 	case res.skipped:
-		ret.Tests = 1
-		ret.Skipped = 1
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+			tc := &testCase{}
+			tc.Classname = name
+			tc.Name = test
+			tc.Skipped = &junitSkipped{res.testWorkflow.SkippedMessage()}
+			ret.TestCase = append(ret.TestCase, tc)
+
+			ret.Tests++
+			ret.Skipped++
+		}
 	case res.workflowSuccess:
 		// Workflow completed without error. Only in this case do we try to parse the result.
-		ret = convertToTestSuite(res.results)
+		ret = convertToTestSuite(res.results, name)
 	default:
-		ret.Tests = 1
-		ret.Errors = 1
+		var status string
 		if res.err != nil {
-			ret.SystemErr = res.err.Error()
+			status = res.err.Error()
 		} else {
-			ret.SystemErr = "Unknown status"
+			status = "Unknown status"
+		}
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+			tc := &testCase{}
+			tc.Classname = name
+			tc.Name = test
+			tc.Failure = &junitFailure{status, "Failure"}
+			ret.TestCase = append(ret.TestCase, tc)
+
+			ret.Tests++
+			ret.Failures++
 		}
 	}
 
-	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
+	ret.Name = name
 	return ret
+}
+
+func getTestsBySuiteName(name string) []string {
+	b, err := ioutil.ReadFile(fmt.Sprintf("/%s_tests.txt", name))
+	if err != nil {
+		log.Fatalf("unable to parse tests list: %v", err)
+		return []string{} // NOT nil
+	}
+	var res []string
+	for _, testname := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(testname, "Test") {
+			res = append(res, testname)
+		}
+	}
+	return res
 }
 
 func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
