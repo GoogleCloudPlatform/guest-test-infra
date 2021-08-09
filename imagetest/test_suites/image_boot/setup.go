@@ -29,7 +29,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm.Reboot(); err != nil {
 		return err
 	}
-	vm.RunTests("TestGuestBoot|TestGuestReboot|TestGuestShutdownScript")
+	vm.RunTests("TestGuestBoot|TestGuestReboot$|TestGuestShutdownScript")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
@@ -38,11 +38,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.RunTests("TestGuestRebootOnHost")
 
 	if strings.Contains(t.Image, "debian-9") {
-		t.Skip("secure boot is not supported on Debian 9")
+		// secure boot is not supported on Debian 9
+		return nil
 	}
 
 	if strings.Contains(t.Image, "rocky-linux-8") {
-		t.Skip("secure boot is not supported on Rocky Linux")
+		// secure boot is not supported on Rocky Linux
+		return nil
 	}
 
 	vm3, err := t.CreateTestVM("vm3")
