@@ -29,7 +29,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm.Reboot(); err != nil {
 		return err
 	}
-	vm.RunTests("TestGuestBoot|TestGuestReboot|TestGuestShutdownScript")
+	vm.RunTests("TestGuestBoot|TestGuestReboot$|TestGuestShutdownScript")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
