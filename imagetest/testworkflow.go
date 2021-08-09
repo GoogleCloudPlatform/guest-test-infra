@@ -463,13 +463,13 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 // gets result struct and converts to a jUnit TestSuite
 func parseResult(res testResult) *testSuite {
 	ret := &testSuite{}
-	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
+	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
 
 	switch {
 	case res.skipped:
 		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
 			tc := &testCase{}
-			tc.Classname = ret.Name
+			tc.Classname = name
 			tc.Name = test
 			tc.Skipped = &junitSkipped{res.testWorkflow.SkippedMessage()}
 			ret.TestCase = append(ret.TestCase, tc)
@@ -479,7 +479,7 @@ func parseResult(res testResult) *testSuite {
 		}
 	case res.workflowSuccess:
 		// Workflow completed without error. Only in this case do we try to parse the result.
-		ret = convertToTestSuite(res.results)
+		ret = convertToTestSuite(res.results, name)
 	default:
 		var status string
 		if res.err != nil {
@@ -489,7 +489,7 @@ func parseResult(res testResult) *testSuite {
 		}
 		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
 			tc := &testCase{}
-			tc.Classname = ret.Name
+			tc.Classname = name
 			tc.Name = test
 			tc.Failure = &junitFailure{status, "Failure"}
 			ret.TestCase = append(ret.TestCase, tc)
@@ -499,7 +499,7 @@ func parseResult(res testResult) *testSuite {
 		}
 	}
 
-	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
+	ret.Name = name
 	return ret
 }
 
