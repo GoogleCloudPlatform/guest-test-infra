@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -245,15 +246,34 @@ func (t *TestWorkflow) appendCreateSubnetworksStep(name, ipRange, networkName st
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(tests []*TestWorkflow, zone, project, bucket string) error {
-	run := time.Now().Format(time.RFC3339)
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, project, gcsPath string) error {
+	// This sets the global client used during this run.
+	var err error
+	client, err = storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to set up storage client: %v", err)
+	}
+
+	// If user didn't specify, detect or create the bucket.
+	if gcsPath == "" {
+		bucket, err := daisyBucket(ctx, client, project)
+		if err != nil {
+			return fmt.Errorf("failed to find or create daisy bucket: %v", err)
+		}
+		gcsPath = fmt.Sprintf("gs://%s", bucket)
+	} else {
+		gcsPath = strings.TrimSuffix(gcsPath, "/")
+	}
+	gcsPrefix := fmt.Sprintf("%s/%s", gcsPath, time.Now().Format(time.RFC3339))
+	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
+
 	for _, ts := range tests {
 		if ts.wf == nil {
 			return fmt.Errorf("found nil workflow in finalize")
 		}
 
-		// gs://$PROJECT-cloud-test-outputs/2021-04-20T11:44:08-07:00/image_validation/debian-10
-		ts.gcsPath = fmt.Sprintf("gs://%s/%s/%s/%s", bucket, run, ts.Name, ts.ShortImage)
+		// $GCS_PATH/2021-04-20T11:44:08-07:00/image_validation/debian-10
+		ts.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, ts.Name, ts.ShortImage)
 		ts.wf.GCSPath = ts.gcsPath
 
 		ts.wf.DisableGCSLogging()
@@ -338,10 +358,13 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string) {
-	finalizeWorkflows(testWorkflows, zone, project, "")
+func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath); err != nil {
+		log.Printf("Error finalizing workflow: %v\n", err)
+	}
 	for _, test := range testWorkflows {
 		if test.wf == nil {
+			log.Printf("%s test on image %s: workflow was nil, skipping\n", test.Name, test.ShortImage)
 			continue
 		}
 		test.wf.Print(ctx)
@@ -349,11 +372,14 @@ func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zon
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string) error {
-	finalizeWorkflows(testWorkflows, zone, project, "")
+func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath); err != nil {
+		return err
+	}
 	for _, test := range testWorkflows {
+		log.Printf("Validating test %s on image %s\n", test.Name, test.ShortImage)
 		if test.wf == nil {
-			continue
+			return fmt.Errorf("%s test on image %s: workflow was nil", test.Name, test.ShortImage)
 		}
 		if err := test.wf.Validate(ctx); err != nil {
 			return err
@@ -382,17 +408,8 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone string, parallelCount int) (*TestSuites, error) {
-	var err error
-	client, err = storage.NewClient(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to set up storage client: %v", err)
-	}
-	bucket, err := daisyBucket(ctx, client, project)
-	if err != nil {
-		return nil, err
-	}
-	finalizeWorkflows(testWorkflows, zone, project, bucket)
+func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int) (*TestSuites, error) {
+	finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
@@ -437,7 +454,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		res.err = fmt.Errorf("Test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
-	fmt.Printf("runTestWorkflow: running %s on %s (ID %s)\n", test.Name, test.ShortImage, test.wf.ID())
+	log.Printf("runTestWorkflow: running %s on %s (ID %s)\n", test.Name, test.ShortImage, test.wf.ID())
 	if err := test.wf.Run(ctx); err != nil {
 		res.err = err
 		return res
@@ -456,26 +473,59 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 // gets result struct and converts to a jUnit TestSuite
 func parseResult(res testResult) *testSuite {
 	ret := &testSuite{}
+	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
 
 	switch {
 	case res.skipped:
-		ret.Tests = 1
-		ret.Skipped = 1
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+			tc := &testCase{}
+			tc.Classname = name
+			tc.Name = test
+			tc.Skipped = &junitSkipped{res.testWorkflow.SkippedMessage()}
+			ret.TestCase = append(ret.TestCase, tc)
+
+			ret.Tests++
+			ret.Skipped++
+		}
 	case res.workflowSuccess:
 		// Workflow completed without error. Only in this case do we try to parse the result.
-		ret = convertToTestSuite(res.results)
+		ret = convertToTestSuite(res.results, name)
 	default:
-		ret.Tests = 1
-		ret.Errors = 1
+		var status string
 		if res.err != nil {
-			ret.SystemErr = res.err.Error()
+			status = res.err.Error()
 		} else {
-			ret.SystemErr = "Unknown status"
+			status = "Unknown status"
+		}
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+			tc := &testCase{}
+			tc.Classname = name
+			tc.Name = test
+			tc.Failure = &junitFailure{status, "Failure"}
+			ret.TestCase = append(ret.TestCase, tc)
+
+			ret.Tests++
+			ret.Failures++
 		}
 	}
 
-	ret.Name = fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
+	ret.Name = name
 	return ret
+}
+
+func getTestsBySuiteName(name string) []string {
+	b, err := ioutil.ReadFile(fmt.Sprintf("/%s_tests.txt", name))
+	if err != nil {
+		log.Fatalf("unable to parse tests list: %v", err)
+		return []string{} // NOT nil
+	}
+	var res []string
+	for _, testname := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(testname, "Test") {
+			res = append(res, testname)
+		}
+	}
+	return res
 }
 
 func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {

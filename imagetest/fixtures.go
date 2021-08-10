@@ -87,8 +87,14 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	if createNetworksStep, ok := t.wf.Steps[createNetworkStepName]; ok {
-		if err := t.wf.AddDependency(createVMStep, createNetworksStep); err != nil {
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
 			return nil, err
 		}
 	}
