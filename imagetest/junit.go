@@ -70,7 +70,7 @@ type junitFailure struct {
 }
 
 // converts `go test` outputs to a jUnit testSuite
-func convertToTestSuite(results []string) *testSuite {
+func convertToTestSuite(results []string, classname string) *testSuite {
 	ts := &testSuite{}
 	for _, testResult := range results {
 		tcs, err := convertToTestCase(testResult)
@@ -79,6 +79,8 @@ func convertToTestSuite(results []string) *testSuite {
 		}
 		ts.TestCase = append(ts.TestCase, tcs...)
 		for _, tc := range tcs {
+			tc.Classname = classname
+
 			ts.Tests++
 			if tc.Skipped != nil {
 				ts.Skipped++

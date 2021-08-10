@@ -71,7 +71,7 @@ func TestConvertToTestSuite(t *testing.T) {
 		},
 	}
 	for idx, tt := range tests {
-		ts := convertToTestSuite(tt.results)
+		ts := convertToTestSuite(tt.results, "")
 		switch {
 		case ts.XMLName != tt.ts.XMLName:
 			fallthrough
