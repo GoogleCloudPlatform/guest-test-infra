@@ -85,13 +85,9 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}
-<<<<<<< HEAD
-	client, err := utils.CreateClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
-=======
 	time.Sleep(60 * time.Second)
 	t.Logf("connect to remote host at %d", time.Now().UnixNano())
 	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
->>>>>>> master
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}

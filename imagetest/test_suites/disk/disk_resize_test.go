@@ -1,5 +1,4 @@
-// +build linux
-// +build cit
+// +build linux,cit
 
 package disk
 

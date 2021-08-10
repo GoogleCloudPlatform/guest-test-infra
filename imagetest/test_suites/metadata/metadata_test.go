@@ -1,3 +1,4 @@
+//go:build cit
 // +build cit
 
 package metadata

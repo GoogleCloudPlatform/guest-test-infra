@@ -90,16 +90,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("block-project-ssh-keys", "true")
 
-	if err := vm3.SetCustomNetwork(network1, nil, ""); err != nil {
+	if err := vm3.SetCustomNetworkWithNetworkIP(network1, nil, ""); err != nil {
 		return err
 	}
-	if err := vm3.SetCustomNetwork(network2, subnetwork2, sourceIP); err != nil {
+	if err := vm3.SetCustomNetworkWithNetworkIP(network2, subnetwork2, sourceIP); err != nil {
 		return err
 	}
-	if err := vm4.SetCustomNetwork(network1, nil, ""); err != nil {
+	if err := vm4.SetCustomNetworkWithNetworkIP(network1, nil, ""); err != nil {
 		return err
 	}
-	if err := vm4.SetCustomNetwork(network2, subnetwork2, targetIP); err != nil {
+	if err := vm4.SetCustomNetworkWithNetworkIP(network2, subnetwork2, targetIP); err != nil {
 		return err
 	}
 
