@@ -16,8 +16,8 @@ const (
 	vm2              = "vm2"
 	vm3              = "vm3"
 	vm4              = "vm4"
-	sourceIP         = "192.168.0.2"
-	targetIP         = "192.168.0.3"
+	vm3IP            = "192.168.0.2"
+	vm4IP            = "192.168.0.3"
 )
 
 // TestSetup sets up the test workflow.
@@ -42,7 +42,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := vm2.SetCustomNetwork(network, subnetwork, ""); err != nil {
+	if err := vm2.AddCustomNetwork(network, subnetwork); err != nil {
 		return err
 	}
 	vm2.AddAliasIPRanges(aliasIPRange, rangeName)
@@ -90,19 +90,24 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("block-project-ssh-keys", "true")
 
-	if err := vm3.SetCustomNetworkWithNetworkIP(network1, nil, ""); err != nil {
+	if err := vm3.AddCustomNetwork(network1, nil); err != nil {
 		return err
 	}
-	if err := vm3.SetCustomNetworkWithNetworkIP(network2, subnetwork2, sourceIP); err != nil {
+	if err := vm3.AddCustomNetwork(network2, subnetwork2); err != nil {
 		return err
 	}
-	if err := vm4.SetCustomNetworkWithNetworkIP(network1, nil, ""); err != nil {
+	if err := vm3.SetPrivateIP(network2, vm3IP); err != nil {
 		return err
 	}
-	if err := vm4.SetCustomNetworkWithNetworkIP(network2, subnetwork2, targetIP); err != nil {
+	if err := vm4.AddCustomNetwork(network1, nil); err != nil {
 		return err
 	}
-
+	if err := vm4.AddCustomNetwork(network2, subnetwork2); err != nil {
+		return err
+	}
+	if err := vm4.SetPrivateIP(network2, vm4IP); err != nil {
+		return err
+	}
 	vm3.RunTests("TestVMToVM")
 	vm4.RunTests("TestEmptyTest")
 	return nil

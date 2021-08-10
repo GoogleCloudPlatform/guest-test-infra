@@ -11,34 +11,26 @@ import (
 )
 
 func TestVMToVM(t *testing.T) {
-	sourceIP0, err := utils.GetMetadata("network-interfaces/0/ip")
+	vm3nic0IP, err := utils.GetMetadata("network-interfaces/0/ip")
 	if err != nil {
-		t.Fatalf("couldn't get internal network IP from metadata, err %v", err)
+		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
 	}
 
 	vmname, err := utils.GetRealVMName(vm4)
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
-	targetIP0, err := getTargetIPbyHostname(vmname)
+	addr, err := net.LookupIP(vmname)
 	if err != nil {
-		t.Fatalf("failed to get target ip for interface 0 err %v", err)
+		t.Fatalf("failed to get target ip for interface 0, %v", err)
 	}
-
-	if err := pingTarget(sourceIP0, targetIP0); err != nil {
-		t.Fatalf("failed to ping remote host %s from source %s, err %v", targetIP0, sourceIP0, err)
+	vm4nic0IP := addr[0].String()
+	if err := pingTarget(vm3nic0IP, vm4nic0IP); err != nil {
+		t.Fatalf("failed to ping remote host %s from source %s, %v", vm4nic0IP, vm3nic0IP, err)
 	}
-	if err := pingTarget(sourceIP, targetIP); err != nil {
-		t.Fatalf("failed to ping remot host %s from source %s, err %v", targetIP, sourceIP, err)
+	if err := pingTarget(vm3IP, vm4IP); err != nil {
+		t.Fatalf("failed to ping remot host %s from source %s, %v", vm4IP, vm3IP, err)
 	}
-}
-
-func getTargetIPbyHostname(hostname string) (string, error) {
-	addr, err := net.LookupIP(hostname)
-	if err != nil {
-		return "", err
-	}
-	return addr[0].String(), nil
 }
 
 func pingTarget(source, target string) error {

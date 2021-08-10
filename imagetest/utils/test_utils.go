@@ -13,11 +13,9 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"golang.org/x/crypto/ssh"
 )
 
-// MetadataURLPrefix http url of metadata server
-const MetadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
@@ -60,7 +58,7 @@ func GetMetadata(path string) (string, error) {
 
 // GetMetadataHTTPResponse returns http response for the specified key without checking status code.
 func GetMetadataHTTPResponse(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", MetadataURLPrefix, path), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -177,25 +175,4 @@ func ParseHostKey(bytes []byte) (map[string]string, error) {
 		hostkeyMap[keyType] = keyValue
 	}
 	return hostkeyMap, nil
-}
-
-// CreateClient create a ssh client using public key.
-func CreateClient(user, host string, pembytes []byte) (*ssh.Client, error) {
-	// generate signer instance from plain key
-	signer, err := ssh.ParsePrivateKey(pembytes)
-	if err != nil {
-		return nil, fmt.Errorf("parsing plain private key failed %v", err)
-	}
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
-	}
-	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-	client, err := ssh.Dial("tcp", host, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
 }
