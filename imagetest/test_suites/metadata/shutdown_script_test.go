@@ -1,4 +1,3 @@
-// +build cit
 
 package metadata
 
@@ -32,7 +31,7 @@ func TestShutdownScript(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read shutdown output %v", err)
 	}
-	output := string(bytes)
+	output := strings.TrimSpace(string(bytes))
 	if output != shutdownContent {
 		t.Fatalf(`shutdown script output expect "%s", but actually "%s"`, shutdownContent, output)
 	}
@@ -54,7 +53,7 @@ func TestShutdownUrlScript(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read shutdown output %v", err)
 	}
-	output := string(bytes)
+	output := strings.TrimSpace(string(bytes))
 	if output != shutdownContent {
 		t.Fatalf(`shutdown script output expect "%s", but actually "%s"`, shutdownContent, output)
 	}
