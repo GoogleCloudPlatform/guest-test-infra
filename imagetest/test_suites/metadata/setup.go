@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"fmt"
-	"math/rand"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
@@ -43,13 +43,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-	vm2.RunTests("TestShutdownScript")
+	vm2.RunTests("TestShutdownScript$")
 
 	vm3, err := t.CreateTestVM("vm3")
 	if err != nil {
 		return err
 	}
-	vm3.SetShutdownScript(randStringRunes(shutdownMaxLength))
+	vm3.SetShutdownScript(strings.Repeat("a", shutdownMaxLength))
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
@@ -77,14 +77,4 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm5.RunTests("TestShutdownScriptTime")
 	return nil
-}
-
-func randStringRunes(n int) string {
-	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
 }
