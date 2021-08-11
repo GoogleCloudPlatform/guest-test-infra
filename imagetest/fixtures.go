@@ -132,6 +132,11 @@ func (t *TestVM) SetShutdownScript(script string) {
 	t.AddMetadata("shutdown-script", script)
 }
 
+// SetShutdownScriptURL sets the `shutdown-script-url` metadata key for a VM.
+func (t *TestVM) SetShutdownScriptURL(url string) {
+	t.AddMetadata("shutdown-script-url", url)
+}
+
 // SetStartupScript sets the `startup-script` metadata key for a VM.
 func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
