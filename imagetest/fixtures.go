@@ -16,6 +16,7 @@ package imagetest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
@@ -28,6 +29,7 @@ const (
 	createNetworkStepName    = "create-networks"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
+	localShutdownScriptPath  = "/shutdown_script.txt"
 )
 
 // TestVM is a test VM.
@@ -133,8 +135,14 @@ func (t *TestVM) SetShutdownScript(script string) {
 }
 
 // SetShutdownScriptURL sets the `shutdown-script-url` metadata key for a VM.
-func (t *TestVM) SetShutdownScriptURL(url string) {
-	t.AddMetadata("shutdown-script-url", url)
+func (t *TestVM) SetShutdownScriptURL(script string) error {
+	if err := ioutil.WriteFile(localShutdownScriptPath, []byte(script), 755); err != nil {
+		return err
+	}
+	t.testWorkflow.wf.Sources["shutdown-script"] = localShutdownScriptPath
+
+	t.AddMetadata("shutdown-script-url", "${SOURCESPATH}/shutdown-script")
+	return nil
 }
 
 // SetStartupScript sets the `startup-script` metadata key for a VM.
