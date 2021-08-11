@@ -13,7 +13,7 @@ import (
 const shutdownTime = 110 // about 2 minutes
 
 // TestGuestShutdownScript test that shutdown scripts can run for around two minutes
-func TestGuestShutdownScript(t *testing.T) {
+func TestShutdownScriptTime(t *testing.T) {
 	// second boot
 	bytes, err := ioutil.ReadFile("/shutdown.txt")
 	if err != nil {
