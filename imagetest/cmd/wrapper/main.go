@@ -24,8 +24,10 @@ func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
-		log.Printf("FINISHED-TEST")
-		time.Sleep(1 * time.Second)
+		for f := 0; f < 5; f++ {
+			log.Printf("FINISHED-TEST")
+			time.Sleep(1 * time.Second)
+		}
 	}()
 
 	ctx := context.Background()
