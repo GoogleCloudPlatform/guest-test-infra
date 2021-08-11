@@ -11,27 +11,34 @@ import (
 var Name = "metadata"
 
 const (
+	shutdownScript = `#!/bin/bash
+
+while [[ 1 ]]; do
+  date +%s >> /shutdown.txt
+  sync
+  sleep 1
+done`
 	shutdownScriptTemplate = `#!/bin/bash
-echo "%s" > %s
-`
-	shutdownContent = "The shutdown script worked."
-	outputPath      = "/shutdown_out.txt"
-	// Max metadata value
-	maxLength = 32768
+echo "%s" > %s`
+	shutdownContent    = "The shutdown script worked."
+	shutdownOutputPath = "/shutdown_out.txt"
+	shutdownMaxLength  = 32768 // max shutdown metadata value
+	shutdownScriptURL  = "gs://gcp-guest-cloud-test-artifacts/shutdown-script.txt"
 )
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	_, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("vm")
 	if err != nil {
 		return err
 	}
+	vm.RunTests("TestTokenFetch|TestMetaDataResponseHeaders|TestGetMetaDataUsingIP")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err
 	}
-	vm2.SetShutdownScript(fmt.Sprintf(shutdownScriptTemplate, shutdownContent, outputPath))
+	vm2.SetShutdownScript(fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath))
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
@@ -41,7 +48,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.SetShutdownScript(randStringRunes(maxLength))
+	vm3.SetShutdownScript(randStringRunes(shutdownMaxLength))
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
@@ -51,11 +58,21 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm4.SetShutdownScriptURL("url")
+	vm4.SetShutdownScriptURL(shutdownScriptURL)
 	if err := vm4.Reboot(); err != nil {
 		return err
 	}
 	vm4.RunTests("TestShutdownUrlScript")
+
+	vm5, err := t.CreateTestVM("vm5")
+	if err != nil {
+		return err
+	}
+	vm5.SetShutdownScript(shutdownScript)
+	if err := vm5.Reboot(); err != nil {
+		return err
+	}
+	vm5.RunTests("TestGuestShutdownScript")
 	return nil
 }
 

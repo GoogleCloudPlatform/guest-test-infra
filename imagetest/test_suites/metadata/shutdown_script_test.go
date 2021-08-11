@@ -1,43 +1,46 @@
+// +build cit
+
 package metadata
 
 import (
 	"io/ioutil"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const markerFile = "/boot-marker"
+const shutdownTime = 110 // about 2 minutes
+
+// TestGuestShutdownScript test that shutdown scripts can run for around two minutes
+func TestGuestShutdownScript(t *testing.T) {
+	// second boot
+	bytes, err := ioutil.ReadFile("/shutdown.txt")
+	if err != nil {
+		t.Fatalf("error reading file: %v", err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
+	if len(lines) < shutdownTime {
+		t.Fatalf("shut down time less than %d seconds.", shutdownTime)
+	}
+}
 
 // TestShutdownScript test the standard metadata script.
 func TestShutdownScript(t *testing.T) {
-	_, err := os.Stat(markerFile)
-	if os.IsNotExist(err) {
-		// first boot
-		if _, err := os.Create(markerFile); err != nil {
-			t.Fatalf("failed creating marker file: %v", err)
-		}
-		t.Fatal("marker file does not exist")
-	}
 	// second boot
-	contents, err := ioutil.ReadFile(outputPath)
-	if string(contents) != shutdownContent {
-		t.Fatalf("shutdown script does not run succesfully")
+	bytes, err := ioutil.ReadFile(shutdownOutputPath)
+	if err != nil {
+		t.Fatalf("failed to read shutdown output %v", err)
+	}
+	output := string(bytes)
+	if output != shutdownContent {
+		t.Fatalf(`shutdown script output expect "%s", but actually "%s"`, shutdownContent, output)
 	}
 }
 
 // TestRandomShutdownScriptNotCrashVM test that a script with random content
 // doesn't crash the vm.
 func TestRandomShutdownScriptNotCrashVM(t *testing.T) {
-	_, err := os.Stat(markerFile)
-	if os.IsNotExist(err) {
-		// first boot
-		if _, err := os.Create(markerFile); err != nil {
-			t.Fatalf("failed creating marker file: %v", err)
-		}
-		t.Fatal("marker file does not exist")
-	}
 	// second boot
 	if _, err := utils.GetMetadataAttribute("shutdown-script"); err != nil {
 		t.Fatalf("couldn't get shutdown-script from metadata")
@@ -46,5 +49,13 @@ func TestRandomShutdownScriptNotCrashVM(t *testing.T) {
 
 // TestShutdownUrlScript test that URL scripts work correctly.
 func TestShutdownUrlScript(t *testing.T) {
-	// TODO
+	// second boot
+	bytes, err := ioutil.ReadFile(shutdownOutputPath)
+	if err != nil {
+		t.Fatalf("failed to read shutdown output %v", err)
+	}
+	output := string(bytes)
+	if output != shutdownContent {
+		t.Fatalf(`shutdown script output expect "%s", but actually "%s"`, shutdownContent, output)
+	}
 }
