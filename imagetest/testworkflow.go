@@ -579,6 +579,12 @@ func (t *TestWorkflow) CreateFirewallRule(firewallName, networkName, protocal st
 			return err
 		}
 	}
+	createVMsStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		if err := t.wf.AddDependency(createVMsStep, createFirewallStep); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
