@@ -24,9 +24,8 @@ func TestShutdownScript(t *testing.T) {
 	}
 }
 
-// TestShutdownScriptFailedNotCrashVM test that a script failed execute doesn't
-// crash the vm.
-func TestShutdownScriptFailedNotCrashVM(t *testing.T) {
+// TestShutdownScriptFailed test that a script failed execute doesn't crash the vm.
+func TestShutdownScriptFailed(t *testing.T) {
 	if _, err := utils.GetMetadataAttribute("shutdown-script"); err != nil {
 		t.Fatalf("couldn't get shutdown-script from metadata")
 	}

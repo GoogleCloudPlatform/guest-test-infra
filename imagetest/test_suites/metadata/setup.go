@@ -53,7 +53,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
-	vm3.RunTests("TestShutdownScriptFailedNotCrashVM")
+	vm3.RunTests("TestShutdownScriptFailed")
 
 	vm4, err := t.CreateTestVM("vm4")
 	if err != nil {

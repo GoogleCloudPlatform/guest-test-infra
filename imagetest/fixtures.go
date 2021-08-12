@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -29,7 +30,6 @@ const (
 	createNetworkStepName    = "create-networks"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
-	localShutdownScriptPath  = "/shutdown_script.txt"
 )
 
 // TestVM is a test VM.
@@ -134,12 +134,13 @@ func (t *TestVM) SetShutdownScript(script string) {
 	t.AddMetadata("shutdown-script", script)
 }
 
-// SetShutdownScriptURL sets the `shutdown-script-url` metadata key for a VM.
+// SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
 func (t *TestVM) SetShutdownScriptURL(script string) error {
-	if err := ioutil.WriteFile(localShutdownScriptPath, []byte(script), 755); err != nil {
+	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
+	if err := ioutil.WriteFile(fileName, []byte(script), 755); err != nil {
 		return err
 	}
-	t.testWorkflow.wf.Sources["shutdown-script"] = localShutdownScriptPath
+	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
 
 	t.AddMetadata("shutdown-script-url", "${SOURCESPATH}/shutdown-script")
 	return nil
