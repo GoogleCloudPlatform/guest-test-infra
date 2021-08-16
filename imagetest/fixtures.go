@@ -26,6 +26,7 @@ const (
 	createVMsStepName        = "create-vms"
 	createDisksStepName      = "create-disks"
 	createNetworkStepName    = "create-networks"
+	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
 )
@@ -216,10 +217,10 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
-// SetCustomNetwork set current test VMs in workflow using provided network and
+// AddCustomNetwork add current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
-func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) error {
+func (t *TestVM) AddCustomNetwork(network *Network, subnetwork *Subnetwork) error {
 	var subnetworkName string
 	if subnetwork == nil {
 		subnetworkName = ""
@@ -240,7 +241,11 @@ func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 			},
 		},
 	}
-	t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+	if t.instance.NetworkInterfaces == nil {
+		t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+	} else {
+		t.instance.NetworkInterfaces = append(t.instance.NetworkInterfaces, &networkInterface)
+	}
 
 	return nil
 }
@@ -249,7 +254,7 @@ func (t *TestVM) SetCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	// TODO: If we haven't set any NetworkInterface struct, does it make sense to support adding alias IPs?
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call SetCustomNetwork prior to AddAliasIPRanges")
+		return fmt.Errorf("Must call AddCustomNetwork prior to AddAliasIPRanges")
 	}
 	t.instance.NetworkInterfaces[0].AliasIpRanges = append(t.instance.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
 		IpCidrRange:         aliasIPRange,
@@ -257,6 +262,21 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	})
 
 	return nil
+}
+
+// SetPrivateIP set IPv4 internal IP address for target network to the current test VMs.
+func (t *TestVM) SetPrivateIP(network *Network, networkIP string) error {
+	if t.instance.NetworkInterfaces == nil {
+		return fmt.Errorf("Must call AddCustomNetwork prior to AddPrivateIP")
+	}
+	for _, nic := range t.instance.NetworkInterfaces {
+		if nic.Network == network.name {
+			nic.NetworkIP = networkIP
+			return nil
+		}
+	}
+
+	return fmt.Errorf("not found network interface %s", network.name)
 }
 
 // Network represent network used by vm in setup.go.
@@ -274,7 +294,7 @@ type Subnetwork struct {
 	network      *Network
 }
 
-// CreateNetwork creates custom network. Using SetCustomNetwork method provided by
+// CreateNetwork creates custom network. Using AddCustomNetwork method provided by
 // TestVM to config network on vm
 func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks bool) (*Network, error) {
 	createNetworkStep, network, err := t.appendCreateNetworkStep(networkName, autoCreateSubnetworks)
@@ -292,7 +312,7 @@ func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks b
 	return &Network{networkName, t, network}, nil
 }
 
-// CreateSubnetwork creates custom subnetwork. Using SetCustomNetwork method
+// CreateSubnetwork creates custom subnetwork. Using AddCustomNetwork method
 // provided by TestVM to config network on vm
 func (n *Network) CreateSubnetwork(name string, ipRange string) (*Subnetwork, error) {
 	createSubnetworksStep, subnetwork, err := n.testWorkflow.appendCreateSubnetworksStep(name, ipRange, n.name)
@@ -316,4 +336,36 @@ func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 		IpCidrRange: ipRange,
 		RangeName:   rangeName,
 	})
+}
+
+func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocol string, ports []string) (*daisy.Step, *daisy.FirewallRule, error) {
+	firewall := &daisy.FirewallRule{
+		Firewall: compute.Firewall{
+			Name:    firewallName,
+			Network: networkName,
+			Allowed: []*compute.FirewallAllowed{
+				{
+					IPProtocol: protocol,
+					Ports:      ports,
+				},
+			},
+		},
+	}
+
+	createFirewallRules := &daisy.CreateFirewallRules{}
+	*createFirewallRules = append(*createFirewallRules, firewall)
+	createFirewallStep, ok := t.wf.Steps[createFirewallStepName]
+	if ok {
+		// append to existing step.
+		*createFirewallStep.CreateFirewallRules = append(*createFirewallStep.CreateFirewallRules, firewall)
+	} else {
+		var err error
+		createFirewallStep, err = t.wf.NewStep(createFirewallStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+		createFirewallStep.CreateFirewallRules = createFirewallRules
+	}
+
+	return createFirewallStep, firewall, nil
 }
