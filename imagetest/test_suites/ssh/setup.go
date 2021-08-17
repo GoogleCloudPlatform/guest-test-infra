@@ -7,7 +7,10 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "ssh"
 
-const user = "test-user"
+const (
+	user        = "test-user"
+	osloginUser = "test-oslogin-user"
+)
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -32,5 +35,25 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.AddMetadata("enable-guest-attributes", "true")
 	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
+
+	publicKeyOslogin, err := t.AddSSHKey(osloginUser)
+	if err != nil {
+		return err
+	}
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.AddUser(osloginUser, publicKeyOslogin)
+	vm3.AddMetadata("enable-oslogin", "true")
+	vm3.RunTests("TestEmptyTest")
+
+
+	vm4, err := t.CreateTestVM("vm4")
+	if err != nil {
+		return err
+	}
+	vm4.RunTests("TestSSH|TestGetentPasswdAllUsers|TestGetentPasswdOsLoginUser|TestGetentPasswdOsLoginUid")
+
 	return nil
 }
