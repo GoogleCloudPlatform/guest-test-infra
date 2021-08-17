@@ -16,9 +16,11 @@ package imagetest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -131,6 +133,18 @@ func (t *TestVM) RunTests(runtest string) {
 // SetShutdownScript sets the `shutdown-script` metadata key for a VM.
 func (t *TestVM) SetShutdownScript(script string) {
 	t.AddMetadata("shutdown-script", script)
+}
+
+// SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
+func (t *TestVM) SetShutdownScriptURL(script string) error {
+	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
+	if err := ioutil.WriteFile(fileName, []byte(script), 755); err != nil {
+		return err
+	}
+	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
+
+	t.AddMetadata("shutdown-script-url", "${SOURCESPATH}/shutdown-script")
+	return nil
 }
 
 // SetStartupScript sets the `startup-script` metadata key for a VM.
