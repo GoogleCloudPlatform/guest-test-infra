@@ -26,8 +26,8 @@ done`
 echo "%s" > %s`
 	shutdownOutputPath = "/shutdown_out.txt"
 	shutdownContent    = "The shutdown script worked."
-	// max metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
-	metadataMaxLength = 32768
+	// max metadata value 256kb https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
+	metadataMaxLength = 256 * 1024
 )
 
 var shutdownScript = fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath)
