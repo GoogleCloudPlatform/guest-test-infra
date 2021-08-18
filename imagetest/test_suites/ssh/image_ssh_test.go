@@ -20,7 +20,8 @@ func TestEmptyTest(t *testing.T) {
 	t.Logf("ssh target boot succesfully at %d", time.Now().UnixNano())
 }
 
-func TestSSH(t *testing.T) {
+// TestSSHInstanceKey test SSH completes successfully for an instance metadata key.
+func TestSSHInstanceKey(t *testing.T) {
 	vmname, err := utils.GetRealVMName("vm2")
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
