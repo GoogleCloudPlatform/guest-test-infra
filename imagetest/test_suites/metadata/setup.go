@@ -29,7 +29,7 @@ echo "%s" > %s`
 	shutdownContent    = "The shutdown script worked."
 	
 	// max metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
-	metadataMaxLength  = 32768
+	metadataMaxLength = 32768
 )
 
 var shutdownScript = fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath)
