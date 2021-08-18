@@ -15,7 +15,8 @@ const (
 echo "%s" > %s`
 	startupOutputPath = "/startup_out.txt"
 	startupContent    = "The startup script worked."
-	startupMaxLength  = 32768 // max shutdown metadata value
+	// max shutdown metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
+	startupMaxLength  = 32768
 )
 
 var startupScript = fmt.Sprintf(startupScriptTemplate, startupContent, startupOutputPath)
@@ -42,7 +43,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.SetShutdownScript(strings.Repeat("a", startupMaxLength))
+	vm3.SetStartupScript(strings.Repeat("a", startupMaxLength))
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
