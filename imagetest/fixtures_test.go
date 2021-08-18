@@ -114,7 +114,7 @@ func TestEnableSecureBoot(t *testing.T) {
 }
 
 // TestAddAliasIPRanges tests that *TestVM.AddAliasIPRanges succeeds and that
-// it fails if *TestVM.SetCustomNetwork hasn't been called first.
+// it fails if *TestVM.AddCustomNetwork hasn't been called first.
 func TestAddAliasIPRanges(t *testing.T) {
 	twf, err := NewTestWorkflow("name", "image", "30m")
 	if err != nil {
@@ -131,7 +131,7 @@ func TestAddAliasIPRanges(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork(network, nil); err != nil {
+	if err := tvm.AddCustomNetwork(network, nil); err != nil {
 		t.Errorf("failed to set custom network: %v", err)
 	}
 	if err := tvm.AddAliasIPRanges("aliasIPRange", "rangeName"); err != nil {
@@ -142,7 +142,7 @@ func TestAddAliasIPRanges(t *testing.T) {
 	}
 }
 
-// TestSetCustomNetwork tests that *TestVM.SetCustomNetwork succeeds and that
+// TestSetCustomNetwork tests that *TestVM.AddCustomNetwork succeeds and that
 // it fails if testworkflow.CreateNetwork has not been called first.
 func TestSetCustomNetwork(t *testing.T) {
 	twf, err := NewTestWorkflow("name", "image", "30m")
@@ -157,12 +157,12 @@ func TestSetCustomNetwork(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork(network, nil); err != nil {
+	if err := tvm.AddCustomNetwork(network, nil); err != nil {
 		t.Errorf("failed to set custom network: %v", err)
 	}
 }
 
-// TestSetCustomNetworkAndSubnetwork tests that *TestVM.SetCustomNetwork
+// TestSetCustomNetworkAndSubnetwork tests that *TestVM.AddCustomNetwork
 // succeeds with a subnet argument and that it fails if
 // *Network.CreateSubnetwork has not been called first.
 func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
@@ -178,14 +178,14 @@ func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if err := tvm.SetCustomNetwork(network, nil); err == nil {
+	if err := tvm.AddCustomNetwork(network, nil); err == nil {
 		t.Errorf("should have gotten an error using no subnet with custom mode network.")
 	}
 	subnet, err := network.CreateSubnetwork("subnet", "ipRange")
 	if err != nil {
 		t.Errorf("failed to create subnetwork: %v", err)
 	}
-	if err := tvm.SetCustomNetwork(network, subnet); err != nil {
+	if err := tvm.AddCustomNetwork(network, subnet); err != nil {
 		t.Errorf("failed to set custom network and subnetwork: %v", err)
 	}
 }
