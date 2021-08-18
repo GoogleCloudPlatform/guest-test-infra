@@ -13,9 +13,8 @@ var Name = "metadata"
 const (
 	startupScriptTemplate = `#!/bin/bash
 echo "%s" > %s`
-	startupOutputPath = "/startup_out.txt"
-	startupContent    = "The startup script worked."
-
+	startupOutputPath  = "/startup_out.txt"
+	startupContent     = "The startup script worked."
 	shutdownScriptTime = `#!/bin/bash
 
 while [[ 1 ]]; do
@@ -27,7 +26,6 @@ done`
 echo "%s" > %s`
 	shutdownOutputPath = "/shutdown_out.txt"
 	shutdownContent    = "The shutdown script worked."
-	
 	// max metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
 	metadataMaxLength = 32768
 )
