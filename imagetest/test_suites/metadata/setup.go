@@ -11,6 +11,13 @@ import (
 var Name = "metadata"
 
 const (
+	daemonScriptTemplate = `#!/bin/bash
+
+nohup sleep 3600 > /dev/null 2>&1 < /dev/null &
+echo $! > %s
+`
+	daemonOutputPath = "/daemon_out.txt"
+
 	startupScriptTemplate = `#!/bin/bash
 echo "%s" > %s`
 	startupOutputPath  = "/startup_out.txt"
@@ -32,6 +39,7 @@ echo "%s" > %s`
 
 var shutdownScript = fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath)
 var startupScript = fmt.Sprintf(startupScriptTemplate, startupContent, startupOutputPath)
+var daemonScript = fmt.Sprintf(daemonScriptTemplate, daemonOutputPath)
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -97,5 +105,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm7.SetStartupScript(strings.Repeat("a", metadataMaxLength))
 	vm7.RunTests("TestStartupScriptFailed")
 
+	vm8, err := t.CreateTestVM("vm8")
+	if err != nil {
+		return err
+	}
+	vm8.SetStartupScript(daemonScript)
+	vm8.RunTests("TestDaemonScript")
 	return nil
 }
