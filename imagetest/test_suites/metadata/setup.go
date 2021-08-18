@@ -15,8 +15,6 @@ const (
 echo "%s" > %s`
 	startupOutputPath = "/startup_out.txt"
 	startupContent    = "The startup script worked."
-	// max shutdown metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
-	startupMaxLength  = 32768
 
 	shutdownScriptTime = `#!/bin/bash
 
@@ -29,7 +27,9 @@ done`
 echo "%s" > %s`
 	shutdownOutputPath = "/shutdown_out.txt"
 	shutdownContent    = "The shutdown script worked."
-	shutdownMaxLength  = 32768 // max shutdown metadata value
+	
+	// max metadata value https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
+	metadataMaxLength  = 32768
 )
 
 var shutdownScript = fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath)
@@ -57,7 +57,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.SetShutdownScript(strings.Repeat("a", shutdownMaxLength))
+	vm3.SetShutdownScript(strings.Repeat("a", metadataMaxLength))
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
@@ -90,19 +90,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm6.SetStartupScript(startupScript)
-	if err := vm2.Reboot(); err != nil {
-		return err
-	}
 	vm6.RunTests("TestStartupScript$")
 
 	vm7, err := t.CreateTestVM("vm7")
 	if err != nil {
 		return err
 	}
-	vm7.SetStartupScript(strings.Repeat("a", startupMaxLength))
-	if err := vm3.Reboot(); err != nil {
-		return err
-	}
+	vm7.SetStartupScript(strings.Repeat("a", metadataMaxLength))
 	vm7.RunTests("TestStartupScriptFailed")
 
 	return nil
