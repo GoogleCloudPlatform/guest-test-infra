@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
@@ -21,7 +22,8 @@ import (
 )
 
 var (
-	project       = flag.String("project", "", "project to be used for tests")
+	project       = flag.String("project", "", "project to use for test runner")
+	testProjects  = flag.String("test_projects", "", "comma separated list of projects to be used for tests. defaults to the test runner project")
 	zone          = flag.String("zone", "", "zone to be used for tests")
 	printwf       = flag.Bool("print", false, "print out the parsed test workflows and exit")
 	validate      = flag.Bool("validate", false, "validate all the test workflows and exit")
@@ -97,7 +99,14 @@ func main() {
 		log.Fatal("Must provide project, zone and images arguments")
 		return
 	}
-	log.Printf("Running in project %s zone %s", *project, *zone)
+	var testProjectsReal []string
+	if *testProjects == "" {
+		testProjectsReal = append(testProjectsReal, *project)
+	} else {
+		testProjectsReal = strings.Split(*testProjects, ",")
+	}
+
+	log.Printf("Running in project %s zone %s. Tests will run in projects: %s", *project, *zone, testProjectsReal)
 	if *gcsPath != "" {
 		log.Printf("gcs_path set to %s", *gcsPath)
 	}
@@ -177,19 +186,25 @@ func main() {
 
 	ctx := context.Background()
 
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Printf("failed to set up storage client: %v", err)
+		return
+	}
+
 	if *printwf {
-		imagetest.PrintTests(ctx, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, testWorkflows, *project, *zone, *gcsPath, *parallelCount)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
