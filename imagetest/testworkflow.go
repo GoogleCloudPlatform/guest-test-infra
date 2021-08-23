@@ -55,6 +55,8 @@ type TestWorkflow struct {
 	wf             *daisy.Workflow
 	// Global counter for all daisy steps on all VMs. This is an interim solution in order to prevent step-name collisions.
 	counter int
+	// Does this test require exclusive project
+	lockProject bool
 }
 
 // SingleVMTest configures one VM running tests.
@@ -241,66 +243,59 @@ func (t *TestWorkflow) appendCreateSubnetworksStep(name, ipRange, networkName st
 	return createSubnetworksStep, subnetwork, nil
 }
 
-// finalizeWorkflows adds the final necessary data to each workflow for it to
-// be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, project, gcsPath string) error {
-	// This sets the global client used during this run.
-	var err error
-	client, err = storage.NewClient(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to set up storage client: %v", err)
-	}
+func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, gcsPath string) (string, error) {
+	// Set global client.
+	client = storageClient
 
-	// If user didn't specify, detect or create the bucket.
+	// If user didn't specify gcsPath, detect or create the bucket.
 	if gcsPath == "" {
 		bucket, err := daisyBucket(ctx, client, project)
 		if err != nil {
-			return fmt.Errorf("failed to find or create daisy bucket: %v", err)
+			return "", fmt.Errorf("failed to find or create daisy bucket: %v", err)
 		}
 		gcsPath = fmt.Sprintf("gs://%s", bucket)
-	} else {
-		gcsPath = strings.TrimSuffix(gcsPath, "/")
 	}
-	gcsPrefix := fmt.Sprintf("%s/%s", gcsPath, time.Now().Format(time.RFC3339))
-	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
+	return fmt.Sprintf("%s/%s", strings.TrimSuffix(gcsPath, "/"), time.Now().Format(time.RFC3339)), nil
+}
 
-	for _, ts := range tests {
-		if ts.wf == nil {
+// finalizeWorkflows adds the final necessary data to each workflow for it to
+// be able to run, including the final copy-objects step.
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
+	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
+	for _, twf := range tests {
+		if twf.wf == nil {
 			return fmt.Errorf("found nil workflow in finalize")
 		}
 
+		twf.wf.StorageClient = client
+
 		// $GCS_PATH/2021-04-20T11:44:08-07:00/image_validation/debian-10
-		ts.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, ts.Name, ts.ShortImage)
-		ts.wf.GCSPath = ts.gcsPath
+		twf.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, twf.Name, twf.ShortImage)
+		twf.wf.GCSPath = twf.gcsPath
 
-		ts.wf.DisableGCSLogging()
-		ts.wf.DisableCloudLogging()
-		ts.wf.DisableStdoutLogging()
+		twf.wf.Zone = zone
 
-		ts.wf.Zone = zone
-		ts.wf.Project = project
+		twf.wf.Sources["wrapper"] = testWrapperPath
+		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", twf.Name)
 
-		ts.wf.Sources["wrapper"] = testWrapperPath
-		ts.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", ts.Name)
-
-		// add a final copy-objects step which copies the daisy-outs-path directory to ts.gcsPath + /outs
+		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
 		copyGCSObject.Source = "${OUTSPATH}/" // Trailing slash apparently crucial.
-		copyGCSObject.Destination = ts.gcsPath + "/outs"
+		copyGCSObject.Destination = twf.gcsPath + "/outs"
 		copyGCSObjects := &daisy.CopyGCSObjects{copyGCSObject}
-		copyStep, err := ts.wf.NewStep("copy-objects")
+		copyStep, err := twf.wf.NewStep("copy-objects")
 		if err != nil {
-			return fmt.Errorf("failed to add copy-objects step to workflow %s: %v", ts.Name, err)
+			return fmt.Errorf("failed to add copy-objects step to workflow %s: %v", twf.Name, err)
 		}
 		copyStep.CopyGCSObjects = copyGCSObjects
 
 		// The "copy-objects" step depends on every wait step.
-		for stepname, step := range ts.wf.Steps {
+		for stepname, step := range twf.wf.Steps {
 			if !strings.HasPrefix(stepname, "wait-") {
 				continue
 			}
-			if err := ts.wf.AddDependency(copyStep, step); err != nil {
-				return fmt.Errorf("failed to add copy-objects step dependency to workflow %s: %v", ts.Name, err)
+			if err := twf.wf.AddDependency(copyStep, step); err != nil {
+				return fmt.Errorf("failed to add copy-objects step: %v", err)
 			}
 		}
 
@@ -344,17 +339,26 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
 
+	t.wf.DisableGCSLogging()
+	t.wf.DisableCloudLogging()
+	t.wf.DisableStdoutLogging()
+
 	return t, nil
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath); err != nil {
-		log.Printf("Error finalizing workflow: %v\n", err)
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
+	if err != nil {
+		log.Printf("Error determining GCS prefix: %v", err)
+		gcsPrefix = ""
+	}
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
 		if test.wf == nil {
-			log.Printf("%s test on image %s: workflow was nil, skipping\n", test.Name, test.ShortImage)
+			log.Printf("%s test on image %s: workflow was nil, skipping", test.Name, test.ShortImage)
 			continue
 		}
 		test.wf.Print(ctx)
@@ -362,8 +366,12 @@ func PrintTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zon
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath); err != nil {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
+	if err != nil {
+		return err
+	}
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
@@ -398,11 +406,29 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int) (*TestSuites, error) {
-	finalizeWorkflows(ctx, testWorkflows, zone, project, gcsPath)
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, testProjects []string) (*TestSuites, error) {
+	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
+
+	exclusiveProjects := make(chan string, len(testProjects))
+	for _, proj := range testProjects {
+		// Prefill with projects.
+		exclusiveProjects <- proj
+	}
+
+	projects := make(chan string, len(testWorkflows))
+	for idx := 0; idx < len(testWorkflows); idx++ {
+		// Stripe all test projects
+		projects <- testProjects[idx%len(testProjects)]
+	}
+	close(projects)
 
 	var wg sync.WaitGroup
 	for i := 0; i < parallelCount; i++ {
@@ -410,7 +436,18 @@ func RunTests(ctx context.Context, testWorkflows []*TestWorkflow, project, zone,
 		go func(id int) {
 			defer wg.Done()
 			for test := range testchan {
+				if test.lockProject {
+					// This will block until an exclusive project is available.
+					log.Printf("test %s/%s requires write lock for project", test.Name, test.ShortImage)
+					test.wf.Project = <-exclusiveProjects
+				} else {
+					test.wf.Project = <-projects
+				}
 				testResults <- runTestWorkflow(ctx, test)
+				if test.lockProject {
+					// "unlock" the project.
+					exclusiveProjects <- test.wf.Project
+				}
 			}
 		}(i)
 	}
@@ -444,11 +481,12 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		res.err = fmt.Errorf("Test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
-	log.Printf("runTestWorkflow: running %s on %s (ID %s)\n", test.Name, test.ShortImage, test.wf.ID())
+	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
 	if err := test.wf.Run(ctx); err != nil {
 		res.err = err
 		return res
 	}
+	log.Printf("finished test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
 	results, err := getTestResults(ctx, test)
 	if err != nil {
 		res.err = err
@@ -552,13 +590,16 @@ func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
 	}
 	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
 	cmd := exec.Command("ssh-keygen", commandArgs...)
-	if err := cmd.Run(); err != nil {
-		return "", err
+	if out, err := cmd.Output(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("ssh-keygen failed: %s %s %v", out, exitErr.Stderr, err)
+		}
+		return "", fmt.Errorf("ssh-keygen failed: %v %v", out, err)
 	}
 
 	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read public key: %v", err)
 	}
 	sourcePath := fmt.Sprintf("%s-ssh-key", user)
 	t.wf.Sources[sourcePath] = keyFileName

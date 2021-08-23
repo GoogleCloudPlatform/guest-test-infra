@@ -60,7 +60,14 @@ func (t *TestWorkflow) SkippedMessage() string {
 	return t.skippedMessage
 }
 
-// CreateTestVM creates the necessary steps to create a VM with the specified name to the workflow.
+// LockProject indicates this test modifies project-level data and must have
+// exclusive use of the project.
+func (t *TestWorkflow) LockProject() {
+	t.lockProject = true
+}
+
+// CreateTestVM adds the necessary steps to create a VM with the specified
+// name to the workflow.
 func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	parts := strings.Split(name, ".")
 	vmname := strings.ReplaceAll(parts[0], "_", "-")
