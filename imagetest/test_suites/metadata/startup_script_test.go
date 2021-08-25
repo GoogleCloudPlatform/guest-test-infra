@@ -31,7 +31,7 @@ func TestStartupScriptFailed(t *testing.T) {
 	}
 }
 
-// TestDaemonScript test that daemon process started by start script is still
+// TestDaemonScript test that daemon process started by startup script is still
 // running in the VM after execution of startup script
 func TestDaemonScript(t *testing.T) {
 	bytes, err := ioutil.ReadFile(daemonOutputPath)
