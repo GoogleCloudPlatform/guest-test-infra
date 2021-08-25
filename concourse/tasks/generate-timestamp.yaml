@@ -13,4 +13,4 @@ run:
   path: sh
   args:
   - -exc
-  - "timestamp=$(date '+%s'); echo $timestamp | tee timestamp/timestamp"
+  - "timestamp=$(date '+%s%N'); echo $(($timestamp/1000000000)) | tee timestamp/timestamp; echo $(($timestamp/1000000)) > timestamp/timestamp-ms"
