@@ -4,6 +4,7 @@ package metadata
 
 import (
 	"io/ioutil"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -27,5 +28,19 @@ func TestStartupScript(t *testing.T) {
 func TestStartupScriptFailed(t *testing.T) {
 	if _, err := utils.GetMetadataAttribute("startup-script"); err != nil {
 		t.Fatalf("couldn't get startup-script from metadata, %v", err)
+	}
+}
+
+// TestDaemonScript test that daemon process started by startup script is still
+// running in the VM after execution of startup script
+func TestDaemonScript(t *testing.T) {
+	bytes, err := ioutil.ReadFile(daemonOutputPath)
+	if err != nil {
+		t.Fatalf("failed to read deamon script output %v", err)
+	}
+	pid := string(bytes)
+	cmd := exec.Command("ps", "-p", pid)
+	if err := cmd.Run(); err != nil {
+		t.Fatal("daemon script stop running")
 	}
 }
