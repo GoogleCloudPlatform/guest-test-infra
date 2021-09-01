@@ -4,13 +4,13 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: busybox
+    repository: bash
 
 outputs:
 - name: timestamp
 
 run:
-  path: sh
+  path: /usr/local/bin/bash
   args:
-  - -exc
-  - "timestamp=$(date '+%s%N'); echo $(($timestamp/1000000000)) | tee timestamp/timestamp; echo $(($timestamp/1000000)) > timestamp/timestamp-ms"
+  - -c
+  - "timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms"
