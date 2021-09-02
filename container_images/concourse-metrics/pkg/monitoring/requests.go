@@ -72,7 +72,7 @@ func validateJobResultRequestInput(input *JobResultArgs) error {
 func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesRequest, error) {
 	// Provide a default for the endTimestamp if one was not provided.
 	if input.EndTimestamp == nil {
-		*input.EndTimestamp = time.Now().UnixMilli()
+		*input.EndTimestamp = time.Now().UnixNano() / 1000000
 	}
 
 	e := validateJobResultRequestInput(&input)
