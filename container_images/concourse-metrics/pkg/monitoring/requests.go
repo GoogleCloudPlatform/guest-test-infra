@@ -25,12 +25,14 @@ import (
 	monitoringpb "google.golang.org/genproto/googleapis/monitoring/v3"
 )
 
+// JobResultArgs defines the required and optional arguments for building a new
+// job result request (in the form of a cloud monitoring time series request).
 type JobResultArgs struct {
 	EndTimestamp   *int64
 	Job            string
 	MetricPath     string
 	Pipeline       string
-	ProjectId      string
+	ProjectID      string
 	ResultState    string
 	StartTimestamp int64
 	Task           string
@@ -38,7 +40,7 @@ type JobResultArgs struct {
 }
 
 func validateJobResultRequestInput(input *JobResultArgs) error {
-	if strings.TrimSpace(input.ProjectId) == "" {
+	if strings.TrimSpace(input.ProjectID) == "" {
 		return fmt.Errorf("empty project-id value")
 	}
 	if strings.TrimSpace(input.Zone) == "" {
@@ -69,6 +71,7 @@ func validateJobResultRequestInput(input *JobResultArgs) error {
 	return nil
 }
 
+// BuildJobResultRequest builds a new job result request object to submit to gcp cloud monitoring.
 func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesRequest, error) {
 	// Provide a default for the endTimestamp if one was not provided.
 	if input.EndTimestamp == nil {
@@ -84,7 +87,7 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 	duration := *input.EndTimestamp - input.StartTimestamp
 
 	return &monitoringpb.CreateTimeSeriesRequest{
-		Name: "projects/" + input.ProjectId,
+		Name: "projects/" + input.ProjectID,
 		TimeSeries: []*monitoringpb.TimeSeries{{
 			Metric: &metricpb.Metric{
 				Type: "custom.googleapis.com/" + input.MetricPath,
@@ -95,7 +98,7 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 			Resource: &monitoredres.MonitoredResource{
 				Type: "generic_task",
 				Labels: map[string]string{
-					"project_id": input.ProjectId,
+					"project_id": input.ProjectID,
 					"location":   input.Zone,
 					"namespace":  input.Pipeline,
 					"job":        input.Job,

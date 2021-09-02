@@ -24,7 +24,7 @@ const (
 	job            = "test-job"
 	metricPath     = "metric-path"
 	pipeline       = "test-pipeline"
-	projectId      = "test-project"
+	projectID      = "test-project"
 	resultState    = "success"
 	startTimestamp = 1620363558000
 	task           = "test-task"
@@ -40,7 +40,7 @@ func TestBuildJobResultRequest(t *testing.T) {
 		Job:            job,
 		MetricPath:     metricPath,
 		Pipeline:       pipeline,
-		ProjectId:      projectId,
+		ProjectID:      projectID,
 		ResultState:    resultState,
 		StartTimestamp: startTimestamp,
 		Task:           task,
@@ -51,11 +51,11 @@ func TestBuildJobResultRequest(t *testing.T) {
 		t.Errorf("Happy path BuildJobResultRequest should not return an error: %+v", err)
 	}
 
-	assertEqual(t, result.Name, "projects/"+projectId)
+	assertEqual(t, result.Name, "projects/"+projectID)
 	assertEqual(t, result.TimeSeries[0].Metric.Type, "custom.googleapis.com/"+metricPath)
 	assertEqual(t, result.TimeSeries[0].Metric.Labels["result_state"], resultState)
 	assertEqual(t, result.TimeSeries[0].Resource.Type, "generic_task")
-	assertEqual(t, result.TimeSeries[0].Resource.Labels["project_id"], projectId)
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["project_id"], projectID)
 	assertEqual(t, result.TimeSeries[0].Resource.Labels["location"], zone)
 	assertEqual(t, result.TimeSeries[0].Resource.Labels["namespace"], pipeline)
 	assertEqual(t, result.TimeSeries[0].Resource.Labels["job"], job)
@@ -72,13 +72,13 @@ func TestBuildJobResultRequestInputValidation(t *testing.T) {
 		args    JobResultArgs
 		message string
 	}{
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectId: projectId, ResultState: resultState, Task: task, Zone: " "}, "empty zone"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectId: projectId, ResultState: resultState, Task: " ", Zone: zone}, "empty task"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectId: projectId, ResultState: "other", Task: task, Zone: zone}, "invalid state"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectId: " ", ResultState: resultState, Task: task, Zone: zone}, "empty project"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: " ", ProjectId: projectId, ResultState: resultState, Task: task, Zone: zone}, "empty pipeline"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: " ", Pipeline: pipeline, ProjectId: projectId, ResultState: resultState, Task: task, Zone: zone}, "empty job"},
-		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: validEndTimestamp + 1000, Job: job, Pipeline: pipeline, ProjectId: projectId, ResultState: resultState, Task: task, Zone: zone}, "end-timestamp cannot occur before start-timestamp"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectID: projectID, ResultState: resultState, Task: task, Zone: " "}, "empty zone"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectID: projectID, ResultState: resultState, Task: " ", Zone: zone}, "empty task"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectID: projectID, ResultState: "other", Task: task, Zone: zone}, "invalid state"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: pipeline, ProjectID: " ", ResultState: resultState, Task: task, Zone: zone}, "empty project"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: job, Pipeline: " ", ProjectID: projectID, ResultState: resultState, Task: task, Zone: zone}, "empty pipeline"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: startTimestamp, Job: " ", Pipeline: pipeline, ProjectID: projectID, ResultState: resultState, Task: task, Zone: zone}, "empty job"},
+		{JobResultArgs{EndTimestamp: &validEndTimestamp, MetricPath: metricPath, StartTimestamp: validEndTimestamp + 1000, Job: job, Pipeline: pipeline, ProjectID: projectID, ResultState: resultState, Task: task, Zone: zone}, "end-timestamp cannot occur before start-timestamp"},
 	}
 	for _, test := range tests {
 		if _, err := BuildJobResultRequest(test.args); err == nil || !strings.Contains(err.Error(), test.message) {

@@ -29,7 +29,7 @@ var (
 	endTimestamp   = flag.Int64("end-timestamp", time.Now().UnixNano()/1000000, "End timestamp of the job run. Defaults to now.")
 	job            = flag.String("job", "", "Concourse job name.")
 	metricPath     = flag.String("metric-path", "", "Path of the custom metric name to use (custom.googleapis.com/[metric-path]).")
-	projectId      = flag.String("project-id", "", "GCP project Id.")
+	projectID      = flag.String("project-id", "", "GCP project Id.")
 	pipeline       = flag.String("pipeline", "", "Concourse pipeline name.")
 	task           = flag.String("task", "", "Concourse task name publishing this metric.")
 	resultState    = flag.String("result-state", "", "Concourse job result state ('success' or 'failure')")
@@ -54,7 +54,7 @@ func main() {
 		Job:            *job,
 		MetricPath:     *metricPath,
 		Pipeline:       *pipeline,
-		ProjectId:      *projectId,
+		ProjectId:      *projectID,
 		ResultState:    *resultState,
 		StartTimestamp: *startTimestamp,
 		Task:           *task,
