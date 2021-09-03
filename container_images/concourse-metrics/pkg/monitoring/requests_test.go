@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -62,6 +63,39 @@ func TestBuildJobResultRequest(t *testing.T) {
 	assertEqual(t, result.TimeSeries[0].Resource.Labels["task_id"], task)
 	assertEqual(t, result.TimeSeries[0].Points[0].Interval.EndTime.Seconds, validEndTimestamp/1000)
 	assertEqual(t, result.TimeSeries[0].Points[0].Value.GetInt64Value(), validEndTimestamp-startTimestamp)
+}
+
+func TestBuildJobResultRequestDefaultEndTimestamp(t *testing.T) {
+	input := JobResultArgs{
+		Job:            job,
+		MetricPath:     metricPath,
+		Pipeline:       pipeline,
+		ProjectID:      projectID,
+		ResultState:    resultState,
+		StartTimestamp: startTimestamp,
+		Task:           task,
+		Zone:           zone,
+	}
+	result, err := BuildJobResultRequest(input)
+	if err != nil {
+		t.Errorf("Happy path BuildJobResultRequest should not return an error: %+v", err)
+	}
+
+	assertEqual(t, result.Name, "projects/"+projectID)
+	assertEqual(t, result.TimeSeries[0].Metric.Type, "custom.googleapis.com/"+metricPath)
+	assertEqual(t, result.TimeSeries[0].Metric.Labels["result_state"], resultState)
+	assertEqual(t, result.TimeSeries[0].Resource.Type, "generic_task")
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["project_id"], projectID)
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["location"], zone)
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["namespace"], pipeline)
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["job"], job)
+	assertEqual(t, result.TimeSeries[0].Resource.Labels["task_id"], task)
+
+	endTimestamp := result.TimeSeries[0].Points[0].Interval.EndTime.Seconds
+	nowSeconds := time.Now().Unix()
+	if endTimestamp < nowSeconds {
+		t.Errorf("Expected default EndTimestamp to be greater than or equal to now. Result: %v Expected: %v", endTimestamp, nowSeconds)
+	}
 }
 
 func TestBuildJobResultRequestInputValidation(t *testing.T) {

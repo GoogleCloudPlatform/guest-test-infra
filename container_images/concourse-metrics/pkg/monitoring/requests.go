@@ -74,8 +74,11 @@ func validateJobResultRequestInput(input *JobResultArgs) error {
 // BuildJobResultRequest builds a new job result request object to submit to gcp cloud monitoring.
 func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesRequest, error) {
 	// Provide a default for the endTimestamp if one was not provided.
+	var endTimestamp int64
 	if input.EndTimestamp == nil {
-		*input.EndTimestamp = time.Now().UnixNano() / 1000000
+		endTimestamp = time.Now().UnixNano() / 1000000
+	} else {
+		endTimestamp = *input.EndTimestamp
 	}
 
 	e := validateJobResultRequestInput(&input)
@@ -84,7 +87,7 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 	}
 
 	// Calculate the duration to publish.
-	duration := *input.EndTimestamp - input.StartTimestamp
+	duration := endTimestamp - input.StartTimestamp
 
 	return &monitoringpb.CreateTimeSeriesRequest{
 		Name: "projects/" + input.ProjectID,
@@ -108,7 +111,7 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 			Points: []*monitoringpb.Point{{
 				Interval: &monitoringpb.TimeInterval{
 					EndTime: &timestamp.Timestamp{
-						Seconds: *input.EndTimestamp / 1000,
+						Seconds: endTimestamp / 1000,
 					},
 				},
 				Value: &monitoringpb.TypedValue{
