@@ -54,7 +54,7 @@ func main() {
 		Job:            *job,
 		MetricPath:     *metricPath,
 		Pipeline:       *pipeline,
-		ProjectId:      *projectID,
+		ProjectID:      *projectID,
 		ResultState:    *resultState,
 		StartTimestamp: *startTimestamp,
 		Task:           *task,
