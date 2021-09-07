@@ -22,7 +22,7 @@ import (
 	"time"
 
 	monitoring "cloud.google.com/go/monitoring/apiv3"
-	requests "github.com/GoogleCloudPlatform/guest-test-infra/container_images/concourse-metrics/pkg/monitoring"
+	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/concourse-metrics/pkg/requests"
 )
 
 var (

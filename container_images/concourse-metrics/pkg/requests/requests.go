@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package monitoring
+package requests
 
 import (
 	"fmt"
@@ -28,13 +28,13 @@ import (
 // JobResultArgs defines the required and optional arguments for building a new
 // job result request (in the form of a cloud monitoring time series request).
 type JobResultArgs struct {
-	EndTimestamp   *int64
+	EndTimestamp   *int64 // Optional - will default to now in ms.
 	Job            string
 	MetricPath     string
 	Pipeline       string
 	ProjectID      string
 	ResultState    string
-	StartTimestamp int64
+	StartTimestamp int64 // Epoch Milliseconds.
 	Task           string
 	Zone           string
 }
@@ -81,13 +81,9 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 		endTimestamp = *input.EndTimestamp
 	}
 
-	e := validateJobResultRequestInput(&input)
-	if e != nil {
+	if e := validateJobResultRequestInput(&input); e != nil {
 		return nil, e
 	}
-
-	// Calculate the duration to publish.
-	duration := endTimestamp - input.StartTimestamp
 
 	return &monitoringpb.CreateTimeSeriesRequest{
 		Name: "projects/" + input.ProjectID,
@@ -116,7 +112,8 @@ func BuildJobResultRequest(input JobResultArgs) (*monitoringpb.CreateTimeSeriesR
 				},
 				Value: &monitoringpb.TypedValue{
 					Value: &monitoringpb.TypedValue_Int64Value{
-						Int64Value: duration,
+						// Int64 value here is the duration (measured in ms).
+						Int64Value: endTimestamp - input.StartTimestamp,
 					},
 				},
 			}},
