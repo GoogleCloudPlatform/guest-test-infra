@@ -12,6 +12,8 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/autoversioner:latest', '--tag=gcr.io/$PROJECT_ID/autoversioner:$COMMIT_SHA', '--file=./container_images/autoversioner/Dockerfile', "/workspace"]
 - name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/concourse-metrics:latest', '--tag=gcr.io/$PROJECT_ID/concourse-metrics:$COMMIT_SHA', '--file=./container_images/concourse-metrics/Dockerfile', "/workspace"]
+- name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/flake8:latest', '--tag=gcr.io/$PROJECT_ID/flake8:$COMMIT_SHA', './container_images/flake8']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/gointegtest:latest', '--tag=gcr.io/$PROJECT_ID/gointegtest:$COMMIT_SHA', './container_images/gointegtest']
