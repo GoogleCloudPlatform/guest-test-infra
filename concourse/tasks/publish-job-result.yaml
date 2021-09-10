@@ -21,6 +21,6 @@ run:
   - --pipeline=((pipeline))
   - --job=((job))
   - --task=publish-job-result
-  - --result-state=((result-state))
-  - --start-timestamp=((start-timestamp))
-  - --metric-path=((metric-path))
+  - --result-state=((result_state))
+  - --start-timestamp=((start_timestamp))
+  - --metric-path=((metric_path))
