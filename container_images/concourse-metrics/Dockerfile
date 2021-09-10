@@ -13,6 +13,7 @@ RUN chmod +x /publish-job-result
 FROM scratch
 
 COPY --from=0 publish-job-result /publish-job-result
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 # for debugging
 COPY container_images/concourse-metrics/Dockerfile /
