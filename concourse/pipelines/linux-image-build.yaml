@@ -6,6 +6,9 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
+- name: daily-time
+  type: time
+  source: {interval: 24h}
 # centos
 - name: compute-image-tools
   type: git
@@ -158,6 +161,8 @@ jobs:
 # almalinux
 - name: build-almalinux-8
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -188,6 +193,8 @@ jobs:
 # centos
 - name: build-centos-7
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -217,6 +224,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-centos-8
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -246,6 +255,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-centos-stream-8
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -276,6 +287,8 @@ jobs:
 # rhel
 - name: build-rhel-7
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -305,6 +318,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-8
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -334,6 +349,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-7-byos
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -363,6 +380,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-8-byos
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -392,6 +411,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-7-4-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -421,6 +442,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-7-6-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -450,6 +473,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-7-7-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -479,6 +504,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-8-1-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -508,6 +535,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-8-2-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -537,6 +566,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-rhel-8-4-sap
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -567,6 +598,8 @@ jobs:
 # rocky-linux
 - name: build-rocky-linux-8
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -597,6 +630,8 @@ jobs:
 # debian
 - name: build-debian-9
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -625,6 +660,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-debian-10
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
@@ -653,6 +690,8 @@ jobs:
       build_date: ((.:build-date))
 - name: build-debian-11
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-build-id
