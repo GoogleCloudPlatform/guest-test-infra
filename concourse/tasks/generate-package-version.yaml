@@ -17,16 +17,12 @@ run:
   args:
   - -exc
   - |
-    cd repo
-    latest=$(git tag -l '20*'|tail -1)  # TODO: use shell logic only
+    latest=$(cd repo;git tag -l '20*'|tail -1)  # TODO: use shell logic only
     latest_date=${latest/.*}
     todays_date=$(date '+%Y%m%d')
+    latest_build=0
     if [[ $latest_date == $todays_date ]]; then
       latest_build=${latest/*.}
       latest_build=$((latest_build+1))
-      new="${todays_date}.${latest_build}"
-    else
-      new="${todays_date}.00"
     fi
-    cd ..
-    echo $new | tee package-version/version
+    printf "%s.%02d\n" "${todays_date}" "${latest_build}" | tee package-version/version
