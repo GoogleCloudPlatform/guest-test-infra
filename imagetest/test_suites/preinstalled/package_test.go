@@ -1,3 +1,5 @@
+// +build cit
+
 package preinstalled
 
 import (
