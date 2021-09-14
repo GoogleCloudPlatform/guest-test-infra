@@ -1,6 +1,6 @@
 // +build cit
 
-package imageboot
+package boot
 
 import (
 	"io/ioutil"
@@ -80,7 +80,7 @@ func TestGuestSecureBoot(t *testing.T) {
 	}
 }
 
-func TestBootTime(t *testing.T) {
+func TestGuestBootTime(t *testing.T) {
 	metadata, err := utils.GetMetadataAttribute("start-time")
 	if err != nil {
 		t.Fatalf("couldn't get start time from metadata")

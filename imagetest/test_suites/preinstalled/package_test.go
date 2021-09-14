@@ -1,6 +1,4 @@
-// +build cit
-
-package imagevalidation
+package preinstalled
 
 import (
 	"bytes"
@@ -10,21 +8,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
-
-func TestStandardPrograms(t *testing.T) {
-	cmd := exec.Command("gcloud", "-h")
-	cmd.Start()
-	err := cmd.Wait()
-	if err != nil {
-		t.Fatalf("gcloud not installed properly")
-	}
-	cmd = exec.Command("gsutil", "help")
-	cmd.Start()
-	err = cmd.Wait()
-	if err != nil {
-		t.Fatalf("gsutil not installed properly")
-	}
-}
 
 func TestGuestPackages(t *testing.T) {
 	image, err := utils.GetMetadata("image")
@@ -52,7 +35,5 @@ func TestGuestPackages(t *testing.T) {
 			t.Errorf("error running check command: %v %s %s", err, stdout, stderr)
 			continue
 		}
-
 	}
-
 }

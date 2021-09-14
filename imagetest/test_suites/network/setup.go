@@ -26,7 +26,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm.RunTests("TestDefaultMTU")
+	vm.RunTests("TestDefaultMTU|TestHostname|TestFQDN|")
+
+	vm_custom, err := t.CreateTestVM("vm.custom.domain")
+	if err != nil {
+		return err
+	}
+	vm_custom.RunTests("TestCustomHostname")
 
 	network, err := t.CreateNetwork(networkName, false)
 	if err != nil {

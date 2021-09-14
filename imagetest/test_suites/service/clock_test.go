@@ -1,6 +1,6 @@
 // +build cit
 
-package imagevalidation
+package service
 
 import (
 	"io/ioutil"

@@ -12,6 +12,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type sshKeyHash struct {
+	file os.FileInfo
+	hash string
+}
+
+
 func TestEmptyTest(t *testing.T) {
 	_, err := utils.GetMetadataAttribute("ssh-keys")
 	if err != nil {
@@ -175,3 +181,87 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 		}
 	}
 }
+
+// TestHostKeysGeneratedOnces checks that the guest agent only generates host keys one time.
+func TestHostKeysGeneratedOnce(t *testing.T) {
+	sshDir := "/etc/ssh/"
+	sshfiles, err := ioutil.ReadDir(sshDir)
+	if err != nil {
+		t.Fatalf("Couldn't read files from ssh dir")
+	}
+
+	var hashes []sshKeyHash
+	for _, file := range sshfiles {
+		if !strings.HasSuffix(file.Name(), "_key.pub") {
+			continue
+		}
+		hash, err := md5Sum(sshDir + file.Name())
+		if err != nil {
+			t.Fatalf("Couldn't hash file: %v", err)
+		}
+		hashes = append(hashes, sshKeyHash{file, hash})
+	}
+
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata")
+	}
+
+	var restart string
+	switch {
+	case strings.Contains(image, "rhel-6"), strings.Contains(image, "centos-6"):
+		restart = "initctl"
+	default:
+		restart = "systemctl"
+	}
+
+	cmd := exec.Command(restart, "restart", "google-guest-agent")
+	err = cmd.Run()
+	if err != nil {
+		t.Errorf("Failed to restart guest agent: %v", err)
+	}
+
+	sshfiles, err = ioutil.ReadDir(sshDir)
+	if err != nil {
+		t.Fatalf("Couldn't read files from ssh dir")
+	}
+
+	var hashesAfter []sshKeyHash
+	for _, file := range sshfiles {
+		if !strings.HasSuffix(file.Name(), "_key.pub") {
+			continue
+		}
+		hash, err := md5Sum(sshDir + file.Name())
+		if err != nil {
+			t.Fatalf("Couldn't hash file: %v", err)
+		}
+		hashesAfter = append(hashesAfter, sshKeyHash{file, hash})
+	}
+
+	if len(hashes) != len(hashesAfter) {
+		t.Fatalf("Hashes changed after restarting guest agent")
+	}
+
+	for i := 0; i < len(hashes); i++ {
+		if hashes[i].file.Name() != hashesAfter[i].file.Name() ||
+				hashes[i].hash != hashesAfter[i].hash {
+			t.Fatalf("Hashes changed after restarting guest agent")
+		}
+	}
+}
+
+func md5Sum(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("couldn't open file: %v", err)
+	}
+	defer f.Close()
+
+	h := md5.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+

@@ -1,4 +1,4 @@
-package imageboot
+package boot
 
 import (
 	"strconv"
@@ -9,7 +9,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "image_boot"
+var Name = "boot"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -44,6 +44,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.EnableSecureBoot()
-	vm3.RunTests("TestGuestSecureBoot|TestBootTime")
+	vm3.RunTests("TestGuestSecureBoot|TestGuestBootTime")
 	return nil
 }

@@ -12,12 +12,14 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/boot"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
-	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
-	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/license"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/preinstalled"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/service"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 )
 
@@ -127,12 +129,20 @@ func main() {
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
 		{
-			imagevalidation.Name,
-			imagevalidation.TestSetup,
+			service.Name,
+			service.TestSetup,
 		},
 		{
-			imageboot.Name,
-			imageboot.TestSetup,
+			license.Name,
+			license.TestSetup,
+		},
+		{
+			preinstalled.Name,
+			preinstalled.TestSetup,
+		},
+		{
+			boot.Name,
+			boot.TestSetup,
 		},
 		{
 			network.Name,
