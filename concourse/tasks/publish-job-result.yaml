@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/gcp-guest/concourse-metrics
+    tag: latest
+
+inputs:
+- name: credentials
+
+params:
+  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+
+run:
+  path: /publish-job-result
+  args:
+  - --project-id=gcp-guest
+  - --zone=us-west1-a
+  - --pipeline=((pipeline))
+  - --job=((job))
+  - --task=publish-job-result
+  - --result-state=((result_state))
+  - --start-timestamp=((start_timestamp))
+  - --metric-path=((metric_path))
