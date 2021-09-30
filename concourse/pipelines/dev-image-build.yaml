@@ -72,6 +72,10 @@ jobs:
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -96,10 +100,30 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-debian-10-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-debian-10-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-centos-7-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -123,10 +147,30 @@ jobs:
       wf: "linux_dev/centos_7_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-7-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-7-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-centos-8-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -150,10 +194,30 @@ jobs:
       wf: "linux_dev/centos_8_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-8-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-8-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-debian-9-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -177,10 +241,30 @@ jobs:
       wf: "linux_dev/debian_9_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-debian-9-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-debian-9-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-debian-10-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -204,10 +288,30 @@ jobs:
       wf: "linux_dev/debian_10_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-10-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-centos-10-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-ubuntu-1604-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -231,10 +335,30 @@ jobs:
       wf: "linux_dev/ubuntu_1604_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-ubuntu-1604-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-ubuntu-1604-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-ubuntu-1804-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -258,12 +382,32 @@ jobs:
       wf: "linux_dev/ubuntu_1804_dev.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-ubuntu-1804-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "build-ubuntu-1804-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to dev stage
 - name: publish-debian-staging
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: debian-9-dev-gcs
     passed: [build-debian-9-dev]
     trigger: false
@@ -290,11 +434,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "linux_dev/debian_staging.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-debian-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-debian-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: publish-to-testing-debian-10-worker
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: debian-10-worker-gcs
     passed: [build-debian-10-worker]
     trigger: false
@@ -316,10 +480,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-testing-debian-10-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-testing-debian-10-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-staging-debian-10-worker
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: debian-10-worker-gcs
     passed: [build-debian-10-worker]
     trigger: false
@@ -341,10 +525,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-staging-debian-10-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-staging-debian-10-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-prod-debian-10-worker
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: debian-10-worker-gcs
     passed: [publish-to-staging-debian-10-worker]
     trigger: false
@@ -366,6 +570,22 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
       environment: "prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-prod-debian-10-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "dev-image-build"
+      job: "publish-to-prod-debian-10-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 groups:
 - name: debian
