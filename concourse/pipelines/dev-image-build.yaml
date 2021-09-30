@@ -106,20 +106,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-debian-10-worker"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-debian-10-worker"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-centos-7-dev
   plan:
   - get: compute-image-tools
@@ -157,20 +153,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-7-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-7-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-centos-8-dev
   plan:
   - get: compute-image-tools
@@ -208,20 +200,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-8-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-8-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-debian-9-dev
   plan:
   - get: compute-image-tools
@@ -259,20 +247,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-debian-9-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-debian-9-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-debian-10-dev
   plan:
   - get: compute-image-tools
@@ -310,20 +294,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-10-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-centos-10-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-ubuntu-1604-dev
   plan:
   - get: compute-image-tools
@@ -361,20 +341,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-ubuntu-1604-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-ubuntu-1604-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: build-ubuntu-1804-dev
   plan:
   - get: compute-image-tools
@@ -412,20 +388,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "build-ubuntu-1804-dev"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "build-ubuntu-1804-dev"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 
 # Publish to dev stage
 - name: publish-debian-staging
@@ -468,20 +440,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "publish-debian-staging"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "publish-debian-staging"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 
 - name: publish-to-testing-debian-10-worker
   plan:
@@ -518,20 +486,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-testing-debian-10-worker"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-testing-debian-10-worker"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: publish-to-staging-debian-10-worker
   plan:
   - get: guest-test-infra
@@ -567,20 +531,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-staging-debian-10-worker"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-staging-debian-10-worker"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 - name: publish-to-prod-debian-10-worker
   plan:
   - get: guest-test-infra
@@ -616,20 +576,16 @@ jobs:
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-prod-debian-10-worker"
-      task: "publish-job-result"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "dev-image-build"
       job: "publish-to-prod-debian-10-worker"
-      task: "publish-job-result"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-      metric_path: "concourse/job/duration"
 
 groups:
 - name: debian
