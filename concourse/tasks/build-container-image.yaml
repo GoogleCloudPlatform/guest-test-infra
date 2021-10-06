@@ -10,10 +10,13 @@ inputs:
 - name: guest-test-infra
 - name: credentials
 
+params:
+  DOCKERFILE: Dockerfile
+
 run:
   path: sh
   args:
   - -exc
   - |
     export GOOGLE_APPLICATION_CREDENTIALS=$PWD/credentials/credentials.json
-    executor --dockerfile=((dockerfile)) --context=((context)) --destination=((destination))
+    executor --dockerfile=$DOCKERFILE --context=((context)) --destination=((destination))
