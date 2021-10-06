@@ -1,6 +1,6 @@
 // +build cit
 
-package service
+package configuration
 
 import (
 	"io/ioutil"

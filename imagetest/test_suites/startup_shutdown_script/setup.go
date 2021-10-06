@@ -1,4 +1,4 @@
-package metadata
+package startup_shutdown_script
 
 import (
 	"fmt"
@@ -43,12 +43,6 @@ var daemonScript = fmt.Sprintf(daemonScriptTemplate, daemonOutputPath)
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM("vm")
-	if err != nil {
-		return err
-	}
-	vm.RunTests("TestTokenFetch|TestMetaDataResponseHeaders|TestGetMetaDataUsingIP")
-
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
 		return err

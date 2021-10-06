@@ -13,14 +13,12 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/boot"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/configuration"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/license"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/preinstalled"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/service"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/startup_shutdown_script"
 )
 
 var (
@@ -129,16 +127,8 @@ func main() {
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
 		{
-			service.Name,
-			service.TestSetup,
-		},
-		{
-			license.Name,
-			license.TestSetup,
-		},
-		{
-			preinstalled.Name,
-			preinstalled.TestSetup,
+			configuration.Name,
+			configuration.TestSetup,
 		},
 		{
 			boot.Name,
@@ -161,8 +151,8 @@ func main() {
 			ssh.TestSetup,
 		},
 		{
-			metadata.Name,
-			metadata.TestSetup,
+			startup_shutdown_script.Name,
+			startup_shutdown_script.TestSetup,
 		},
 	}
 

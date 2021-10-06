@@ -1,4 +1,4 @@
-package license
+package configuration
 
 import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 

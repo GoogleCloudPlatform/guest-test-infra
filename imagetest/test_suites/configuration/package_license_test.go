@@ -1,6 +1,6 @@
 // +build cit
 
-package license
+package configuration
 
 import (
 	"fmt"

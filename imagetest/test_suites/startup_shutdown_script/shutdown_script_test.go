@@ -1,6 +1,6 @@
 // +build cit
 
-package metadata
+package startup_shutdown_script
 
 import (
 	"io/ioutil"

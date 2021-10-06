@@ -1,6 +1,6 @@
 // +build cit
 
-package preinstalled
+package configuration
 
 import (
 	"bytes"
