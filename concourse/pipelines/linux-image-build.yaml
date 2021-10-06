@@ -708,6 +708,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
       environment: "test"
+  - task: image-test-almalinux-8
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/almalinux-8-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # centos
 - name: publish-to-testing-centos-7
   plan:
@@ -734,6 +740,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
       environment: "test"
+  - task: image-test-centos-7
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/centos-7-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-centos-8
   plan:
   - get: guest-test-infra
