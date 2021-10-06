@@ -1138,7 +1138,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-9-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-9-stretch-v((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-10
   plan:
@@ -1169,7 +1169,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-10-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-10-buster-v((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-11
   plan:
@@ -1200,7 +1200,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-11-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-11-bullseye-v((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 
 # Publish to staging
