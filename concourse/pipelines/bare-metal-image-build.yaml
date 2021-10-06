@@ -51,6 +51,10 @@ jobs:
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -75,10 +79,30 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-7-metal-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -103,10 +127,30 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-8-metal
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -131,10 +175,30 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-8-metal-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -159,12 +223,32 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to testing
 - name: publish-to-testing-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [build-rhel-7-metal]
     trigger: false
@@ -186,10 +270,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-testing-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [build-rhel-8-metal]
     trigger: false
@@ -211,12 +315,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to staging
 - name: publish-to-staging-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [publish-to-testing-rhel-7-metal]
     trigger: false
@@ -238,10 +362,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-staging-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [publish-to-testing-rhel-8-metal]
     trigger: false
@@ -263,12 +407,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish dev to staging
 - name: publish-to-staging-rhel-7-metal-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-dev-gcs
     passed: [build-rhel-7-metal-dev]
     trigger: false
@@ -290,10 +454,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal_dev.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-staging-rhel-8-metal-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-dev-gcs
     passed: [build-rhel-8-metal-dev]
     trigger: false
@@ -315,12 +499,32 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal_dev.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to prod
 - name: publish-to-prod-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [publish-to-staging-rhel-7-metal]
     trigger: false
@@ -342,10 +546,30 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-prod-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [publish-to-staging-rhel-8-metal]
     trigger: false
@@ -367,3 +591,19 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
