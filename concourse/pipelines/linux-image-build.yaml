@@ -759,6 +759,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
       environment: "test"
+  - task: image-test-centos-8
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/centos-8-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-centos-stream-8
   plan:
   - get: guest-test-infra
@@ -784,6 +790,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_stream_8.publish.json"
       environment: "test"
+  - task: image-test-centos-stream-8
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/centos-stream-8-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # rhel
 - name: publish-to-testing-rhel-7
   plan:
@@ -810,6 +822,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7.publish.json"
       environment: "test"
+  - task: image-test-rhel-7
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-7-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8
   plan:
   - get: guest-test-infra
@@ -835,6 +853,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8.publish.json"
       environment: "test"
+  - task: image-test-rhel-8
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-byos
   plan:
   - get: guest-test-infra
@@ -860,6 +884,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_byos.publish.json"
       environment: "test"
+  - task: image-test-rhel-7-byos
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-7-byos-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-byos
   plan:
   - get: guest-test-infra
@@ -885,6 +915,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_byos.publish.json"
       environment: "test"
+  - task: image-test-rhel-8-byos
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-byos-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-6-sap
   plan:
   - get: guest-test-infra
@@ -910,6 +946,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_6_sap.publish.json"
       environment: "test"
+  - task: image-test-rhel-7-6-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-7-6-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-7-sap
   plan:
   - get: guest-test-infra
@@ -935,6 +977,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
       environment: "test"
+  - task: image-test-rhel-7-7-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-7-7-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -960,6 +1008,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
       environment: "test"
+  - task: image-test-rhel-8-1-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-1-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-2-sap
   plan:
   - get: guest-test-infra
@@ -985,6 +1039,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
       environment: "test"
+  - task: image-test-rhel-8-2-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-2-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-4-sap
   plan:
   - get: guest-test-infra
@@ -1010,6 +1070,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_4_sap.publish.json"
       environment: "test"
+  - task: image-test-rhel-8-4-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-8-4-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # rocky-linux
 - name: publish-to-testing-rocky-linux-8
   plan:
@@ -1036,6 +1102,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
       environment: "test"
+  - task: image-test-rocky-linux-8
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rocky-linux-8-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # debian
 - name: publish-to-testing-debian-9
   plan:
@@ -1062,6 +1134,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_9.publish.json"
       environment: "test"
+  - task: image-test-debian-9
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/debian-9-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-10
   plan:
   - get: guest-test-infra
@@ -1087,6 +1165,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
       environment: "test"
+  - task: image-test-debian-10
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/debian-10-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-11
   plan:
   - get: guest-test-infra
@@ -1112,6 +1196,12 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
       environment: "test"
+  - task: image-test-debian-11
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/debian-11-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 
 # Publish to staging
 # almalinux
