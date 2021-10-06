@@ -3,31 +3,30 @@ resources:
 - name: guest-test-infra
   type: git
   source:
-    uri: https://github.com/hopkiw/guest-test-infra.git
-    branch: container_builds
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
 
 jobs:
-# Build jobs
 - name: build-cit-container
   plan:
   - get: guest-test-infra
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/cloud-image-tests:latest
       context: guest-test-infra
     params:
-      DOCKERFILE: guest-test-infra/Dockerfile
+      DOCKERFILE: guest-test-infra/imagetest/Dockerfile
 - name: build-gobuild-container
   plan:
   - get: guest-test-infra
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/gobuild:latest
@@ -38,7 +37,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/gotest:latest
@@ -49,7 +48,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/gocheck:latest
@@ -60,7 +59,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/build-essential:latest
@@ -71,7 +70,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/concourse-metrics:latest
@@ -84,7 +83,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/flake8:latest
@@ -95,7 +94,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/gointegtest:latest
@@ -106,7 +105,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/pytest:latest
@@ -117,7 +116,7 @@ jobs:
     trigger: true
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
+  - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
       destination: gcr.io/gcp-guest/fly-validate-pipelines:latest
