@@ -62,7 +62,7 @@ jobs:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "build-debian-10-worker"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
@@ -70,7 +70,7 @@ jobs:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "build-debian-10-worker"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
@@ -108,7 +108,7 @@ jobs:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-testing-debian-10-worker"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
@@ -116,7 +116,7 @@ jobs:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-testing-debian-10-worker"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
@@ -153,7 +153,7 @@ jobs:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-staging-debian-10-worker"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
@@ -161,7 +161,7 @@ jobs:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-staging-debian-10-worker"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
@@ -198,7 +198,7 @@ jobs:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-prod-debian-10-worker"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
@@ -206,7 +206,7 @@ jobs:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "dev-image-build"
+      pipeline: "debian-worker-image-build"
       job: "publish-to-prod-debian-10-worker"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
