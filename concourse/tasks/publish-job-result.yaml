@@ -23,4 +23,4 @@ run:
   - --task=publish-job-result
   - --result-state=((result_state))
   - --start-timestamp=((start_timestamp))
-  - --metric-path="concourse/job/duration"
+  - --metric-path=concourse/job/duration
