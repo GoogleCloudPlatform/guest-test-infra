@@ -20,12 +20,6 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
-- name: imagetest
-  type: git
-  source:
-    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
-    branch: master
-    paths: ['imagetest/*']
 - name: almalinux-8-gcs
   type: gcs
   source:
@@ -2505,20 +2499,6 @@ jobs:
       wf: "debian/debian_11.publish.json"
       environment: "prod"
 
-- name: build-test-manager-container
-  plan:
-  - get: imagetest
-    trigger: true
-  - task: get-credential
-    file: imagetest/concourse/tasks/get-credential.yaml
-  - task: build-test-manager-container-image
-    file: imagetest/concourse/tasks/build-container-image.yaml
-    vars:
-      destination: gcr.io/gcp-guest/cloud-image-tests:latest
-      context: guest-test-infra
-      dockerfile: imagetest/Dockerfile
-    input_mapping: {guest-test-infra: imagetest}
-
 groups:
 - name: debian
   jobs:
@@ -2615,6 +2595,3 @@ groups:
   - publish-to-prod-rhel-8-1-sap
   - publish-to-prod-rhel-8-2-sap
   - publish-to-prod-rhel-8-4-sap
-- name: test-manager-container
-  jobs:
-  - build-test-manager-container
