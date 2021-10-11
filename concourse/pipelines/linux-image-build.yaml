@@ -706,7 +706,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/almalinux-8-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/almalinux-8-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # centos
 - name: publish-to-testing-centos-7
@@ -738,7 +738,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/centos-7-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/centos-7-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-centos-8
   plan:
@@ -769,7 +769,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/centos-8-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/centos-8-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-centos-stream-8
   plan:
@@ -800,7 +800,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/centos-stream-8-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/centos-stream-8-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # rhel
 - name: publish-to-testing-rhel-7
@@ -832,7 +832,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-7-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8
   plan:
@@ -863,7 +863,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-8-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-byos
   plan:
@@ -894,7 +894,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-byos-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-7-byos-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-byos
   plan:
@@ -925,7 +925,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-byos-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-8-byos-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-6-sap
   plan:
@@ -956,7 +956,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-6-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-7-6-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-7-7-sap
   plan:
@@ -987,7 +987,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-7-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-7-7-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-1-sap
   plan:
@@ -1018,7 +1018,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-1-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-8-1-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-2-sap
   plan:
@@ -1049,7 +1049,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-2-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-8-2-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-4-sap
   plan:
@@ -1080,7 +1080,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-8-4-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-8-4-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # rocky-linux
 - name: publish-to-testing-rocky-linux-8
@@ -1112,7 +1112,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rocky-linux-8-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rocky-linux-8-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 # debian
 - name: publish-to-testing-debian-9
@@ -1144,7 +1144,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-9-stretch-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-9-stretch-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-10
   plan:
@@ -1175,7 +1175,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-10-buster-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-10-buster-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-debian-11
   plan:
@@ -1206,7 +1206,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/debian-11-bullseye-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/debian-11-bullseye-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 
 # Publish to staging
