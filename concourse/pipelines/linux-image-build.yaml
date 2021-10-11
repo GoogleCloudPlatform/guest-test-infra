@@ -91,6 +91,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-7-sap-v([0-9]+).tar.gz"
+- name: rhel-7-9-sap-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "rhel/rhel-7-9-sap-v([0-9]+).tar.gz"
 - name: rhel-8-1-sap-gcs
   type: gcs
   source:
@@ -456,6 +463,37 @@ jobs:
       wf: "enterprise_linux/rhel_7_7_sap.wf.json"
       gcs_url: ((.:gcs-url))
       iso: ((iso-paths.rhel-7-7))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+- name: build-rhel-7-9-sap
+  plan:
+  - get: daily-time
+    trigger: true
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: "rhel-7-9-sap"
+  - put: rhel-7-9-sap-gcs
+    params:
+      file: build-id-dir/rhel-7-9-sap*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: rhel-7-9-sap-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: daisy-build-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/daisy-build-images.yaml
+    vars:
+      wf: "enterprise_linux/rhel_7_9_sap.wf.json"
+      gcs_url: ((.:gcs-url))
+      iso: ((iso-paths.rhel-7-9))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 - name: build-rhel-8-1-sap
@@ -989,6 +1027,37 @@ jobs:
     vars:
       images: projects/bct-prod-images/global/images/rhel-7-7-sap-v((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
+- name: publish-to-testing-rhel-7-9-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-9-sap-gcs
+    passed: [build-rhel-7-9-sap]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-9-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_9_sap.publish.json"
+      environment: "test"
+  - task: image-test-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/image-test-args.yaml
+    attempts: 3
+    vars:
+      images: projects/bct-prod-images/global/images/rhel-7-9-sap-v((.:publish-version))
+      extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -1462,6 +1531,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
       environment: "staging"
+- name: publish-to-staging-rhel-7-9-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-9-sap-gcs
+    passed: [publish-to-testing-rhel-7-9-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-9-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-staging-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_9_sap.publish.json"
+      environment: "staging"
 - name: publish-to-staging-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -1893,6 +1987,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
       environment: "oslogin-staging"
+- name: publish-to-oslogin-staging-rhel-7-9-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-9-sap-gcs
+    passed: [publish-to-testing-rhel-7-9-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-9-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-oslogin-staging-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_9_sap.publish.json"
+      environment: "oslogin-staging"
 - name: publish-to-oslogin-staging-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -2321,6 +2440,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
       environment: "prod"
+- name: publish-to-prod-rhel-7-9-sap
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: rhel-7-9-sap-gcs
+    passed: [publish-to-testing-rhel-7-9-sap]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: rhel-7-9-sap-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-rhel-7-9-sap
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "enterprise_linux/rhel_7_9_sap.publish.json"
+      environment: "prod"
 - name: publish-to-prod-rhel-8-1-sap
   plan:
   - get: guest-test-infra
@@ -2556,6 +2700,7 @@ groups:
   - build-rhel-8-byos
   - build-rhel-7-6-sap
   - build-rhel-7-7-sap
+  - build-rhel-7-9-sap
   - build-rhel-8-1-sap
   - build-rhel-8-2-sap
   - build-rhel-8-4-sap
@@ -2565,6 +2710,7 @@ groups:
   - publish-to-testing-rhel-8-byos
   - publish-to-testing-rhel-7-6-sap
   - publish-to-testing-rhel-7-7-sap
+  - publish-to-testing-rhel-7-9-sap
   - publish-to-testing-rhel-8-1-sap
   - publish-to-testing-rhel-8-2-sap
   - publish-to-testing-rhel-8-4-sap
@@ -2574,6 +2720,7 @@ groups:
   - publish-to-staging-rhel-8
   - publish-to-staging-rhel-7-6-sap
   - publish-to-staging-rhel-7-7-sap
+  - publish-to-staging-rhel-7-9-sap
   - publish-to-staging-rhel-8-1-sap
   - publish-to-staging-rhel-8-2-sap
   - publish-to-staging-rhel-8-4-sap
@@ -2583,6 +2730,7 @@ groups:
   - publish-to-oslogin-staging-rhel-8
   - publish-to-oslogin-staging-rhel-7-6-sap
   - publish-to-oslogin-staging-rhel-7-7-sap
+  - publish-to-oslogin-staging-rhel-7-9-sap
   - publish-to-oslogin-staging-rhel-8-1-sap
   - publish-to-oslogin-staging-rhel-8-2-sap
   - publish-to-oslogin-staging-rhel-8-4-sap
@@ -2592,6 +2740,7 @@ groups:
   - publish-to-prod-rhel-8-byos
   - publish-to-prod-rhel-7-6-sap
   - publish-to-prod-rhel-7-7-sap
+  - publish-to-prod-rhel-7-9-sap
   - publish-to-prod-rhel-8-1-sap
   - publish-to-prod-rhel-8-2-sap
   - publish-to-prod-rhel-8-4-sap
