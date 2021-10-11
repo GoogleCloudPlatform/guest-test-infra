@@ -10,6 +10,10 @@ jobs:
   - load_var: commit-sha
     file: guest-agent/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -73,6 +77,22 @@ jobs:
       name: package-version/version
       tag: package-version/version
       commitish: guest-agent/.git/ref
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-agent"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-agent"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: inject-guest-agent-staging
   plan:
@@ -83,6 +103,10 @@ jobs:
         trigger: true
       - get: guest-test-infra
       - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - load_var: package-version
     file: guest-agent-tag/version
   - task: get-credential
@@ -196,12 +220,32 @@ jobs:
           repo: google-compute-engine-metadata-scripts
         params:
           ENVIRONMENT: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-guest-agent-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-guest-agent-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-guest-agent-stable
   plan:
   - get: guest-agent-tag
     passed: [inject-guest-agent-staging]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -235,6 +279,22 @@ jobs:
           universe: cloud-yum
           repo: google-guest-agent-el8
           environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-guest-oslogin
   plan:
@@ -245,6 +305,10 @@ jobs:
   - load_var: commit-sha
     file: guest-oslogin/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -335,12 +399,32 @@ jobs:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-oslogin"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-oslogin"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-guest-oslogin-staging
   plan:
   - get: guest-oslogin-tag
     passed: [build-guest-oslogin]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -376,12 +460,32 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
           environment: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-oslogin-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-oslogin-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-guest-oslogin-stable
   plan:
   - get: guest-oslogin-tag
     passed: [promote-guest-oslogin-staging]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -417,6 +521,22 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
           environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-oslogin-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-oslogin-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-osconfig
   plan:
@@ -427,6 +547,10 @@ jobs:
   - load_var: commit-sha
     file: osconfig/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -503,6 +627,22 @@ jobs:
           package_path: osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo
           universe: cloud-yuck
           repo: google-osconfig-agent
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-osconfig"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-osconfig"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-guest-diskexpand
   plan:
@@ -513,6 +653,10 @@ jobs:
   - load_var: commit-sha
     file: guest-diskexpand/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -575,6 +719,22 @@ jobs:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-disk-expand-el8
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-diskexpand"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-diskexpand"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-guest-configs
   plan:
@@ -585,6 +745,10 @@ jobs:
   - load_var: commit-sha
     file: guest-configs/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -659,12 +823,32 @@ jobs:
           package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-configs"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-guest-configs"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-guest-configs-staging
   plan:
   - get: guest-configs-tag
     passed: [build-guest-configs]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -698,12 +882,32 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
           environment: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-configs-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-configs-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-guest-configs-stable
   plan:
   - get: guest-configs-tag
     passed: [promote-guest-configs-staging]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -737,6 +941,22 @@ jobs:
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
           environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-configs-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-configs-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-artifact-registry-el-plugins
   plan:
@@ -747,6 +967,10 @@ jobs:
   - load_var: commit-sha
     file: artifact-registry-yum-plugin/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -795,6 +1019,22 @@ jobs:
           package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-artifact-registry-el-plugins"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-artifact-registry-el-plugins"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: build-artifact-registry-apt-transport
   plan:
@@ -805,6 +1045,10 @@ jobs:
   - load_var: commit-sha
     file: artifact-registry-apt-transport/.git/ref
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
@@ -833,12 +1077,32 @@ jobs:
       package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb
       universe: cloud-apt
       repo: apt-transport-artifact-registry
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-artifact-registry-apt-transport"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-artifact-registry-apt-transport"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-artifact-registry-el-plugins-staging
   plan:
   - get: artifact-registry-yum-plugin-tag
     passed: [build-artifact-registry-el-plugins]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -856,12 +1120,32 @@ jobs:
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
           environment: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-el-plugins-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-el-plugins-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-artifact-registry-el-plugins-stable
   plan:
   - get: artifact-registry-yum-plugin-tag
     passed: [promote-artifact-registry-el-plugins-staging]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -879,12 +1163,32 @@ jobs:
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
           environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-el-plugins-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-el-plugins-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-artifact-registry-apt-transport-staging
   plan:
   - get: artifact-registry-apt-transport-tag
     passed: [build-artifact-registry-apt-transport]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -896,12 +1200,32 @@ jobs:
           universe: cloud-apt
           repo: apt-transport-artifact-registry
           environment: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-apt-transport-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-apt-transport-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-artifact-registry-apt-transport-stable
   plan:
   - get: artifact-registry-apt-transport-tag
     passed: [promote-artifact-registry-apt-transport-staging]
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
@@ -913,6 +1237,22 @@ jobs:
           universe: cloud-apt
           repo: apt-transport-artifact-registry
           environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-apt-transport-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-artifact-registry-apt-transport-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 resources:
 - name: guest-agent
