@@ -15,6 +15,8 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+const gcomment = "# Added by Google"
+
 func TestHostname(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
@@ -155,8 +157,40 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 
 	for i := 0; i < len(hashes); i++ {
 		if hashes[i].file.Name() != hashesAfter[i].file.Name() ||
-			hashes[i].hash != hashesAfter[i].hash {
+				hashes[i].hash != hashesAfter[i].hash {
 			t.Fatalf("Hashes changed after restarting guest agent")
 		}
 	}
+}
+
+func TestHostsFile(t *testing.T) {
+	b, err := ioutil.ReadFile("/etc/hosts")
+	if err != nil {
+		t.Fatalf("Couldn't read /etc/hosts")
+	}
+	lines := strings.Split(string(b), "\n")
+	for line := range lines {
+		if !strings.Contains(line, gcomment) {
+			continue
+		}
+		if err := isMetadataServerOrHost(line); err != nil {
+			t.Fatalf("/etc/hosts failed has wrong record.")
+		}
+	}
+}
+
+func isMetadataServerOrHost(line) error {
+	ip, err := utils.GetMetadata("network-interfaces/0/ip")
+	if err != nil {
+		t.Fatalf("Couldn't get ip from metadata")
+	}
+	hostname, err := utils.GetMetadata("hostname")
+	if err != nil {
+		t.Fatalf("Couldn't get hostname from metadata")
+	}
+	if strings.Split(line, " ")[0] == "169.254.169.254" && strings.Split(line, " ")[1] == "metadata.google.internal" ||
+			strings.Split(line, " ")[0] == ip && strings.Split(line, " ")[1] == hostname {
+		return nil
+	}
+	return fmt.Errorf("not found metadata server and host")
 }
