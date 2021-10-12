@@ -74,4 +74,3 @@ func checkSudoGroup(client *ssh.Client, user string) error {
 	}
 	return nil
 }
-
