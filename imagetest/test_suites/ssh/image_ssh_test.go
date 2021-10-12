@@ -48,6 +48,47 @@ func TestSSHInstanceKey(t *testing.T) {
 	}
 }
 
+// TestSSHInstanceKeyRemoved test when SSH key removed, group will be removed
+func TestSSHInstanceKeyRemoved(t *testing.T) {
+	vmname, err := utils.GetRealVMName("vm2")
+	if err != nil {
+		t.Fatalf("failed to get real vm name: %v", err)
+	}
+	pembytes, err := utils.DownloadPrivateKey(user)
+	if err != nil {
+		t.Fatalf("failed to download private key: %v", err)
+	}
+	time.Sleep(60 * time.Second)
+	t.Logf("connect to remote host at %d", time.Now().UnixNano())
+	client, err := createClient(user, fmt.Sprintf("%s:22", vmname), pembytes)
+	if err != nil {
+		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
+	}
+	if err := removeSSHKeys(client, vmname); err != nil {
+		t.Fatalf("failed to remove ssh keys: %v", err)
+	}
+	if err := checkSudoGroup(client, user); err != nil {
+		t.Logf("check sudo group shold return err is expected as user is not in google-sudoers group: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Logf("failed to close client: %v", err)
+	}
+	t.Fatalf("user is not removed in google-sudoer group")
+}
+
+func removeSSHKeys(client *ssh.Client, vmname string) error {
+	session, err := client.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	cmd := fmt.Sprintf("gcloud compute instances remove-metadata %s --keys ssh-keys --quiet", vmname)
+	if err := session.Run(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
 func createClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 	// generate signer instance from plain key
 	signer, err := ssh.ParsePrivateKey(pembytes)
