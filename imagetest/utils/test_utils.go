@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/crypto/ssh"
 )
 
 const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
@@ -175,4 +176,25 @@ func ParseHostKey(bytes []byte) (map[string]string, error) {
 		hostkeyMap[keyType] = keyValue
 	}
 	return hostkeyMap, nil
+}
+
+// CreateClient create a ssh client to connect host.
+func CreateClient(user, host string, pembytes []byte) (*ssh.Client, error) {
+	// generate signer instance from plain key
+	signer, err := ssh.ParsePrivateKey(pembytes)
+	if err != nil {
+		return nil, fmt.Errorf("parsing plain private key failed %v", err)
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
+	}
+	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+	client, err := ssh.Dial("tcp", host, sshConfig)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
