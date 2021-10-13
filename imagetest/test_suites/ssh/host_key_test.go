@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	markerFile     = "/boot-marker"
+	markerFile = "/boot-marker"
 )
 
 // TestMatchingKeysInGuestAttributes validate that host keys in guest attributes match those on disk.
@@ -114,10 +114,10 @@ func TestHostKeysNotOverrideAfterReboot(t *testing.T) {
 			t.Fatalf("failed creating hostkeys file: %v", err)
 		}
 		var hostkeysStr []string
-		for key, value :=range hostKeys {
+		for key, value := range hostKeys {
 			hostkeysStr = append(hostkeysStr, fmt.Sprintf("%s %s", key, value))
 		}
-		if _, err:= file.WriteString(strings.Join(hostkeysStr, "\n")); err!=nil{
+		if _, err := file.WriteString(strings.Join(hostkeysStr, "\n")); err != nil {
 			t.Fatalf("failed writting data to file %v", err)
 		}
 		t.Fatal("marker file does not exist")
@@ -137,7 +137,7 @@ func TestHostKeysNotOverrideAfterReboot(t *testing.T) {
 		keyType := strings.Split(line, " ")[0]
 		keyValue := strings.Split(line, " ")[1]
 		afterReboot, found := hostKeys[keyType]
-		if !found{
+		if !found {
 			t.Fatalf("host keys %s are not found after reboot", keyType)
 		}
 		if afterReboot != keyValue {
