@@ -156,8 +156,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 	}
 
 	for i := 0; i < len(hashes); i++ {
-		if hashes[i].file.Name() != hashesAfter[i].file.Name() ||
-				hashes[i].hash != hashesAfter[i].hash {
+		if hashes[i].file.Name() != hashesAfter[i].file.Name() || hashes[i].hash != hashesAfter[i].hash {
 			t.Fatalf("Hashes changed after restarting guest agent")
 		}
 	}
@@ -176,7 +175,7 @@ func TestHostsFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't get hostname from metadata")
 	}
-	targetLineHost := fmt.Sprintf("%s %s %s %s\n", ip, hostname, strings.Split(hostname, ".")[0], gcomment)
+	targetLineHost := fmt.Sprintf("%s %s %s  %s\n", ip, hostname, strings.Split(hostname, ".")[0], gcomment)
 	targetLineMetadata := fmt.Sprintf("%s %s  %s\n", "169.254.169.254", "metadata.google.internal", gcomment)
 	if !strings.Contains(string(b), targetLineHost) {
 		t.Fatalf("/etc/hosts does not contain host record.")
