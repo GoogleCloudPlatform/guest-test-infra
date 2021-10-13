@@ -1056,7 +1056,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     attempts: 3
     vars:
-      images: projects/bct-prod-images/global/images/rhel-7-9-sap-v((.:publish-version))
+      images: projects/bct-prod-images/global/images/rhel-7-9-sap-((.:publish-version))
       extra-args: -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
 - name: publish-to-testing-rhel-8-1-sap
   plan:
