@@ -345,12 +345,12 @@ func runCommand(name string, arg ...string) (string, string, error) {
 
 var (
 	allowedTCP = []string{
-		"22", // ssh
-    "111", // rpcbind used by pacemaker
+		"22",  // ssh
+		"111", // rpcbind used by pacemaker
 	}
 	allowedUDP = []string{
 		"68",  // bootpc aka DHCP client port
-    "111", // rpcbind used by pacemaker
+		"111", // rpcbind used by pacemaker
 		"123", // ntp
 	}
 )
