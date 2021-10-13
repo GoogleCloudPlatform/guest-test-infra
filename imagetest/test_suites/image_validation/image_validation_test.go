@@ -168,29 +168,20 @@ func TestHostsFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't read /etc/hosts")
 	}
-	lines := strings.Split(string(b), "\n")
-	for _, line := range lines {
-		if !strings.Contains(line, gcomment) {
-			continue
-		}
-		if err := isMetadataServerOrHost(line); err != nil {
-			t.Fatalf("/etc/hosts failed has wrong record.")
-		}
-	}
-}
-
-func isMetadataServerOrHost(line string) error {
 	ip, err := utils.GetMetadata("network-interfaces/0/ip")
 	if err != nil {
-		return fmt.Errorf("Couldn't get ip from metadata")
+		t.Fatalf("Couldn't get ip from metadata")
 	}
 	hostname, err := utils.GetMetadata("hostname")
 	if err != nil {
-		return fmt.Errorf("Couldn't get hostname from metadata")
+		t.Fatalf("Couldn't get hostname from metadata")
 	}
-	if strings.Split(line, " ")[0] == "169.254.169.254" && strings.Split(line, " ")[1] == "metadata.google.internal" ||
-			strings.Split(line, " ")[0] == ip && strings.Split(line, " ")[1] == hostname {
-		return nil
+	targetLineHost := fmt.Sprintf("%s %s %s %s\n", ip, hostname, strings.Split(hostname, ".")[0], gcomment)
+	targetLineMetadata := fmt.Sprintf("%s %s  %s\n", "169.254.169.254", "metadata.google.internal", gcomment)
+	if !strings.Contains(string(b), targetLineHost) {
+		t.Fatalf("/etc/hosts does not contain host record.")
 	}
-	return fmt.Errorf("not found metadata server and host")
+	if !strings.Contains(string(b), targetLineMetadata) {
+		t.Fatalf("/etc/hosts does not contain metadata server record.")
+	}
 }
