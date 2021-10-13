@@ -390,6 +390,15 @@ func TestSockets(t *testing.T) {
 		// SSH. If we didn't match any above, test logic is faulty.
 		t.Fatalf("No listening sockets")
 	}
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "-sap") {
+		// SAP Images are permitted to have 'rpcbind' listening on port 111
+		allowedTCP = append(allowedTCP, "111")
+		allowedUDP = append(allowedUDP, "111")
+	}
 	if err := validateSockets(listenUDP, allowedUDP); err != nil {
 		t.Error(err)
 	}
