@@ -62,3 +62,7 @@ func verifyDiskSize(expectedGb int) error {
 	}
 	return nil
 }
+
+func TestDiskResizeNVME(t *testing.T) {
+	TestDiskResize(t)
+}
