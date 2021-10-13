@@ -48,6 +48,7 @@ var (
 		"cos-dev":                 "projects/cos-cloud/global/images/family/cos-dev",
 		"cos-stable":              "projects/cos-cloud/global/images/family/cos-stable",
 		"debian-10":               "projects/debian-cloud/global/images/family/debian-10",
+		"debian-11":               "projects/debian-cloud/global/images/family/debian-11",
 		"debian-9":                "projects/debian-cloud/global/images/family/debian-9",
 		"fedora-coreos-next":      "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-next",
 		"fedora-coreos-stable":    "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-stable",
