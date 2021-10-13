@@ -4,12 +4,18 @@ package ssh
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"golang.org/x/crypto/ssh"
+)
+
+const (
+	markerFile     = "/boot-marker"
 )
 
 // TestMatchingKeysInGuestAttributes validate that host keys in guest attributes match those on disk.
@@ -39,7 +45,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 			t.Fatalf("failed finding key %s from disk", keyType)
 		}
 		if valueFromDisk != strings.TrimSpace(keyValue) {
-			t.Fatalf("host keys %s %s in guest attributes match those on disk %s", keyType, keyValue, valueFromDisk)
+			t.Fatalf("host keys %s %s in guest attributes not match those on disk %s", keyType, keyValue, valueFromDisk)
 		}
 	}
 }
@@ -59,7 +65,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
-	remoteDiskEntries, err := getRemoteHostKey(client)
+	remoteDiskEntries, err := getRemoteHostKeys(client)
 	if err != nil {
 		t.Fatalf("failed to get host key from remote, err: %v", err)
 	}
@@ -79,7 +85,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	}
 }
 
-func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
+func getRemoteHostKeys(client *ssh.Client) (map[string]string, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, err
@@ -90,4 +96,52 @@ func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
 		return nil, err
 	}
 	return utils.ParseHostKey(bytes)
+}
+
+func TestHostKeysNotOverrideAfterReboot(t *testing.T) {
+	_, err := os.Stat(markerFile)
+	if os.IsNotExist(err) {
+		// first boot
+		if _, err := os.Create(markerFile); err != nil {
+			t.Fatalf("failed creating marker file: %v", err)
+		}
+		hostKeys, err := utils.GetHostKeysFromDisk()
+		if err != nil {
+			t.Fatalf("failed to get host key from disk %v", err)
+		}
+		file, err := os.Create("/hostkeys")
+		if err != nil {
+			t.Fatalf("failed creating hostkeys file: %v", err)
+		}
+		var hostkeysStr []string
+		for key, value :=range hostKeys {
+			hostkeysStr = append(hostkeysStr, fmt.Sprintf("%s %s", key, value))
+		}
+		if _, err:= file.WriteString(strings.Join(hostkeysStr, "\n")); err!=nil{
+			t.Fatalf("failed writting data to file %v", err)
+		}
+		t.Fatal("marker file does not exist")
+	}
+	// second boot
+	hostKeys, err := utils.GetHostKeysFromDisk()
+	if err != nil {
+		t.Fatalf("failed to get host key from disk %v", err)
+	}
+
+	data, err := ioutil.ReadFile("/hostkeys")
+	if err != nil {
+		t.Fatalf("failed reading hostkeys file: %v", err)
+	}
+	splits := strings.Split(string(data), "\n")
+	for _, line := range splits {
+		keyType := strings.Split(line, " ")[0]
+		keyValue := strings.Split(line, " ")[1]
+		afterReboot, found := hostKeys[keyType]
+		if !found{
+			t.Fatalf("host keys %s are not found after reboot", keyType)
+		}
+		if afterReboot != keyValue {
+			t.Fatalf("host keys on first boot %s %s change after reboot", keyType, keyValue)
+		}
+	}
 }
