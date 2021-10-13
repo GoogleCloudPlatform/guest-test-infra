@@ -16,6 +16,7 @@ const (
 	vm2              = "vm2"
 	vm3              = "vm3"
 	vm4              = "vm4"
+	vm5              = "vm5"
 	vm3IP            = "192.168.0.2"
 	vm4IP            = "192.168.0.3"
 )
@@ -110,5 +111,36 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.RunTests("TestPingVMToVM")
 	vm4.RunTests("TestEmptyTest")
+
+	vm5, err := t.CreateTestVM(vm5)
+	if err != nil {
+		return err
+	}
+
+	// create network
+	network3, err := t.CreateNetwork("network-3", true)
+	if err != nil {
+		return err
+	}
+	network4, err := t.CreateNetwork("network-4", false)
+	if err != nil {
+		return err
+	}
+	// create subnetwork
+	subnetwork3, err := network3.CreateSubnetwork("subnetwork-3", "192.168.0.0/16")
+	if err != nil {
+		return err
+	}
+	subnetwork4, err := network4.CreateSubnetwork("subnetwork-4", "192.169.0.0/16")
+	if err != nil {
+		return err
+	}
+	if err := vm5.AddCustomNetwork(network3, subnetwork3); err != nil {
+		return err
+	}
+	if err := vm5.AddCustomNetwork(network4, subnetwork4); err != nil {
+		return err
+	}
+	vm5.RunTests("TestDHCP")
 	return nil
 }
