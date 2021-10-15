@@ -34,6 +34,7 @@ var (
 	timeout       = flag.String("timeout", "30m", "timeout for the test suite")
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
+	exclude       = flag.String("exclude", "", "skip tests matching filter")
 )
 
 var (
@@ -113,14 +114,24 @@ func main() {
 		log.Printf("gcs_path set to %s", *gcsPath)
 	}
 
-	var regex *regexp.Regexp
+	var filterRegex *regexp.Regexp
 	if *filter != "" {
 		var err error
-		regex, err = regexp.Compile(*filter)
+		filterRegex, err = regexp.Compile(*filter)
 		if err != nil {
 			log.Fatal("-filter flag not valid:", err)
 		}
 		log.Printf("using -filter %s", *filter)
+	}
+
+	var excludeRegex *regexp.Regexp
+	if *exclude != "" {
+		var err error
+		excludeRegex, err = regexp.Compile(*exclude)
+		if err != nil {
+			log.Fatal("-exclude flag not valid:", err)
+		}
+		log.Printf("using -exclude %s", *filter)
 	}
 
 	// Setup tests.
@@ -164,7 +175,10 @@ func main() {
 
 	var testWorkflows []*imagetest.TestWorkflow
 	for _, testPackage := range testPackages {
-		if regex != nil && !regex.MatchString(testPackage.name) {
+		if filterRegex != nil && !filterRegex.MatchString(testPackage.name) {
+			continue
+		}
+		if excludeRegex != nil && excludeRegex.MatchString(testPackage.name) {
 			continue
 		}
 		for _, image := range strings.Split(*images, ",") {
@@ -188,14 +202,17 @@ func main() {
 		}
 	}
 
-	log.Println("imagetest: Done with setup")
+	if len(testWorkflows) == 0 {
+		log.Fatalf("No workflows to run!")
+	}
+
+	log.Println("Done with setup")
 
 	ctx := context.Background()
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		log.Printf("failed to set up storage client: %v", err)
-		return
+		log.Fatalf("failed to set up storage client: %v", err)
 	}
 
 	if *printwf {
