@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -53,7 +54,7 @@ func verifyIPAliases() error {
 
 	actualIPs, err := getGoogleRoutes(networkInterface)
 	if err != nil {
-		return fmt.Errorf("failed get ip alises")
+		return err
 	}
 	if err := verifyIPExist(actualIPs); err != nil {
 		return err
@@ -62,6 +63,10 @@ func verifyIPAliases() error {
 }
 
 func getGoogleRoutes(networkInterface string) ([]string, error) {
+	// First, we probably need to wait so the guest agent can add the
+	// routes. If this is insufficient, we might need to add retries.
+	time.Sleep(30 * time.Second)
+
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
 	b, err := cmd.Output()
