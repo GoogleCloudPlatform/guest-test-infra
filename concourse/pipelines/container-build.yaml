@@ -8,6 +8,7 @@ resources:
 
 jobs:
 - name: build-cit-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -21,6 +22,7 @@ jobs:
     params:
       DOCKERFILE: guest-test-infra/imagetest/Dockerfile
 - name: build-gobuild-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -32,6 +34,7 @@ jobs:
       destination: gcr.io/gcp-guest/gobuild:latest
       context: guest-test-infra/container_images/gobuild
 - name: build-gotest-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -43,6 +46,7 @@ jobs:
       destination: gcr.io/gcp-guest/gotest:latest
       context: guest-test-infra/container_images/gotest
 - name: build-gocheck-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -54,6 +58,7 @@ jobs:
       destination: gcr.io/gcp-guest/gocheck:latest
       context: guest-test-infra/container_images/gocheck
 - name: build-build-essential-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -65,6 +70,7 @@ jobs:
       destination: gcr.io/gcp-guest/build-essential:latest
       context: guest-test-infra/container_images/build-essential
 - name: build-concourse-metrics-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -78,6 +84,7 @@ jobs:
     params:
       DOCKERFILE: guest-test-infra/container_images/concourse-metrics/Dockerfile
 - name: build-flake8-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -89,6 +96,7 @@ jobs:
       destination: gcr.io/gcp-guest/flake8:latest
       context: guest-test-infra/container_images/flake8
 - name: build-gointegtest-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -100,6 +108,7 @@ jobs:
       destination: gcr.io/gcp-guest/gointegtest:latest
       context: guest-test-infra/container_images/gointegtest
 - name: build-pytest-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
@@ -111,6 +120,7 @@ jobs:
       destination: gcr.io/gcp-guest/pytest:latest
       context: guest-test-infra/container_images/pytest
 - name: build-fly-vp-container
+  serial_groups: [serial]
   plan:
   - get: guest-test-infra
     trigger: true
