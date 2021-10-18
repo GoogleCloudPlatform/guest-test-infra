@@ -131,7 +131,7 @@ func main() {
 		if err != nil {
 			log.Fatal("-exclude flag not valid:", err)
 		}
-		log.Printf("using -exclude %s", *filter)
+		log.Printf("using -exclude %s", *exclude)
 	}
 
 	// Setup tests.
