@@ -7,8 +7,6 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "oslogin"
 
-const user = "test-user"
-
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	vm, err := t.CreateTestVM("vm")

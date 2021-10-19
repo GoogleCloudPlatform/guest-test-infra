@@ -30,14 +30,18 @@ func TestOsLoginEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot read /etc/ssh/sshd_config")
 	}
+	var found bool
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		if strings.Contains(line, "AuthorizedKeysCommand") && !strings.Contains(line, "/usr/bin/google_authorized_keys") {
-			t.Errorf("AuthorizedKeysCommand not set up for OS Login.")
+		if strings.Contains(line, "AuthorizedKeysCommand") && strings.Contains(line, "/usr/bin/google_authorized_keys") {
+			found = true
 		}
+	}
+	if !found {
+		t.Errorf("AuthorizedKeysCommand not set up for OS Login.")
 	}
 
 	// Check Pam Modules
@@ -62,7 +66,7 @@ func TestOsLoginDisabled(t *testing.T) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
+		if strings.Contains(line, "passwd:") && strings.Contains(line, "oslogin") {
 			t.Errorf("OS Login NSS module wrongly included in /etc/nsswitch.conf when disabled.")
 		}
 	}
