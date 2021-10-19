@@ -15,6 +15,8 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+const gcomment = "# Added by Google"
+
 func TestHostname(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
@@ -154,9 +156,31 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 	}
 
 	for i := 0; i < len(hashes); i++ {
-		if hashes[i].file.Name() != hashesAfter[i].file.Name() ||
-			hashes[i].hash != hashesAfter[i].hash {
+		if hashes[i].file.Name() != hashesAfter[i].file.Name() || hashes[i].hash != hashesAfter[i].hash {
 			t.Fatalf("Hashes changed after restarting guest agent")
 		}
+	}
+}
+
+func TestHostsFile(t *testing.T) {
+	b, err := ioutil.ReadFile("/etc/hosts")
+	if err != nil {
+		t.Fatalf("Couldn't read /etc/hosts")
+	}
+	ip, err := utils.GetMetadata("network-interfaces/0/ip")
+	if err != nil {
+		t.Fatalf("Couldn't get ip from metadata")
+	}
+	hostname, err := utils.GetMetadata("hostname")
+	if err != nil {
+		t.Fatalf("Couldn't get hostname from metadata")
+	}
+	targetLineHost := fmt.Sprintf("%s %s %s  %s\n", ip, hostname, strings.Split(hostname, ".")[0], gcomment)
+	targetLineMetadata := fmt.Sprintf("%s %s  %s\n", "169.254.169.254", "metadata.google.internal", gcomment)
+	if !strings.Contains(string(b), targetLineHost) {
+		t.Fatalf("/etc/hosts does not contain host record.")
+	}
+	if !strings.Contains(string(b), targetLineMetadata) {
+		t.Fatalf("/etc/hosts does not contain metadata server record.")
 	}
 }
