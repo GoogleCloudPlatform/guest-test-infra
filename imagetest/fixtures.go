@@ -33,7 +33,8 @@ const (
 	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
-	DefaultSourceRange       = "10.128.0.0/9"
+	// DefaultSourceRange is the RFC-1918 range used in default rules.
+	DefaultSourceRange = "10.128.0.0/9"
 )
 
 // TestVM is a test VM.
