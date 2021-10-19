@@ -17,6 +17,8 @@ package imagetest
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
@@ -31,6 +33,7 @@ const (
 	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
+	DefaultSourceRange       = "10.128.0.0/9"
 )
 
 // TestVM is a test VM.
@@ -359,11 +362,15 @@ func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 	})
 }
 
-func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocol string, ports []string) (*daisy.Step, *daisy.FirewallRule, error) {
+func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocol string, ports, ranges []string) (*daisy.Step, *daisy.FirewallRule, error) {
+	if ranges == nil {
+		ranges = []string{DefaultSourceRange}
+	}
 	firewall := &daisy.FirewallRule{
 		Firewall: compute.Firewall{
-			Name:    firewallName,
-			Network: networkName,
+			Name:         firewallName,
+			Network:      networkName,
+			SourceRanges: ranges,
 			Allowed: []*compute.FirewallAllowed{
 				{
 					IPProtocol: protocol,
@@ -389,4 +396,52 @@ func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, proto
 	}
 
 	return createFirewallStep, firewall, nil
+}
+
+// AddSSHKey generate ssh key pair and return public key.
+func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	if _, err := os.Stat(keyFileName); os.IsExist(err) {
+		os.Remove(keyFileName)
+	}
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if out, err := cmd.Output(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("ssh-keygen failed: %s %s %v", out, exitErr.Stderr, err)
+		}
+		return "", fmt.Errorf("ssh-keygen failed: %v %v", out, err)
+	}
+
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return "", fmt.Errorf("failed to read public key: %v", err)
+	}
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
+
+	return string(publicKey), nil
+}
+
+// CreateFirewallRule create firewall rule.
+func (n *Network) CreateFirewallRule(firewallName, protocol string, ports, ranges []string) error {
+	createFirewallStep, _, err := n.testWorkflow.appendCreateFirewallStep(firewallName, n.name, protocol, ports, ranges)
+	if err != nil {
+		return err
+	}
+
+	createNetworkStep, ok := n.testWorkflow.wf.Steps[createNetworkStepName]
+	if ok {
+		if err := n.testWorkflow.wf.AddDependency(createFirewallStep, createNetworkStep); err != nil {
+			return err
+		}
+	}
+	createVMsStep, ok := n.testWorkflow.wf.Steps[createVMsStepName]
+	if ok {
+		if err := n.testWorkflow.wf.AddDependency(createVMsStep, createFirewallStep); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
