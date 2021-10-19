@@ -65,17 +65,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	// create firewall
-	if err := t.CreateFirewallRule("allow-icmp-net1", "network-1", "icmp", nil); err != nil {
+	// create firewall rules
+	if err := network1.CreateFirewallRule("allow-icmp-net1", "icmp", nil, nil); err != nil {
 		return err
 	}
-	if err := t.CreateFirewallRule("allow-ssh-net1", "network-1", "tcp", []string{"22"}); err != nil {
+	if err := network1.CreateFirewallRule("allow-ssh-net1", "tcp", []string{"22"}, nil); err != nil {
 		return err
 	}
-	if err := t.CreateFirewallRule("allow-icmp-net2", "network-2", "icmp", nil); err != nil {
+	if err := network2.CreateFirewallRule("allow-icmp-net2", "icmp", nil, []string{"192.168.0.0/16"}); err != nil {
 		return err
 	}
-	if err := t.CreateFirewallRule("allow-ssh-net2", "network-2", "tcp", []string{"22"}); err != nil {
+	if err := network2.CreateFirewallRule("allow-ssh-net2", "tcp", []string{"22"}, []string{"192.168.0.0/16"}); err != nil {
 		return err
 	}
 

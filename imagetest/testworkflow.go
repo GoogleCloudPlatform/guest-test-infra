@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -28,7 +26,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -580,52 +577,4 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 		step = deps[0]
 	}
 	return t.wf.Steps[step], nil
-}
-
-// AddSSHKey generate ssh key pair and return public key.
-func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
-	keyFileName := "/id_rsa_" + uuid.New().String()
-	if _, err := os.Stat(keyFileName); os.IsExist(err) {
-		os.Remove(keyFileName)
-	}
-	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
-	cmd := exec.Command("ssh-keygen", commandArgs...)
-	if out, err := cmd.Output(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return "", fmt.Errorf("ssh-keygen failed: %s %s %v", out, exitErr.Stderr, err)
-		}
-		return "", fmt.Errorf("ssh-keygen failed: %v %v", out, err)
-	}
-
-	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
-	if err != nil {
-		return "", fmt.Errorf("failed to read public key: %v", err)
-	}
-	sourcePath := fmt.Sprintf("%s-ssh-key", user)
-	t.wf.Sources[sourcePath] = keyFileName
-
-	return string(publicKey), nil
-}
-
-// CreateFirewallRule create firewall rule.
-func (t *TestWorkflow) CreateFirewallRule(firewallName, networkName, protocal string, ports []string) error {
-	createFirewallStep, _, err := t.appendCreateFirewallStep(firewallName, networkName, protocal, ports)
-	if err != nil {
-		return err
-	}
-
-	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
-	if ok {
-		if err := t.wf.AddDependency(createFirewallStep, createNetworkStep); err != nil {
-			return err
-		}
-	}
-	createVMsStep, ok := t.wf.Steps[createVMsStepName]
-	if ok {
-		if err := t.wf.AddDependency(createVMsStep, createFirewallStep); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
