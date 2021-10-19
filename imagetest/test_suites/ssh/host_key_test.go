@@ -4,8 +4,7 @@ package ssh
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -98,50 +97,20 @@ func getRemoteHostKeys(client *ssh.Client) (map[string]string, error) {
 	return utils.ParseHostKey(bytes)
 }
 
-func TestHostKeysNotOverrideAfterReboot(t *testing.T) {
-	_, err := os.Stat(markerFile)
-	if os.IsNotExist(err) {
-		// first boot
-		if _, err := os.Create(markerFile); err != nil {
-			t.Fatalf("failed creating marker file: %v", err)
-		}
-		hostKeys, err := utils.GetHostKeysFromDisk()
-		if err != nil {
-			t.Fatalf("failed to get host key from disk %v", err)
-		}
-		file, err := os.Create("/hostkeys")
-		if err != nil {
-			t.Fatalf("failed creating hostkeys file: %v", err)
-		}
-		var hostkeysStr []string
-		for key, value := range hostKeys {
-			hostkeysStr = append(hostkeysStr, fmt.Sprintf("%s %s", key, value))
-		}
-		if _, err := file.WriteString(strings.Join(hostkeysStr, "\n")); err != nil {
-			t.Fatalf("failed writting data to file %v", err)
-		}
-		t.Fatal("marker file does not exist")
+func TestHostKeysNotOverrideAfterAgentRestart(t *testing.T) {
+	hostKeyBeforeRestart, err := utils.GetHostKeysFileFromDisk()
+	if err != nil {
+		t.Fatalf("failed to get host keys from disk %v", err)
 	}
-	// second boot
-	hostKeys, err := utils.GetHostKeysFromDisk()
+	cmd := exec.Command("systemctl", "restart", "google-guest-agent")
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("failed to restart google-guest-agent service %v", err)
+	}
+	hostKeyAfterRestart, err := utils.GetHostKeysFileFromDisk()
 	if err != nil {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
-
-	data, err := ioutil.ReadFile("/hostkeys")
-	if err != nil {
-		t.Fatalf("failed reading hostkeys file: %v", err)
-	}
-	splits := strings.Split(string(data), "\n")
-	for _, line := range splits {
-		keyType := strings.Split(line, " ")[0]
-		keyValue := strings.Split(line, " ")[1]
-		afterReboot, found := hostKeys[keyType]
-		if !found {
-			t.Fatalf("host keys %s are not found after reboot", keyType)
-		}
-		if afterReboot != keyValue {
-			t.Fatalf("host keys on first boot %s %s change after reboot", keyType, keyValue)
-		}
+	if string(hostKeyBeforeRestart) != string(hostKeyAfterRestart) {
+		t.Fatalf("host keys are changed after guest agent restart %v", err)
 	}
 }

@@ -37,9 +37,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := vm3.Reboot(); err != nil {
-		return err
-	}
-	vm3.RunTests("TestHostKeysNotOverrideAfterReboot")
+	vm3.RunTests("TestHostKeysNotOverrideAfterAgentRestart")
 	return nil
 }

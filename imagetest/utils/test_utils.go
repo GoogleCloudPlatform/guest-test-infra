@@ -143,6 +143,15 @@ func DownloadPrivateKey(user string) ([]byte, error) {
 
 // GetHostKeysFromDisk read ssh host public key and parse
 func GetHostKeysFromDisk() (map[string]string, error) {
+	totalBytes, err := GetHostKeysFileFromDisk()
+	if err != nil {
+		return nil, err
+	}
+	return ParseHostKey(totalBytes)
+}
+
+// GetHostKeysFileFromDisk read ssh host public key as bytes
+func GetHostKeysFileFromDisk() ([]byte, error) {
 	var totalBytes []byte
 	keyFiles, err := filepath.Glob("/etc/ssh/ssh_host_*_key.pub")
 	if err != nil {
@@ -156,7 +165,7 @@ func GetHostKeysFromDisk() (map[string]string, error) {
 		}
 		totalBytes = append(totalBytes, bytes...)
 	}
-	return ParseHostKey(totalBytes)
+	return totalBytes, nil
 }
 
 // ParseHostKey parse hostkey data from bytes.
