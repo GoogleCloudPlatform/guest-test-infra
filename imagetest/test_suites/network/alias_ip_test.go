@@ -46,7 +46,7 @@ func verifyIPAliases() error {
 		return fmt.Errorf("couldn't get image from metadata: %v", err)
 	}
 	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
@@ -69,12 +69,12 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
-	b, err := cmd.Output()
+	b, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error listing Google routes: %s", b)
 	}
 	if len(b) == 0 {
-		return nil, fmt.Errorf("alias IPs not configured")
+		return nil, fmt.Errorf("No Google routes found")
 	}
 	var res []string
 	for _, line := range strings.Split(string(b), "\n") {
@@ -95,7 +95,7 @@ func TestAliasAgentRestart(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
