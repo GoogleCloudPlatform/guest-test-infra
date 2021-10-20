@@ -46,7 +46,7 @@ func verifyIPAliases() error {
 		return fmt.Errorf("couldn't get image from metadata: %v", err)
 	}
 	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
@@ -95,7 +95,7 @@ func TestAliasAgentRestart(t *testing.T) {
 	}
 
 	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
+	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
 		networkInterface = defaultPredictableInterface
 	default:
 		networkInterface = defaultInterface
