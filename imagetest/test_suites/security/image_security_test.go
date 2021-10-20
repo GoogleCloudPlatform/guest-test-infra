@@ -394,11 +394,22 @@ func TestSockets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
+
 	if strings.Contains(image, "-sap") {
-		// SAP Images are permitted to have 'rpcbind' listening on port 111
+		// All SAP Images are permitted to have 'rpcbind' listening on
+		// port 111
 		allowedTCP = append(allowedTCP, "111")
+		allowedUDP = append(allowedUDP, "111")
 	}
-	if !strings.Contains(image, "7-sap") {
+
+	if strings.Contains(image, "rhel-8") && strings.Contains(image, "-sap") {
+		// RHEL 8 SAP Images are permitted to have 'systemd-resolve'
+		// listening on port 5355
+		allowedTCP = append(allowedTCP, "5355")
+		allowedUDP = append(allowedUDP, "5355")
+	}
+
+	if !(strings.Contains(image, "rhel-7") && strings.Contains(image, "-sap")) {
 		// Skip UDP check on RHEL-7-SAP images which have old rpcbind
 		// which listens to random UDP ports.
 		if err := validateSockets(listenUDP, allowedUDP); err != nil {
