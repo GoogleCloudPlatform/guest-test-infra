@@ -69,7 +69,7 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
-	b, err := cmd.Output()
+	b, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("error listing Google routes: %s", b)
 	}
