@@ -71,10 +71,10 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 	cmd := exec.Command("ip", arguments...)
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error listing Google routes: %s", b)
 	}
 	if len(b) == 0 {
-		return nil, fmt.Errorf("alias IPs not configured")
+		return nil, fmt.Errorf("No Google routes found")
 	}
 	var res []string
 	for _, line := range strings.Split(string(b), "\n") {
