@@ -4,7 +4,7 @@ image_resource:
   type: docker-image
   source:
     repository: gcr.io/kaniko-project/executor
-    tag: v1.2.0
+    tag: debug-v1.2.0
 
 inputs:
 - name: guest-test-infra
