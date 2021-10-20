@@ -397,10 +397,13 @@ func TestSockets(t *testing.T) {
 	if strings.Contains(image, "-sap") {
 		// SAP Images are permitted to have 'rpcbind' listening on port 111
 		allowedTCP = append(allowedTCP, "111")
-		allowedUDP = append(allowedUDP, "111")
 	}
-	if err := validateSockets(listenUDP, allowedUDP); err != nil {
-		t.Error(err)
+	if !strings.Contains(image, "7-sap") {
+		// Skip UDP check on RHEL-7-SAP images which have old rpcbind
+		// which listens to random UDP ports.
+		if err := validateSockets(listenUDP, allowedUDP); err != nil {
+			t.Error(err)
+		}
 	}
 	if err := validateSockets(listenTCP, allowedTCP); err != nil {
 		t.Error(err)
