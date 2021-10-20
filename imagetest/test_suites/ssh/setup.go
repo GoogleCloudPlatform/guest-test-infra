@@ -32,5 +32,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.AddMetadata("enable-guest-attributes", "true")
 	vm2.AddMetadata("enable-oslogin", "false")
 	vm2.RunTests("TestEmptyTest")
+
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.RunTests("TestHostKeysNotOverrideAfterAgentRestart")
 	return nil
 }

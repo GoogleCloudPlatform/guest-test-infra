@@ -4,6 +4,7 @@ package ssh
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -39,7 +40,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 			t.Fatalf("failed finding key %s from disk", keyType)
 		}
 		if valueFromDisk != strings.TrimSpace(keyValue) {
-			t.Fatalf("host keys %s %s in guest attributes match those on disk %s", keyType, keyValue, valueFromDisk)
+			t.Fatalf("host keys %s %s in guest attributes not match those on disk %s", keyType, keyValue, valueFromDisk)
 		}
 	}
 }
@@ -60,7 +61,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("user %s failed ssh to target host, %s, err %v", user, vmname, err)
 	}
-	remoteDiskEntries, err := getRemoteHostKey(client)
+	remoteDiskEntries, err := getRemoteHostKeys(client)
 	if err != nil {
 		t.Fatalf("failed to get host key from remote, err: %v", err)
 	}
@@ -80,7 +81,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	}
 }
 
-func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
+func getRemoteHostKeys(client *ssh.Client) (map[string]string, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, err
@@ -91,4 +92,22 @@ func getRemoteHostKey(client *ssh.Client) (map[string]string, error) {
 		return nil, err
 	}
 	return utils.ParseHostKey(bytes)
+}
+
+func TestHostKeysNotOverrideAfterAgentRestart(t *testing.T) {
+	hostKeyBeforeRestart, err := utils.GetHostKeysFileFromDisk()
+	if err != nil {
+		t.Fatalf("failed to get host keys from disk %v", err)
+	}
+	cmd := exec.Command("systemctl", "restart", "google-guest-agent")
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("failed to restart google-guest-agent service %v", err)
+	}
+	hostKeyAfterRestart, err := utils.GetHostKeysFileFromDisk()
+	if err != nil {
+		t.Fatalf("failed to get host key from disk %v", err)
+	}
+	if string(hostKeyBeforeRestart) != string(hostKeyAfterRestart) {
+		t.Fatalf("host keys are changed after guest agent restart %v", err)
+	}
 }
