@@ -108,7 +108,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm4.SetPrivateIP(network2, vm4IP); err != nil {
 		return err
 	}
-	vm3.RunTests("TestPingVMToVM")
+	vm3.RunTests("TestPingVMToVM|TestDHCP")
 	vm4.RunTests("TestEmptyTest")
 	return nil
 }
