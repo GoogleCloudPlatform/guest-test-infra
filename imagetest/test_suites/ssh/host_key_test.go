@@ -13,10 +13,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const (
-	markerFile = "/boot-marker"
-)
-
 // TestMatchingKeysInGuestAttributes validate that host keys in guest attributes match those on disk.
 func TestMatchingKeysInGuestAttributes(t *testing.T) {
 	diskEntries, err := utils.GetHostKeysFromDisk()
