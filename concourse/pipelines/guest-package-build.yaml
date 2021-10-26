@@ -846,10 +846,10 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-# The build-artifact-releaser tests Concourse's access to the artifact releaser package release process.
-# build-artifact-releaser chooses the guest-agent as the "binary" becuase
+# build-artifact-releaser-autopush tests Concourse's access to the artifact releaser package release process.
+# build-artifact-releaser-autopush chooses the guest-agent as the "binary" becuase
 # guest-agent is open sourced and available on both linux and windows platforms.
-- name: build-artifact-releaser
+- name: build-artifact-releaser-autopush
   plan:
   - get: guest-agent
     trigger: true
@@ -904,14 +904,7 @@ jobs:
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/artifact-releaser
           git_ref: main
-      - task: guest-package-build-guest-agent-el8
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
-        vars:
-          wf: build_el8.wf.json
-          repo-name: guest-agent
-          version: ((.:package-version))
-          gcs_path: gs://gcp-guest-package-uploads/artifact-releaser
-          git_ref: main
+
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -930,7 +923,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "build-artifact-releaser"
+      job: "build-artifact-releaser-autopush"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -938,7 +931,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "build-artifact-releaser"
+      job: "build-artifact-releaser-autopush"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
@@ -1616,3 +1609,8 @@ groups:
   - promote-artifact-registry-apt-transport-staging
   - promote-artifact-registry-el-plugins-stable
   - promote-artifact-registry-apt-transport-stable
+- name: artifact-releaser-autopush
+  jobs:
+  - build-artifact-releaser-autopush-autopush
+  - inject-artifact-releaser-autopush-staging
+  - promote-artifact-releaser-autopush-stable
