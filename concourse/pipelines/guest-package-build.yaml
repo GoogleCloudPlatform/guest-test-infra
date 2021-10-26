@@ -1034,19 +1034,19 @@ jobs:
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       - task: promote-deb11-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
         vars:
           universe: cloud-apt
           repo: guest-arle-autopush-trusty
           environment: stable
       - task: promote-el7-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
         vars:
           universe: cloud-yum
           repo: guest-arle-autopush-el7-x86_64
           environment: stable
       - task: promote-windows-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
         vars:
           universe: cloud-yuck
           repo: guest-arle-autopush
