@@ -942,7 +942,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: inject-artifact-releaser-staging
+- name: inject-artifact-releaser-autopush-staging
   plan:
   - in_parallel:
       steps:
@@ -1017,7 +1017,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "inject-artifact-releaser-staging"
+      job: "inject-artifact-releaser-autopush-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1025,7 +1025,53 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "inject-artifact-releaser-staging"
+      job: "inject-artifact-releaser-autopush-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: promote-artifact-releaser-autopush-stable
+  plan:
+  - get: guest-agent-tag
+    passed: [inject-artifact-releaser-autopush-staging]
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      - task: promote-deb11-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-apt
+          repo: guest-arle-autopush-trusty
+          environment: stable
+      - task: promote-el7-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yum
+          repo: guest-arle-autopush-el7-x86_64
+          environment: stable
+      - task: promote-windows-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yuck
+          repo: guest-arle-autopush
+          environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
