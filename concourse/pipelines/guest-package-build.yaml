@@ -846,6 +846,8 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
+# build-artifact-releaser tests job tests Concourse's access to artifact releaser package release process.
+# Uses guest-agent as the "binary" that will eventaully be uploaded.
 - name: build-artifact-releaser
   plan:
   - get: guest-agent
@@ -965,78 +967,32 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: build-package-image-debian-9
-        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
-        vars:
-          source-image: projects/debian-cloud/global/images/family/debian-9
-          dest-image: debian-9-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent_((.:package-version))-g1_amd64.deb
-      - task: build-package-image-debian-10
-        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
-        vars:
-          source-image: projects/debian-cloud/global/images/family/debian-10
-          dest-image: debian-10-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent_((.:package-version))-g1_amd64.deb
       - task: build-package-image-debian-11
         file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
         vars:
           source-image: projects/debian-cloud/global/images/family/debian-11
           dest-image: debian-11-((.:build-id))
           gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent_((.:package-version))-g1_amd64.deb
-      - task: build-package-image-centos-7
-        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
-        vars:
-          source-image: projects/centos-cloud/global/images/family/centos-7
-          dest-image: centos-7-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
       - task: build-package-image-rhel-7
         file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
         vars:
           source-image: projects/rhel-cloud/global/images/family/rhel-7
           dest-image: rhel-7-((.:build-id))
           gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
-      - task: build-package-image-centos-8
-        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
-        vars:
-          source-image: projects/centos-cloud/global/images/family/centos-8
-          dest-image: centos-8-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
-      - task: build-package-image-rhel-8
-        file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
-        vars:
-          source-image: projects/rhel-cloud/global/images/family/rhel-8
-          dest-image: rhel-8-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
   - task: guest-agent-image-tests
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     vars:
-      images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/centos-8-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))
+      images: projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id))
       extra-args: "-exclude=(image)|(disk)|(security)"
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-agent-deb9
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
-        vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
-          universe: cloud-apt
-        >>  repo: google-guest-agent-stretch
-        params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-deb10
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
-        vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
-          universe: cloud-apt
-        >>  repo: google-guest-agent-buster
-        params:
-          ENVIRONMENT: staging
       - task: inject-guest-agent-deb11
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
-        >>  repo: google-guest-agent-bullseye
+          repo: guest-arle-autopush-trusty
         params:
           ENVIRONMENT: staging
       - task: inject-guest-agent-el7
@@ -1044,15 +1000,7 @@ jobs:
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
-        >>  repo: google-guest-agent-el7
-        params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-el8
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
-        vars:
-          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
-          universe: cloud-yum
-        >>  repo: google-guest-agent-el8
+          repo: guest-arle-autopush-el7-x86_64
         params:
           ENVIRONMENT: staging
       - task: inject-compute-engine-windows
@@ -1060,15 +1008,7 @@ jobs:
         vars:
           package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
-        >>  repo: google-compute-engine-windows
-        params:
-          ENVIRONMENT: staging
-      - task: inject-compute-engine-metadata-scripts
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
-        vars:
-          package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
-          universe: cloud-yuck
-        >>  repo: google-compute-engine-metadata-scripts
+          repo: guest-arle-autopush
         params:
           ENVIRONMENT: staging
   on_success:
