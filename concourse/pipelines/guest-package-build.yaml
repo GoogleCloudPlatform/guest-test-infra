@@ -888,7 +888,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: guest-package-build-guest-agent-deb9
+      - task: guest-package-build-artifact-releaser-autopush-deb9
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: build_deb9.wf.json
@@ -896,7 +896,7 @@ jobs:
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/artifact-releaser
           git_ref: main
-      - task: guest-package-build-guest-agent-el7
+      - task: guest-package-build-artifact-releaser-autopush-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: build_el7.wf.json
@@ -904,8 +904,7 @@ jobs:
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/artifact-releaser
           git_ref: main
-
-      - task: guest-package-build-guest-agent-goo
+      - task: guest-package-build-artifact-releaser-autopush-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: build_goo.wf.json
@@ -973,7 +972,7 @@ jobs:
           source-image: projects/rhel-cloud/global/images/family/rhel-7
           dest-image: rhel-7-((.:build-id))
           gcs-package-path: gs://gcp-guest-package-uploads/artifact-releaser/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
-  - task: guest-agent-image-tests
+  - task: artifact-releaser-autopush-image-tests
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     vars:
       images: projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id))
@@ -981,18 +980,18 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-agent-deb11
+      - task: inject-artifact-releaser-autopush-deb11
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          package_path: artifact-releaser/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: guest-arle-autopush-trusty
         params:
           ENVIRONMENT: staging
-      - task: inject-guest-agent-el7
+      - task: inject-artifact-releaser-autopush-el7
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
+          package_path: artifact-releaser/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: guest-arle-autopush-el7-x86_64
         params:
@@ -1000,7 +999,7 @@ jobs:
       - task: inject-compute-engine-windows
         file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         vars:
-          package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
+          package_path: artifact-releaser/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
           repo: guest-arle-autopush
         params:
@@ -1021,6 +1020,7 @@ jobs:
       job: "inject-artifact-releaser-autopush-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+
 - name: promote-artifact-releaser-autopush-stable
   plan:
   - get: guest-agent-tag
