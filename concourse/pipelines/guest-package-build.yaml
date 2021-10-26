@@ -1611,7 +1611,7 @@ groups:
   - promote-artifact-registry-apt-transport-stable
 - name: artifact-releaser-autopush
   jobs:
-  - build-artifact-releaser-autopush-autopush
+  - build-artifact-releaser-autopush
   - inject-artifact-releaser-autopush-staging
   - promote-artifact-releaser-autopush-stable
   
