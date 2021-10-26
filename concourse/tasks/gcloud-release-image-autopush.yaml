@@ -21,4 +21,4 @@ run:
   - |
     wf=$(cat ((wf)) | sed 's/\"/\\"/g' | tr -d '\n')
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "ImagePublish", "request": {"image_name": "((image_name))", "gcs_image_path": "((gcs_image_path))", "image_publish_template": "${wf}", "source_version": "((source_version))", "publish_version": "((publish_version))", "release_notes": "((release_notes))"}}'
+    gcloud pubsub topics publish "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush" --message '{"type": "ImagePublish", "request": {"image_name": "((image_name))", "gcs_image_path": "((gcs_image_path))", "image_publish_template": "${wf}", "source_version": "((source_version))", "publish_version": "((publish_version))", "release_notes": "((release_notes))"}}'
