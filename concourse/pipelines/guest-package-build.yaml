@@ -852,7 +852,6 @@ jobs:
 - name: build-artifact-releaser-autopush
   plan:
   - get: guest-agent
-    trigger: true
     params:
       skip_download: true
   - load_var: commit-sha
@@ -940,7 +939,6 @@ jobs:
       steps:
       - get: guest-agent-tag
         passed: [build-guest-agent]
-        trigger: true
       - get: guest-test-infra
       - get: compute-image-tools
   - task: generate-timestamp
