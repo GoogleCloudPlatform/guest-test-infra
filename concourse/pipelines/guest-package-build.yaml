@@ -846,8 +846,9 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-# build-artifact-releaser tests job tests Concourse's access to artifact releaser package release process.
-# Uses guest-agent as the "binary" that will eventaully be uploaded.
+# The build-artifact-releaser tests Concourse's access to the artifact releaser package release process.
+# build-artifact-releaser chooses the guest-agent as the "binary" becuase
+# guest-agent is open sourced and available on both linux and windows platforms.
 - name: build-artifact-releaser
   plan:
   - get: guest-agent
