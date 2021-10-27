@@ -69,6 +69,9 @@ func main() {
 		log.Fatalf("failed to download object: %v", err)
 	}
 
+	log.Printf("sleep 30s to allow environment to stabilize")
+	time.Sleep(30 * time.Second)
+
 	out, err := executeCmd(workDir+testPackage, workDir, testArguments)
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
