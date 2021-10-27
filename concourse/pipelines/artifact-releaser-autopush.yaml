@@ -22,6 +22,8 @@ jobs:
     task: generate-timestamp
   - file: timestamp/timestamp-ms
     load_var: start-timestamp-ms
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
