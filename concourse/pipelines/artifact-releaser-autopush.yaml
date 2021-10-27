@@ -22,6 +22,8 @@ jobs:
     task: generate-timestamp
   - file: timestamp/timestamp-ms
     load_var: start-timestamp-ms
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -44,7 +46,7 @@ jobs:
       - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
         params:
           ENVIRONMENT: staging
-        task: inject-compute-engine-windows
+        task: inject-artifact-releaser-autopush-win
         vars:
           package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo
           repo: guest-arle-autopush
