@@ -1,4 +1,3 @@
----
 jobs:
 - name: inject-artifact-releaser-autopush-staging
   on_failure:
@@ -79,19 +78,25 @@ jobs:
     task: get-credential
   - in_parallel:
       steps:
-      - file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
         task: promote-deb11-stable
         vars:
           environment: stable
           repo: guest-arle-autopush-trusty
           universe: cloud-apt
-      - file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
         task: promote-el7-stable
         vars:
           environment: stable
           repo: guest-arle-autopush-el7-x86_64
           universe: cloud-yum
-      - file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
         task: promote-windows-stable
         vars:
           environment: stable
