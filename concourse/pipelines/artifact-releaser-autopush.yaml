@@ -1,8 +1,4 @@
-groups:
-- jobs:
-  - inject-artifact-releaser-autopush-staging
-  - promote-artifact-releaser-autopush-stable
-  name: artifact-releaser-autopush
+---
 jobs:
 - name: inject-artifact-releaser-autopush-staging
   on_failure:
