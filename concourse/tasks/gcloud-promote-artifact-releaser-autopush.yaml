@@ -9,9 +9,9 @@ image_resource:
 inputs:
 - name: credentials
 
-# let's start with this..
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+  TOPIC_PKG_PROMOTE_AUTOPUSH: "projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush"
 
 run:
   path: sh
@@ -19,5 +19,5 @@ run:
   - -exc
   - |
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish ((topic)) --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'
+    gcloud pubsub topics publish $TOPIC_PKG_PROMOTE_AUTOPUSH --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'
     

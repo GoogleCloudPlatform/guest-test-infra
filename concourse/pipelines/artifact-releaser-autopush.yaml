@@ -84,21 +84,18 @@ jobs:
         vars:
           environment: stable
           repo: guest-arle-autopush-trusty
-          topic: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
           universe: cloud-apt
       - file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
         task: promote-el7-stable
         vars:
           environment: stable
           repo: guest-arle-autopush-el7-x86_64
-          topic: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
           universe: cloud-yum
       - file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
         task: promote-windows-stable
         vars:
           environment: stable
           repo: guest-arle-autopush
-          topic: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
           universe: cloud-yuck
 resources:
 - name: guest-test-infra
