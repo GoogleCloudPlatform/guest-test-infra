@@ -13,6 +13,7 @@ inputs:
 # let's start with this..
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
+  TOPIC: "gcp-guest-package-uploads"
 
 run:
   path: sh
@@ -20,4 +21,4 @@ run:
   - -exc
   - |
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish gcp-guest-package-uploads --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'
+    gcloud pubsub topics publish $TOPIC --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'

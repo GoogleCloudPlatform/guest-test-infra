@@ -1,0 +1,111 @@
+jobs:
+- name: inject-artifact-releaser-autopush-staging
+  on_failure:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: failure
+    vars:
+      job: inject-artifact-releaser-autopush-staging
+      pipeline: guest-package-build
+      result_state: failure
+      start_timestamp: ((.:start-timestamp-ms))
+  on_success:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: success
+    vars:
+      job: inject-artifact-releaser-autopush-staging
+      pipeline: guest-package-build
+      result_state: success
+      start_timestamp: ((.:start-timestamp-ms))
+  plan:
+  - get: guest-test-infra
+  - file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+    task: generate-timestamp
+  - file: timestamp/timestamp-ms
+    load_var: start-timestamp-ms
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        params:
+          ENVIRONMENT: staging
+        task: inject-artifact-releaser-autopush-deb11
+        vars:
+          package_path: artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb
+          repo: guest-arle-autopush-trusty
+          universe: cloud-apt
+      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        params:
+          ENVIRONMENT: staging
+        task: inject-artifact-releaser-autopush-el7
+        vars:
+          package_path: artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm
+          repo: guest-arle-autopush-el7-x86_64
+          universe: cloud-yum
+      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        params:
+          ENVIRONMENT: staging
+        task: inject-compute-engine-windows
+        vars:
+          package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo
+          repo: guest-arle-autopush
+          universe: cloud-yuck
+- name: promote-artifact-releaser-autopush-stable
+  on_failure:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: failure
+    vars:
+      job: promote-guest-agent-stable
+      pipeline: guest-package-build
+      result_state: failure
+      start_timestamp: ((.:start-timestamp-ms))
+  on_success:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: success
+    vars:
+      job: promote-guest-agent-stable
+      pipeline: guest-package-build
+      result_state: success
+      start_timestamp: ((.:start-timestamp-ms))
+  plan:
+  - get: guest-test-infra
+    passed:
+    - inject-artifact-releaser-autopush-staging
+  - file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+    task: generate-timestamp
+  - file: timestamp/timestamp-ms
+    load_var: start-timestamp-ms
+  - file: guest-test-infra/concourse/tasks/get-credential.yaml
+    task: get-credential
+  - in_parallel:
+      steps:
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
+        task: promote-deb11-stable
+        vars:
+          environment: stable
+          repo: guest-arle-autopush-trusty
+          universe: cloud-apt
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
+        task: promote-el7-stable
+        vars:
+          environment: stable
+          repo: guest-arle-autopush-el7-x86_64
+          universe: cloud-yum
+      - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        params:
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush
+        task: promote-windows-stable
+        vars:
+          environment: stable
+          repo: guest-arle-autopush
+          universe: cloud-yuck
+resources:
+- name: guest-test-infra
+  source:
+    branch: master
+    fetch_tags: true
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+  type: git
