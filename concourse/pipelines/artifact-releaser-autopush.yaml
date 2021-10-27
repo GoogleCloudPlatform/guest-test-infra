@@ -6,6 +6,11 @@ jobs:
 # guest-agent is open sourced and available on both linux and windows platforms.
 - name: inject-artifact-releaser-autopush-staging
   plan:
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - in_parallel:
       fail_fast: true
       steps:
@@ -52,8 +57,8 @@ jobs:
 
 - name: promote-artifact-releaser-autopush-stable
   plan:
-  - passed: [inject-artifact-releaser-autopush-staging]
   - get: guest-test-infra
+    passed: [inject-artifact-releaser-autopush-staging]
   - task: generate-timestamp
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
@@ -96,9 +101,16 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
+resources:
+- name: guest-test-infra
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+    branch: master
+    fetch_tags: true
+
 groups:
 - name: artifact-releaser-autopush
   jobs:
   - inject-artifact-releaser-autopush-staging
   - promote-artifact-releaser-autopush-stable
-  
