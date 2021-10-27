@@ -1,0 +1,104 @@
+---
+jobs:
+
+# build-artifact-releaser-autopush tests Concourse's access to the artifact releaser package release process.
+# build-artifact-releaser-autopush chooses the guest-agent as the "binary" becuase
+# guest-agent is open sourced and available on both linux and windows platforms.
+- name: inject-artifact-releaser-autopush-staging
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: inject-artifact-releaser-autopush-deb11
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb
+          universe: cloud-apt
+          repo: guest-arle-autopush-trusty
+        params:
+          ENVIRONMENT: staging
+      - task: inject-artifact-releaser-autopush-el7
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm
+          universe: cloud-yum
+          repo: guest-arle-autopush-el7-x86_64
+        params:
+          ENVIRONMENT: staging
+      - task: inject-compute-engine-windows
+        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+        vars:
+          package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo
+          universe: cloud-yuck
+          repo: guest-arle-autopush
+        params:
+          ENVIRONMENT: staging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-artifact-releaser-autopush-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-artifact-releaser-autopush-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-artifact-releaser-autopush-stable
+  plan:
+  - passed: [inject-artifact-releaser-autopush-staging]
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - in_parallel:
+      - task: promote-deb11-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+        vars:
+          universe: cloud-apt
+          repo: guest-arle-autopush-trusty
+          environment: stable
+      - task: promote-el7-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+        vars:
+          universe: cloud-yum
+          repo: guest-arle-autopush-el7-x86_64
+          environment: stable
+      - task: promote-windows-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-artifact-releaser-autopush.yaml
+        vars:
+          universe: cloud-yuck
+          repo: guest-arle-autopush
+          environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+groups:
+- name: artifact-releaser-autopush
+  jobs:
+  - inject-artifact-releaser-autopush-staging
+  - promote-artifact-releaser-autopush-stable
+  
