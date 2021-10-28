@@ -123,6 +123,7 @@ jobs:
       start_timestamp: ((.:start-timestamp-ms))
   plan:
   - get: guest-test-infra
+  - get: compute-image-tools
   - file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
     task: generate-timestamp
   - file: timestamp/timestamp-ms
@@ -161,4 +162,9 @@ resources:
     branch: master
     fetch_tags: true
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+  type: git
+- name: compute-image-tools
+  source:
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
   type: git
