@@ -165,35 +165,30 @@ jobs:
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "winserver-20h2-64"
-      secret-version: "latest"
   - load_var: windows-iso
     file: gcp-secret-manager/winserver-20h2-64
   - task: get-secret-dotnet48
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_updates_sac20h2"
-      secret-version: "latest"
   - load_var: windows-updates
     file: gcp-secret-manager/windows_gcs_updates_sac20h2
   - task: get-secret-pwsh
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_pwsh"
-      secret-version: "latest"
   - load_var: windows-gcs-pwsh
     file: gcp-secret-manager/windows_gcs_pwsh
   - task: get-secret-cloud-sdk
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_cloud_sdk"
-      secret-version: "latest"
   - load_var: windows-cloud-sdk
     file: gcp-secret-manager/windows_gcs_cloud_sdk
   - task: get-secret-dotnet48
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_dotnet48"
-      secret-version: "latest"
   - load_var: windows-gcs-dotnet48
     file: gcp-secret-manager/windows_gcs_dotnet48
   - task: daisy-build-windows-20h2-core
