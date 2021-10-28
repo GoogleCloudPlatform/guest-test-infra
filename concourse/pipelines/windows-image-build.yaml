@@ -161,39 +161,39 @@ jobs:
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - task: gcloud-read-secret-manager-secret-iso
-    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+  - task: get-secret-iso
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "winserver-20h2-64"
-      secret-version: "1"
+      secret-version: "latest"
   - load_var: windows-iso
     file: gcp-secret-manager/winserver-20h2-64
-  - task: gcloud-read-secret-manager-secret-dotnet48
-    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+  - task: get-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_updates_sac20h2"
-      secret-version: "1"
+      secret-version: "latest"
   - load_var: windows-updates
     file: gcp-secret-manager/windows_gcs_updates_sac20h2
-  - task: gcloud-read-secret-manager-secret-pwsh
-    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+  - task: get-secret-pwsh
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_pwsh"
-      secret-version: "1"
+      secret-version: "latest"
   - load_var: windows-gcs-pwsh
     file: gcp-secret-manager/windows_gcs_pwsh
-  - task: gcloud-read-secret-manager-secret-cloud-sdk
-    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+  - task: get-secret-cloud-sdk
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_cloud_sdk"
-      secret-version: "1"
+      secret-version: "latest"
   - load_var: windows-cloud-sdk
     file: gcp-secret-manager/windows_gcs_cloud_sdk
-  - task: gcloud-read-secret-manager-secret-dotnet48
-    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+  - task: get-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret-name: "windows_gcs_dotnet48"
-      secret-version: "1"
+      secret-version: "latest"
   - load_var: windows-gcs-dotnet48
     file: gcp-secret-manager/windows_gcs_dotnet48
   - task: daisy-build-windows-20h2-core
