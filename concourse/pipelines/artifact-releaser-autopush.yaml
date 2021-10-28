@@ -104,10 +104,67 @@ jobs:
           environment: stable
           repo: guest-arle-autopush
           universe: cloud-yuck
+- name: artifact-releaser-publish-images-autopush
+  on_failure:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: failure
+    vars:
+      job: promote-debian
+      pipeline: guest-image-build
+      result_state: failure
+      start_timestamp: ((.:start-timestamp-ms))
+  on_success:
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    task: success
+    vars:
+      job: promote-debian
+      pipeline: guest-image-build
+      result_state: success
+      start_timestamp: ((.:start-timestamp-ms))
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+    task: generate-timestamp
+  - file: timestamp/timestamp-ms
+    load_var: start-timestamp-ms
+  - file: guest-test-infra/concourse/tasks/get-credential.yaml
+    task: get-credential
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: version
+    file: publish-version/version
+  - in_parallel:
+      steps:
+      - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+        task: publish-debian-10
+        vars:
+          topic: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
+          image_name: "debian_10"
+          gcs_image_path: "gs://artifact-releaser-autopush-rtp/debian"
+          wf: "debian/debian_10.publish.json"
+          publish_version: ((.:version))
+          source_version: "v20211027"
+          release_notes: "Disregard this release. Debian 10 test."
+      - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+        task: publish-almalinux-8
+        vars:
+          topic: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
+          image_name: "almalinux_8"
+          gcs_image_path: "gs://artifact-releaser-autopush-rtp/almalinux"
+          wf: "enterprise_linux/almalinux_8.publish.json"
+          publish_version: ((.:version))
+          source_version: "v20211027"
+          release_notes: "Disregard this release. Alma Linux 8 test."
 resources:
 - name: guest-test-infra
   source:
     branch: master
     fetch_tags: true
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
+  type: git
+- name: compute-image-tools
+  source:
+    uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
+    branch: master
   type: git
