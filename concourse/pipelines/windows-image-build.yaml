@@ -161,17 +161,52 @@ jobs:
     file: publish-version/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: gcloud-read-secret-manager-secret-iso
+    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+    vars:
+      secret-name: "winserver-20h2-64"
+      secret-version: "1"
+  - load_var: windows-iso
+    file: gcp-secret-manager/winserver-20h2-64
+  - task: gcloud-read-secret-manager-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+    vars:
+      secret-name: "windows_gcs_updates_sac20h2"
+      secret-version: "1"
+  - load_var: windows-updates
+    file: gcp-secret-manager/windows_gcs_updates_sac20h2
+  - task: gcloud-read-secret-manager-secret-pwsh
+    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+    vars:
+      secret-name: "windows_gcs_pwsh"
+      secret-version: "1"
+  - load_var: windows-gcs-pwsh
+    file: gcp-secret-manager/windows_gcs_pwsh
+  - task: gcloud-read-secret-manager-secret-cloud-sdk
+    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+    vars:
+      secret-name: "windows_gcs_cloud_sdk"
+      secret-version: "1"
+  - load_var: windows-cloud-sdk
+    file: gcp-secret-manager/windows_gcs_cloud_sdk
+  - task: gcloud-read-secret-manager-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-read-secret-manager-secret.yaml
+    vars:
+      secret-name: "windows_gcs_dotnet48"
+      secret-version: "1"
+  - load_var: windows-gcs-dotnet48
+    file: gcp-secret-manager/windows_gcs_dotnet48
   - task: daisy-build-windows-20h2-core
     file: guest-test-infra/concourse/tasks/daisy-build-images-windows.yaml
     vars:
       wf: "windows/windows-server-20h2-dc-core-uefi.wf.json"
       gcs_url: ((.:gcs-url))
       gcs_internal_url: ((.:gcs-internal-url))
-      iso: ((iso-paths.winserver-20h2-64))
-      pwsh: ((windows-paths.gcs_pwsh))
-      dotnet48: ((windows-paths.gcs_dotnet48))
-      cloudsdk: ((windows-paths.gcs_cloud_sdk))
-      updates: ((windows-paths.gcs_updates_sac20h2))
+      iso: ((.:windows-iso))
+      pwsh: ((.:windows-gcs-pwsh))
+      dotnet48: ((.:windows-gcs-dotnet48))
+      cloudsdk: ((.:windows-cloud-sdk))
+      updates: ((.:windows-updates))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
 # Windows SAC 2004 Core
