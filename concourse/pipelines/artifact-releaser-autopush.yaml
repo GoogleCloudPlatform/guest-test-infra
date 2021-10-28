@@ -144,6 +144,7 @@ jobs:
           wf: "debian/debian_10.publish.json"
           publish_version: ((.:version))
           source_version: "v20211027"
+          release_notes: "Disregard this release. Debian 10 test."
       - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
         task: publish-almalinux-8
         vars:
@@ -153,6 +154,7 @@ jobs:
           wf: "enterprise_linux/almalinux_8.publish.json"
           publish_version: ((.:version))
           source_version: "v20211027"
+          release_notes: "Disregard this release. Alma Linux 8 test."
 resources:
 - name: guest-test-infra
   source:
