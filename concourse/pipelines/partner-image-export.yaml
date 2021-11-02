@@ -20,140 +20,140 @@ resources:
 - name: cos-81-lts-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-81-lts-v([0-9]+).tar.gz"
 - name: cos-85-lts-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-85-lts-v([0-9]+).tar.gz"
 - name: cos-89-lts-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-89-lts-v([0-9]+).tar.gz"
 - name: cos-dev-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-dev-v([0-9]+).tar.gz"
 - name: fedora-33-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-33-v([0-9]+).tar.gz"
 - name: fedora-34-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-34-v([0-9]+).tar.gz"
 - name: fedora-coreos-next-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-coreos-next-v([0-9]+).tar.gz"
 - name: fedora-coreos-stable-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-coreos-stable-v([0-9]+).tar.gz"
 - name: fedora-coreos-testing-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-coreos-testing-v([0-9]+).tar.gz"
 - name: freebsd-11-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/freebsd/freebsd-11-v([0-9]+).tar.gz"
 - name: freebsd-12-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/freebsd/freebsd-12-v([0-9]+).tar.gz"
 - name: freebsd-13-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/freebsd/freebsd-13-v([0-9]+).tar.gz"
 - name: opensuse-leap-15-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/suse/opensuse-leap-15-v([0-9]+).tar.gz"
 - name: sles-12-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/suse/sles-12-v([0-9]+).tar.gz"
 - name: sles-15-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/suse/sles-15-v([0-9]+).tar.gz"
 - name: ubuntu-1804-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/ubuntu/ubuntu-1804-v([0-9]+).tar.gz"
 - name: ubuntu-2004-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/ubuntu/ubuntu-2004-v([0-9]+).tar.gz"
 - name: ubuntu-pro-1604-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/ubuntu/ubuntu-pro-1604-v([0-9]+).tar.gz"
 - name: ubuntu-pro-1804-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/ubuntu/ubuntu-pro-1804-v([0-9]+).tar.gz"
 - name: ubuntu-pro-2004-gcs
   type: gcs
   source:
-    bucket: artifact-releaser-prod-rtp
+    bucket: gce-image-archive
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/ubuntu/ubuntu-pro-2004-v([0-9]+).tar.gz"
@@ -744,7 +744,7 @@ jobs:
   - task: publish-oslogin-cos-81-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_81_lts.publish.json"
@@ -770,7 +770,7 @@ jobs:
   - task: publish-oslogin-cos-85-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_85_lts.publish.json"
@@ -796,7 +796,7 @@ jobs:
   - task: publish-oslogin-cos-89-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_89_lts.publish.json"
@@ -822,7 +822,7 @@ jobs:
   - task: publish-oslogin-cos-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_dev.publish.json"
@@ -848,7 +848,7 @@ jobs:
   - task: publish-oslogin-opensuse-leap-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/opensuse_leap_15.publish.json"
@@ -874,7 +874,7 @@ jobs:
   - task: publish-oslogin-sles-12
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_12.publish.json"
@@ -900,7 +900,7 @@ jobs:
   - task: publish-oslogin-sles-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_15.publish.json"
@@ -926,7 +926,7 @@ jobs:
   - task: publish-oslogin-ubuntu-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_1804.publish.json"
@@ -952,7 +952,7 @@ jobs:
   - task: publish-oslogin-ubuntu-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_2004.publish.json"
@@ -978,7 +978,7 @@ jobs:
   - task: publish-oslogin-ubuntu-pro-1604
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1604.publish.json"
@@ -1004,7 +1004,7 @@ jobs:
   - task: publish-oslogin-ubuntu-pro-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
@@ -1030,7 +1030,7 @@ jobs:
   - task: publish-oslogin-ubuntu-pro-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
@@ -1058,7 +1058,7 @@ jobs:
   - task: publish-staging-cos-81-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_81_lts.publish.json"
@@ -1084,7 +1084,7 @@ jobs:
   - task: publish-staging-cos-85-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_85_lts.publish.json"
@@ -1110,7 +1110,7 @@ jobs:
   - task: publish-staging-cos-89-lts
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_89_lts.publish.json"
@@ -1136,7 +1136,7 @@ jobs:
   - task: publish-staging-cos-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/cos"
+      source_gcs_path: "gs://gce-image-archive/partner/cos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/cos_dev.publish.json"
@@ -1162,7 +1162,7 @@ jobs:
   - task: publish-staging-fedora-33
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/fedora"
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/fedora_33.publish.json"
@@ -1188,7 +1188,7 @@ jobs:
   - task: publish-staging-fedora-34
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/fedora"
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/fedora_34.publish.json"
@@ -1214,7 +1214,7 @@ jobs:
   - task: publish-staging-fedora-coreos-next
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/fedora"
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_next.publish.json"
@@ -1240,7 +1240,7 @@ jobs:
   - task: publish-staging-fedora-coreos-stable
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/fedora"
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_stable.publish.json"
@@ -1266,7 +1266,7 @@ jobs:
   - task: publish-staging-fedora-coreos-testing
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/fedora"
+      source_gcs_path: "gs://gce-image-archive/partner/fedora"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_testing.publish.json"
@@ -1292,7 +1292,7 @@ jobs:
   - task: publish-staging-freebsd-11
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/freebsd"
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_11.publish.json"
@@ -1318,7 +1318,7 @@ jobs:
   - task: publish-staging-freebsd-12
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/freebsd"
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_12.publish.json"
@@ -1344,7 +1344,7 @@ jobs:
   - task: publish-staging-freebsd-13
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/freebsd"
+      source_gcs_path: "gs://gce-image-archive/partner/freebsd"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_13.publish.json"
@@ -1370,7 +1370,7 @@ jobs:
   - task: publish-staging-opensuse-leap-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/opensuse_leap_15.publish.json"
@@ -1396,7 +1396,7 @@ jobs:
   - task: publish-staging-sles-12
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_12.publish.json"
@@ -1422,7 +1422,7 @@ jobs:
   - task: publish-staging-sles-15
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/suse"
+      source_gcs_path: "gs://gce-image-archive/partner/suse"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/sles_15.publish.json"
@@ -1448,7 +1448,7 @@ jobs:
   - task: publish-staging-ubuntu-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_1804.publish.json"
@@ -1474,7 +1474,7 @@ jobs:
   - task: publish-staging-ubuntu-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_2004.publish.json"
@@ -1500,7 +1500,7 @@ jobs:
   - task: publish-staging-ubuntu-pro-1604
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1604.publish.json"
@@ -1526,7 +1526,7 @@ jobs:
   - task: publish-staging-ubuntu-pro-1804
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
@@ -1552,7 +1552,7 @@ jobs:
   - task: publish-staging-ubuntu-pro-2004
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/partner/ubuntu"
+      source_gcs_path: "gs://gce-image-archive/partner/ubuntu"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
