@@ -13,7 +13,7 @@ import (
 
 const TEST_USERNAME = "sa_105020877179577573373"
 const TEST_UID = "3651018652"
-//const TEST_USER_ENTRY = TEST_USERNAME + ":*:" + TEST_UID + ":" + TEST_UID + "::/home/" + TEST_USERNAME
+
 var TEST_USER_ENTRY = fmt.Sprintf("%s:*:%s:%s::/home/%s:", TEST_USERNAME, TEST_UID, TEST_UID, TEST_USERNAME)
 
 func TestOsLoginEnabled(t *testing.T) {
