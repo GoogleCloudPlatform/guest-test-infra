@@ -23,28 +23,28 @@ resources:
 - name: almalinux-8-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "almalinux/almalinux-8-v([0-9]+).tar.gz"
 - name: centos-7-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "centos/centos-7-v([0-9]+).tar.gz"
 - name: centos-8-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "centos/centos-8-v([0-9]+).tar.gz"
 - name: centos-stream-8-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "centos/centos-stream-8-v([0-9]+).tar.gz"
@@ -52,70 +52,70 @@ resources:
 - name: rhel-7-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-v([0-9]+).tar.gz"
 - name: rhel-8-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-v([0-9]+).tar.gz"
 - name: rhel-7-byos-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-byos-v([0-9]+).tar.gz"
 - name: rhel-8-byos-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-byos-v([0-9]+).tar.gz"
 - name: rhel-7-6-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-6-sap-v([0-9]+).tar.gz"
 - name: rhel-7-7-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-7-sap-v([0-9]+).tar.gz"
 - name: rhel-7-9-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-9-sap-v([0-9]+).tar.gz"
 - name: rhel-8-1-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-1-sap-v([0-9]+).tar.gz"
 - name: rhel-8-2-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-2-sap-v([0-9]+).tar.gz"
 - name: rhel-8-4-sap-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-4-sap-v([0-9]+).tar.gz"
@@ -123,7 +123,7 @@ resources:
 - name: rocky-linux-8-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rocky-linux/rocky-linux-8-v([0-9]+).tar.gz"
@@ -131,21 +131,21 @@ resources:
 - name: debian-9-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "debian/debian-9-stretch-v([0-9]+).tar.gz"
 - name: debian-10-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "debian/debian-10-buster-v([0-9]+).tar.gz"
 - name: debian-11-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "debian/debian-11-bullseye-v([0-9]+).tar.gz"
@@ -1099,7 +1099,7 @@ jobs:
   - task: publish-almalinux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/almalinux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
@@ -1150,7 +1150,7 @@ jobs:
   - task: publish-centos-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
@@ -1200,7 +1200,7 @@ jobs:
   - task: publish-centos-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
@@ -1250,7 +1250,7 @@ jobs:
   - task: publish-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_stream_8.publish.json"
@@ -1301,7 +1301,7 @@ jobs:
   - task: publish-rhel-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7.publish.json"
@@ -1351,7 +1351,7 @@ jobs:
   - task: publish-rhel-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8.publish.json"
@@ -1401,7 +1401,7 @@ jobs:
   - task: publish-rhel-7-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_byos.publish.json"
@@ -1451,7 +1451,7 @@ jobs:
   - task: publish-rhel-8-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_byos.publish.json"
@@ -1501,7 +1501,7 @@ jobs:
   - task: publish-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_6_sap.publish.json"
@@ -1551,7 +1551,7 @@ jobs:
   - task: publish-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
@@ -1601,7 +1601,7 @@ jobs:
   - task: publish-rhel-7-9-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_9_sap.publish.json"
@@ -1651,7 +1651,7 @@ jobs:
   - task: publish-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
@@ -1701,7 +1701,7 @@ jobs:
   - task: publish-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
@@ -1751,7 +1751,7 @@ jobs:
   - task: publish-rhel-8-4-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_4_sap.publish.json"
@@ -1802,7 +1802,7 @@ jobs:
   - task: publish-rocky-linux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rocky-linux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
@@ -1853,7 +1853,7 @@ jobs:
   - task: publish-debian-9
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_9.publish.json"
@@ -1903,7 +1903,7 @@ jobs:
   - task: publish-debian-10
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
@@ -1953,7 +1953,7 @@ jobs:
   - task: publish-debian-11
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
@@ -2006,7 +2006,7 @@ jobs:
   - task: publish-staging-almalinux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/almalinux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
@@ -2051,7 +2051,7 @@ jobs:
   - task: publish-staging-centos-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
@@ -2096,7 +2096,7 @@ jobs:
   - task: publish-staging-centos-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
@@ -2141,7 +2141,7 @@ jobs:
   - task: publish-staging-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_stream_8.publish.json"
@@ -2187,7 +2187,7 @@ jobs:
   - task: publish-staging-rhel-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7.publish.json"
@@ -2232,7 +2232,7 @@ jobs:
   - task: publish-staging-rhel-7-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_byos.publish.json"
@@ -2277,7 +2277,7 @@ jobs:
   - task: publish-staging-rhel-8-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_byos.publish.json"
@@ -2322,7 +2322,7 @@ jobs:
   - task: publish-staging-rhel-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8.publish.json"
@@ -2367,7 +2367,7 @@ jobs:
   - task: publish-staging-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_6_sap.publish.json"
@@ -2412,7 +2412,7 @@ jobs:
   - task: publish-staging-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
@@ -2457,7 +2457,7 @@ jobs:
   - task: publish-staging-rhel-7-9-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_9_sap.publish.json"
@@ -2502,7 +2502,7 @@ jobs:
   - task: publish-staging-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
@@ -2547,7 +2547,7 @@ jobs:
   - task: publish-staging-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
@@ -2592,7 +2592,7 @@ jobs:
   - task: publish-staging-rhel-8-4-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_4_sap.publish.json"
@@ -2638,7 +2638,7 @@ jobs:
   - task: publish-staging-rocky-linux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rocky-linux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
@@ -2684,7 +2684,7 @@ jobs:
   - task: publish-staging-debian-9
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_9.publish.json"
@@ -2729,7 +2729,7 @@ jobs:
   - task: publish-staging-debian-10
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
@@ -2774,7 +2774,7 @@ jobs:
   - task: publish-staging-debian-11
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
@@ -2822,7 +2822,7 @@ jobs:
   - task: publish-oslogin-staging-almalinux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/almalinux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
@@ -2867,7 +2867,7 @@ jobs:
   - task: publish-oslogin-staging-centos-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
@@ -2912,7 +2912,7 @@ jobs:
   - task: publish-oslogin-staging-centos-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
@@ -2957,7 +2957,7 @@ jobs:
   - task: publish-oslogin-staging-centos-stream-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_stream_8.publish.json"
@@ -3003,7 +3003,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-7
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7.publish.json"
@@ -3048,7 +3048,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-7-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_byos.publish.json"
@@ -3093,7 +3093,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-8-byos
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_byos.publish.json"
@@ -3138,7 +3138,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8.publish.json"
@@ -3183,7 +3183,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-7-6-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_6_sap.publish.json"
@@ -3228,7 +3228,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-7-7-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
@@ -3273,7 +3273,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-7-9-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_9_sap.publish.json"
@@ -3318,7 +3318,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-8-1-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
@@ -3363,7 +3363,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-8-2-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
@@ -3408,7 +3408,7 @@ jobs:
   - task: publish-oslogin-staging-rhel-8-4-sap
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_4_sap.publish.json"
@@ -3454,7 +3454,7 @@ jobs:
   - task: publish-oslogin-staging-rocky-linux-8
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rocky-linux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
@@ -3500,7 +3500,7 @@ jobs:
   - task: publish-oslogin-staging-debian-9
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_9.publish.json"
@@ -3545,7 +3545,7 @@ jobs:
   - task: publish-oslogin-staging-debian-10
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
@@ -3590,7 +3590,7 @@ jobs:
   - task: publish-oslogin-staging-debian-11
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
@@ -3635,13 +3635,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-almalinux-8
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/almalinux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/almalinux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/almalinux_8.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "almalinux_8"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3680,13 +3682,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-centos-7
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_7.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "centos_7"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3724,13 +3728,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-centos-8
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_8.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "centos_8"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3768,13 +3774,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-centos-stream-8
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/centos"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/centos"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/centos_stream_8.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "centos_stream_8"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3814,13 +3822,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_7"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3859,13 +3869,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-rhel-8
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_8"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3904,13 +3916,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7-byos
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_byos.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_7_byos"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3949,13 +3963,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-rhel-8-byos
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_byos.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_8_byos"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -3994,13 +4010,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7-6-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_6_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_7_6_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4039,13 +4057,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7-7-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_7_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_7_7_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4084,13 +4104,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7-9-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_7_9_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_7_9_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4129,13 +4151,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-8-1-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_1_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_8_1_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4174,13 +4198,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-8-2-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_2_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_8_2_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4219,13 +4245,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-8-4-sap
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rhel_8_4_sap.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel_8_4_sap"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4265,13 +4293,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-rocky-linux-8
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rocky-linux"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rocky-linux"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "enterprise_linux/rocky_linux_8.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rocky_linux_8"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4311,13 +4341,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-debian-9
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_9.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "debian_9"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4356,13 +4388,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-debian-10
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "debian_10"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -4401,13 +4435,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-debian-11
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_11.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "debian_11"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml

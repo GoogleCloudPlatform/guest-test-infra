@@ -1332,7 +1332,7 @@ jobs:
     passed: [export-freebsd-13]
     trigger: true
     params:
-      skip_download: "true"     
+      skip_download: "true"
   - load_var: source-version
     file: freebsd-13-gcs/version
   - task: get-credential
