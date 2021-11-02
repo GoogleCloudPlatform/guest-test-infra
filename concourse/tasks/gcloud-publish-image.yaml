@@ -21,4 +21,4 @@ run:
   - |
     wf=$(sed 's/\"/\\"/g' ./compute-image-tools/daisy_workflows/build-publish/((wf)) | tr -d '\n')
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish "((topic))" --message '{"type": "ImagePublish", "request": {"image_name": "((image_name))", "gcs_image_path": "((gcs_image_path))", "image_publish_template": "${wf}", "source_version": "((source_version))", "publish_version": "((publish_version))", "release_notes": "((release_notes))"}}'
+    gcloud pubsub topics publish "((topic))" --message "{\"type\": \"ImagePublish\", \"request\": {\"image_name\": \"((image_name))\", \"gcs_image_path\": \"((gcs_image_path))\", \"image_publish_template\": \"${wf}\", \"source_version\": \"((source_version))\", \"publish_version\": \"((publish_version))\", \"release_notes\": \"((release_notes))\"}}"
