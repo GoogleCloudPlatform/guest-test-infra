@@ -10,10 +10,9 @@ image_resource:
 inputs:
 - name: credentials
 
-# let's start with this..
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
-  TOPIC: "gcp-guest-package-uploads"
+  TOPIC: "projects/artifact-releaser-prod/topics/gcp-guest-package-promote-prod"
 
 run:
   path: sh
