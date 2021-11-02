@@ -20,112 +20,112 @@ resources:
 - name: windows-20h2-core-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-20h2-dc-core-v([0-9]+).tar.gz"
 - name: windows-20h2-core-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-20h2-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2004-core-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2004-dc-core-v([0-9]+).tar.gz"
 - name: windows-2004-core-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2004-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2019-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-v([0-9]+).tar.gz"
 - name: windows-2019-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2019-core-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-core-v([0-9]+).tar.gz"
 - name: windows-2019-core-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2019-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2016-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-v([0-9]+).tar.gz"
 - name: windows-2016-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2016-core-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-core-v([0-9]+).tar.gz"
 - name: windows-2016-core-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2016-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2012r2-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-v([0-9]+).tar.gz"
 - name: windows-2012r2-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-internal-v([0-9]+).tar.gz"
 - name: windows-2012r2-core-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-core-v([0-9]+).tar.gz"
 - name: windows-2012r2-core-internal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-core-internal-v([0-9]+).tar.gz"
@@ -523,7 +523,7 @@ jobs:
   - task: publish-windows-20h2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -549,7 +549,7 @@ jobs:
   - task: publish-windows-2004-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2004-dc-core-uefi.publish.json"
@@ -575,7 +575,7 @@ jobs:
   - task: publish-windows-2019
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-uefi.publish.json"
@@ -601,7 +601,7 @@ jobs:
   - task: publish-windows-2019-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-core-uefi.publish.json"
@@ -627,7 +627,7 @@ jobs:
   - task: publish-windows-2016
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-uefi.publish.json"
@@ -653,7 +653,7 @@ jobs:
   - task: publish-windows-2016-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-core-uefi.publish.json"
@@ -679,7 +679,7 @@ jobs:
   - task: publish-windows-2012r2
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -705,7 +705,7 @@ jobs:
   - task: publish-windows-2012r2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -733,7 +733,7 @@ jobs:
   - task: publish-windows-20h2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -759,7 +759,7 @@ jobs:
   - task: publish-windows-2004-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2004-dc-core-uefi.publish.json"
@@ -785,7 +785,7 @@ jobs:
   - task: publish-windows-2019
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-uefi.publish.json"
@@ -811,7 +811,7 @@ jobs:
   - task: publish-windows-2019-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-core-uefi.publish.json"
@@ -837,7 +837,7 @@ jobs:
   - task: publish-windows-2016
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-uefi.publish.json"
@@ -863,7 +863,7 @@ jobs:
   - task: publish-windows-2016-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-core-uefi.publish.json"
@@ -889,7 +889,7 @@ jobs:
   - task: publish-windows-2012r2
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -915,7 +915,7 @@ jobs:
   - task: publish-windows-2012r2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
@@ -941,13 +941,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-20h2-core
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-20h2-core"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows SAC 2004 Core
 - name: publish-to-prod-2004
   plan:
@@ -967,13 +969,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2004-core
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2004-dc-core-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-2004-core"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2019
 - name: publish-to-prod-2019
   plan:
@@ -993,13 +997,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2019
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-2019"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2019 Core
 - name: publish-to-prod-2019-core
   plan:
@@ -1019,13 +1025,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2019-core
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-core-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-2019-core"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2016
 - name: publish-to-prod-2016
   plan:
@@ -1045,13 +1053,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2016
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-2016"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2016 Core
 - name: publish-to-prod-2016-core
   plan:
@@ -1071,13 +1081,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2016-core
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-core-uefi.publish.json"
-      environment: "prod"
+      image_name: "windows-2016-core"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2012R2
 - name: publish-to-prod-2012r2
   plan:
@@ -1097,13 +1109,15 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2012r2
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
-      environment: "prod"
+      wf: "windows/windows-server-2012-dc-core-uefi.publish.json"
+      image_name: "windows-2012r2"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2012R2 Core
 - name: publish-to-prod-2012r2-core
   plan:
@@ -1123,10 +1137,12 @@ jobs:
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2012r2-core
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/windows-uefi"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
-      environment: "prod"
+      wf: "windows/windows-server-2012r2-dc-core-uefi.publish.json"
+      image_name: "windows-2012r2-core"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
