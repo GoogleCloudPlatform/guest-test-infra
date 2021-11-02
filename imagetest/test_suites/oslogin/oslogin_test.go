@@ -4,6 +4,7 @@
 package oslogin
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"strings"
@@ -12,7 +13,8 @@ import (
 
 const TEST_USERNAME = "sa_105020877179577573373"
 const TEST_UID = "3651018652"
-const TEST_USER_ENTRY = TEST_USERNAME + ":*:" + TEST_UID + ":" + TEST_UID + "::/home/" + TEST_USERNAME
+//const TEST_USER_ENTRY = TEST_USERNAME + ":*:" + TEST_UID + ":" + TEST_UID + "::/home/" + TEST_USERNAME
+var TEST_USER_ENTRY = fmt.Sprintf("%s:*:%s:%s::/home/%s:", TEST_USERNAME, TEST_UID, TEST_UID, TEST_USERNAME)
 
 func TestOsLoginEnabled(t *testing.T) {
 	// Check OS Login enabled in /etc/nsswitch.conf
@@ -103,57 +105,67 @@ func TestOsLoginDisabled(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {
-	out := RunGetent(t, "passwd", TEST_USERNAME)
-	if !strings.Contains(out, TEST_USER_ENTRY) {
+	cmd := exec.Command("/usr/bin/getent", "passwd", TEST_USERNAME)
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("getent command failed %v", err)
+	}
+	if !strings.Contains(string(out), TEST_USER_ENTRY) {
 		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
 	}
 }
 
 func TestGetentPasswdAllUsers(t *testing.T) {
-	out := RunGetent(t, "passwd")
-	if !strings.Contains(out, "root:x:0:0:root:/root:") {
+	cmd := exec.Command("/usr/bin/getent", "passwd")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("getent command failed %v", err)
+	}
+	if !strings.Contains(string(out), "root:x:0:0:root:/root:") {
 		t.Errorf("getent passwd output does not contain user root")
 	}
-	if !strings.Contains(out, "nobody:x:") {
+	if !strings.Contains(string(out), "nobody:x:") {
 		t.Errorf("getent passwd output does not contain user nobody")
 	}
-	if !strings.Contains(out, TEST_USER_ENTRY) {
+	if !strings.Contains(string(out), TEST_USER_ENTRY) {
 		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
 	}
 }
 
 func TestGetentPasswdOsloginUID(t *testing.T) {
-	out := RunGetent(t, "passwd", TEST_UID)
-	if !strings.Contains(out, TEST_USER_ENTRY) {
+	cmd := exec.Command("/usr/bin/getent", "passwd", TEST_UID)
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("getent command failed %v", err)
+	}
+	if !strings.Contains(string(out), TEST_USER_ENTRY) {
+		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
+	}
+	cmd = exec.Command("/usr/bin/getent", "passwd", TEST_USERNAME)
+	out, err = cmd.Output()
+	if err != nil {
+		t.Fatalf("getent command failed %v", err)
+	}
+	if !strings.Contains(string(out), TEST_USER_ENTRY) {
 		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
 	}
 }
 
 func TestGetentPasswdLocalUser(t *testing.T) {
-	out := RunGetent(t, "passwd", "nobody")
-	if !strings.Contains(out, "nobody:x:") {
+	cmd := exec.Command("/usr/bin/getent", "passwd", "nobody")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("getent command failed %v", err)
+	}
+	if !strings.Contains(string(out), "nobody:x:") {
 		t.Errorf("getent passwd output does not contain user nobody")
 	}
 }
 
 func TestGetentPasswdInvalidUser(t *testing.T) {
-	err := RunGetentErr(t, "passwd", "__invalid_user___")
+	cmd := exec.Command("/usr/bin/getent", "passwd", "__invalid_user__")
+	err := cmd.Run()
 	if err.Error() != "exit status 2" {
 		t.Errorf("getent passwd did not give error on invaid user")
 	}
-}
-
-func RunGetent(t *testing.T, args ...string) string {
-	cmd := exec.Command("/usr/bin/getent", args...)
-	out, err := cmd.Output()
-	if err != nil {
-		t.Fatalf("getent command failed %v", err)
-	}
-	return string(out)
-}
-
-func RunGetentErr(t *testing.T, args ...string) error {
-	cmd := exec.Command("/usr/bin/getent", args...)
-	err := cmd.Run()
-	return err
 }
