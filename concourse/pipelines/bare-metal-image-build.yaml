@@ -19,28 +19,28 @@ resources:
 - name: rhel-7-metal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-metal-v([0-9]+).tar.gz"
 - name: rhel-8-metal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-metal-v([0-9]+).tar.gz"
 - name: rhel-7-metal-dev-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-7-metal-dev-v([0-9]+).tar.gz"
 - name: rhel-8-metal-dev-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "rhel/rhel-8-metal-dev-v([0-9]+).tar.gz"
@@ -265,7 +265,7 @@ jobs:
   - task: publish-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
@@ -310,7 +310,7 @@ jobs:
   - task: publish-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
@@ -357,7 +357,7 @@ jobs:
   - task: publish-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
@@ -402,7 +402,7 @@ jobs:
   - task: publish-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
@@ -449,7 +449,7 @@ jobs:
   - task: publish-rhel-7-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal_dev.publish.json"
@@ -494,7 +494,7 @@ jobs:
   - task: publish-rhel-8-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal_dev.publish.json"
@@ -541,7 +541,7 @@ jobs:
   - task: publish-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
@@ -586,7 +586,7 @@ jobs:
   - task: publish-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"

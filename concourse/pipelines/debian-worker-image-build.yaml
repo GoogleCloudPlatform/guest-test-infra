@@ -19,7 +19,7 @@ resources:
 - name: debian-10-worker-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
+    bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "debian-worker/debian-10-worker-v([0-9]+).tar.gz"
@@ -99,7 +99,7 @@ jobs:
   - task: publish-debian-10-worker
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
@@ -144,7 +144,7 @@ jobs:
   - task: publish-debian-10-worker
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
@@ -189,7 +189,7 @@ jobs:
   - task: publish-debian-10-worker
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
