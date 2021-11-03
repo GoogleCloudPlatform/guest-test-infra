@@ -166,6 +166,6 @@ func TestGetentPasswdInvalidUser(t *testing.T) {
 	cmd := exec.Command("/usr/bin/getent", "passwd", "__invalid_user__")
 	err := cmd.Run()
 	if err.Error() != "exit status 2" {
-		t.Errorf("getent passwd did not give error on invaid user")
+		t.Errorf("getent passwd did not give error on invalid user")
 	}
 }
