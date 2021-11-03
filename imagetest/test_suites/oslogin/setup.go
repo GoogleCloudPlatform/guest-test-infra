@@ -14,7 +14,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm.AddMetadata("enable-oslogin", "true")
-	vm.RunTests("TestOsLoginEnabled|TestGetentPasswdAllUsers|TestGetPasswdOsloginUser|TestGetPasswdOsloginUID|TestGetentPasswdLocalUser|TestGetentPasswdInvalidUser")
+	vm.RunTests("TestOsLoginEnabled|TestGetentPasswd")
 
 	vm2, err := t.CreateTestVM("vm2")
 	if err != nil {
