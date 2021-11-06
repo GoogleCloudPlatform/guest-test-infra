@@ -12,6 +12,15 @@ import (
 )
 
 func TestStandardPrograms(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "sles") {
+		// SLES does not have the Google Cloud SDK installed.
+		t.Skip("Not supported on SLES")
+	}
+
 	cmd := exec.Command("gcloud", "-h")
 	cmd.Start()
 	err := cmd.Wait()

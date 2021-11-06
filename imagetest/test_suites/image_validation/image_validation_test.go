@@ -43,6 +43,16 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestCustomHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "rhel-7-4-sap") {
+		// No dhclient and no dhclient exit hook.
+		t.Skip("Custom hostnames not supported on SLES")
+	}
+
 	TestFQDN(t)
 }
 
@@ -163,6 +173,15 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 }
 
 func TestHostsFile(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "sles") {
+		// SLES does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on SLES")
+	}
+
 	b, err := ioutil.ReadFile("/etc/hosts")
 	if err != nil {
 		t.Fatalf("Couldn't read /etc/hosts")
