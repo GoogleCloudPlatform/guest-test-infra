@@ -30,7 +30,7 @@ func TestAliasAfterReboot(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		t.Fatal("first boot")
+		t.Fatal("missing marker file, maybe first boot")
 	}
 	// second boot
 	if err := verifyIPAliases(); err != nil {

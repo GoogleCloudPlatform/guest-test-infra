@@ -121,8 +121,6 @@ func (t *TestVM) AddMetadata(key, value string) {
 		t.instance.Metadata = make(map[string]string)
 	}
 	t.instance.Metadata[key] = value
-
-	return
 }
 
 // RunTests runs only the named tests on the testVM.
@@ -149,7 +147,7 @@ func (t *TestVM) SetShutdownScript(script string) {
 // SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
 func (t *TestVM) SetShutdownScriptURL(script string) error {
 	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
-	if err := ioutil.WriteFile(fileName, []byte(script), 755); err != nil {
+	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
 		return err
 	}
 	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
@@ -279,7 +277,7 @@ func (t *TestVM) AddCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	// TODO: If we haven't set any NetworkInterface struct, does it make sense to support adding alias IPs?
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call AddCustomNetwork prior to AddAliasIPRanges")
+		return fmt.Errorf("must call AddCustomNetwork prior to AddAliasIPRanges")
 	}
 	t.instance.NetworkInterfaces[0].AliasIpRanges = append(t.instance.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
 		IpCidrRange:         aliasIPRange,
@@ -292,7 +290,7 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 // SetPrivateIP set IPv4 internal IP address for target network to the current test VMs.
 func (t *TestVM) SetPrivateIP(network *Network, networkIP string) error {
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call AddCustomNetwork prior to AddPrivateIP")
+		return fmt.Errorf("must call AddCustomNetwork prior to AddPrivateIP")
 	}
 	for _, nic := range t.instance.NetworkInterfaces {
 		if nic.Network == network.name {
