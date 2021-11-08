@@ -122,7 +122,7 @@ var licenses = []string{
 	`This library.*is public domain software`,
 	`Apache License`,
 	`The Artistic License 2.0`,
-	`FULLTEXT`,
+	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
 }
 
 const (

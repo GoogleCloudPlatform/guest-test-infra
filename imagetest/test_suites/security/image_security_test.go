@@ -120,6 +120,15 @@ func TestAutomaticUpdates(t *testing.T) {
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "sles") {
+		// SLES ships with "PermitRootLogin yes" in SSHD config.
+		t.Skip("Not supported on SLES")
+	}
+
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)
 	}

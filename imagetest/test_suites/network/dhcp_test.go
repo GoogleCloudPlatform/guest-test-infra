@@ -23,6 +23,8 @@ func TestDHCP(t *testing.T) {
 	switch {
 	case strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") || strings.Contains(image, "ubuntu"):
 		networkInterface = "ens5"
+	case strings.Contains(image, "sles"):
+		t.Skip("dhclient test not supported on SLES")
 	default:
 		networkInterface = "eth1"
 	}
