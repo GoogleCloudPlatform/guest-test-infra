@@ -48,7 +48,7 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	if strings.Contains(image, "rhel-7-4-sap") {
+	if strings.Contains(image, "sles") {
 		// No dhclient and no dhclient exit hook.
 		t.Skip("Custom hostnames not supported on SLES")
 	}
