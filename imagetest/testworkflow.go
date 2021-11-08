@@ -338,7 +338,7 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
-	t.wf.DisableStdoutLogging()
+	//t.wf.DisableStdoutLogging()
 
 	return t, nil
 }
@@ -475,7 +475,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	res.testWorkflow = test
 	if test.skipped {
 		res.skipped = true
-		res.err = fmt.Errorf("Test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
+		res.err = fmt.Errorf("test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
 	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
