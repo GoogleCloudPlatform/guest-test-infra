@@ -338,7 +338,7 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
-	//t.wf.DisableStdoutLogging()
+	t.wf.DisableStdoutLogging()
 
 	return t, nil
 }
