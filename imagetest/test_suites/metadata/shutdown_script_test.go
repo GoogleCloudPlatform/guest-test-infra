@@ -51,6 +51,7 @@ func TestShutdownScriptTime(t *testing.T) {
 	}
 	lines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
 	if len(lines) < shutdownTime {
-		t.Fatalf("shut down time less than %d seconds.", shutdownTime)
+		t.Fatalf("shut down time is %d which is less than %d seconds.", len(lines), shutdownTime)
 	}
+	t.Logf("shut down time is %d", len(lines))
 }
