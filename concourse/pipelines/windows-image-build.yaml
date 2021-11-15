@@ -137,6 +137,10 @@ jobs:
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -206,11 +210,31 @@ jobs:
       updates: ((.:windows-updates))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-20h2-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-20h2-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows SAC 2004 Core
 - name: build-windows-2004-core
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -248,11 +272,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_sac2004))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2004-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2004-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019
 - name: build-windows-2019
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -290,11 +334,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2019))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2019"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2019"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019 Core
 - name: build-windows-2019-core
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -332,11 +396,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2019))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2019-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2019-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016
 - name: build-windows-2016
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -374,11 +458,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2016))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2016"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2016"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016 Core
 - name: build-windows-2016-core
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -416,11 +520,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2016))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2016-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2016-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012r2
 - name: build-windows-2012r2
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -458,11 +582,31 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2012r2))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2012r2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2012r2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012r2 Core
 - name: build-windows-2012r2-core
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
@@ -500,6 +644,22 @@ jobs:
       updates: ((windows-paths.gcs_updates_server2012r2))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2012r2-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "build-windows-2012r2-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to testing
 # Windows SAC 20h2 Core
@@ -507,6 +667,10 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-20h2-core-gcs
     passed: [build-windows-20h2-core]
     trigger: false
@@ -528,11 +692,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-20h2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-20h2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows SAC 2004 Core
 - name: publish-to-testing-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2004-core-gcs
     passed: [build-windows-2004-core]
     trigger: false
@@ -554,11 +738,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2004-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019
 - name: publish-to-testing-2019
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-gcs
     passed: [build-windows-2019]
     trigger: false
@@ -580,11 +784,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2019"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2019"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019 Core
 - name: publish-to-testing-2019-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-core-gcs
     passed: [build-windows-2019-core]
     trigger: false
@@ -606,11 +830,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2019-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2019-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016
 - name: publish-to-testing-2016
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-gcs
     passed: [build-windows-2016]
     trigger: false
@@ -632,11 +876,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2016"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2016"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016 Core
 - name: publish-to-testing-2016-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-core-gcs
     passed: [build-windows-2016-core]
     trigger: false
@@ -658,11 +922,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2016-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2016-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2
 - name: publish-to-testing-2012r2
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-gcs
     passed: [build-windows-2012r2]
     trigger: false
@@ -684,11 +968,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2012r2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2012r2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2 Core
 - name: publish-to-testing-2012r2-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-core-gcs
     passed: [build-windows-2012r2-core]
     trigger: false
@@ -710,6 +1014,22 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2012r2-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-testing-2012r2-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to staging
 # Windows SAC 20h2 Core
@@ -717,6 +1037,10 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-20h2-core-gcs
     passed: [publish-to-testing-20h2]
     trigger: false
@@ -738,11 +1062,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-20h2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-20h2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows SAC 2004 Core
 - name: publish-to-staging-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2004-core-gcs
     passed: [publish-to-testing-2004]
     trigger: false
@@ -764,11 +1108,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2004-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019
 - name: publish-to-staging-2019
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: false
@@ -790,11 +1154,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-uefi.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2019"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2019"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019 Core
 - name: publish-to-staging-2019-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-core-gcs
     passed: [publish-to-testing-2019-core]
     trigger: false
@@ -816,11 +1200,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2019-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2019-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2019-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016
 - name: publish-to-staging-2016
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: false
@@ -842,11 +1246,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2016"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2016"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016 Core
 - name: publish-to-staging-2016-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-core-gcs
     passed: [publish-to-testing-2016-core]
     trigger: false
@@ -868,11 +1292,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-2016-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2016-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2016-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2
 - name: publish-to-staging-2012r2
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: false
@@ -894,11 +1338,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2012r2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2012r2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2 Core
 - name: publish-to-staging-2012r2-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-core-gcs
     passed: [publish-to-testing-2012r2-core]
     trigger: false
@@ -920,6 +1384,22 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2012r2-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-staging-2012r2-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to prod
 # Windows SAC 20h2 Core
@@ -927,6 +1407,10 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-20h2-core-gcs
     passed: [publish-to-staging-20h2]
     trigger: false
@@ -950,11 +1434,31 @@ jobs:
       image_name: "windows-20h2-core"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-20h2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-20h2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows SAC 2004 Core
 - name: publish-to-prod-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2004-core-gcs
     passed: [publish-to-staging-2004]
     trigger: false
@@ -978,11 +1482,31 @@ jobs:
       image_name: "windows-2004-core"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019
 - name: publish-to-prod-2019
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-gcs
     passed: [publish-to-staging-2019]
     trigger: false
@@ -1006,11 +1530,31 @@ jobs:
       image_name: "windows-2019"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2019"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2019"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2019 Core
 - name: publish-to-prod-2019-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2019-core-gcs
     passed: [publish-to-staging-2019-core]
     trigger: false
@@ -1034,11 +1578,31 @@ jobs:
       image_name: "windows-2019-core"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2019-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2019-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016
 - name: publish-to-prod-2016
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-gcs
     passed: [publish-to-staging-2016]
     trigger: false
@@ -1062,11 +1626,31 @@ jobs:
       image_name: "windows-2016"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2016"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2016"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2016 Core
 - name: publish-to-prod-2016-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2016-core-gcs
     passed: [publish-to-staging-2016-core]
     trigger: false
@@ -1090,11 +1674,31 @@ jobs:
       image_name: "windows-2016-core"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2016-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2016-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2
 - name: publish-to-prod-2012r2
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-gcs
     passed: [publish-to-staging-2012r2]
     trigger: false
@@ -1118,11 +1722,31 @@ jobs:
       image_name: "windows-2012r2"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2012r2"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2012r2"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Windows 2012R2 Core
 - name: publish-to-prod-2012r2-core
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: windows-2012r2-core-gcs
     passed: [publish-to-staging-2012r2-core]
     trigger: false
@@ -1146,3 +1770,19 @@ jobs:
       image_name: "windows-2012r2-core"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2012r2-core"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "windows-image-build"
+      job: "publish-to-prod-2012r2-core"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
