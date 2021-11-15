@@ -165,6 +165,10 @@ jobs:
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -188,11 +192,31 @@ jobs:
       wf: "partner/cos_81_lts_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-81-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-81-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Cos 85
 - name: export-cos-85-lts
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -216,11 +240,31 @@ jobs:
       wf: "partner/cos_85_lts_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-85-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-85-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Cos 89
 - name: export-cos-89-lts
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -244,11 +288,31 @@ jobs:
       wf: "partner/cos_89_lts_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-89-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-89-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Cos dev
 - name: export-cos-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -272,11 +336,31 @@ jobs:
       wf: "partner/cos_dev_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-cos-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora 33
 - name: export-fedora-33
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -300,11 +384,31 @@ jobs:
       wf: "partner/fedora_33_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-33"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-33"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora 34
 - name: export-fedora-34
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -328,11 +432,31 @@ jobs:
       wf: "partner/fedora_34_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-34"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-34"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Next
 - name: export-fedora-coreos-next
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -356,11 +480,31 @@ jobs:
       wf: "partner/fedora_coreos_next_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-next"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-next"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Stable
 - name: export-fedora-coreos-stable
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -384,11 +528,31 @@ jobs:
       wf: "partner/fedora_coreos_stable_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Testing
 - name: export-fedora-coreos-testing
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -412,11 +576,31 @@ jobs:
       wf: "partner/fedora_coreos_testing_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-testing"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-fedora-coreos-testing"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 11
 - name: export-freebsd-11
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -440,11 +624,31 @@ jobs:
       wf: "partner/freebsd_11_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-11"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-11"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 12
 - name: export-freebsd-12
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -468,11 +672,31 @@ jobs:
       wf: "partner/freebsd_12_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-12"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-12"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 13
 - name: export-freebsd-13
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -496,11 +720,31 @@ jobs:
       wf: "partner/freebsd_13_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-13"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-freebsd-13"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # openSUSE Leap 15
 - name: export-opensuse-leap-15
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -524,11 +768,31 @@ jobs:
       wf: "partner/opensuse_leap_15_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-opensuse-leap-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-opensuse-leap-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 12
 - name: export-sles-12
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -552,11 +816,31 @@ jobs:
       wf: "partner/sles_12_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-sles-12"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-sles-12"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 15
 - name: export-sles-15
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -580,11 +864,31 @@ jobs:
       wf: "partner/sles_15_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-sles-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-sles-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 18.04
 - name: export-ubuntu-1804
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -608,11 +912,31 @@ jobs:
       wf: "partner/ubuntu_1804_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 20.04
 - name: export-ubuntu-2004
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -636,11 +960,31 @@ jobs:
       wf: "partner/ubuntu_2004_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 16.04
 - name: export-ubuntu-pro-1604
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -664,11 +1008,31 @@ jobs:
       wf: "partner/ubuntu_pro_1604_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-1604"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-1604"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 18.04
 - name: export-ubuntu-pro-1804
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -692,11 +1056,31 @@ jobs:
       wf: "partner/ubuntu_pro_1804_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 20.04
 - name: export-ubuntu-pro-2004
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -720,6 +1104,22 @@ jobs:
       wf: "partner/ubuntu_pro_2004_export.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "export-ubuntu-pro-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 
 # Images for OS Loging staging tests.
@@ -728,6 +1128,10 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-81-lts-gcs
     passed: [export-cos-81-lts]
     trigger: true
@@ -749,11 +1153,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_81_lts.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-81-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-81-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS 85 LTS
 - name: publish-oslogin-cos-85-lts
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-85-lts-gcs
     passed: [export-cos-85-lts]
     trigger: true
@@ -775,11 +1199,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_85_lts.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-85-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-85-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS 89 LTS
 - name: publish-oslogin-cos-89-lts
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-89-lts-gcs
     passed: [export-cos-89-lts]
     trigger: true
@@ -801,11 +1245,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_89_lts.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-89-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-89-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS Dev
 - name: publish-oslogin-cos-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-dev-gcs
     passed: [export-cos-dev]
     trigger: true
@@ -827,11 +1291,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_dev.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-cos-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # openSUSE Leap 15
 - name: publish-oslogin-opensuse-leap-15
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: opensuse-leap-15-gcs
     passed: [export-opensuse-leap-15]
     trigger: true
@@ -853,11 +1337,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/opensuse_leap_15.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-opensuse-leap-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-opensuse-leap-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 12
 - name: publish-oslogin-sles-12
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: sles-12-gcs
     passed: [export-sles-12]
     trigger: true
@@ -879,11 +1383,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/sles_12.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-sles-12"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-sles-12"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 15
 - name: publish-oslogin-sles-15
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: sles-15-gcs
     passed: [export-sles-15]
     trigger: true
@@ -905,11 +1429,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/sles_15.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-sles-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-sles-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 18.04
 - name: publish-oslogin-ubuntu-1804
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-1804-gcs
     passed: [export-ubuntu-1804]
     trigger: true
@@ -931,11 +1475,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_1804.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 20.04
 - name: publish-oslogin-ubuntu-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-2004-gcs
     passed: [export-ubuntu-2004]
     trigger: true
@@ -957,11 +1521,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_2004.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 16.04
 - name: publish-oslogin-ubuntu-pro-1604
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-1604-gcs
     passed: [export-ubuntu-pro-1604]
     trigger: true
@@ -983,11 +1567,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1604.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-1604"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-1604"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 18.04
 - name: publish-oslogin-ubuntu-pro-1804
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-1804-gcs
     passed: [export-ubuntu-pro-1804]
     trigger: true
@@ -1009,11 +1613,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 20.04
 - name: publish-oslogin-ubuntu-pro-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-2004-gcs
     passed: [export-ubuntu-pro-2004]
     trigger: true
@@ -1035,6 +1659,22 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
       environment: "oslogin-staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-oslogin-ubuntu-pro-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish partner images to staging project.
 # COS 81 LTS
@@ -1042,6 +1682,10 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-81-lts-gcs
     passed: [export-cos-81-lts]
     trigger: true
@@ -1063,11 +1707,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_81_lts.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-81-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-81-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS 85 LTS
 - name: publish-staging-cos-85-lts
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-85-lts-gcs
     passed: [export-cos-85-lts]
     trigger: true
@@ -1089,11 +1753,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_85_lts.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-85-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-85-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS 89 LTS
 - name: publish-staging-cos-89-lts
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-89-lts-gcs
     passed: [export-cos-89-lts]
     trigger: true
@@ -1115,11 +1799,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_89_lts.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-89-lts"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-89-lts"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # COS Dev
 - name: publish-staging-cos-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: cos-dev-gcs
     passed: [export-cos-dev]
     trigger: true
@@ -1141,11 +1845,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/cos_dev.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-cos-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora 33
 - name: publish-staging-fedora-33
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: fedora-33-gcs
     passed: [export-fedora-33]
     trigger: true
@@ -1167,11 +1891,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/fedora_33.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-33"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-33"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora 34
 - name: publish-staging-fedora-34
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: fedora-34-gcs
     passed: [export-fedora-34]
     trigger: true
@@ -1193,11 +1937,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/fedora_34.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-34"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-34"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Next
 - name: publish-staging-fedora-coreos-next
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: fedora-coreos-next-gcs
     passed: [export-fedora-coreos-next]
     trigger: true
@@ -1219,11 +1983,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_next.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-next"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-next"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Stable
 - name: publish-staging-fedora-coreos-stable
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: fedora-coreos-stable-gcs
     passed: [export-fedora-coreos-stable]
     trigger: true
@@ -1245,11 +2029,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_stable.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Fedora CoreOS Testing
 - name: publish-staging-fedora-coreos-testing
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: fedora-coreos-testing-gcs
     passed: [export-fedora-coreos-testing]
     trigger: true
@@ -1271,11 +2075,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/fedora_coreos_testing.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-testing"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-fedora-coreos-testing"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 11
 - name: publish-staging-freebsd-11
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: freebsd-11-gcs
     passed: [export-freebsd-11]
     trigger: true
@@ -1297,11 +2121,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_11.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-11"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-11"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 12
 - name: publish-staging-freebsd-12
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: freebsd-12-gcs
     passed: [export-freebsd-12]
     trigger: true
@@ -1323,11 +2167,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_12.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-12"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-12"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # FreeBSD 13
 - name: publish-staging-freebsd-13
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: freebsd-13-gcs
     passed: [export-freebsd-13]
     trigger: true
@@ -1349,11 +2213,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/freebsd_13.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-13"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-freebsd-13"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # openSUSE Leap 15
 - name: publish-staging-opensuse-leap-15
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: opensuse-leap-15-gcs
     passed: [export-opensuse-leap-15]
     trigger: true
@@ -1375,11 +2259,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/opensuse_leap_15.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-opensuse-leap-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-opensuse-leap-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 12
 - name: publish-staging-sles-12
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: sles-12-gcs
     passed: [export-sles-12]
     trigger: true
@@ -1401,11 +2305,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/sles_12.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-sles-12"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-sles-12"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # SLES 15
 - name: publish-staging-sles-15
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: sles-15-gcs
     passed: [export-sles-15]
     trigger: true
@@ -1427,11 +2351,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/sles_15.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-sles-15"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-sles-15"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 18.04
 - name: publish-staging-ubuntu-1804
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-1804-gcs
     passed: [export-ubuntu-1804]
     trigger: true
@@ -1453,11 +2397,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_1804.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu 20.04
 - name: publish-staging-ubuntu-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-2004-gcs
     passed: [export-ubuntu-2004]
     trigger: true
@@ -1479,11 +2443,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_2004.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 16.04
 - name: publish-staging-ubuntu-pro-1604
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-1604-gcs
     passed: [export-ubuntu-pro-1604]
     trigger: true
@@ -1505,11 +2489,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1604.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-1604"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-1604"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 18.04
 - name: publish-staging-ubuntu-pro-1804
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-1804-gcs
     passed: [export-ubuntu-pro-1804]
     trigger: true
@@ -1531,11 +2535,31 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_1804.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-1804"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-1804"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Ubuntu Pro 20.04
 - name: publish-staging-ubuntu-pro-2004
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: ubuntu-pro-2004-gcs
     passed: [export-ubuntu-pro-2004]
     trigger: true
@@ -1557,6 +2581,22 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "partner/ubuntu_pro_2004.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-2004"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "partner-image-export"
+      job: "publish-staging-ubuntu-pro-2004"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Groups
 groups:
