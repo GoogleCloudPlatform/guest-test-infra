@@ -123,6 +123,8 @@ var licenses = []string{
 	`Apache License`,
 	`The Artistic License 2.0`,
 	`FULLTEXT`,
+	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
+	`arping: GPL v2 or later`,      // iputils has a license summary file
 }
 
 const (
