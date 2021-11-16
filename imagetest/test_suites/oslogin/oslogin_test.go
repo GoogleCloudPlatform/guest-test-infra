@@ -105,7 +105,7 @@ func TestOsLoginDisabled(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {
-	cmd := exec.Command("/usr/bin/getent", "passwd", TEST_USERNAME)
+	cmd := exec.Command("getent", "passwd", TEST_USERNAME)
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
@@ -116,7 +116,7 @@ func TestGetentPasswdOsloginUser(t *testing.T) {
 }
 
 func TestGetentPasswdAllUsers(t *testing.T) {
-	cmd := exec.Command("/usr/bin/getent", "passwd")
+	cmd := exec.Command("getent", "passwd")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
@@ -133,16 +133,8 @@ func TestGetentPasswdAllUsers(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUID(t *testing.T) {
-	cmd := exec.Command("/usr/bin/getent", "passwd", TEST_UID)
+	cmd := exec.Command("getent", "passwd", TEST_UID)
 	out, err := cmd.Output()
-	if err != nil {
-		t.Fatalf("getent command failed %v", err)
-	}
-	if !strings.Contains(string(out), TEST_USER_ENTRY) {
-		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
-	}
-	cmd = exec.Command("/usr/bin/getent", "passwd", TEST_USERNAME)
-	out, err = cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
 	}
@@ -152,7 +144,7 @@ func TestGetentPasswdOsloginUID(t *testing.T) {
 }
 
 func TestGetentPasswdLocalUser(t *testing.T) {
-	cmd := exec.Command("/usr/bin/getent", "passwd", "nobody")
+	cmd := exec.Command("getent", "passwd", "nobody")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
@@ -163,7 +155,7 @@ func TestGetentPasswdLocalUser(t *testing.T) {
 }
 
 func TestGetentPasswdInvalidUser(t *testing.T) {
-	cmd := exec.Command("/usr/bin/getent", "passwd", "__invalid_user__")
+	cmd := exec.Command("getent", "passwd", "__invalid_user__")
 	err := cmd.Run()
 	if err.Error() != "exit status 2" {
 		t.Errorf("getent passwd did not give error on invalid user")

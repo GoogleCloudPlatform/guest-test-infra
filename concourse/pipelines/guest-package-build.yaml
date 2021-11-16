@@ -47,7 +47,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: main
+          git_ref: ((.:commit-sha))
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -55,7 +55,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: main
+          git_ref: ((.:commit-sha))
       - task: guest-package-build-guest-agent-el8
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -63,7 +63,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: main
+          git_ref: ((.:commit-sha))
       - task: guest-package-build-guest-agent-goo
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -71,7 +71,7 @@ jobs:
           repo-name: guest-agent
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
-          git_ref: main
+          git_ref: ((.:commit-sha))
   - put: guest-agent-tag
     params:
       name: package-version/version
@@ -1387,4 +1387,3 @@ groups:
   - promote-artifact-registry-apt-transport-staging
   - promote-artifact-registry-el-plugins-stable
   - promote-artifact-registry-apt-transport-stable
-  

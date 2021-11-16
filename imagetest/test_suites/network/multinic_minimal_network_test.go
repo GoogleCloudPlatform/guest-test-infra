@@ -3,7 +3,6 @@
 package network
 
 import (
-	"net"
 	"os/exec"
 	"testing"
 
@@ -11,25 +10,24 @@ import (
 )
 
 func TestPingVMToVM(t *testing.T) {
-	vm3nic0IP, err := utils.GetMetadata("network-interfaces/0/ip")
+	primaryIP, err := utils.GetMetadata("network-interfaces/0/ip")
+	if err != nil {
+		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
+	}
+	secondaryIP, err := utils.GetMetadata("network-interfaces/1/ip")
 	if err != nil {
 		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
 	}
 
-	vmname, err := utils.GetRealVMName(vm4)
+	name, err := utils.GetRealVMName(vm2Name)
 	if err != nil {
-		t.Fatalf("failed to get vm name: %v", err)
+		t.Fatalf("failed to determine target vm name: %v", err)
 	}
-	addr, err := net.LookupIP(vmname)
-	if err != nil {
-		t.Fatalf("failed to get address for primary interface: %v", err)
+	if err := pingTargetRetries(primaryIP, name); err != nil {
+		t.Fatalf("failed to ping remote %s via %s (primary network): %v", name, primaryIP, err)
 	}
-	vm4nic0IP := addr[0].String()
-	if err := pingTargetRetries(vm3nic0IP, vm4nic0IP); err != nil {
-		t.Fatalf("failed to ping remote %s via %s (default network): %v", vm4nic0IP, vm3nic0IP, err)
-	}
-	if err := pingTargetRetries(vm3IP, vm4IP); err != nil {
-		t.Fatalf("failed to ping remote %s via %s (custom network): %v", vm4IP, vm3IP, err)
+	if err := pingTargetRetries(secondaryIP, vm2IP); err != nil {
+		t.Fatalf("failed to ping remote %s via %s (secondary network): %v", vm2IP, secondaryIP, err)
 	}
 }
 
