@@ -45,6 +45,34 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2004-dc-core-internal-v([0-9]+).tar.gz"
+- name: windows-2022-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2022-dc-v([0-9]+).tar.gz"
+- name: windows-2022-internal-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2022-dc-internal-v([0-9]+).tar.gz"
+- name: windows-2022-core-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2022-dc-core-v([0-9]+).tar.gz"
+- name: windows-2022-core-internal-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "windows-uefi/windows-server-2022-dc-core-internal-v([0-9]+).tar.gz"
 - name: windows-2019-gcs
   type: gcs
   source:
@@ -132,6 +160,150 @@ resources:
 
 jobs:
 # Build jobs
+# Windows 2022
+- name: build-windows-2022
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "windows-server-2022-dc"
+  - put: windows-2022-gcs
+    params:
+      file: build-id-dir/windows-server-2022-dc-v*
+    get_params:
+      skip_download: "true"
+  - put: windows-2022-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2022-dc-internal-v*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: windows-2022-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2022-internal-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-secret-iso
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "win2022-64"
+  - load_var: windows-iso
+    file: gcp-secret-manager/win2022-64
+  - task: get-secret-updates
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_updates_server2022"
+  - load_var: windows-updates
+    file: gcp-secret-manager/windows_gcs_updates_server2022
+  - task: get-secret-pwsh
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_pwsh"
+  - load_var: windows-gcs-pwsh
+    file: gcp-secret-manager/windows_gcs_pwsh
+  - task: get-secret-cloud-sdk
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_cloud_sdk"
+  - load_var: windows-cloud-sdk
+    file: gcp-secret-manager/windows_gcs_cloud_sdk
+  - task: get-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_dotnet48"
+  - load_var: windows-gcs-dotnet48
+    file: gcp-secret-manager/windows_gcs_dotnet48
+  - task: daisy-build-windows-2022
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows.yaml
+    vars:
+      wf: "windows/windows-server-2022-dc-uefi.wf.json"
+      gcs_url: ((.:gcs-url))
+      gcs_internal_url: ((.:gcs-internal-url))
+      iso: ((.:windows-iso))
+      pwsh: ((.:windows-gcs-pwsh))
+      dotnet48: ((.:windows-gcs-dotnet48))
+      cloudsdk: ((.:windows-cloud-sdk))
+      updates: ((.:windows-updates))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
+# Windows 2022 Core
+- name: build-windows-2022-core
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "windows-server-2022-dc-core"
+  - put: windows-2022-core-gcs
+    params:
+      file: build-id-dir/windows-server-2022-dc-core-v*
+    get_params:
+      skip_download: "true"
+  - put: windows-2022-core-internal-gcs
+    params:
+      file: build-id-dir/windows-server-2022-dc-core-internal-v*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: windows-2022-core-gcs/url
+  - load_var: gcs-internal-url
+    file: windows-2022-core-internal-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-secret-iso
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "win2022-64"
+  - load_var: windows-iso
+    file: gcp-secret-manager/win2022-64
+  - task: get-secret-updates
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_updates_server2022"
+  - load_var: windows-updates
+    file: gcp-secret-manager/windows_gcs_updates_server2022
+  - task: get-secret-pwsh
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_pwsh"
+  - load_var: windows-gcs-pwsh
+    file: gcp-secret-manager/windows_gcs_pwsh
+  - task: get-secret-cloud-sdk
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_cloud_sdk"
+  - load_var: windows-cloud-sdk
+    file: gcp-secret-manager/windows_gcs_cloud_sdk
+  - task: get-secret-dotnet48
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_dotnet48"
+  - load_var: windows-gcs-dotnet48
+    file: gcp-secret-manager/windows_gcs_dotnet48
+  - task: daisy-build-windows-2022-core
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows.yaml
+    vars:
+      wf: "windows/windows-server-2022-dc-core-uefi.wf.json"
+      gcs_url: ((.:gcs-url))
+      gcs_internal_url: ((.:gcs-internal-url))
+      iso: ((.:windows-iso))
+      pwsh: ((.:windows-gcs-pwsh))
+      dotnet48: ((.:windows-gcs-dotnet48))
+      cloudsdk: ((.:windows-cloud-sdk))
+      updates: ((.:windows-updates))
+      google_cloud_repo: "stable"
+      build_date: ((.:build-date))
 # Windows SAC 20h2 Core
 - name: build-windows-20h2-core
   plan:
