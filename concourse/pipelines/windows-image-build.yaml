@@ -1146,6 +1146,58 @@ jobs:
       environment: "test"
 
 # Publish to staging
+# Windows 2022
+- name: publish-to-staging-2022
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: windows-2022-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-windows-2022
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "windows/windows-server-2022-dc-uefi.publish.json"
+      environment: "test"
+# Windows 2022 Core
+- name: publish-to-staging-2022-core
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: windows-2022-core-gcs
+    passed: [publish-to-testing-2022-core]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: windows-2022-core-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-windows-2022-core
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "windows/windows-server-2022-dc-core-uefi.publish.json"
+      environment: "staging"
 # Windows SAC 20h2 Core
 - name: publish-to-staging-20h2
   plan:
