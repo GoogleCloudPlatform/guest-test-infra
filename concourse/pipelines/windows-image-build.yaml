@@ -892,7 +892,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
+      wf: "windows/windows-server-2012r2-dc-uefi.publish.json"
       environment: "test"
 # Windows 2012R2 Core
 - name: publish-to-testing-2012r2-core
@@ -918,7 +918,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
+      wf: "windows/windows-server-2012r2-dc-core-uefi.publish.json"
       environment: "test"
 
 # Publish to staging
@@ -1102,7 +1102,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
+      wf: "windows/windows-server-2012r2-dc-uefi.publish.json"
       environment: "staging"
 # Windows 2012R2 Core
 - name: publish-to-staging-2012r2-core
@@ -1128,7 +1128,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-20h2-dc-core-uefi.publish.json"
+      wf: "windows/windows-server-2012r2-dc-core-uefi.publish.json"
       environment: "staging"
 
 # Publish to prod
