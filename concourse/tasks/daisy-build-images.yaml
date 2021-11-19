@@ -22,6 +22,6 @@ run:
   - -var:build_date=((build_date))
   - -var:google_cloud_repo=((google_cloud_repo))
   - -var:gcs_url=((gcs_url))
-  - -var:workflow_root=../../../compute-image-tools/daisy_workflows
+  - -var:workflow_root=../../
   - -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/
   - ./compute-image-tools/daisy_workflows/build-publish/((wf))
