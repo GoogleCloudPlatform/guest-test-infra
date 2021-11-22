@@ -13,10 +13,11 @@
 # limitations under the License.
 FROM gcr.io/gcp-guest/gotest
 
-COPY gcsfuse-apt-key.gpg .
+# gcsfuse install instructions:
+#  https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -q -y qemu-utils gnupg ca-certificates \
   && echo "deb http://packages.cloud.google.com/apt gcsfuse-buster main" > /etc/apt/sources.list.d/gcsfuse.list \
-  && apt-key add gcsfuse-apt-key.gpg \
+  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -q -y gcsfuse \
   && rm -rf /var/cache/apt/archives
