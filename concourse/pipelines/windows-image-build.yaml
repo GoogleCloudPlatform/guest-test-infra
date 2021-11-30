@@ -1538,7 +1538,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "sqlserver/sql-server-windows-uefi.publish.json"
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
       environment: "test"
 
 # Publish to staging
@@ -1984,7 +1984,7 @@ jobs:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc.publish"
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
       environment: "staging"
 
 # Publish to prod
@@ -2450,7 +2450,7 @@ jobs:
       gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc.publish"
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
       image_name: "sql-2012-enterprise-windows-2012-r2-dc"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
