@@ -157,6 +157,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "windows-uefi/windows-server-2012-r2-dc-core-internal-v([0-9]+).tar.gz"
+- name: sql-2012-enterprise-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2012-enterprise-windows-2012-r2-dc-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -1042,6 +1049,50 @@ jobs:
       job: "build-windows-2012r2-core"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+# sql-2012-enterprise-windows-2012-r2-dc
+- name: build-sql-2012-enterprise-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2012-enterprise-windows-2012-r2-dc"
+  - put: sql-2012-enterprise-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2012-enterprise-windows-2012-r2-dc-v*
+  - load_var: gcs_url
+    file: sql-2012-enterprise-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2012-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2012-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows_gcs_ssms_exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2012-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs_url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows_gcs_ssms_exe))
+      timeout: "4h"
 
 # Publish to testing
 # Windows 2022
@@ -1383,7 +1434,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2012r2-gcs
     passed: [build-windows-2012r2]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1464,6 +1515,30 @@ jobs:
       job: "publish-to-testing-2012r2-core"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+# sql-2012-enterprise-windows-2012-r2-dc
+- name: publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
 
 # Publish to staging
 # Windows 2022
@@ -1886,6 +1961,30 @@ jobs:
       job: "publish-to-staging-2012r2-core"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+# sql-2012-enterprise-windows-2012-r2-dc
+- name: publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
 
 # Publish to prod
 # Windows 2022
@@ -2328,3 +2427,29 @@ jobs:
       job: "publish-to-prod-2012r2-core"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+# sql-2012-enterprise-windows-2012-r2-dc
+- name: publish-to-prod-sql-2012-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2012-enterprise-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
