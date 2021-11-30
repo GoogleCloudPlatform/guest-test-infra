@@ -1053,7 +1053,7 @@ jobs:
 - name: build-sql-2012-enterprise-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
-    passed: [build-windows-2012r2]
+    passed: [publish-to-testing-2012r2]
     trigger: true
   - get: guest-test-infra
   - task: get-credential
@@ -1089,7 +1089,6 @@ jobs:
       wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json"
       gcs_url: ((.:gcs_url))
       build_date: ((.:build-date))
-      publish_project: "artifact-releaser-prod-rtp"
       sql_server_media: ((.:sql-server-media))
       source_image_project: "bct-prod-images"
       ssms_exe: ((.:windows_gcs_ssms_exe))
@@ -1435,7 +1434,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2012r2-gcs
     passed: [build-windows-2012r2]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1966,8 +1965,8 @@ jobs:
 - name: publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2012-enterprise-windows-2012-r2-dc]
-    trigger: true
+    passed: [publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml

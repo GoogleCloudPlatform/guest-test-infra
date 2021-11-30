@@ -21,7 +21,6 @@ run:
   - -zone=us-central1-c
   - -var:build_date=((build_date))
   - -var:gcs_url=((gcs_url))
-  - -var:publish_project:((publish_project))
   - -var:sql_server_media:((sql_server_media))
   - -var:source_image_project:((source_image_project))
   - -var:ssms_exe:((ssms_exe))
