@@ -164,6 +164,195 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "sqlserver-uefi/sql-2012-enterprise-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2012-standard-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2012-standard-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2012-web-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2012-web-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2014-enterprise-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2014-enterprise-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2014-enterprise-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2014-enterprise-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2014-standard-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2014-standard-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2014-web-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2014-web-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2016-enterprise-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-enterprise-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2016-enterprise-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-enterprise-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2016-enterprise-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-enterprise-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2016-standard-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-standard-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2016-standard-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-standard-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2016-standard-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-standard-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2016-web-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-web-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2016-web-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-web-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2016-web-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2016-web-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2017-enterprise-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-enterprise-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2017-enterprise-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-enterprise-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2017-express-windows-2012-r2-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-express-windows-2012-r2-dc-v([0-9]+).tar.gz"
+- name: sql-2017-express-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-express-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2017-express-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-express-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2017-standard-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-standard-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2017-standard-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-standard-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2017-web-windows-2016-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-web-windows-2016-dc-v([0-9]+).tar.gz"
+- name: sql-2017-web-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-web-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2019-enterprise-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-enterprise-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2019-standard-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-standard-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2019-web-windows-2019-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-web-windows-2019-dc-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -1065,7 +1254,7 @@ jobs:
   - put: sql-2012-enterprise-windows-2012-r2-dc-gcs
     params:
       file: build-id-dir/sql-2012-enterprise-windows-2012-r2-dc-v*
-  - load_var: gcs_url
+  - load_var: gcs-url
     file: sql-2012-enterprise-windows-2012-r2-dc-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
@@ -1081,17 +1270,1205 @@ jobs:
     file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
     vars:
       secret_name: "windows_gcs_ssms_exe"
-  - load_var: windows_gcs_ssms_exe
+  - load_var: windows-gcs-ssms-exe
     file: gcp-secret-manager/windows_gcs_ssms_exe
   - task: daisy-build-sql-2012-enterprise-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
     vars:
       wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json"
-      gcs_url: ((.:gcs_url))
+      gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
       sql_server_media: ((.:sql-server-media))
       source_image_project: "bct-prod-images"
-      ssms_exe: ((.:windows_gcs_ssms_exe))
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2012-standard-windows-2012-r2-dc
+- name: build-sql-2012-standard-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2012-standard-windows-2012-r2-dc"
+  - put: sql-2012-standard-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2012-standard-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2012-standard-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2012-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2012-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2012-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2012-standard-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2012-web-windows-2012-r2-dc
+- name: build-sql-2012-web-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2012-web-windows-2012-r2-dc"
+  - put: sql-2012-web-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2012-web-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2012-web-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2012-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2012-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2012-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2012-web-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2014-enterprise-windows-2012-r2-dc
+- name: build-sql-2014-enterprise-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2014-enterprise-windows-2012-r2-dc"
+  - put: sql-2014-enterprise-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2014-enterprise-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2014-enterprise-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2014-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2014-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2014-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2014-enterprise-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2014-enterprise-windows-2016-dc
+- name: build-sql-2014-enterprise-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2014-enterprise-windows-2016-dc"
+  - put: sql-2014-enterprise-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2014-enterprise-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2014-enterprise-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2014-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2014-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2014-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2014-enterprise-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2014-standard-windows-2012-r2-dc
+- name: build-sql-2014-standard-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2014-standard-windows-2012-r2-dc"
+  - put: sql-2014-standard-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2014-standard-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2014-standard-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2014-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2014-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2014-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2014-standard-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2014-web-windows-2012-r2-dc
+- name: build-sql-2014-web-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2014-web-windows-2012-r2-dc"
+  - put: sql-2014-web-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2014-web-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2014-web-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2014-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2014-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2014-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2014-web-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-enterprise-windows-2012-r2-dc
+- name: build-sql-2016-enterprise-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-enterprise-windows-2012-r2-dc"
+  - put: sql-2016-enterprise-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-enterprise-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-enterprise-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-enterprise-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-enterprise-windows-2016-dc
+- name: build-sql-2016-enterprise-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-enterprise-windows-2016-dc"
+  - put: sql-2016-enterprise-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-enterprise-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-enterprise-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-enterprise-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-enterprise-windows-2019-dc
+- name: build-sql-2016-enterprise-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-enterprise-windows-2019-dc"
+  - put: sql-2016-enterprise-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-enterprise-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-enterprise-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-enterprise-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-standard-windows-2012-r2-dc
+- name: build-sql-2016-standard-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-standard-windows-2012-r2-dc"
+  - put: sql-2016-standard-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-standard-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-standard-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-standard-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-standard-windows-2016-dc
+- name: build-sql-2016-standard-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-standard-windows-2016-dc"
+  - put: sql-2016-standard-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-standard-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-standard-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-standard-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-standard-windows-2019-dc
+- name: build-sql-2016-standard-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-standard-windows-2019-dc"
+  - put: sql-2016-standard-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-standard-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-standard-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-standard-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-web-windows-2012-r2-dc
+- name: build-sql-2016-web-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-web-windows-2012-r2-dc"
+  - put: sql-2016-web-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-web-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-web-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-web-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-web-windows-2016-dc
+- name: build-sql-2016-web-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-web-windows-2016-dc"
+  - put: sql-2016-web-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-web-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-web-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-web-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2016-web-windows-2019-dc
+- name: build-sql-2016-web-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2016-web-windows-2019-dc"
+  - put: sql-2016-web-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2016-web-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2016-web-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2016-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2016-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2016-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2016-web-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-enterprise-windows-2016-dc
+- name: build-sql-2017-enterprise-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-enterprise-windows-2016-dc"
+  - put: sql-2017-enterprise-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-enterprise-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-enterprise-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-enterprise-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-enterprise-windows-2019-dc
+- name: build-sql-2017-enterprise-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-enterprise-windows-2019-dc"
+  - put: sql-2017-enterprise-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-enterprise-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-enterprise-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-enterprise-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-express-windows-2012-r2-dc
+- name: build-sql-2017-express-windows-2012-r2-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2012r2]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-express-windows-2012-r2-dc"
+  - put: sql-2017-express-windows-2012-r2-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-express-windows-2012-r2-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-express-windows-2012-r2-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-express"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-express
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-express-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-express-windows-2012-r2-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-express-windows-2016-dc
+- name: build-sql-2017-express-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-express-windows-2016-dc"
+  - put: sql-2017-express-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-express-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-express-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-express"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-express
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-express-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-express-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-express-windows-2019-dc
+- name: build-sql-2017-express-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-express-windows-2019-dc"
+  - put: sql-2017-express-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-express-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-express-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-express"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-express
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-express-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-express-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-standard-windows-2016-dc
+- name: build-sql-2017-standard-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-standard-windows-2016-dc"
+  - put: sql-2017-standard-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-standard-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-standard-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-standard-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-standard-windows-2019-dc
+- name: build-sql-2017-standard-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-standard-windows-2019-dc"
+  - put: sql-2017-standard-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-standard-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-standard-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-standard-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-web-windows-2016-dc
+- name: build-sql-2017-web-windows-2016-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2016]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-web-windows-2016-dc"
+  - put: sql-2017-web-windows-2016-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-web-windows-2016-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-web-windows-2016-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-web-windows-2016-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-web-windows-2019-dc
+- name: build-sql-2017-web-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-web-windows-2019-dc"
+  - put: sql-2017-web-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-web-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-web-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-web-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2019-enterprise-windows-2019-dc
+- name: build-sql-2019-enterprise-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-enterprise-windows-2019-dc"
+  - put: sql-2019-enterprise-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-enterprise-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-enterprise-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-enterprise-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2019-standard-windows-2019-dc
+- name: build-sql-2019-standard-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-standard-windows-2019-dc"
+  - put: sql-2019-standard-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-standard-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-standard-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-standard-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2019-web-windows-2019-dc
+- name: build-sql-2019-web-windows-2019-dc
+  plan:
+  - get: compute-image-tools
+    passed: [publish-to-testing-2019]
+    trigger: true
+  - get: guest-test-infra
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-web-windows-2019-dc"
+  - put: sql-2019-web-windows-2019-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-web-windows-2019-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-web-windows-2019-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-web-windows-2019-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
       timeout: "4h"
 
 # Publish to testing
@@ -1102,7 +2479,7 @@ jobs:
   - get: compute-image-tools
   - get: windows-2022-gcs
     passed: [build-windows-2022]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1128,7 +2505,7 @@ jobs:
   - get: compute-image-tools
   - get: windows-2022-core-gcs
     passed: [build-windows-2022-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1158,7 +2535,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-20h2-core-gcs
     passed: [build-windows-20h2-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1204,7 +2581,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2004-core-gcs
     passed: [build-windows-2004-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1250,7 +2627,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2019-gcs
     passed: [build-windows-2019]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1296,7 +2673,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2019-core-gcs
     passed: [build-windows-2019-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1342,7 +2719,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2016-gcs
     passed: [build-windows-2016]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1388,7 +2765,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2016-core-gcs
     passed: [build-windows-2016-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1480,7 +2857,7 @@ jobs:
     file: timestamp/timestamp-ms
   - get: windows-2012r2-core-gcs
     passed: [build-windows-2012r2-core]
-    trigger: false
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -1538,6 +2915,654 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2012-standard-windows-2012-r2-dc
+- name: publish-to-testing-sql-2012-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2012-standard-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2012-web-windows-2012-r2-dc
+- name: publish-to-testing-sql-2012-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2012-web-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-web-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2014-enterprise-windows-2012-r2-dc
+- name: publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2014-enterprise-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2014-enterprise-windows-2016-dc
+- name: publish-to-testing-sql-2014-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2014-enterprise-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2014-standard-windows-2012-r2-dc
+- name: publish-to-testing-sql-2014-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2014-standard-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2014-web-windows-2012-r2-dc
+- name: publish-to-testing-sql-2014-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2014-web-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-web-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2016-enterprise-windows-2012-r2-dc
+- name: publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-enterprise-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2016-enterprise-windows-2016-dc
+- name: publish-to-testing-sql-2016-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-enterprise-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2016-enterprise-windows-2019-dc
+- name: publish-to-testing-sql-2016-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-enterprise-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2016-standard-windows-2012-r2-dc
+- name: publish-to-testing-sql-2016-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-standard-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2016-standard-windows-2016-dc
+- name: publish-to-testing-sql-2016-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-standard-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2016-standard-windows-2019-dc
+- name: publish-to-testing-sql-2016-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-standard-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2016-web-windows-2012-r2-dc
+- name: publish-to-testing-sql-2016-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-web-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2016-web-windows-2016-dc
+- name: publish-to-testing-sql-2016-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-web-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2016-web-windows-2019-dc
+- name: publish-to-testing-sql-2016-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2016-web-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2017-enterprise-windows-2016-dc
+- name: publish-to-testing-sql-2017-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-enterprise-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2017-enterprise-windows-2019-dc
+- name: publish-to-testing-sql-2017-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-enterprise-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2017-express-windows-2012-r2-dc
+- name: publish-to-testing-sql-2017-express-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-express-windows-2012-r2-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2012-r2-dc-uefi.publish"
+      environment: "test"
+# sql-2017-express-windows-2016-dc
+- name: publish-to-testing-sql-2017-express-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-express-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2017-express-windows-2019-dc
+- name: publish-to-testing-sql-2017-express-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-express-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2017-standard-windows-2016-dc
+- name: publish-to-testing-sql-2017-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-standard-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-standard-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2017-standard-windows-2019-dc
+- name: publish-to-testing-sql-2017-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-standard-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2017-web-windows-2016-dc
+- name: publish-to-testing-sql-2017-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-web-windows-2016-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-web-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2016-dc-uefi.publish"
+      environment: "test"
+# sql-2017-web-windows-2019-dc
+- name: publish-to-testing-sql-2017-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2017-web-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2019-enterprise-windows-2019-dc
+- name: publish-to-testing-sql-2019-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2019-enterprise-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2019-standard-windows-2019-dc
+- name: publish-to-testing-sql-2019-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2019-standard-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2019-dc-uefi.publish"
+      environment: "test"
+# sql-2019-web-windows-2019-dc
+- name: publish-to-testing-sql-2019-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [build-sql-2019-web-windows-2019-dc]
+    trigger: true
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2019-dc-uefi.publish"
       environment: "test"
 
 # Publish to staging
@@ -1984,6 +4009,654 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2012-standard-windows-2012-r2-dc
+- name: publish-to-staging-sql-2012-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2012-standard-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2012-web-windows-2012-r2-dc
+- name: publish-to-staging-sql-2012-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2012-web-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2012-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2012-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-web-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2014-enterprise-windows-2012-r2-dc
+- name: publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2014-enterprise-windows-2016-dc
+- name: publish-to-staging-sql-2014-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2014-enterprise-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2014-standard-windows-2012-r2-dc
+- name: publish-to-staging-sql-2014-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2014-standard-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2014-web-windows-2012-r2-dc
+- name: publish-to-staging-sql-2014-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2014-web-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2014-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2014-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-web-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-enterprise-windows-2012-r2-dc
+- name: publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-enterprise-windows-2016-dc
+- name: publish-to-staging-sql-2016-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-enterprise-windows-2019-dc
+- name: publish-to-staging-sql-2016-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-standard-windows-2012-r2-dc
+- name: publish-to-staging-sql-2016-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-standard-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-standard-windows-2016-dc
+- name: publish-to-staging-sql-2016-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-standard-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-standard-windows-2019-dc
+- name: publish-to-staging-sql-2016-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-standard-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-web-windows-2012-r2-dc
+- name: publish-to-staging-sql-2016-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-web-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-web-windows-2016-dc
+- name: publish-to-staging-sql-2016-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-web-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2016-web-windows-2019-dc
+- name: publish-to-staging-sql-2016-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2016-web-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2016-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2016-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-enterprise-windows-2016-dc
+- name: publish-to-staging-sql-2017-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-enterprise-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-enterprise-windows-2019-dc
+- name: publish-to-staging-sql-2017-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-enterprise-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-express-windows-2012-r2-dc
+- name: publish-to-staging-sql-2017-express-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-express-windows-2012-r2-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2012-r2-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2012-r2-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2012-r2-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-express-windows-2016-dc
+- name: publish-to-staging-sql-2017-express-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-express-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-express-windows-2019-dc
+- name: publish-to-staging-sql-2017-express-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-express-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-express-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-express-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-standard-windows-2016-dc
+- name: publish-to-staging-sql-2017-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-standard-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-standard-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-standard-windows-2019-dc
+- name: publish-to-staging-sql-2017-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-standard-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-web-windows-2016-dc
+- name: publish-to-staging-sql-2017-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-web-windows-2016-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2016-dc-gcs
+  - load_var: source-version
+    file: sql-2017-web-windows-2016-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2016-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-web-windows-2019-dc
+- name: publish-to-staging-sql-2017-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2017-web-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2017-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-enterprise-windows-2019-dc
+- name: publish-to-staging-sql-2019-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2019-enterprise-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-enterprise-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-standard-windows-2019-dc
+- name: publish-to-staging-sql-2019-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2019-standard-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-standard-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-standard-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-web-windows-2019-dc
+- name: publish-to-staging-sql-2019-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+    passed: [publish-to-testing-sql-2019-web-windows-2019-dc]
+    trigger: false
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-web-windows-2019-dc-gcs
+  - load_var: source-version
+    file: sql-2019-web-windows-2019-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2019-dc-uefi.publish"
       environment: "staging"
 
 # Publish to prod
@@ -2451,5 +5124,707 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "sqlserver/sql-2012-enterprise-windows-2012-r2-dc-uefi.publish"
       image_name: "sql-2012-enterprise-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2012-standard-windows-2012-r2-dc
+- name: publish-to-prod-sql-2012-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2012-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2012-standard-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2012-standard-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-standard-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2012-standard-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2012-web-windows-2012-r2-dc
+- name: publish-to-prod-sql-2012-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2012-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2012-web-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2012-web-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2012-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2012-web-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2012-web-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2014-enterprise-windows-2012-r2-dc
+- name: publish-to-prod-sql-2014-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2014-enterprise-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2014-enterprise-windows-2016-dc
+- name: publish-to-prod-sql-2014-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2014-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2014-enterprise-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2014-enterprise-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-enterprise-windows-2016-dc-uefi.publish"
+      image_name: "sql-2014-enterprise-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2014-standard-windows-2012-r2-dc
+- name: publish-to-prod-sql-2014-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2014-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2014-standard-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2014-standard-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-standard-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2014-standard-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2014-web-windows-2012-r2-dc
+- name: publish-to-prod-sql-2014-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2014-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2014-web-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2014-web-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2014-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2014-web-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2014-web-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-enterprise-windows-2012-r2-dc
+- name: publish-to-prod-sql-2016-enterprise-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2016-enterprise-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-enterprise-windows-2016-dc
+- name: publish-to-prod-sql-2016-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2016-enterprise-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2016-dc-uefi.publish"
+      image_name: "sql-2016-enterprise-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-enterprise-windows-2019-dc
+- name: publish-to-prod-sql-2016-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2016-enterprise-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-enterprise-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-enterprise-windows-2019-dc-uefi.publish"
+      image_name: "sql-2016-enterprise-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-standard-windows-2012-r2-dc
+- name: publish-to-prod-sql-2016-standard-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2016-standard-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-standard-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2016-standard-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-standard-windows-2016-dc
+- name: publish-to-prod-sql-2016-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-standard-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2016-standard-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-standard-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2016-dc-uefi.publish"
+      image_name: "sql-2016-standard-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-standard-windows-2019-dc
+- name: publish-to-prod-sql-2016-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-standard-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2016-standard-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-standard-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-standard-windows-2019-dc-uefi.publish"
+      image_name: "sql-2016-standard-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-web-windows-2012-r2-dc
+- name: publish-to-prod-sql-2016-web-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2016-web-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-web-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2016-web-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-web-windows-2016-dc
+- name: publish-to-prod-sql-2016-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-web-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2016-web-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-web-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2016-dc-uefi.publish"
+      image_name: "sql-2016-web-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2016-web-windows-2019-dc
+- name: publish-to-prod-sql-2016-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2016-web-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2016-web-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2016-web-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2016-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2016-web-windows-2019-dc-uefi.publish"
+      image_name: "sql-2016-web-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-enterprise-windows-2016-dc
+- name: publish-to-prod-sql-2017-enterprise-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2017-enterprise-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2016-dc-uefi.publish"
+      image_name: "sql-2017-enterprise-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-enterprise-windows-2019-dc
+- name: publish-to-prod-sql-2017-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2017-enterprise-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2019-dc-uefi.publish"
+      image_name: "sql-2017-enterprise-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-express-windows-2012-r2-dc
+- name: publish-to-prod-sql-2017-express-windows-2012-r2-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-express-windows-2012-r2-dc-gcs
+    passed: [publish-to-staging-sql-2017-express-windows-2012-r2-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-express-windows-2012-r2-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2012-r2-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2012-r2-dc-uefi.publish"
+      image_name: "sql-2017-express-windows-2012-r2-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-express-windows-2016-dc
+- name: publish-to-prod-sql-2017-express-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-express-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2017-express-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-express-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2016-dc-uefi.publish"
+      image_name: "sql-2017-express-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-express-windows-2019-dc
+- name: publish-to-prod-sql-2017-express-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-express-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2017-express-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-express-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-express-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-express-windows-2019-dc-uefi.publish"
+      image_name: "sql-2017-express-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-standard-windows-2016-dc
+- name: publish-to-prod-sql-2017-standard-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-standard-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2017-standard-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-standard-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2016-dc-uefi.publish"
+      image_name: "sql-2017-standard-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-standard-windows-2019-dc
+- name: publish-to-prod-sql-2017-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-standard-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2017-standard-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-standard-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2019-dc-uefi.publish"
+      image_name: "sql-2017-standard-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-web-windows-2016-dc
+- name: publish-to-prod-sql-2017-web-windows-2016-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-web-windows-2016-dc-gcs
+    passed: [publish-to-staging-sql-2017-web-windows-2016-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-web-windows-2016-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2016-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2016-dc-uefi.publish"
+      image_name: "sql-2017-web-windows-2016-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-web-windows-2019-dc
+- name: publish-to-prod-sql-2017-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-web-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2017-web-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2017-web-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2019-dc-uefi.publish"
+      image_name: "sql-2017-web-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-enterprise-windows-2019-dc
+- name: publish-to-prod-sql-2019-enterprise-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2019-enterprise-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2019-dc-uefi.publish"
+      image_name: "sql-2019-enterprise-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-standard-windows-2019-dc
+- name: publish-to-prod-sql-2019-standard-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-standard-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2019-standard-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2019-standard-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2019-dc-uefi.publish"
+      image_name: "sql-2019-standard-windows-2019-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-web-windows-2019-dc
+- name: publish-to-prod-sql-2019-web-windows-2019-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-web-windows-2019-dc-gcs
+    passed: [publish-to-staging-sql-2019-web-windows-2019-dc]
+    trigger: false
+  - load_var: source-version
+    file: sql-2019-web-windows-2019-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2019-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2019-dc-uefi.publish"
+      image_name: "sql-2019-web-windows-2019-dc"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
