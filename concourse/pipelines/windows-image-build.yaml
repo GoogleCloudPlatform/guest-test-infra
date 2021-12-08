@@ -2902,6 +2902,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -2926,6 +2928,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-standard-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -2950,6 +2954,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-web-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -2974,6 +2980,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -2998,6 +3006,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3022,6 +3032,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-standard-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3046,6 +3058,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-web-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3070,6 +3084,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3094,6 +3110,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3118,6 +3136,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3142,6 +3162,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3166,6 +3188,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3190,6 +3214,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3214,6 +3240,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3238,6 +3266,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3262,6 +3292,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3286,6 +3318,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3310,6 +3344,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3334,6 +3370,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2012-r2-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -3358,6 +3396,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3382,6 +3422,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3406,6 +3448,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3430,6 +3474,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3454,6 +3500,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2016-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2016-dc-gcs/version
   - task: generate-version
@@ -3478,6 +3526,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3502,6 +3552,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-enterprise-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3526,6 +3578,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-standard-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -3550,6 +3604,8 @@ jobs:
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-web-windows-2019-dc-gcs
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-web-windows-2019-dc-gcs/version
   - task: generate-version
