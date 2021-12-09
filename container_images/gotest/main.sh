@@ -21,16 +21,17 @@ BUILD_DIR=$1
 if [[ -n $BUILD_DIR ]]; then
   cd $BUILD_DIR || exit 1
 fi
+shift
 
 echo "Pulling Linux imports..."
 go get -d -t ./... || exit 1
 echo "Pulling Windows imports..."
 GOOS=windows go get -d -t ./... || exit 1
 
-go test -v -coverprofile=/coverage.out ./... >/go-test.txt
+go test -v -coverprofile=/coverage.out "$@" ./... >/go-test.txt
 RET=$?
 if [[ $RET -ne 0 ]]; then
-  echo "go test -coverprofile=/coverage.out ./... returned ${RET}"
+  echo "go test -coverprofile=/coverage.out $@ ./... returned ${RET}"
 fi
 cp /go-test.txt ${ARTIFACTS}/
 

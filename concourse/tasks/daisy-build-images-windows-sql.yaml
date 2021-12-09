@@ -9,6 +9,7 @@ image_resource:
 inputs:
 - name: compute-image-tools
 - name: credentials
+- name: publish-version
 
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
@@ -18,10 +19,11 @@ run:
   args:
   - -project=gce-image-builder
   - -zone=us-central1-c
-  - -var:installer_iso=((iso))
   - -var:build_date=((build_date))
-  - -var:google_cloud_repo=((google_cloud_repo))
   - -var:gcs_url=((gcs_url))
-  - -var:workflow_root=../../
+  - -var:sql_server_media=((sql_server_media))
+  - -var:source_image_project=((source_image_project))
+  - -var:ssms_exe=((ssms_exe))
+  - -var:timeout=((timeout))
   - -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/
   - ./compute-image-tools/daisy_workflows/build-publish/((wf))
