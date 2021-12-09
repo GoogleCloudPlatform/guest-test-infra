@@ -43,9 +43,16 @@ func TestGuestPackages(t *testing.T) {
 	if strings.Contains(image, "debian") {
 		cmdPrefix = []string{"dpkg-query", "-W", "--showformat", "'${Package}\n'"}
 	}
-	for _, pkg := range []string{"google-compute-engine",
-		"google-compute-engine-oslogin", "google-guest-agent",
-		"google-osconfig-agent"} {
+	packages := []string{"google-guest-agent", "google-osconfig-agent"}
+	if strings.Contains(image, "sles") {
+		packages = append(packages, "google-guest-configs") // SLES name for 'google-compute-engine' package.
+		packages = append(packages, "google-guest-oslogin")
+	} else {
+		packages = append(packages, "google-compute-engine")
+		packages = append(packages, "google-compute-engine-oslogin")
+	}
+
+	for _, pkg := range packages {
 		args := append(cmdPrefix[1:], pkg)
 		cmd := exec.Command(cmdPrefix[0], args...)
 		stderr := &bytes.Buffer{}
