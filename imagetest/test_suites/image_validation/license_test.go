@@ -135,7 +135,6 @@ const (
 var licenseGlobs = []string{
 	"/usr/share/doc/*/copyright",
 	"/usr/share/doc/*/LICENSE",
-	"/usr/share/doc/*/README",
 	"/usr/share/licenses/*/LICENSE",
 }
 
