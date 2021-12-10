@@ -1242,9 +1242,12 @@ jobs:
 - name: build-sql-2012-enterprise-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1286,9 +1289,12 @@ jobs:
 - name: build-sql-2012-standard-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1330,9 +1336,12 @@ jobs:
 - name: build-sql-2012-web-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1374,9 +1383,12 @@ jobs:
 - name: build-sql-2014-enterprise-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1418,9 +1430,12 @@ jobs:
 - name: build-sql-2014-enterprise-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1462,9 +1477,12 @@ jobs:
 - name: build-sql-2014-standard-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1506,9 +1524,12 @@ jobs:
 - name: build-sql-2014-web-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1550,9 +1571,12 @@ jobs:
 - name: build-sql-2016-enterprise-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1594,9 +1618,12 @@ jobs:
 - name: build-sql-2016-enterprise-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1638,9 +1665,12 @@ jobs:
 - name: build-sql-2016-enterprise-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1682,9 +1712,12 @@ jobs:
 - name: build-sql-2016-standard-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1726,9 +1759,12 @@ jobs:
 - name: build-sql-2016-standard-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1770,9 +1806,12 @@ jobs:
 - name: build-sql-2016-standard-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1814,9 +1853,12 @@ jobs:
 - name: build-sql-2016-web-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1858,9 +1900,12 @@ jobs:
 - name: build-sql-2016-web-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1902,9 +1947,12 @@ jobs:
 - name: build-sql-2016-web-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1946,9 +1994,12 @@ jobs:
 - name: build-sql-2017-enterprise-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -1990,9 +2041,12 @@ jobs:
 - name: build-sql-2017-enterprise-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2034,9 +2088,12 @@ jobs:
 - name: build-sql-2017-express-windows-2012-r2-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2012r2-gcs
     passed: [publish-to-testing-2012r2]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2078,9 +2135,12 @@ jobs:
 - name: build-sql-2017-express-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2122,9 +2182,12 @@ jobs:
 - name: build-sql-2017-express-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2166,9 +2229,12 @@ jobs:
 - name: build-sql-2017-standard-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2210,9 +2276,12 @@ jobs:
 - name: build-sql-2017-standard-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2254,9 +2323,12 @@ jobs:
 - name: build-sql-2017-web-windows-2016-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2016-gcs
     passed: [publish-to-testing-2016]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2298,9 +2370,12 @@ jobs:
 - name: build-sql-2017-web-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2342,9 +2417,12 @@ jobs:
 - name: build-sql-2019-enterprise-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2386,9 +2464,12 @@ jobs:
 - name: build-sql-2019-standard-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2430,9 +2511,12 @@ jobs:
 - name: build-sql-2019-web-windows-2019-dc
   plan:
   - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
     trigger: true
-  - get: guest-test-infra
+    params:
+      skip_download: "true"
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
@@ -2896,12 +2980,12 @@ jobs:
 - name: publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2012-enterprise-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+    passed: [build-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -2922,12 +3006,12 @@ jobs:
 - name: publish-to-testing-sql-2012-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2012-standard-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-standard-windows-2012-r2-dc-gcs
+    passed: [build-sql-2012-standard-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -2948,12 +3032,12 @@ jobs:
 - name: publish-to-testing-sql-2012-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2012-web-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-web-windows-2012-r2-dc-gcs
+    passed: [build-sql-2012-web-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -2974,12 +3058,12 @@ jobs:
 - name: publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2014-enterprise-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+    passed: [build-sql-2014-enterprise-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3000,12 +3084,12 @@ jobs:
 - name: publish-to-testing-sql-2014-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2014-enterprise-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2016-dc-gcs
+    passed: [build-sql-2014-enterprise-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3026,12 +3110,12 @@ jobs:
 - name: publish-to-testing-sql-2014-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2014-standard-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-standard-windows-2012-r2-dc-gcs
+    passed: [build-sql-2014-standard-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3052,12 +3136,12 @@ jobs:
 - name: publish-to-testing-sql-2014-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2014-web-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-web-windows-2012-r2-dc-gcs
+    passed: [build-sql-2014-web-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3078,12 +3162,12 @@ jobs:
 - name: publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-enterprise-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+    passed: [build-sql-2016-enterprise-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3104,12 +3188,12 @@ jobs:
 - name: publish-to-testing-sql-2016-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-enterprise-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2016-dc-gcs
+    passed: [build-sql-2016-enterprise-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3130,12 +3214,12 @@ jobs:
 - name: publish-to-testing-sql-2016-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-enterprise-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2019-dc-gcs
+    passed: [build-sql-2016-enterprise-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3156,12 +3240,12 @@ jobs:
 - name: publish-to-testing-sql-2016-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-standard-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2012-r2-dc-gcs
+    passed: [build-sql-2016-standard-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3182,12 +3266,12 @@ jobs:
 - name: publish-to-testing-sql-2016-standard-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-standard-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2016-dc-gcs
+    passed: [build-sql-2016-standard-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3208,12 +3292,12 @@ jobs:
 - name: publish-to-testing-sql-2016-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-standard-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2019-dc-gcs
+    passed: [build-sql-2016-standard-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3234,12 +3318,12 @@ jobs:
 - name: publish-to-testing-sql-2016-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-web-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2012-r2-dc-gcs
+    passed: [build-sql-2016-web-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3260,12 +3344,12 @@ jobs:
 - name: publish-to-testing-sql-2016-web-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-web-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2016-dc-gcs
+    passed: [build-sql-2016-web-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3286,12 +3370,12 @@ jobs:
 - name: publish-to-testing-sql-2016-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2016-web-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2019-dc-gcs
+    passed: [build-sql-2016-web-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3312,12 +3396,12 @@ jobs:
 - name: publish-to-testing-sql-2017-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-enterprise-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2016-dc-gcs
+    passed: [build-sql-2017-enterprise-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3338,12 +3422,12 @@ jobs:
 - name: publish-to-testing-sql-2017-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-enterprise-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2019-dc-gcs
+    passed: [build-sql-2017-enterprise-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3364,12 +3448,12 @@ jobs:
 - name: publish-to-testing-sql-2017-express-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-express-windows-2012-r2-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2012-r2-dc-gcs
+    passed: [build-sql-2017-express-windows-2012-r2-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3390,12 +3474,12 @@ jobs:
 - name: publish-to-testing-sql-2017-express-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-express-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2016-dc-gcs
+    passed: [build-sql-2017-express-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3416,12 +3500,12 @@ jobs:
 - name: publish-to-testing-sql-2017-express-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-express-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2019-dc-gcs
+    passed: [build-sql-2017-express-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3442,12 +3526,12 @@ jobs:
 - name: publish-to-testing-sql-2017-standard-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-standard-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2016-dc-gcs
+    passed: [build-sql-2017-standard-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3468,12 +3552,12 @@ jobs:
 - name: publish-to-testing-sql-2017-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-standard-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2019-dc-gcs
+    passed: [build-sql-2017-standard-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3494,12 +3578,12 @@ jobs:
 - name: publish-to-testing-sql-2017-web-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-web-windows-2016-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2016-dc-gcs
+    passed: [build-sql-2017-web-windows-2016-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3520,12 +3604,12 @@ jobs:
 - name: publish-to-testing-sql-2017-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2017-web-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2019-dc-gcs
+    passed: [build-sql-2017-web-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3546,12 +3630,12 @@ jobs:
 - name: publish-to-testing-sql-2019-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2019-enterprise-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-enterprise-windows-2019-dc-gcs
+    passed: [build-sql-2019-enterprise-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3572,12 +3656,12 @@ jobs:
 - name: publish-to-testing-sql-2019-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2019-standard-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-standard-windows-2019-dc-gcs
+    passed: [build-sql-2019-standard-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -3598,12 +3682,12 @@ jobs:
 - name: publish-to-testing-sql-2019-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [build-sql-2019-web-windows-2019-dc]
-    trigger: true
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-web-windows-2019-dc-gcs
+    passed: [build-sql-2019-web-windows-2019-dc]
+    trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
@@ -4046,12 +4130,14 @@ jobs:
 - name: publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4070,12 +4156,14 @@ jobs:
 - name: publish-to-staging-sql-2012-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2012-standard-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2012-standard-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4094,12 +4182,14 @@ jobs:
 - name: publish-to-staging-sql-2012-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2012-web-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2012-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2012-web-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4118,12 +4208,14 @@ jobs:
 - name: publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4142,12 +4234,14 @@ jobs:
 - name: publish-to-staging-sql-2014-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2014-enterprise-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2014-enterprise-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4166,12 +4260,14 @@ jobs:
 - name: publish-to-staging-sql-2014-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2014-standard-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2014-standard-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4190,12 +4286,14 @@ jobs:
 - name: publish-to-staging-sql-2014-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2014-web-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2014-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2014-web-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4214,12 +4312,14 @@ jobs:
 - name: publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4238,12 +4338,14 @@ jobs:
 - name: publish-to-staging-sql-2016-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-enterprise-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4262,12 +4364,14 @@ jobs:
 - name: publish-to-staging-sql-2016-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-enterprise-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2016-enterprise-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4286,12 +4390,14 @@ jobs:
 - name: publish-to-staging-sql-2016-standard-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-standard-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2016-standard-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4310,12 +4416,14 @@ jobs:
 - name: publish-to-staging-sql-2016-standard-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-standard-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2016-standard-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4334,12 +4442,14 @@ jobs:
 - name: publish-to-staging-sql-2016-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-standard-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-standard-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2016-standard-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4358,12 +4468,14 @@ jobs:
 - name: publish-to-staging-sql-2016-web-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-web-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2016-web-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4382,12 +4494,14 @@ jobs:
 - name: publish-to-staging-sql-2016-web-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-web-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2016-web-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4406,12 +4520,14 @@ jobs:
 - name: publish-to-staging-sql-2016-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2016-web-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2016-web-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2016-web-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4430,12 +4546,14 @@ jobs:
 - name: publish-to-staging-sql-2017-enterprise-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-enterprise-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2017-enterprise-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4454,12 +4572,14 @@ jobs:
 - name: publish-to-staging-sql-2017-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-enterprise-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2017-enterprise-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4478,12 +4598,14 @@ jobs:
 - name: publish-to-staging-sql-2017-express-windows-2012-r2-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-express-windows-2012-r2-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2012-r2-dc-gcs
+    passed: [publish-to-testing-sql-2017-express-windows-2012-r2-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2012-r2-dc-gcs/version
   - task: generate-version
@@ -4502,12 +4624,14 @@ jobs:
 - name: publish-to-staging-sql-2017-express-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-express-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2017-express-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4526,12 +4650,14 @@ jobs:
 - name: publish-to-staging-sql-2017-express-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-express-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-express-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2017-express-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4550,12 +4676,14 @@ jobs:
 - name: publish-to-staging-sql-2017-standard-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-standard-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2017-standard-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4574,12 +4702,14 @@ jobs:
 - name: publish-to-staging-sql-2017-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-standard-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-standard-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2017-standard-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4598,12 +4728,14 @@ jobs:
 - name: publish-to-staging-sql-2017-web-windows-2016-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-web-windows-2016-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2016-dc-gcs
+    passed: [publish-to-testing-sql-2017-web-windows-2016-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2016-dc-gcs/version
   - task: generate-version
@@ -4622,12 +4754,14 @@ jobs:
 - name: publish-to-staging-sql-2017-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2017-web-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2017-web-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2017-web-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4646,12 +4780,14 @@ jobs:
 - name: publish-to-staging-sql-2019-enterprise-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2019-enterprise-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-enterprise-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2019-enterprise-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-enterprise-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4670,12 +4806,14 @@ jobs:
 - name: publish-to-staging-sql-2019-standard-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2019-standard-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-standard-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2019-standard-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-standard-windows-2019-dc-gcs/version
   - task: generate-version
@@ -4694,12 +4832,14 @@ jobs:
 - name: publish-to-staging-sql-2019-web-windows-2019-dc
   plan:
   - get: guest-test-infra
-    passed: [publish-to-testing-sql-2019-web-windows-2019-dc]
-    trigger: false
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - get: sql-2019-web-windows-2019-dc-gcs
+    passed: [publish-to-testing-sql-2019-web-windows-2019-dc]
+    trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-web-windows-2019-dc-gcs/version
   - task: generate-version
@@ -5164,6 +5304,8 @@ jobs:
   - get: sql-2012-enterprise-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-enterprise-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5190,6 +5332,8 @@ jobs:
   - get: sql-2012-standard-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2012-standard-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-standard-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5216,6 +5360,8 @@ jobs:
   - get: sql-2012-web-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2012-web-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2012-web-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5242,6 +5388,8 @@ jobs:
   - get: sql-2014-enterprise-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5268,6 +5416,8 @@ jobs:
   - get: sql-2014-enterprise-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2014-enterprise-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-enterprise-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5294,6 +5444,8 @@ jobs:
   - get: sql-2014-standard-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2014-standard-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-standard-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5320,6 +5472,8 @@ jobs:
   - get: sql-2014-web-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2014-web-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2014-web-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5346,6 +5500,8 @@ jobs:
   - get: sql-2016-enterprise-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5372,6 +5528,8 @@ jobs:
   - get: sql-2016-enterprise-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2016-enterprise-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5398,6 +5556,8 @@ jobs:
   - get: sql-2016-enterprise-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2016-enterprise-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-enterprise-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5424,6 +5584,8 @@ jobs:
   - get: sql-2016-standard-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2016-standard-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5450,6 +5612,8 @@ jobs:
   - get: sql-2016-standard-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2016-standard-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5476,6 +5640,8 @@ jobs:
   - get: sql-2016-standard-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2016-standard-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-standard-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5502,6 +5668,8 @@ jobs:
   - get: sql-2016-web-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2016-web-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5528,6 +5696,8 @@ jobs:
   - get: sql-2016-web-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2016-web-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5554,6 +5724,8 @@ jobs:
   - get: sql-2016-web-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2016-web-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2016-web-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5580,6 +5752,8 @@ jobs:
   - get: sql-2017-enterprise-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2017-enterprise-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5606,6 +5780,8 @@ jobs:
   - get: sql-2017-enterprise-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2017-enterprise-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-enterprise-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5632,6 +5808,8 @@ jobs:
   - get: sql-2017-express-windows-2012-r2-dc-gcs
     passed: [publish-to-staging-sql-2017-express-windows-2012-r2-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2012-r2-dc-gcs/version
   - task: get-credential
@@ -5658,6 +5836,8 @@ jobs:
   - get: sql-2017-express-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2017-express-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5684,6 +5864,8 @@ jobs:
   - get: sql-2017-express-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2017-express-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-express-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5710,6 +5892,8 @@ jobs:
   - get: sql-2017-standard-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2017-standard-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5736,6 +5920,8 @@ jobs:
   - get: sql-2017-standard-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2017-standard-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-standard-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5762,6 +5948,8 @@ jobs:
   - get: sql-2017-web-windows-2016-dc-gcs
     passed: [publish-to-staging-sql-2017-web-windows-2016-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2016-dc-gcs/version
   - task: get-credential
@@ -5788,6 +5976,8 @@ jobs:
   - get: sql-2017-web-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2017-web-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2017-web-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5814,6 +6004,8 @@ jobs:
   - get: sql-2019-enterprise-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2019-enterprise-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-enterprise-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5840,6 +6032,8 @@ jobs:
   - get: sql-2019-standard-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2019-standard-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-standard-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5866,6 +6060,8 @@ jobs:
   - get: sql-2019-web-windows-2019-dc-gcs
     passed: [publish-to-staging-sql-2019-web-windows-2019-dc]
     trigger: false
+    params:
+      skip_download: "true"
   - load_var: source-version
     file: sql-2019-web-windows-2019-dc-gcs/version
   - task: get-credential
@@ -5885,3 +6081,290 @@ jobs:
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 
+groups:
+- name: windows-2004
+  jobs:
+  - build-windows-2004-core
+  - publish-to-prod-2004
+  - publish-to-staging-2004
+  - publish-to-testing-2004
+- name: windows-2012r2
+  jobs:
+  - build-windows-2012r2
+  - build-windows-2012r2-core
+  - publish-to-testing-2012r2
+  - publish-to-testing-2012r2-core
+  - publish-to-staging-2012r2
+  - publish-to-staging-2012r2-core
+  - publish-to-prod-2012r2
+  - publish-to-prod-2012r2-core
+  - build-sql-2012-enterprise-windows-2012-r2-dc
+  - build-sql-2012-standard-windows-2012-r2-dc
+  - build-sql-2012-web-windows-2012-r2-dc
+  - build-sql-2014-enterprise-windows-2012-r2-dc
+  - build-sql-2014-standard-windows-2012-r2-dc
+  - build-sql-2014-web-windows-2012-r2-dc
+  - build-sql-2016-enterprise-windows-2012-r2-dc
+  - build-sql-2016-standard-windows-2012-r2-dc
+  - build-sql-2016-web-windows-2012-r2-dc
+  - build-sql-2017-express-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2017-express-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2017-express-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2017-express-windows-2012-r2-dc
+- name: windows-2016
+  jobs:
+  - build-windows-2016
+  - build-windows-2016-core
+  - publish-to-testing-2016
+  - publish-to-testing-2016-core
+  - publish-to-staging-2016
+  - publish-to-staging-2016-core
+  - publish-to-prod-2016
+  - publish-to-prod-2016-core
+  - build-sql-2014-enterprise-windows-2016-dc
+  - build-sql-2016-enterprise-windows-2016-dc
+  - build-sql-2016-standard-windows-2016-dc
+  - build-sql-2016-web-windows-2016-dc
+  - build-sql-2017-enterprise-windows-2016-dc
+  - build-sql-2017-express-windows-2016-dc
+  - build-sql-2017-standard-windows-2016-dc
+  - build-sql-2017-web-windows-2016-dc
+  - publish-to-testing-sql-2014-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2016-standard-windows-2016-dc
+  - publish-to-testing-sql-2016-web-windows-2016-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2017-express-windows-2016-dc
+  - publish-to-testing-sql-2017-standard-windows-2016-dc
+  - publish-to-testing-sql-2017-web-windows-2016-dc
+  - publish-to-staging-sql-2014-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2016-standard-windows-2016-dc
+  - publish-to-staging-sql-2016-web-windows-2016-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2017-express-windows-2016-dc
+  - publish-to-staging-sql-2017-standard-windows-2016-dc
+  - publish-to-staging-sql-2017-web-windows-2016-dc
+  - publish-to-prod-sql-2014-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2016-standard-windows-2016-dc
+  - publish-to-prod-sql-2016-web-windows-2016-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2017-express-windows-2016-dc
+  - publish-to-prod-sql-2017-standard-windows-2016-dc
+  - publish-to-prod-sql-2017-web-windows-2016-dc
+- name: windows-2019
+  jobs:
+  - build-windows-2019
+  - build-windows-2019-core
+  - publish-to-testing-2019
+  - publish-to-testing-2019-core
+  - publish-to-staging-2019
+  - publish-to-staging-2019-core
+  - publish-to-prod-2019
+  - publish-to-prod-2019-core
+  - build-sql-2016-enterprise-windows-2019-dc
+  - build-sql-2016-standard-windows-2019-dc
+  - build-sql-2016-web-windows-2019-dc
+  - build-sql-2017-enterprise-windows-2019-dc
+  - build-sql-2017-express-windows-2019-dc
+  - build-sql-2017-standard-windows-2019-dc
+  - build-sql-2017-web-windows-2019-dc
+  - build-sql-2019-enterprise-windows-2019-dc
+  - build-sql-2019-standard-windows-2019-dc
+  - build-sql-2019-web-windows-2019-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2016-standard-windows-2019-dc
+  - publish-to-testing-sql-2016-web-windows-2019-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2017-express-windows-2019-dc
+  - publish-to-testing-sql-2017-standard-windows-2019-dc
+  - publish-to-testing-sql-2017-web-windows-2019-dc
+  - publish-to-testing-sql-2019-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2019-standard-windows-2019-dc
+  - publish-to-testing-sql-2019-web-windows-2019-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2016-standard-windows-2019-dc
+  - publish-to-staging-sql-2016-web-windows-2019-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2017-express-windows-2019-dc
+  - publish-to-staging-sql-2017-standard-windows-2019-dc
+  - publish-to-staging-sql-2017-web-windows-2019-dc
+  - publish-to-staging-sql-2019-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2019-standard-windows-2019-dc
+  - publish-to-staging-sql-2019-web-windows-2019-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2016-standard-windows-2019-dc
+  - publish-to-prod-sql-2016-web-windows-2019-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2017-express-windows-2019-dc
+  - publish-to-prod-sql-2017-standard-windows-2019-dc
+  - publish-to-prod-sql-2017-web-windows-2019-dc
+  - publish-to-prod-sql-2019-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2019-standard-windows-2019-dc
+  - publish-to-prod-sql-2019-web-windows-2019-dc
+- name: windows-2022
+  jobs:
+  - build-windows-2022
+  - build-windows-2022-core
+  - publish-to-testing-2022
+  - publish-to-testing-2022-core
+  - publish-to-staging-2022
+  - publish-to-staging-2022-core
+  - publish-to-prod-2022
+  - publish-to-prod-2022-core
+- name: windows-20h2
+  jobs:
+  - build-windows-20h2-core
+  - publish-to-testing-20h2
+  - publish-to-staging-20h2
+  - publish-to-prod-20h2
+- name: sql-2012
+  jobs:
+  - build-sql-2012-enterprise-windows-2012-r2-dc
+  - build-sql-2012-standard-windows-2012-r2-dc
+  - build-sql-2012-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2012-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2012-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2012-web-windows-2012-r2-dc
+- name: sql-2014
+  jobs:
+  - build-sql-2014-enterprise-windows-2012-r2-dc
+  - build-sql-2014-enterprise-windows-2016-dc
+  - build-sql-2014-standard-windows-2012-r2-dc
+  - build-sql-2014-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2014-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2014-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2014-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2014-web-windows-2012-r2-dc
+- name: sql-2016
+  jobs:
+  - build-sql-2016-enterprise-windows-2012-r2-dc
+  - build-sql-2016-enterprise-windows-2016-dc
+  - build-sql-2016-enterprise-windows-2019-dc
+  - build-sql-2016-standard-windows-2012-r2-dc
+  - build-sql-2016-standard-windows-2016-dc
+  - build-sql-2016-standard-windows-2019-dc
+  - build-sql-2016-web-windows-2012-r2-dc
+  - build-sql-2016-web-windows-2016-dc
+  - build-sql-2016-web-windows-2019-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2016-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-standard-windows-2016-dc
+  - publish-to-testing-sql-2016-standard-windows-2019-dc
+  - publish-to-testing-sql-2016-web-windows-2012-r2-dc
+  - publish-to-testing-sql-2016-web-windows-2016-dc
+  - publish-to-testing-sql-2016-web-windows-2019-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2016-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-standard-windows-2016-dc
+  - publish-to-staging-sql-2016-standard-windows-2019-dc
+  - publish-to-staging-sql-2016-web-windows-2012-r2-dc
+  - publish-to-staging-sql-2016-web-windows-2016-dc
+  - publish-to-staging-sql-2016-web-windows-2019-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2016-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2016-standard-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-standard-windows-2016-dc
+  - publish-to-prod-sql-2016-standard-windows-2019-dc
+  - publish-to-prod-sql-2016-web-windows-2012-r2-dc
+  - publish-to-prod-sql-2016-web-windows-2016-dc
+  - publish-to-prod-sql-2016-web-windows-2019-dc
+- name: sql-2017
+  jobs:
+  - build-sql-2017-enterprise-windows-2016-dc
+  - build-sql-2017-enterprise-windows-2019-dc
+  - build-sql-2017-express-windows-2012-r2-dc
+  - build-sql-2017-express-windows-2016-dc
+  - build-sql-2017-express-windows-2019-dc
+  - build-sql-2017-standard-windows-2016-dc
+  - build-sql-2017-standard-windows-2019-dc
+  - build-sql-2017-web-windows-2016-dc
+  - build-sql-2017-web-windows-2019-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2016-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2017-express-windows-2012-r2-dc
+  - publish-to-prod-sql-2017-express-windows-2016-dc
+  - publish-to-prod-sql-2017-express-windows-2019-dc
+  - publish-to-prod-sql-2017-standard-windows-2016-dc
+  - publish-to-prod-sql-2017-standard-windows-2019-dc
+  - publish-to-prod-sql-2017-web-windows-2016-dc
+  - publish-to-prod-sql-2017-web-windows-2019-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2016-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2017-express-windows-2012-r2-dc
+  - publish-to-staging-sql-2017-express-windows-2016-dc
+  - publish-to-staging-sql-2017-express-windows-2019-dc
+  - publish-to-staging-sql-2017-standard-windows-2016-dc
+  - publish-to-staging-sql-2017-standard-windows-2019-dc
+  - publish-to-staging-sql-2017-web-windows-2016-dc
+  - publish-to-staging-sql-2017-web-windows-2019-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2016-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2017-express-windows-2012-r2-dc
+  - publish-to-testing-sql-2017-express-windows-2016-dc
+  - publish-to-testing-sql-2017-express-windows-2019-dc
+  - publish-to-testing-sql-2017-standard-windows-2016-dc
+  - publish-to-testing-sql-2017-standard-windows-2019-dc
+  - publish-to-testing-sql-2017-web-windows-2016-dc
+  - publish-to-testing-sql-2017-web-windows-2019-dc
+- name: sql-2019
+  jobs:
+  - build-sql-2019-enterprise-windows-2019-dc
+  - build-sql-2019-standard-windows-2019-dc
+  - build-sql-2019-web-windows-2019-dc
+  - publish-to-prod-sql-2019-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2019-standard-windows-2019-dc
+  - publish-to-prod-sql-2019-web-windows-2019-dc
+  - publish-to-staging-sql-2019-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2019-standard-windows-2019-dc
+  - publish-to-staging-sql-2019-web-windows-2019-dc
+  - publish-to-testing-sql-2019-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2019-standard-windows-2019-dc
+  - publish-to-testing-sql-2019-web-windows-2019-dc
