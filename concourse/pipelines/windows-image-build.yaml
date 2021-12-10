@@ -2572,11 +2572,11 @@ jobs:
 # Windows windows 2019 core for containers
 - name: build-windows-2019-core-for-containers
   plan:
-  - get: windows-2019-for-containers-gcs
-  passed: [publish-to-testing-2019-core]
-  trigger: true
-  params:
-  skip_download: "true"
+  - get: windows-2019-core-gcs
+    passed: [publish-to-testing-2019-core]
+    trigger: true
+    params:
+      skip_download: "true"
   - get: compute-image-tools
   - get: guest-test-infra
   - task: get-credential
@@ -2603,11 +2603,11 @@ jobs:
 # Windows windows 2019 for containers
 - name: build-windows-2019-for-containers
   plan:
-  - get: windows-2019-for-containers-gcs
-  passed: [publish-to-testing-2019]
-  trigger: true
-  params:
-  skip_download: "true"
+  - get: windows-2019-gcs
+    passed: [publish-to-testing-2019]
+    trigger: true
+    params:
+      skip_download: "true"
   - get: compute-image-tools
   - get: guest-test-infra
   - task: get-credential
@@ -3833,7 +3833,6 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "windows_container/windows-2019-for-containers-uefi.publish.json"
       environment: "test"
-
 
 # Publish to staging
 # Windows 2022
