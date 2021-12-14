@@ -19,6 +19,6 @@ run:
   - -project=gce-image-builder
   - -zone=us-central1-c
   - -var:build_date=((build_date))
-  - -var:source_image_project:((source_image_project))
+  - -var:source_image_project=((source_image_project))
   - -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/
   - ./compute-image-tools/daisy_workflows/build-publish/((wf))
