@@ -353,14 +353,14 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "sqlserver-uefi/sql-2019-web-windows-2019-dc-v([0-9]+).tar.gz"
-- name: windows-server-2019-dc-core-for-containers-gcs
+- name: windows-2019-core-for-containers-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
     json_key: |
       ((gcs-key.credential))
     regexp: "windows_uefi/windows-server-2019-dc-core-for-containers-v([0-9]+).tar.gz"
-- name: windows-server-2019-dc-for-containers-gcs
+- name: windows-2019-for-containers-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
@@ -2570,7 +2570,7 @@ jobs:
       ssms_exe: ((.:windows-gcs-ssms-exe))
       timeout: "4h"
 # Windows windows 2019 core for containers
-- name: build-windows-server-2019-dc-core-for-containers
+- name: build-windows-2019-core-for-containers
   plan:
   - get: windows-2019-core-gcs
     passed: [publish-to-testing-2019-core]
@@ -2585,16 +2585,16 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2019-dc-core-for-containers"
-  - put: windows-server-2019-dc-core-for-containers-gcs
+  - put: windows-2019-core-for-containers-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc-core-for-containers-v*
+      file: build-id-dir/windows-server-2019-dc-core-for-containers*
   - load_var: gcs-url
-    file: windows-server-2019-dc-core-for-containers-gcs/url
+    file: windows-2019-core-for-containers-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: daisy-build-windows-server-2019-dc-core-for-containers
+  - task: daisy-build-windows-2019-core-for-containers
     file: guest-test-infra/concourse/tasks/daisy-build-images-windows-container.yaml
     vars:
       wf: "windows_container/windows-2019-core-for-containers-uefi.wf.json"
@@ -2602,7 +2602,7 @@ jobs:
       build_date: ((.:build-date))
       source_image_project: "bct-prod-images"
 # Windows windows 2019 for containers
-- name: build-windows-server-2019-dc-for-containers
+- name: build-windows-2019-for-containers
   plan:
   - get: windows-2019-gcs
     passed: [publish-to-testing-2019]
@@ -2617,16 +2617,16 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
     vars:
       prefix: "windows-server-2019-dc-for-containers"
-  - put: windows-server-2019-dc-for-containers-gcs
+  - put: windows-2019-for-containers-gcs
     params:
       file: build-id-dir/windows-server-2019-dc-for-containers-v*
   - load_var: gcs-url
-    file: windows-server-2019-dc-for-containers-gcs/url
+    file: windows-2019-for-containers-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: daisy-build-windows-server-2019-dc-for-containers
+  - task: daisy-build-windows-2019-for-containers
     file: guest-test-infra/concourse/tasks/daisy-build-images-windows-container.yaml
     vars:
       wf: "windows_container/windows-2019-for-containers-uefi.wf.json"
@@ -3790,13 +3790,13 @@ jobs:
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - get: windows-server-2019-dc-core-for-containers-gcs
-    passed: [build-windows-server-2019-dc-core-for-containers]
+  - get: windows-2019-core-for-containers-gcs
+    passed: [build-windows-2019-core-for-containers]
     trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-core-for-containers-gcs/version
+    file: windows-2019-core-for-containers-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -3816,13 +3816,13 @@ jobs:
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - get: windows-server-2019-dc-for-containers-gcs
-    passed: [build-windows-server-2019-dc-for-containers]
+  - get: windows-2019-for-containers-gcs
+    passed: [build-windows-2019-for-containers]
     trigger: true
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-for-containers-gcs/version
+    file: windows-2019-for-containers-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -4992,13 +4992,13 @@ jobs:
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - get: windows-server-2019-dc-core-for-containers-gcs
+  - get: windows-2019-core-for-containers-gcs
     passed: [publish-to-testing-2019-core-for-containers]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-core-for-containers-gcs/version
+    file: windows-2019-core-for-containers-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -5018,13 +5018,13 @@ jobs:
   - get: compute-image-tools
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
-  - get: windows-server-2019-dc-for-containers-gcs
+  - get: windows-2019-for-containers-gcs
     passed: [publish-to-testing-2019-for-containers]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-for-containers-gcs/version
+    file: windows-2019-for-containers-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -6264,17 +6264,17 @@ jobs:
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2019 core for containers
-- name: publish-to-prod-windows-server-2019-dc-core-for-containers
+- name: publish-to-prod-windows-2019-core-for-containers
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: windows-server-2019-dc-core-for-containers-gcs
+  - get: windows-2019-core-for-containers-gcs
     passed: [publish-to-staging-2019-core-for-containers]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-core-for-containers-gcs/version
+    file: windows-2019-core-for-containers-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -6292,17 +6292,17 @@ jobs:
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2019 for containers
-- name: publish-to-prod-windows-server-2019-dc-for-containers
+- name: publish-to-prod-windows-2019-for-containers
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - get: windows-server-2019-dc-for-containers-gcs
+  - get: windows-2019-for-containers-gcs
     passed: [publish-to-staging-2019-for-containers]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: windows-server-2019-dc-for-containers-gcs/version
+    file: windows-2019-for-containers-gcs/version
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
@@ -6469,10 +6469,10 @@ groups:
   - publish-to-prod-sql-2019-enterprise-windows-2019-dc
   - publish-to-prod-sql-2019-standard-windows-2019-dc
   - publish-to-prod-sql-2019-web-windows-2019-dc
-  - build-windows-server-2019-dc-core-for-containers
-  - build-windows-server-2019-dc-for-containers
-  - publish-to-prod-windows-server-2019-dc-core-for-containers
-  - publish-to-prod-windows-server-2019-dc-for-containers
+  - build-windows-2019-core-for-containers
+  - build-windows-2019-for-containers
+  - publish-to-prod-windows-2019-core-for-containers
+  - publish-to-prod-windows-2019-for-containers
   - publish-to-staging-2019-core-for-containers
   - publish-to-staging-2019-for-containers
   - publish-to-testing-2019-core-for-containers
@@ -6617,10 +6617,10 @@ groups:
   - publish-to-testing-sql-2019-web-windows-2019-dc
 - name: container-2019
   jobs:
-  - build-windows-server-2019-dc-core-for-containers
-  - build-windows-server-2019-dc-for-containers
-  - publish-to-prod-windows-server-2019-dc-core-for-containers
-  - publish-to-prod-windows-server-2019-dc-for-containers
+  - build-windows-2019-core-for-containers
+  - build-windows-2019-for-containers
+  - publish-to-prod-windows-2019-core-for-containers
+  - publish-to-prod-windows-2019-for-containers
   - publish-to-staging-2019-core-for-containers
   - publish-to-staging-2019-for-containers
   - publish-to-testing-2019-core-for-containers
