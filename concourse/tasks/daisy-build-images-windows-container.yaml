@@ -18,6 +18,7 @@ run:
   args:
   - -project=gce-image-builder
   - -zone=us-central1-c
+  - -var:gcs_url=((gcs_url))
   - -var:build_date=((build_date))
   - -var:source_image_project=((source_image_project))
   - -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/
