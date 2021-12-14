@@ -2600,6 +2600,7 @@ jobs:
       wf: "windows_container/windows-2019-core-for-containers-uefi.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      source_image_project: "bct-prod-images"
 # Windows windows 2019 for containers
 - name: build-windows-2019-for-containers
   plan:
@@ -2631,6 +2632,7 @@ jobs:
       wf: "windows_container/windows-2019-for-containers-uefi.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      source_image_project: "bct-prod-images"
 
 # Publish to testing
 # Windows 2022
