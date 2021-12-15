@@ -2587,7 +2587,7 @@ jobs:
       prefix: "windows-server-2019-dc-core-for-containers"
   - put: windows-2019-core-for-containers-gcs
     params:
-      file: build-id-dir/windows-server-2019-dc-core-for-containers*
+      file: build-id-dir/windows-server-2019-dc-core-for-containers-v*
   - load_var: gcs-url
     file: windows-2019-core-for-containers-gcs/url
   - task: generate-build-date
