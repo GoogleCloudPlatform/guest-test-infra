@@ -2655,6 +2655,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2022
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2681,6 +2683,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2022-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2711,6 +2715,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-20h2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2757,6 +2763,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2004-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2803,6 +2811,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2019
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2849,6 +2859,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2019-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2895,6 +2907,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2016
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2941,6 +2955,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2016-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -2987,6 +3003,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2012r2
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -3033,6 +3051,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-windows-2012r2-core
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
@@ -3075,6 +3095,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2012-enterprise-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3101,6 +3123,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2012-standard-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3127,6 +3151,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2012-web-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3153,6 +3179,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2014-enterprise-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3179,6 +3207,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2014-enterprise-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3205,6 +3235,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2014-standard-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3231,6 +3263,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2014-web-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3257,6 +3291,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-enterprise-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3283,6 +3319,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-enterprise-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3309,6 +3347,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-enterprise-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3335,6 +3375,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-standard-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3361,6 +3403,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-standard-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3387,6 +3431,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-standard-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3413,6 +3459,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-web-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3439,6 +3487,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-web-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3465,6 +3515,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2016-web-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3491,6 +3543,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-enterprise-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3517,6 +3571,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-enterprise-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3543,6 +3599,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-express-windows-2012-r2-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3569,6 +3627,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-express-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3595,6 +3655,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-express-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3621,6 +3683,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-standard-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3647,6 +3711,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-standard-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3673,6 +3739,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-web-windows-2016-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3699,6 +3767,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2017-web-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3725,6 +3795,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2019-enterprise-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3751,6 +3823,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2019-standard-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3777,6 +3851,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-sql-2019-web-windows-2019-dc
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
       source_version: v((.:source-version))
@@ -3803,6 +3879,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-2019-core-for-containers
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows_uefi"
       source_version: v((.:source-version))
@@ -3829,6 +3907,8 @@ jobs:
     file: publish-version/version # produced from generate-version task
   - task: publish-2019-for-containers
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    params:
+      ROLLOUT_RATE: 0
     vars:
       source_gcs_path: "gs://artifact-releaser-prod-rtp/windows_uefi"
       source_version: v((.:source-version))
