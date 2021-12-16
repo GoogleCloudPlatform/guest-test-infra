@@ -5411,7 +5411,7 @@ jobs:
       gcs_image_path: "gs://artifact-releaser-prod-rtp/windows-uefi"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "windows/windows-server-2012-dc-core-uefi.publish.json"
+      wf: "windows/windows-server-2012r2-dc-uefi.publish.json"
       image_name: "windows-2012r2"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
