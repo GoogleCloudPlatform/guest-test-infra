@@ -36,7 +36,7 @@ fi
 cp /go-test.txt ${ARTIFACTS}/
 
 # $ARTIFACTS is provided by prow decoration containers
-go tool cover -html=/coverage.out -o ${ARTIFACTS}/coverage.html
+go tool cover -func=/coverage.out | grep ^total | awk '{print $NF}' > ${ARTIFACTS}/coverage.txt
 cat /go-test.txt | go-junit-report > ${ARTIFACTS}/junit.xml
 
 # Upload coverage results to Codecov.

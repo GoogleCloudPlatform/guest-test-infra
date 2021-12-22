@@ -32,6 +32,12 @@ jobs:
     vars:
       timestamp: ((.:timestamp))
       repo-name: guest-agent
+  - task: guest-agent-gotest-coverage
+    file: guest-test-infra/concourse/tasks/gotest.yaml
+    input_mapping:
+      repo: guest-agent
+  - load_var: coverage-percent
+    file: gotest/coverage.txt
   - task: generate-package-version
     file: guest-test-infra/concourse/tasks/generate-package-version.yaml
     input_mapping: {repo: guest-agent}
@@ -77,6 +83,11 @@ jobs:
       name: package-version/version
       tag: package-version/version
       commitish: guest-agent/.git/ref
+  - task: guest-agent-publish-coverage
+    file: guest-test-infra/concourse/tasks/publish-coverage.yaml
+    vars:
+      package_name: "google-guest-agent"
+      coverage_percent: ((.:coverage-percent))
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
