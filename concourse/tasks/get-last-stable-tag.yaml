@@ -19,8 +19,8 @@ run:
   - -exc
   - |
     commit=$(cat repo/.git/refs/tags/stable)
-    tag=$(cd repo/.git/refs/tags; grep -l $commit * | grep -v stable)
-    [[ -z $tag ]] && exit 1
-    echo $tag | tee last-stable-tag/tag
-    echo $tag | sed 's/\..*//' | tee last-stable-tag/date
+    date=$(cd repo/.git/refs/tags; grep -l $commit stable-2*)
+    [[ -z $date ]] && exit 1
+    echo $date | sed 's/\..*//' | tee last-stable-tag/date
+    echo stable-`date +%Y%m%d` | tee last-stable-tag/stable-today
     echo stable > last-stable-tag/stable

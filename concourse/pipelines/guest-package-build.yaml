@@ -303,6 +303,11 @@ jobs:
       name: last-stable-tag/stable  # file contains only the word 'stable'
       tag: last-stable-tag/stable
       commitish: guest-agent-tag/commit_sha
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
+      tag: last-stable-tag/stable-today
+      commitish: guest-agent-tag/commit_sha
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
