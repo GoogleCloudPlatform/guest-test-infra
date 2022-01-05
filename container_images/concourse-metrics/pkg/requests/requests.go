@@ -169,3 +169,50 @@ func BuildCoverageRequest(input CoverageArgs) (*monitoringpb.CreateTimeSeriesReq
 		}},
 	}, nil
 }
+
+// LastPublishedArgs defines the required and optional arguments for building a new
+// last published request (in the form of a cloud monitoring time series request).
+type LastPublishedArgs struct {
+	MetricPath    string
+	ProjectID     string
+	PackageName   string
+	LastPublished string
+}
+
+// BuildLastPublishedRequest builds a new job result request object to submit to gcp cloud monitoring.
+func BuildLastPublishedRequest(input LastPublishedArgs) (*monitoringpb.CreateTimeSeriesRequest, error) {
+	now := time.Now().Unix()
+	lastPublished, err := time.Parse("20060102", input.LastPublished)
+	if err != nil {
+		return nil, err
+	}
+	lastPublishedSecs := lastPublished.Unix()
+
+	return &monitoringpb.CreateTimeSeriesRequest{
+		Name: "projects/" + input.ProjectID,
+		TimeSeries: []*monitoringpb.TimeSeries{{
+			Metric: &metricpb.Metric{
+				Type: "custom.googleapis.com/" + input.MetricPath,
+			},
+			Resource: &monitoredres.MonitoredResource{
+				Type: "generic_task",
+				Labels: map[string]string{
+					"package_name": input.PackageName,
+				},
+			},
+			Points: []*monitoringpb.Point{{
+				Interval: &monitoringpb.TimeInterval{
+					EndTime: &timestamp.Timestamp{
+						Seconds: now,
+					},
+				},
+				Value: &monitoringpb.TypedValue{
+					Value: &monitoringpb.TypedValue_Int64Value{
+						// Int64 value here is the time since last release (measured in seconds).
+						Int64Value: now - lastPublishedSecs,
+					},
+				},
+			}},
+		}},
+	}, nil
+}
