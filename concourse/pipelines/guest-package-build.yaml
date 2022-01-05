@@ -247,6 +247,8 @@ jobs:
   plan:
   - get: guest-agent-tag
     passed: [inject-guest-agent-staging]
+  - get: guest-agent
+    params: {fetch_tags: true}
   - get: guest-test-infra
   - task: generate-timestamp
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
@@ -254,6 +256,12 @@ jobs:
     file: timestamp/timestamp-ms
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: get-last-stable-date
+    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
+    input_mapping:
+      repo: guest-agent
+  - load_var: last-stable-date
+    file: last-stable-tag/date
   - in_parallel:
       - task: promote-deb9-stable
         file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
@@ -285,6 +293,21 @@ jobs:
           universe: cloud-yum
           repo: google-guest-agent-el8
           environment: stable
+  - task: publish-time-since-stable
+    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+    vars:
+      last_publish_date: ((.:last-stable-date))
+      package_name: "google-guest-agent"
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable  # file contains only the word 'stable'
+      tag: last-stable-tag/stable
+      commitish: guest-agent-tag/commit_sha
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
+      tag: last-stable-tag/stable-today
+      commitish: guest-agent-tag/commit_sha
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml

@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: google/cloud-sdk
+    tag: alpine
+
+inputs:
+- name: repo
+
+outputs:
+- name: last-stable-tag
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    commit=$(cat repo/.git/refs/tags/stable)
+    date=$(cd repo/.git/refs/tags; grep -l $commit stable-2*)
+    [[ -z $date ]] && exit 1
+    echo $date | sed 's/\..*//' | tee last-stable-tag/date
+    echo stable-`date +%Y%m%d` | tee last-stable-tag/stable-today
+    echo stable > last-stable-tag/stable
