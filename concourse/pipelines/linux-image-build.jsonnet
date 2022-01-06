@@ -1,5 +1,5 @@
 // These can be extracted to a utils or common templates file.
-local stages = ['test', 'staging', 'oslogin-staging', 'prod'];
+local envs = ['test', 'staging', 'oslogin-staging', 'prod'];
 
 local GcsResource(name, regexp) = {
   name: name + '-gcs',
@@ -20,6 +20,8 @@ local GitResource(name, branch='master') = {
   },
 };
 
+// An image build runs the daisy image build workflow, producing an artifact in GCS that we track as a
+// resource between jobs.
 local ImgBuild(name, workflow) = {
   local isopath = if std.endsWith(name, '-sap') then
     std.strReplace(name, '-sap', '')
@@ -27,6 +29,14 @@ local ImgBuild(name, workflow) = {
     std.strReplace(name, '-byos', '')
   else
     name,
+
+  local imagename = if name == 'debian-9' then
+    'debian-9-stretch'
+  else if name == 'debian-10' then
+    'debian-10-buster'
+  else if name == 'debian-11' then
+    'debian-11-bullseye'
+  else name,
 
   name: 'build-' + name,
   plan: [
@@ -45,17 +55,11 @@ local ImgBuild(name, workflow) = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      // Produces build-id-dir output
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
       vars: {
-        prefix: name + if name == 'debian-9' then
-          '-stretch'
-        else if name == 'debian-10' then
-          '-buster'
-        else if name == 'debian-11' then
-          '-bullseye'
-        else
-          '',
+        prefix: imagename,
       },
     },
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
@@ -64,6 +68,8 @@ local ImgBuild(name, workflow) = {
     {
       put: name + '-gcs',
       params: {
+        // e.g. 'build-id-dir/centos-7*'
+        // this matches the file we created above. It needs to be a file for the 'put' step.
         file: 'build-id-dir/' + name + '*',
       },
       get_params: {
@@ -88,6 +94,8 @@ local ImgBuild(name, workflow) = {
     },
     {
       task: 'daisy-build-' + name,
+      // Today these are slightly differing tasks due to different default arguments. EL builds need an ISO,
+      // but Debian builds don't. TODO: replace this with JSONnet templating.
       file: if std.startsWith(name, 'debian') then
         'guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml'
       else
@@ -95,6 +103,7 @@ local ImgBuild(name, workflow) = {
       vars: {
         wf: workflow,
         gcs_url: '((.:gcs-url))',
+        // The 'iso' field is omitted in Debian builds.
         // A null key is omitted, so this is a shorthand for optional fields.
         [if std.startsWith(name, 'debian') then null else 'iso']: '((iso-paths.' + isopath + '))',
         google_cloud_repo: 'stable',
@@ -124,76 +133,116 @@ local ImgBuild(name, workflow) = {
   },
 };
 
-local ImgPublish(name, stage, workflow, gcs) = {
-  local stagename = if stage == 'test' then stage + 'ing' else stage,
+// Image publish involves either invoking gce_image_publish or sending a PubSub message to ARLE.
+local ImgPublish(name, env, gcs, workflow) = {
+  // Called 'testing' in names but 'test' in arguments to publish tools. TODO: standardize this.
+  local envname = if env == 'test' then 'testing' else env,
 
-  name: 'publish-to-' + stagename + '-' + name,
+  // Debian GCS and images use a longer name, but jobs use the shorter name.
+  local imagename = if name == 'debian-9' then
+    'debian-9-stretch'
+  else if name == 'debian-10' then
+    'debian-10-buster'
+  else if name == 'debian-11' then
+    'debian-11-bullseye'
+  else name,
+
+  name: 'publish-to-' + envname + '-' + name,
   plan: [
-    { get: 'guest-test-infra' },
-    { get: 'compute-image-tools' },
-    {
-      task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
-    },
-    {
-      load_var: 'start-timestamp-ms',
-      file: 'timestamp/timestamp-ms',
-    },
-    {
-      get: name + '-gcs',
-      passed: ['build-' + name],
-      trigger: true,
-      params: {
-        skip_download: 'true',
-      },
-    },
-    {
-      load_var: 'source-version',
-      file: name + '-gcs/version',
-    },
-    {
-      task: 'get-credential',
-      file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-    },
-    {
-      task: 'generate-version',
-      file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-    },
-    {
-      load_var: 'publish-version',
-      file: 'publish-version/version',
-    },
-    {
-      task: 'publish-' + name,
-      file: 'guest-test-infra/concourse/tasks/daisy-publish-images.yaml',
-      vars: {
-        source_gcs_path: gcs,
-        source_version: 'v((.:source-version))',
-        publish_version: '((.:publish-version))',
-        wf: workflow,
-        environment: stage,
-      },
-    },
-    (
-      if stage == 'test' then
-        {
-          task: 'image-test-' + name,
-          file: 'guest-test-infra/concourse/tasks/image-test.yaml',
-          attempts: 3,
-          vars: {
-            images: 'projects/bct-prod-images/global/images/' + name + '-((.:publish-version))',
+          { get: 'guest-test-infra' },
+          { get: 'compute-image-tools' },
+          {
+            task: 'generate-timestamp',
+            file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
           },
-        }
-      else
-        {}
-    ),
-  ],
+          {
+            load_var: 'start-timestamp-ms',
+            file: 'timestamp/timestamp-ms',
+          },
+          {
+            get: name + '-gcs',
+            passed: [
+              if env == 'test' then
+                'build-' + name
+              else
+                'publish-to-testing-' + name,
+            ],
+            trigger: if env == 'test' then true else false,
+            params: {
+              skip_download: 'true',
+            },
+          },
+          {
+            load_var: 'source-version',
+            file: name + '-gcs/version',
+          },
+          {
+            task: 'get-credential',
+            file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
+          },
+          {
+            task: 'generate-version',
+            file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
+          },
+          {
+            load_var: 'publish-version',
+            file: 'publish-version/version',
+          },
+        ] + [(
+          // Prod releases use a different final publish step that invokes ARLE.
+          if env == 'prod' then
+            {
+              task: 'publish-' + name,
+              file: 'guest-test-infra/concourse/tasks/gcloud-publish-image.yaml',
+              vars: {
+                gcs_image_path: gcs,
+                source_version: 'v((.:source-version))',
+                publish_version: '((.:publish-version))',
+                wf: workflow,
+                release_notes: '',
+                image_name: std.strReplace(name, '-', '_'),  // For whatever reason, we use underscores.
+                topic: 'projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod',
+              },
+            }
+          // Other releases use gce_image_publish directly.
+          else
+            {
+              task: if env == 'test' then
+                'publish-' + name
+              else
+                'publish-' + envname + '-' + name,
+              file: 'guest-test-infra/concourse/tasks/daisy-publish-images.yaml',
+              vars: {
+                source_gcs_path: gcs,
+                source_version: 'v((.:source-version))',
+                publish_version: '((.:publish-version))',
+                wf: workflow,
+                environment: env,
+              },
+            }
+        )] +
+        (
+          // Run post-publish tests in 'publish-to-testing-' jobs.
+          if env == 'test' then
+            [
+              {
+                task: 'image-test-' + name,
+                file: 'guest-test-infra/concourse/tasks/image-test.yaml',
+                attempts: 3,
+                vars: {
+                  images: 'projects/bct-prod-images/global/images/' + imagename + '-((.:publish-version))',
+                },
+              },
+            ]
+          else
+            []
+        ),
   on_success: {
     task: 'success',
     file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
     vars: {
       pipeline: 'linux-image-build',
-      job: 'publish-to-testing-' + name,
+      job: 'publish-to-' + envname + '-' + name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -203,25 +252,25 @@ local ImgPublish(name, stage, workflow, gcs) = {
     file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
     vars: {
       pipeline: 'linux-image-build',
-      job: 'publish-to-testing-' + name,
+      job: 'publish-to-' + envname + '-' + name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
 };
 
+// Image Group creates a Concourse grouping for the permutation of images and environments.
 local ImgGroup(name, images) = {
-
   name: name,
   jobs: [
     'build-' + image
     for image in images
   ] + [
-    if stage == 'test' then
+    if env == 'test' then
       'publish-to-' + 'testing' + '-' + image
     else
-      'publish-to-' + stage + '-' + image
-    for stage in stages
+      'publish-to-' + env + '-' + image
+    for env in envs
     for image in images
   ],
 };
@@ -283,112 +332,112 @@ local ImgGroup(name, images) = {
     ImgBuild('debian-11', 'debian/debian_11.wf.json'),
   ] + [
     ImgPublish('almalinux-8',
-               stage,
-               'enterprise_linux/almalinux_8.publish.json',
-               'gs://artifact-releaser-prod-rtp/almalinux')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+               env,
+               'gs://artifact-releaser-prod-rtp/almalinux',
+               'enterprise_linux/almalinux_8.publish.json')
+    for env in envs
   ] + [
     ImgPublish('centos-7',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/centos',
                'enterprise_linux/centos_7.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('centos-8',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/centos',
                'enterprise_linux/centos_8.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('centos-stream-8',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/centos',
                'enterprise_linux/centos_stream_8.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-7',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_7.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-8',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_8.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-7-byos',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_7_byos.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-8-byos',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_8_byos.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-7-6-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_7_6_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-7-7-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_7_7_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-7-9-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_7_9_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-8-1-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_8_1_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-8-2-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_8_2_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rhel-8-4-sap',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rhel',
                'enterprise_linux/rhel_8_4_sap.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('rocky-linux-8',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/rocky-linux',
                'enterprise_linux/rocky_linux_8.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('debian-9',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/debian',
                'debian/debian_9.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('debian-10',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/debian',
                'debian/debian_10.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ] + [
     ImgPublish('debian-11',
-               stage,
+               env,
                'gs://artifact-releaser-prod-rtp/debian',
                'debian/debian_11.publish.json')
-    for stage in ['test', 'staging', 'oslogin-staging', 'prod']
+    for env in envs
   ],
   groups: [
     ImgGroup('debian', ['debian-9', 'debian-10', 'debian-11']),
