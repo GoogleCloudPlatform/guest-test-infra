@@ -1,0 +1,22 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/compute-image-tools/jsonnet-go
+    tag: latest
+
+inputs:
+- name: guest-test-infra
+
+outputs:
+- name: rendered-tasks
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    for template in guest-test-infra/((config_dir))/*.jsonnet; do
+      jsonnet $template > ${template//.jsonnet}.json
+    done
