@@ -259,7 +259,7 @@ local ImgPublish(name, env, gcs, workflow) = {
   },
 };
 
-// Image Group creates a Concourse grouping for the permutation of images and environments.
+// Image Group creates a Concourse grouping for the product of images and environments.
 local ImgGroup(name, images) = {
   name: name,
   jobs: [

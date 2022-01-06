@@ -10,7 +10,7 @@ inputs:
 - name: guest-test-infra
 
 outputs:
-- name: rendered-tasks
+- name: rendered
 
 run:
   path: sh
@@ -18,5 +18,6 @@ run:
   - -exc
   - |
     for template in guest-test-infra/((config_dir))/*.jsonnet; do
-      jsonnet $template > ${template//.jsonnet}.json
+      base=$(basename "$template")
+      jsonnet $template > rendered/${base//.jsonnet}.json
     done
