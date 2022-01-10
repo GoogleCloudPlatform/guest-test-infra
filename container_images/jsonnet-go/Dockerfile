@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM gcr.io/gcp-guest/jsonnet-go
-FROM arbourd/concourse-fly
+FROM golang
 
-COPY --from=0 /usr/bin/jsonnet /usr/bin/jsonnet
+RUN go install github.com/google/go-jsonnet/cmd/jsonnet@latest
+
+FROM alpine
+
+COPY --from=0 /go/bin/jsonnet /usr/bin/jsonnet
 
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile
-COPY main.sh main.sh
-ENTRYPOINT ["./main.sh"]
