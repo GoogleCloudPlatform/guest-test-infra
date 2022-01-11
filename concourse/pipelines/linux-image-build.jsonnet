@@ -297,7 +297,7 @@ local ImgGroup(name, images) = {
 
 {
   local debian_images = ['debian-9', 'debian-10', 'debian-11'],
-  local centos_images = ['centos-7', 'centos-8', 'centos-stream-8'],
+  local centos_images = ['centos-7', 'centos-stream-8'],
   local rhel_images = [
     'rhel-7',
     'rhel-7-6-sap',
@@ -357,7 +357,6 @@ local ImgGroup(name, images) = {
           ELImgBuildJob('rhel-8-2-sap', 'enterprise_linux/rhel_8_2_sap.wf.json'),
           ELImgBuildJob('rhel-8-4-sap', 'enterprise_linux/rhel_8_4_sap.wf.json'),
           ELImgBuildJob('centos-7', 'enterprise_linux/centos_7.wf.json'),
-          ELImgBuildJob('centos-8', 'enterprise_linux/centos_8.wf.json'),
           ELImgBuildJob('centos-stream-8', 'enterprise_linux/centos_stream_8.wf.json'),
           ELImgBuildJob('almalinux-8', 'enterprise_linux/almalinux_8.wf.json'),
           ELImgBuildJob('rocky-linux-8', 'enterprise_linux/rocky_linux_8.wf.json'),
