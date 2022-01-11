@@ -7,12 +7,22 @@ resources:
     branch: master
 
 jobs:
+# Controller pipeline. Add pipelines here and *manually set-pipeline* the set-pipeline pipeline to have them
+# kept up to date automatically.
+#
+# Note: there is a relationship between this pipeline and the ones it creates - if you delete an entry here,
+# the corresponding pipeline will be deleted. If you delete this pipeline, *all* these pipelines will be
+# deleted.
 - name: set-pipelines
   plan:
   - get: guest-test-infra
     trigger: true
+  - task: render-templates
+    file: guest-test-infra/concourse/tasks/render-templates.yaml
+    vars:
+      config_dir: concourse/pipelines
   - set_pipeline: linux-image-build
-    file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
+    file: rendered/linux-image-build.json
   - set_pipeline: guest-package-build
     file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
   - set_pipeline: debian-worker-image-build
