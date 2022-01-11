@@ -143,3 +143,15 @@ jobs:
     vars:
       destination: gcr.io/gcp-guest/fly-validate-pipelines:latest
       context: guest-test-infra/container_images/fly-validate-pipelines
+- name: build-jsonnet-go-container
+  serial_groups: [serial]
+  plan:
+  - get: guest-test-infra
+    trigger: true
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: build-image
+    file: guest-test-infra/concourse/tasks/build-container-image.yaml
+    vars:
+      destination: gcr.io/gcp-guest/jsonnet-go:latest
+      context: guest-test-infra/container_images/jsonnet-go
