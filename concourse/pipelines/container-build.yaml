@@ -50,6 +50,7 @@ jobs:
   plan:
     - get: guest-test-infra
       trigger: true
+      passed: [build-gotest-container]
     - task: get-credential
       file: guest-test-infra/concourse/tasks/get-credential.yaml
     - task: build-image
@@ -136,6 +137,7 @@ jobs:
   plan:
   - get: guest-test-infra
     trigger: true
+    passed: [build-jsonnet-go-container]
   - task: get-credential
     file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: build-image
