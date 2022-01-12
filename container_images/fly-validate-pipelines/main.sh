@@ -24,7 +24,7 @@ find . -type f -iname '*.yaml'|while read yaml; do
 done
 
 find . -type f -iname '*.jsonnet'|while read jsonnet; do
-  jsonnet "$jsonnet" > temp.json
+  jsonnet "$jsonnet" | tee temp.json
   fly vp -c temp.json
 done
 
