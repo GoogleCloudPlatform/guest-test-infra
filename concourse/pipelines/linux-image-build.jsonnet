@@ -1,6 +1,7 @@
 // Imports.
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -139,6 +140,54 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
 
   // Override buildtask with an EL specific task.
   buildtask: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.' + isopath + '))'),
+};
+
+local RHUAImgBuildJob(image, workflow) = imgbuildjob {
+  image: image,
+  workflow: workflow,
+
+  // Append var to Daisy image build task
+  buildtask+: { vars+: [
+    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
+  ] },
+};
+
+local CDSImgBuildJob(image, workflow) = imgbuildjob {
+  image: image,
+  workflow: workflow,
+  extra_tasks: [
+    {
+      task: 'get-rhui-tls-key',
+      config: gcp_secret_manager.get_secret { secret_name: 'rhui-tls-key' },
+    },
+    // These subsequent invocations need to declare gcp-secret-manager as output and as an input, so we will
+    // layer all the secrets into the same output. This dynamic setting of inputs can't be done with the base
+    // YAML task config.
+    {
+      task: 'get-acme-hmac',
+      config: gcp_secret_manager.get_secret {
+        secret_name: 'rhui-acme-hmac',
+        inputs+: gcp_secret_manager.get_secret.outputs,
+      },
+    },
+    {
+      task: 'get-acme-key-id',
+      config: gcp_secret_manager.get_secret {
+        secret_name: 'rhui-acme-kid',
+        inputs+: gcp_secret_manager.get_secret.outputs,
+      },
+    },
+    {
+      task: 'certbot-provision-tls-crt',
+      file: 'guest-test-infra/concourse/tasks/certbot-rhui.yaml',
+    },
+  ],
+
+  // Append var to Daisy build task
+  buildtask+: { vars+: [
+    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
+    'tls_cert_path=../../../../tls-output/rhui.crt',
+  ] },
 };
 
 local imgpublishjob = {
@@ -328,6 +377,8 @@ local ImgGroup(name, images) = {
                common.GitResource('guest-test-infra'),
                common.GcsImgResource('almalinux-8', 'almalinux/'),
                common.GcsImgResource('rocky-linux-8', 'rocky-linux/'),
+               common.GcsImgResource('rhua', 'rhui/'),
+               common.GcsImgResource('cds', 'rhui/'),
              ] +
              [
                DebianGcsImgResource(image)
@@ -360,6 +411,8 @@ local ImgGroup(name, images) = {
           ELImgBuildJob('centos-stream-8', 'enterprise_linux/centos_stream_8.wf.json'),
           ELImgBuildJob('almalinux-8', 'enterprise_linux/almalinux_8.wf.json'),
           ELImgBuildJob('rocky-linux-8', 'enterprise_linux/rocky_linux_8.wf.json'),
+          RHUAImgBuildJob('rhua', 'rhui/rhua.wf.json'),
+          CDSImgBuildJob('cds', 'rhui/cds.wf.json'),
         ] +
         [
           // Debian publish jobs
@@ -393,5 +446,7 @@ local ImgGroup(name, images) = {
     ImgGroup('centos', centos_images),
     ImgGroup('almalinux', ['almalinux-8']),
     ImgGroup('rocky-linux', ['rocky-linux-8']),
+    // No publish jobs yet, can't use ImgGroup function.
+    { name: 'rhui', jobs: ['build-rhua', 'build-cds'] },
   ],
 }
