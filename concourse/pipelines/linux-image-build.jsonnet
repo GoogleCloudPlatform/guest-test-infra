@@ -53,14 +53,15 @@ local imgbuildjob = {
   buildtask:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
   extra_tasks:: [],
   daily:: true,
-
-  name: 'build-' + self.image,
-  plan: if tl.daily then [
+  dailytask:: if self.daily then [
     {
       get: 'daily-time',
       trigger: true,
     },
-  ] else [] + [
+  ] else [],
+
+  name: 'build-' + self.image,
+  plan: tl.dailytask + [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -208,7 +209,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
   // Append var to Daisy build task
   buildtask: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
     inputs: [
-      'gcp-secret-manager',
+      { name: 'gcp-secret-manager' },
     ],
     vars+: [
       'tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt',
