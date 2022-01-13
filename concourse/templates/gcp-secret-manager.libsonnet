@@ -1,10 +1,11 @@
 {
   local tl = self,
 
-  get_secret:: {
+  getsecrettask:: {
     local task = self,
 
     secret_name:: error 'must set secret_name in gcp-secret-manager template',
+    output_path:: self.secret_name,
     project:: 'gcp-guest',
     version:: 'latest',
 
@@ -26,10 +27,11 @@
       path: 'sh',
       args: [
         '-exc',
-        // Note: the following is a single string.
         'gcloud auth activate-service-account --key-file=$PWD/credentials/credentials.json;' +
+        'dir=$(dirname ./gcp-secret-manager/' + task.output_path + ');' +
+        'mkdir -p "$dir";' +
         'gcloud secrets versions access ' + task.version + ' --secret=' + task.secret_name +
-        ' --project=' + task.project + ' > gcp-secret-manager/' + task.secret_name,
+        ' --project=' + task.project + ' > gcp-secret-manager/' + task.output_path,
       ],
     },
   },

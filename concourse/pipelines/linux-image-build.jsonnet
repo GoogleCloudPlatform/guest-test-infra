@@ -2,6 +2,7 @@
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
+local lego = import '../templates/lego.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -32,6 +33,17 @@ local ELImgBuildTask(workflow, gcs_url, installer_iso) = daisy.daisyimagetask {
   workflow: workflow,
 };
 
+local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
+  vars+: [
+    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
+  ],
+
+  project: 'google.com:rhel-infra',
+
+  gcs_url: gcs_url,
+  workflow: workflow,
+};
+
 local imgbuildjob = {
   local tl = self,
 
@@ -40,13 +52,15 @@ local imgbuildjob = {
   workflow:: '',
   buildtask:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
   extra_tasks:: [],
+  daily:: true,
 
   name: 'build-' + self.image,
-  plan: [
+  plan: if tl.daily then [
     {
       get: 'daily-time',
       trigger: true,
     },
+  ] else [] + [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -145,49 +159,61 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
 local RHUAImgBuildJob(image, workflow) = imgbuildjob {
   image: image,
   workflow: workflow,
+  daily: false,
 
   // Append var to Daisy image build task
-  buildtask+: { vars+: [
-    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
-  ] },
+  buildtask: RHUIImgBuildTask(workflow, '((.:gcs-url))'),
 };
 
 local CDSImgBuildJob(image, workflow) = imgbuildjob {
+  local acme_server = 'dv.acme-v02.api.pki.goog',
+  local acme_email = 'bigcluster-guest-team@google.com',
+  local rhui_project = 'google.com:rhel-infra',
+
   image: image,
   workflow: workflow,
+  daily: false,
   extra_tasks: [
     {
+      task: 'get-acme-account-json',
+      config: gcp_secret_manager.getsecrettask {
+        secret_name: 'rhui-acme-account-json',
+        project: rhui_project,
+        output_path: 'accounts/' + acme_server + '/' + acme_email + '/account.json',
+      },
+    },
+    {
       task: 'get-rhui-tls-key',
-      config: gcp_secret_manager.get_secret { secret_name: 'rhui-tls-key' },
-    },
-    // These subsequent invocations need to declare gcp-secret-manager as output and as an input, so we will
-    // layer all the secrets into the same output. This dynamic setting of inputs can't be done with the base
-    // YAML task config.
-    {
-      task: 'get-acme-hmac',
-      config: gcp_secret_manager.get_secret {
-        secret_name: 'rhui-acme-hmac',
-        inputs+: gcp_secret_manager.get_secret.outputs,
+      config: gcp_secret_manager.getsecrettask {
+        secret_name: 'rhui-tls-key',
+        project: rhui_project,
+        output_path: 'accounts/' + acme_server + '/' + acme_email + '/keys/' + acme_email + '.key',
+
+        // Layer onto the same output as previous task
+        inputs+: gcp_secret_manager.getsecrettask.outputs,
       },
     },
     {
-      task: 'get-acme-key-id',
-      config: gcp_secret_manager.get_secret {
-        secret_name: 'rhui-acme-kid',
-        inputs+: gcp_secret_manager.get_secret.outputs,
+      task: 'lego-provision-tls-crt',
+      config: lego.legotask {
+        domains: ['rhui.googlecloud.com', 'staging-rhui.googlecloud.com'],
+        acme_server: acme_server,
+        email: acme_email,
+        project: rhui_project,
+        input: 'gcp-secret-manager',
       },
-    },
-    {
-      task: 'certbot-provision-tls-crt',
-      file: 'guest-test-infra/concourse/tasks/certbot-rhui.yaml',
     },
   ],
 
   // Append var to Daisy build task
-  buildtask+: { vars+: [
-    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
-    'tls_cert_path=../../../../tls-output/rhui.crt',
-  ] },
+  buildtask: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
+    inputs: [
+      'gcp-secret-manager',
+    ],
+    vars+: [
+      'tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt',
+    ],
+  },
 };
 
 local imgpublishjob = {
