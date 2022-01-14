@@ -86,7 +86,7 @@ local imgbuildjob = {
       put: tl.image + '-gcs',
       params: {
         // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.tar.gz'
-        file: 'build-id-dir/' + tl.image + '*',
+        file: 'build-id-dir/%s*' % tl.image,
       },
       get_params: {
         skip_download: 'true',
@@ -94,7 +94,7 @@ local imgbuildjob = {
     },
     {
       load_var: 'gcs-url',
-      file: tl.image + '-gcs/url',
+      file: '%s-gcs/url' % tl.image,
     },
     {
       task: 'generate-build-date',
@@ -154,7 +154,7 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
     image,
 
   // Override build_task with an EL specific task.
-  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.' + isopath + '))'),
+  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.%s))' % isopath),
 };
 
 local RHUAImgBuildJob(image, workflow) = imgbuildjob {
@@ -180,7 +180,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
       config: gcp_secret_manager.getsecrettask {
         secret_name: 'rhui-acme-account-json',
         project: rhui_project,
-        output_path: 'accounts/' + acme_server + '/' + acme_email + '/account.json',
+        output_path: 'accounts/%s/%s/account.json' % [acme_server, acme_email],
       },
     },
     {
@@ -188,7 +188,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
       config: gcp_secret_manager.getsecrettask {
         secret_name: 'rhui-tls-key',
         project: rhui_project,
-        output_path: 'accounts/' + acme_server + '/' + acme_email + '/keys/' + acme_email + '.key',
+        output_path: 'accounts/%s/%s/%s.key' % [acme_server, acme_email, acme_email],
 
         // Layer onto the same output as previous task
         inputs+: gcp_secret_manager.getsecrettask.outputs,
@@ -227,12 +227,12 @@ local imgpublishjob = {
   image:: error 'must set image in template',
   image_prefix:: self.image,
 
-  gcs:: 'gs://' + self.gcs_bucket + self.gcs_dir,
+  gcs:: 'gs://%s%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in template',
   gcs_bucket:: common.prod_bucket,
 
   // Begin output of Concourse Task definition.
-  name: 'publish-to-' + tl.env + '-' + tl.image,
+  name: 'publish-to-%s-%s' % [tl.env, tl.image],
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
@@ -295,7 +295,7 @@ local imgpublishjob = {
               task: if tl.env == 'testing' then
                 'publish-' + tl.image
               else
-                'publish-' + tl.env + '-' + tl.image,
+                'publish-%s-%s' % [tl.env, tl.image],
               file: 'guest-test-infra/concourse/tasks/daisy-publish-images.yaml',
               vars: {
                 source_gcs_path: tl.gcs,
@@ -314,7 +314,7 @@ local imgpublishjob = {
               file: 'guest-test-infra/concourse/tasks/image-test.yaml',
               attempts: 3,
               vars: {
-                images: 'projects/bct-prod-images/global/images/' + tl.image_prefix + '-((.:publish-version))',
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
             },
           ]
@@ -335,7 +335,7 @@ local imgpublishjob = {
     file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
     vars: {
       pipeline: 'linux-image-build',
-      job: 'publish-to-' + tl.env + '-' + tl.image,
+      job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -365,7 +365,7 @@ local ImgGroup(name, images) = {
     'build-' + image
     for image in images
   ] + [
-    'publish-to-' + env + '-' + image
+    'publish-to-%s-%s' % [env, image]
     for env in envs
     for image in images
   ],
