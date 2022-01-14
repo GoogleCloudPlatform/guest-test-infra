@@ -50,10 +50,10 @@ local imgbuildjob = {
   image:: '',
   image_prefix:: self.image,
   workflow:: '',
-  buildtask:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
+  build_task:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
   extra_tasks:: [],
   daily:: true,
-  dailytask:: if self.daily then [
+  daily_task:: if self.daily then [
     {
       get: 'daily-time',
       trigger: true,
@@ -61,7 +61,7 @@ local imgbuildjob = {
   ] else [],
 
   name: 'build-' + self.image,
-  plan: tl.dailytask + [
+  plan: tl.daily_task + [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -111,7 +111,7 @@ local imgbuildjob = {
   ] + tl.extra_tasks + [
     {
       task: 'daisy-build-' + tl.image,
-      config: tl.buildtask,
+      config: tl.build_task,
     },
   ],
   on_success: {
@@ -153,8 +153,8 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
   else
     image,
 
-  // Override buildtask with an EL specific task.
-  buildtask: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.' + isopath + '))'),
+  // Override build_task with an EL specific task.
+  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.' + isopath + '))'),
 };
 
 local RHUAImgBuildJob(image, workflow) = imgbuildjob {
@@ -163,7 +163,7 @@ local RHUAImgBuildJob(image, workflow) = imgbuildjob {
   daily: false,
 
   // Append var to Daisy image build task
-  buildtask: RHUIImgBuildTask(workflow, '((.:gcs-url))'),
+  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))'),
 };
 
 local CDSImgBuildJob(image, workflow) = imgbuildjob {
@@ -207,7 +207,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
   ],
 
   // Append var to Daisy build task
-  buildtask: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
+  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
     inputs: [
       { name: 'gcp-secret-manager' },
     ],
