@@ -2,6 +2,7 @@
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
+local lego = import '../templates/lego.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -32,21 +33,35 @@ local ELImgBuildTask(workflow, gcs_url, installer_iso) = daisy.daisyimagetask {
   workflow: workflow,
 };
 
+local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
+  vars+: [
+    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
+  ],
+
+  project: 'google.com:rhel-infra',
+
+  gcs_url: gcs_url,
+  workflow: workflow,
+};
+
 local imgbuildjob = {
   local tl = self,
 
   image:: '',
   image_prefix:: self.image,
   workflow:: '',
-  buildtask:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
+  build_task:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
   extra_tasks:: [],
-
-  name: 'build-' + self.image,
-  plan: [
+  daily:: true,
+  daily_task:: if self.daily then [
     {
       get: 'daily-time',
       trigger: true,
     },
+  ] else [],
+
+  name: 'build-' + self.image,
+  plan: tl.daily_task + [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -71,7 +86,7 @@ local imgbuildjob = {
       put: tl.image + '-gcs',
       params: {
         // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.tar.gz'
-        file: 'build-id-dir/' + tl.image + '*',
+        file: 'build-id-dir/%s*' % tl.image,
       },
       get_params: {
         skip_download: 'true',
@@ -79,7 +94,7 @@ local imgbuildjob = {
     },
     {
       load_var: 'gcs-url',
-      file: tl.image + '-gcs/url',
+      file: '%s-gcs/url' % tl.image,
     },
     {
       task: 'generate-build-date',
@@ -96,7 +111,7 @@ local imgbuildjob = {
   ] + tl.extra_tasks + [
     {
       task: 'daisy-build-' + tl.image,
-      config: tl.buildtask,
+      config: tl.build_task,
     },
   ],
   on_success: {
@@ -138,56 +153,68 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
   else
     image,
 
-  // Override buildtask with an EL specific task.
-  buildtask: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.' + isopath + '))'),
+  // Override build_task with an EL specific task.
+  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((iso-paths.%s))' % isopath),
 };
 
 local RHUAImgBuildJob(image, workflow) = imgbuildjob {
   image: image,
   workflow: workflow,
+  daily: false,
 
   // Append var to Daisy image build task
-  buildtask+: { vars+: [
-    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
-  ] },
+  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))'),
 };
 
 local CDSImgBuildJob(image, workflow) = imgbuildjob {
+  local acme_server = 'dv.acme-v02.api.pki.goog',
+  local acme_email = 'bigcluster-guest-team@google.com',
+  local rhui_project = 'google.com:rhel-infra',
+
   image: image,
   workflow: workflow,
+  daily: false,
   extra_tasks: [
     {
+      task: 'get-acme-account-json',
+      config: gcp_secret_manager.getsecrettask {
+        secret_name: 'rhui-acme-account-json',
+        project: rhui_project,
+        output_path: 'accounts/%s/%s/account.json' % [acme_server, acme_email],
+      },
+    },
+    {
       task: 'get-rhui-tls-key',
-      config: gcp_secret_manager.get_secret { secret_name: 'rhui-tls-key' },
-    },
-    // These subsequent invocations need to declare gcp-secret-manager as output and as an input, so we will
-    // layer all the secrets into the same output. This dynamic setting of inputs can't be done with the base
-    // YAML task config.
-    {
-      task: 'get-acme-hmac',
-      config: gcp_secret_manager.get_secret {
-        secret_name: 'rhui-acme-hmac',
-        inputs+: gcp_secret_manager.get_secret.outputs,
+      config: gcp_secret_manager.getsecrettask {
+        secret_name: 'rhui-tls-key',
+        project: rhui_project,
+        output_path: 'accounts/%s/%s/%s.key' % [acme_server, acme_email, acme_email],
+
+        // Layer onto the same output as previous task
+        inputs+: gcp_secret_manager.getsecrettask.outputs,
       },
     },
     {
-      task: 'get-acme-key-id',
-      config: gcp_secret_manager.get_secret {
-        secret_name: 'rhui-acme-kid',
-        inputs+: gcp_secret_manager.get_secret.outputs,
+      task: 'lego-provision-tls-crt',
+      config: lego.legotask {
+        domains: ['rhui.googlecloud.com', 'staging-rhui.googlecloud.com'],
+        acme_server: acme_server,
+        email: acme_email,
+        project: rhui_project,
+        input: 'gcp-secret-manager',
       },
-    },
-    {
-      task: 'certbot-provision-tls-crt',
-      file: 'guest-test-infra/concourse/tasks/certbot-rhui.yaml',
     },
   ],
 
   // Append var to Daisy build task
-  buildtask+: { vars+: [
-    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
-    'tls_cert_path=../../../../tls-output/rhui.crt',
-  ] },
+  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
+    inputs: [
+      { name: 'gcp-secret-manager' },
+    ],
+    vars+: [
+      'tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt',
+    ],
+  },
 };
 
 local imgpublishjob = {
@@ -200,12 +227,12 @@ local imgpublishjob = {
   image:: error 'must set image in template',
   image_prefix:: self.image,
 
-  gcs:: 'gs://' + self.gcs_bucket + self.gcs_dir,
+  gcs:: 'gs://%s%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in template',
   gcs_bucket:: common.prod_bucket,
 
   // Begin output of Concourse Task definition.
-  name: 'publish-to-' + tl.env + '-' + tl.image,
+  name: 'publish-to-%s-%s' % [tl.env, tl.image],
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
@@ -268,7 +295,7 @@ local imgpublishjob = {
               task: if tl.env == 'testing' then
                 'publish-' + tl.image
               else
-                'publish-' + tl.env + '-' + tl.image,
+                'publish-%s-%s' % [tl.env, tl.image],
               file: 'guest-test-infra/concourse/tasks/daisy-publish-images.yaml',
               vars: {
                 source_gcs_path: tl.gcs,
@@ -287,7 +314,7 @@ local imgpublishjob = {
               file: 'guest-test-infra/concourse/tasks/image-test.yaml',
               attempts: 3,
               vars: {
-                images: 'projects/bct-prod-images/global/images/' + tl.image_prefix + '-((.:publish-version))',
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
             },
           ]
@@ -308,7 +335,7 @@ local imgpublishjob = {
     file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
     vars: {
       pipeline: 'linux-image-build',
-      job: 'publish-to-' + tl.env + '-' + tl.image,
+      job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -338,7 +365,7 @@ local ImgGroup(name, images) = {
     'build-' + image
     for image in images
   ] + [
-    'publish-to-' + env + '-' + image
+    'publish-to-%s-%s' % [env, image]
     for env in envs
     for image in images
   ],
