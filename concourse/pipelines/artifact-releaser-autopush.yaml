@@ -156,6 +156,22 @@ jobs:
           publish_version: ((.:version))
           source_version: "v20211027"
           release_notes: "Disregard this release. Alma Linux 8 test."
+- name: test-workload-identity
+  plan:
+  - task: show-workload-identity
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: busybox
+      run:
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          curl -H Metadata-Flavor:Google http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/email
+
 resources:
 - name: guest-test-infra
   source:
