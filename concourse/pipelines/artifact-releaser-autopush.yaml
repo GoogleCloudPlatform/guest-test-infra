@@ -164,7 +164,8 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: busybox
+          repository: google/cloud-sdk
+          tag: alpine
       run:
         path: /bin/sh
         args:
