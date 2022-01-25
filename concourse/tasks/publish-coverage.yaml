@@ -18,4 +18,4 @@ run:
   args:
   - --metric-path=golang/coverage/percent
   - --package-name=((package_name))
-  - --coverage-percent=((coverage_percent))
+  - --coverage=((coverage_percent))
