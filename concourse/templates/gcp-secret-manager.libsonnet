@@ -17,9 +17,6 @@
         tag: 'alpine',
       },
     },
-    inputs: [
-      { name: 'credentials' },
-    ],
     outputs: [
       { name: 'gcp-secret-manager' },
     ],
@@ -27,11 +24,10 @@
       path: 'sh',
       args: [
         '-exc',
-        'gcloud auth activate-service-account --key-file=$PWD/credentials/credentials.json;' +
-        'dir=$(dirname ./gcp-secret-manager/' + task.output_path + ');' +
+        'dir=$(dirname ./gcp-secret-manager/%s);' % task.output_path +
         'mkdir -p "$dir";' +
-        'gcloud secrets versions access ' + task.version + ' --secret=' + task.secret_name +
-        ' --project=' + task.project + ' > gcp-secret-manager/' + task.output_path,
+        'gcloud secrets versions access %s --secret=%s' % [task.version, task.secret_name] +
+        ' --project=%s > gcp-secret-manager/%s' % [task.project, task.output_path],
       ],
     },
   },

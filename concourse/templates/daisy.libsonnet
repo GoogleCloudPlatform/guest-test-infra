@@ -27,11 +27,7 @@
       // Currently all our daisy workflows are in this repo. No need to make this overrideable because
       // Concourse has 'input_mapping' to do that if needed.
       { name: 'compute-image-tools' },
-      { name: 'credentials' },
     ],
-    params: {
-      GOOGLE_APPLICATION_CREDENTIALS: 'credentials/credentials.json',
-    },
     run: {
       path: '/daisy',
       args:

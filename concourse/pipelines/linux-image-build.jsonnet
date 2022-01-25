@@ -104,10 +104,6 @@ local imgbuildjob = {
       load_var: 'build-date',
       file: 'publish-version/version',
     },
-    {
-      task: 'get-credential',
-      file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-    },
   ] + tl.extra_tasks + [
     {
       task: 'daisy-build-' + tl.image,
@@ -261,10 +257,6 @@ local imgpublishjob = {
           {
             load_var: 'source-version',
             file: tl.image + '-gcs/version',
-          },
-          {
-            task: 'get-credential',
-            file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
           },
           {
             task: 'generate-version',
