@@ -14,9 +14,10 @@ outputs:
 - name: gotest
 
 params:
-  ARTIFACTS: ./gotest/
+  # The job will cd into repo dir, so this is relative
+  ARTIFACTS: ../gotest/
 
 run:
-  path: /main.sh
+  path: /go/main.sh
   args:
   - repo
