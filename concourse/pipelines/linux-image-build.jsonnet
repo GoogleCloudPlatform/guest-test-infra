@@ -48,7 +48,7 @@ local publishresulttask = {
   local task = self,
 
   project:: 'gcp-guest',
-  zone:: 'us-west1-a',
+  zone:: 'us-central1-a',
   pipeline:: 'linux-image-build',
   job:: error 'must set job in publishresulttask',
   result_state:: error 'must set result_state in publishresulttask',
