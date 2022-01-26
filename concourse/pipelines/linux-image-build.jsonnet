@@ -118,6 +118,13 @@ local gcepublishtask = {
 local arlepublishtask = {
   local task = self,
 
+  topic:: common.prod_topic,
+  image_name:: error 'must set image_name in arlepublishtask',
+  gcs_image_path:: error 'must set gcs_image_path in arlepublishtask',
+  wf:: error 'must set wf in arlepublishtask',
+  source_version:: error 'must set source_version in arlepublishtask',
+  publish_version:: error 'must set publish_version in arlepublishtask',
+
   platform: 'linux',
   image_resource: {
     type: 'docker-image',
@@ -135,8 +142,9 @@ local arlepublishtask = {
     path: 'sh',
     args: [
       '-exc',
-      "wf=$(sed 's/\\\"/\\\\\"/g' ./compute-image-tools/daisy_workflows/build-publish/((wf)) | tr -d '\\n')\n" +
-      'gcloud pubsub topics publish "((topic))" --message "{\\"type\\": \\"ImagePublish\\", \\"request\\": {\\"image_name\\": \\"((image_name))\\", \\"gcs_image_path\\": \\"((gcs_image_path))\\", \\"image_publish_template\\": \\"${wf}\\", \\"source_version\\": \\"((source_version))\\", \\"publish_version\\": \\"((publish_version))\\", \\"release_notes\\": \\"((release_notes))\\"}}"\n',
+      "wf=$(sed 's/\\\"/\\\\\"/g' ./compute-image-tools/daisy_workflows/build-publish/%s | tr -d '\\n')\n" % task.wf +
+      'gcloud pubsub topics publish "%s" --message "{\\"type\\": \\"ImagePublish\\", \\"request\\":\n{\\"image_name\\": \\"%s\\", \\"gcs_image_path\\": \\"%s\\", \\"image_publish_template\\": \\"${wf}\\",\n      \\"source_version\\": \\"%s\\", \\"publish_version\\": \\"%s\\", \\"release_notes\\": \\"\\"}}"\n' %
+      [task.topic, task.image_name, task.gcs_image_path, task.source_version, task.publish_version],
     ],
   },
 };
@@ -369,9 +377,7 @@ local imgpublishjob = {
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
                 wf: tl.workflow,
-                release_notes: '',
                 image_name: underscore(tl.image),
-                topic: common.prod_topic,
               },
             }
           // Other releases use gce_image_publish directly.
