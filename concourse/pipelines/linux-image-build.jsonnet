@@ -79,6 +79,68 @@ local publishresulttask = {
   },
 };
 
+local gcepublishtask = {
+  local task = self,
+
+  source_gcs_path:: error 'must set source_gcs_path in gcepublishtask',
+  source_version:: error 'must set source_version in gcepublishtask',
+  publish_version:: error 'must set publish_version in gcepublishtask',
+  environment:: error 'must set environment in gcepublishtask',
+  wf:: error 'must set wf in gcepublishtask',
+
+  platform: 'linux',
+  image_resource: {
+    type: 'docker-image',
+    source: {
+      repository: 'gcr.io/compute-image-tools/gce_image_publish',
+      tag: 'latest',
+    },
+  },
+  inputs: [
+    { name: 'compute-image-tools' },
+  ],
+  run: {
+    path: '/gce_image_publish',
+    args: [
+      '-rollout_rate=0',
+      '-skip_confirmation',
+      '-replace',
+      '-no_root',
+      '-source_gcs_path=' + task.source_gcs_path,
+      '-source_version=' + task.source_version,
+      '-publish_version=' + task.publish_version,
+      '-var:environment=' + task.environment,
+      './compute-image-tools/daisy_workflows/build-publish/' + task.wf,
+    ],
+  },
+};
+
+local arlepublishtask = {
+  local task = self,
+
+  platform: 'linux',
+  image_resource: {
+    type: 'docker-image',
+    source: {
+      repository: 'google/cloud-sdk',
+      tag: 'alpine',
+    },
+  },
+  inputs: [
+    {
+      name: 'compute-image-tools',
+    },
+  ],
+  run: {
+    path: 'sh',
+    args: [
+      '-exc',
+      "wf=$(sed 's/\\\"/\\\\\"/g' ./compute-image-tools/daisy_workflows/build-publish/((wf)) | tr -d '\\n')\n" +
+      'gcloud pubsub topics publish "((topic))" --message "{\\"type\\": \\"ImagePublish\\", \\"request\\": {\\"image_name\\": \\"((image_name))\\", \\"gcs_image_path\\": \\"((gcs_image_path))\\", \\"image_publish_template\\": \\"${wf}\\", \\"source_version\\": \\"((source_version))\\", \\"publish_version\\": \\"((publish_version))\\", \\"release_notes\\": \\"((release_notes))\\"}}"\n',
+    ],
+  },
+};
+
 
 local imgbuildjob = {
   local tl = self,
@@ -302,8 +364,7 @@ local imgpublishjob = {
           if tl.env == 'prod' then
             {
               task: 'publish-' + tl.image,
-              file: 'guest-test-infra/concourse/tasks/gcloud-publish-image.yaml',
-              vars: {
+              config: arlepublishtask {
                 gcs_image_path: tl.gcs,
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
@@ -320,8 +381,7 @@ local imgpublishjob = {
                 'publish-' + tl.image
               else
                 'publish-%s-%s' % [tl.env, tl.image],
-              file: 'guest-test-infra/concourse/tasks/daisy-publish-images.yaml',
-              vars: {
+              config: gcepublishtask {
                 source_gcs_path: tl.gcs,
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
@@ -346,8 +406,7 @@ local imgpublishjob = {
           [],
   on_success: {
     task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
+    config: publishresulttask {
       pipeline: 'linux-image-build',
       job: tl.name,
       result_state: 'success',
@@ -356,8 +415,7 @@ local imgpublishjob = {
   },
   on_failure: {
     task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
+    config: publishresulttask {
       pipeline: 'linux-image-build',
       job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
