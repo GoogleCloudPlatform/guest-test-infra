@@ -44,6 +44,42 @@ local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
   workflow: workflow,
 };
 
+local publishresulttask = {
+  local task = self,
+
+  project:: 'gcp-guest',
+  zone:: 'us-central1-a',
+  pipeline:: 'linux-image-build',
+  job:: error 'must set job in publishresulttask',
+  result_state:: error 'must set result_state in publishresulttask',
+  start_timestamp:: error 'must set start_timestamp in publishresulttask',
+
+  // Start of output.
+  platform: 'linux',
+  image_resource: {
+    type: 'docker-image',
+    source: {
+      repository: 'gcr.io/gcp-guest/concourse-metrics',
+      tag: 'latest',
+    },
+  },
+  run: {
+    path: '/publish-job-result',
+    args:
+      [
+        '--project-id=' + task.project,
+        '--zone=' + task.zone,
+        '--pipeline=' + task.pipeline,
+        '--job=' + task.job,
+        '--task=publish-job-result',
+        '--result-state=' + task.result_state,
+        '--start-timestamp=' + task.start_timestamp,
+        '--metric-path=concourse/job/duration',
+      ],
+  },
+};
+
+
 local imgbuildjob = {
   local tl = self,
 
@@ -112,9 +148,7 @@ local imgbuildjob = {
   ],
   on_success: {
     task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'linux-image-build',
+    config: publishresulttask {
       job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -122,9 +156,7 @@ local imgbuildjob = {
   },
   on_failure: {
     task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'linux-image-build',
+    config: publishresulttask {
       job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
