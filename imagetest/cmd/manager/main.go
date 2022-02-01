@@ -40,7 +40,6 @@ var (
 var (
 	imageMap = map[string]string{
 		"centos-7":                "projects/centos-cloud/global/images/family/centos-7",
-		"centos-8":                "projects/centos-cloud/global/images/family/centos-8",
 		"centos-stream-8":         "projects/centos-cloud/global/images/family/centos-stream-8",
 		"cos-81-lts":              "projects/cos-cloud/global/images/family/cos-81-lts",
 		"cos-85-lts":              "projects/cos-cloud/global/images/family/cos-85-lts",
