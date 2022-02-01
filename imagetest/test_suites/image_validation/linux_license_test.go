@@ -10,7 +10,6 @@ import (
 
 var imageLicenseCodeMap = map[string]string{
 	"centos-7":                    "1000207",
-	"centos-8":                    "5731035067256925298",
 	"centos-stream":               "3197331720697687881",
 	"rhel-7":                      "1000006",
 	"rhel-8":                      "601259152637613565",
