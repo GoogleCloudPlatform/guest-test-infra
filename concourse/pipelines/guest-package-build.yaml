@@ -174,13 +174,13 @@ jobs:
         vars:
           source-image: projects/rhel-cloud/global/images/family/rhel-8
           dest-image: rhel-8-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm\
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
       - task: build-package-image-el-9
         file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
         vars:
           source-image: projects/bct-prod-images/global/images/family/centos-stream-9
           dest-image: centos-stream-9-((.:build-id))
-          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm\
+          gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm
   - task: guest-agent-image-tests
     file: guest-test-infra/concourse/tasks/image-test-args.yaml
     vars:
