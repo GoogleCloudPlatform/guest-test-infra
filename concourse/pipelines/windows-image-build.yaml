@@ -353,6 +353,48 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "sqlserver-uefi/sql-2019-web-windows-2019-dc-v([0-9]+).tar.gz"
+- name: sql-2017-enterprise-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-enterprise-windows-2022-dc-v([0-9]+).tar.gz"
+- name: sql-2017-standard-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-standard-windows-2022-dc-v([0-9]+).tar.gz"
+- name: sql-2017-web-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2017-web-windows-2022-dc-v([0-9]+).tar.gz"
+- name: sql-2019-enterprise-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-enterprise-windows-2022-dc-v([0-9]+).tar.gz"
+- name: sql-2019-standard-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-standard-windows-2022-dc-v([0-9]+).tar.gz"
+- name: sql-2019-web-windows-2022-dc-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "sqlserver-uefi/sql-2019-web-windows-2022-dc-v([0-9]+).tar.gz"
 - name: windows-2019-core-for-containers-gcs
   type: gcs
   source:
@@ -2569,6 +2611,288 @@ jobs:
       source_image_project: "bct-prod-images"
       ssms_exe: ((.:windows-gcs-ssms-exe))
       timeout: "4h"
+# sql-2019-enterprise-windows-2022-dc
+- name: build-sql-2019-enterprise-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-enterprise-windows-2022-dc"
+  - put: sql-2019-enterprise-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-enterprise-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-enterprise-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-enterprise-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2019-standard-windows-2022-dc
+- name: build-sql-2019-standard-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-standard-windows-2022-dc"
+  - put: sql-2019-standard-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-standard-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-standard-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-standard-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2019-web-windows-2022-dc
+- name: build-sql-2019-web-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2019-web-windows-2022-dc"
+  - put: sql-2019-web-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2019-web-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2019-web-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2019-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2019-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2019-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2019-web-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-enterprise-windows-2022-dc
+- name: build-sql-2017-enterprise-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-enterprise-windows-2022-dc"
+  - put: sql-2017-enterprise-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-enterprise-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-enterprise-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-enterprise"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-enterprise
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-enterprise-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-standard-windows-2022-dc
+- name: build-sql-2017-standard-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-standard-windows-2022-dc"
+  - put: sql-2017-standard-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-standard-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-standard-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-standard"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-standard
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-standard-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
+# sql-2017-web-windows-2022-dc
+- name: build-sql-2017-web-windows-2022-dc
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - get: windows-2022-gcs
+    passed: [publish-to-testing-2022]
+    trigger: true
+    params:
+      skip_download: "true"
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml
+    vars:
+      prefix: "sql-2017-web-windows-2022-dc"
+  - put: sql-2017-web-windows-2022-dc-gcs
+    params:
+      file: build-id-dir/sql-2017-web-windows-2022-dc-v*
+  - load_var: gcs-url
+    file: sql-2017-web-windows-2022-dc-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: get-secret-sql-server-media
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "sql-2017-web"
+  - load_var: sql-server-media
+    file: gcp-secret-manager/sql-2017-web
+  - task: get-secret-windows-gcs-ssms-exe
+    file: guest-test-infra/concourse/tasks/gcloud-get-secret.yaml
+    vars:
+      secret_name: "windows_gcs_ssms_exe"
+  - load_var: windows-gcs-ssms-exe
+    file: gcp-secret-manager/windows_gcs_ssms_exe
+  - task: daisy-build-sql-2017-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml
+    vars:
+      wf: "sqlserver/sql-2017-web-windows-2022-dc.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+      sql_server_media: ((.:sql-server-media))
+      source_image_project: "bct-prod-images"
+      ssms_exe: ((.:windows-gcs-ssms-exe))
+      timeout: "4h"
 # Windows windows 2019 core for containers
 - name: build-windows-2019-core-for-containers
   plan:
@@ -3783,6 +4107,162 @@ jobs:
       publish_version: ((.:publish-version))
       wf: "sqlserver/sql-2019-web-windows-2019-dc-uefi.publish"
       environment: "test"
+# sql-2019-enterprise-windows-2022-dc
+- name: publish-to-testing-sql-2019-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-enterprise-windows-2022-dc-gcs
+    passed: [build-sql-2019-enterprise-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2022-dc-uefi.publish"
+      environment: "test"
+# sql-2019-standard-windows-2022-dc
+- name: publish-to-testing-sql-2019-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-standard-windows-2022-dc-gcs
+    passed: [build-sql-2019-standard-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-standard-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2022-dc-uefi.publish"
+      environment: "test"
+# sql-2019-web-windows-2022-dc
+- name: publish-to-testing-sql-2019-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-web-windows-2022-dc-gcs
+    passed: [build-sql-2019-web-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-web-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2022-dc-uefi.publish"
+      environment: "test"
+# sql-2017-enterprise-windows-2022-dc
+- name: publish-to-testing-sql-2017-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2022-dc-gcs
+    passed: [build-sql-2017-enterprise-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2022-dc-uefi.publish"
+      environment: "test"
+# sql-2017-standard-windows-2022-dc
+- name: publish-to-testing-sql-2017-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2022-dc-gcs
+    passed: [build-sql-2017-standard-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-standard-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2022-dc-uefi.publish"
+      environment: "test"
+# sql-2017-web-windows-2022-dc
+- name: publish-to-testing-sql-2017-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2022-dc-gcs
+    passed: [build-sql-2017-web-windows-2022-dc]
+    trigger: true
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-web-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2022-dc-uefi.publish"
+      environment: "test"
 # Windows 2019 core for containers
 - name: publish-to-testing-2019-core-for-containers
   plan:
@@ -4984,6 +5464,162 @@ jobs:
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "sqlserver/sql-2019-web-windows-2019-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-enterprise-windows-2022-dc
+- name: publish-to-staging-sql-2019-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-enterprise-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2019-enterprise-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2022-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-standard-windows-2022-dc
+- name: publish-to-staging-sql-2019-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-standard-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2019-standard-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-standard-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2022-dc-uefi.publish"
+      environment: "staging"
+# sql-2019-web-windows-2022-dc
+- name: publish-to-staging-sql-2019-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2019-web-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2019-web-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-web-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2022-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-enterprise-windows-2022-dc
+- name: publish-to-staging-sql-2017-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-enterprise-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2017-enterprise-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2022-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-standard-windows-2022-dc
+- name: publish-to-staging-sql-2017-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-standard-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2017-standard-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-standard-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2022-dc-uefi.publish"
+      environment: "staging"
+# sql-2017-web-windows-2022-dc
+- name: publish-to-staging-sql-2017-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - get: sql-2017-web-windows-2022-dc-gcs
+    passed: [publish-to-testing-sql-2017-web-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-web-windows-2022-dc-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2022-dc-uefi.publish"
       environment: "staging"
 # Windows 2019 core for containers
 - name: publish-to-staging-2019-core-for-containers
@@ -6263,6 +6899,174 @@ jobs:
       image_name: "sql-2019-web-windows-2019-dc"
       release_notes: ""
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-enterprise-windows-2022-dc
+- name: publish-to-prod-sql-2019-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-enterprise-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2019-enterprise-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-enterprise-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-enterprise-windows-2022-dc-uefi.publish"
+      image_name: "sql-2019-enterprise-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-standard-windows-2022-dc
+- name: publish-to-prod-sql-2019-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-standard-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2019-standard-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-standard-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-standard-windows-2022-dc-uefi.publish"
+      image_name: "sql-2019-standard-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2019-web-windows-2022-dc
+- name: publish-to-prod-sql-2019-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2019-web-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2019-web-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2019-web-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2019-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2019-web-windows-2022-dc-uefi.publish"
+      image_name: "sql-2019-web-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-enterprise-windows-2022-dc
+- name: publish-to-prod-sql-2017-enterprise-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-enterprise-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2017-enterprise-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-enterprise-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-enterprise-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-enterprise-windows-2022-dc-uefi.publish"
+      image_name: "sql-2017-enterprise-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-standard-windows-2022-dc
+- name: publish-to-prod-sql-2017-standard-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-standard-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2017-standard-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-standard-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-standard-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-standard-windows-2022-dc-uefi.publish"
+      image_name: "sql-2017-standard-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+# sql-2017-web-windows-2022-dc
+- name: publish-to-prod-sql-2017-web-windows-2022-dc
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - get: sql-2017-web-windows-2022-dc-gcs
+    passed: [publish-to-staging-sql-2017-web-windows-2022-dc]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: sql-2017-web-windows-2022-dc-gcs/version
+  - task: get-credential
+    file: guest-test-infra/concourse/tasks/get-credential.yaml
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-sql-2017-web-windows-2022-dc
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/sqlserver-uefi"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "sqlserver/sql-2017-web-windows-2022-dc-uefi.publish"
+      image_name: "sql-2017-web-windows-2022-dc"
+      release_notes: ""
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
 # Windows 2019 core for containers
 - name: publish-to-prod-windows-2019-core-for-containers
   plan:
@@ -6487,6 +7291,30 @@ groups:
   - publish-to-staging-2022-core
   - publish-to-prod-2022
   - publish-to-prod-2022-core
+  - build-sql-2019-enterprise-windows-2022-dc
+  - build-sql-2019-standard-windows-2022-dc
+  - build-sql-2019-web-windows-2022-dc
+  - publish-to-prod-sql-2019-enterprise-windows-2022-dc
+  - publish-to-prod-sql-2019-standard-windows-2022-dc
+  - publish-to-prod-sql-2019-web-windows-2022-dc
+  - publish-to-staging-sql-2019-enterprise-windows-2022-dc
+  - publish-to-staging-sql-2019-standard-windows-2022-dc
+  - publish-to-staging-sql-2019-web-windows-2022-dc
+  - publish-to-testing-sql-2019-enterprise-windows-2022-dc
+  - publish-to-testing-sql-2019-standard-windows-2022-dc
+  - publish-to-testing-sql-2019-web-windows-2022-dc
+  - build-sql-2017-enterprise-windows-2022-dc
+  - build-sql-2017-standard-windows-2022-dc
+  - build-sql-2017-web-windows-2022-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2022-dc
+  - publish-to-prod-sql-2017-standard-windows-2022-dc
+  - publish-to-prod-sql-2017-web-windows-2022-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2022-dc
+  - publish-to-staging-sql-2017-standard-windows-2022-dc
+  - publish-to-staging-sql-2017-web-windows-2022-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2022-dc
+  - publish-to-testing-sql-2017-standard-windows-2022-dc
+  - publish-to-testing-sql-2017-web-windows-2022-dc
 - name: windows-20h2
   jobs:
   - build-windows-20h2-core
@@ -6567,40 +7395,52 @@ groups:
   jobs:
   - build-sql-2017-enterprise-windows-2016-dc
   - build-sql-2017-enterprise-windows-2019-dc
+  - build-sql-2017-enterprise-windows-2022-dc
   - build-sql-2017-express-windows-2012-r2-dc
   - build-sql-2017-express-windows-2016-dc
   - build-sql-2017-express-windows-2019-dc
   - build-sql-2017-standard-windows-2016-dc
   - build-sql-2017-standard-windows-2019-dc
+  - build-sql-2017-standard-windows-2022-dc
   - build-sql-2017-web-windows-2016-dc
   - build-sql-2017-web-windows-2019-dc
+  - build-sql-2017-web-windows-2022-dc
   - publish-to-prod-sql-2017-enterprise-windows-2016-dc
   - publish-to-prod-sql-2017-enterprise-windows-2019-dc
+  - publish-to-prod-sql-2017-enterprise-windows-2022-dc
   - publish-to-prod-sql-2017-express-windows-2012-r2-dc
   - publish-to-prod-sql-2017-express-windows-2016-dc
   - publish-to-prod-sql-2017-express-windows-2019-dc
   - publish-to-prod-sql-2017-standard-windows-2016-dc
   - publish-to-prod-sql-2017-standard-windows-2019-dc
+  - publish-to-prod-sql-2017-standard-windows-2022-dc
   - publish-to-prod-sql-2017-web-windows-2016-dc
   - publish-to-prod-sql-2017-web-windows-2019-dc
+  - publish-to-prod-sql-2017-web-windows-2022-dc
   - publish-to-staging-sql-2017-enterprise-windows-2016-dc
   - publish-to-staging-sql-2017-enterprise-windows-2019-dc
+  - publish-to-staging-sql-2017-enterprise-windows-2022-dc
   - publish-to-staging-sql-2017-express-windows-2012-r2-dc
   - publish-to-staging-sql-2017-express-windows-2016-dc
   - publish-to-staging-sql-2017-express-windows-2019-dc
   - publish-to-staging-sql-2017-standard-windows-2016-dc
   - publish-to-staging-sql-2017-standard-windows-2019-dc
+  - publish-to-staging-sql-2017-standard-windows-2022-dc
   - publish-to-staging-sql-2017-web-windows-2016-dc
   - publish-to-staging-sql-2017-web-windows-2019-dc
+  - publish-to-staging-sql-2017-web-windows-2022-dc
   - publish-to-testing-sql-2017-enterprise-windows-2016-dc
   - publish-to-testing-sql-2017-enterprise-windows-2019-dc
+  - publish-to-testing-sql-2017-enterprise-windows-2022-dc
   - publish-to-testing-sql-2017-express-windows-2012-r2-dc
   - publish-to-testing-sql-2017-express-windows-2016-dc
   - publish-to-testing-sql-2017-express-windows-2019-dc
   - publish-to-testing-sql-2017-standard-windows-2016-dc
   - publish-to-testing-sql-2017-standard-windows-2019-dc
+  - publish-to-testing-sql-2017-standard-windows-2022-dc
   - publish-to-testing-sql-2017-web-windows-2016-dc
   - publish-to-testing-sql-2017-web-windows-2019-dc
+  - publish-to-testing-sql-2017-web-windows-2022-dc
 - name: sql-2019
   jobs:
   - build-sql-2019-enterprise-windows-2019-dc
@@ -6615,6 +7455,18 @@ groups:
   - publish-to-testing-sql-2019-enterprise-windows-2019-dc
   - publish-to-testing-sql-2019-standard-windows-2019-dc
   - publish-to-testing-sql-2019-web-windows-2019-dc
+  - build-sql-2019-enterprise-windows-2022-dc
+  - build-sql-2019-standard-windows-2022-dc
+  - build-sql-2019-web-windows-2022-dc
+  - publish-to-prod-sql-2019-enterprise-windows-2022-dc
+  - publish-to-prod-sql-2019-standard-windows-2022-dc
+  - publish-to-prod-sql-2019-web-windows-2022-dc
+  - publish-to-staging-sql-2019-enterprise-windows-2022-dc
+  - publish-to-staging-sql-2019-standard-windows-2022-dc
+  - publish-to-staging-sql-2019-web-windows-2022-dc
+  - publish-to-testing-sql-2019-enterprise-windows-2022-dc
+  - publish-to-testing-sql-2019-standard-windows-2022-dc
+  - publish-to-testing-sql-2019-web-windows-2022-dc
 - name: container-2019
   jobs:
   - build-windows-2019-core-for-containers
