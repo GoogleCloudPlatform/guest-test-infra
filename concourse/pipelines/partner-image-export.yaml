@@ -17,6 +17,13 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
+- name: cos-81-lts-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "partner/cos/cos-81-lts-v([0-9]+).tar.gz"
 - name: cos-85-lts-gcs
   type: gcs
   source:
@@ -31,13 +38,6 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-89-lts-v([0-9]+).tar.gz"
-- name: cos-93-lts-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "partner/cos/cos-93-lts-v([0-9]+).tar.gz"
 - name: cos-dev-gcs
   type: gcs
   source:
@@ -45,6 +45,13 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/cos/cos-dev-v([0-9]+).tar.gz"
+- name: fedora-33-gcs
+  type: gcs
+  source:
+    bucket: gce-image-archive
+    json_key: |
+      ((gcs-key.credential))
+    regexp: "partner/fedora/fedora-33-v([0-9]+).tar.gz"
 - name: fedora-34-gcs
   type: gcs
   source:
@@ -52,13 +59,6 @@ resources:
     json_key: |
       ((gcs-key.credential))
     regexp: "partner/fedora/fedora-34-v([0-9]+).tar.gz"
-- name: fedora-35-gcs
-  type: gcs
-  source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
-    regexp: "partner/fedora/fedora-35-v([0-9]+).tar.gz"
 - name: fedora-coreos-next-gcs
   type: gcs
   source:
