@@ -46,9 +46,16 @@ fi
 
 GIT="git"
 if [[ ${VERSION_ID} =~ 6|7 ]]; then
-    try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
-    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
-    GIT="git224"
+  try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
+  rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
+  GIT="git224"
+fi
+
+# Enable PowerTools or CRB repo's on EL8 or EL9.
+if [[ ${VERSION_ID} = 8 ]]; then
+  dnf config-manager --set-enabled powertools
+elif [[ ${VERSION_ID} = 9 ]]; then
+  dnf config-manager --set-enabled crb
 fi
 
 try_command yum install -y $GIT rpmdevtools yum-utils
@@ -56,7 +63,7 @@ try_command yum install -y $GIT rpmdevtools yum-utils
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
 if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
+  cd "$BUILD_DIR"
 fi
 
 if grep -q '%{_go}' ./packaging/*.spec; then
