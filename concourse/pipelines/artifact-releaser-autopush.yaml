@@ -1,10 +1,10 @@
 jobs:
-- name: inject-artifact-releaser-autopush-staging
+- name: upload-artifact-releaser-autopush-staging
   on_failure:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     task: failure
     vars:
-      job: inject-artifact-releaser-autopush-staging
+      job: upload-artifact-releaser-autopush-staging
       pipeline: guest-package-build
       result_state: failure
       start_timestamp: ((.:start-timestamp-ms))
@@ -12,7 +12,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     task: success
     vars:
-      job: inject-artifact-releaser-autopush-staging
+      job: upload-artifact-releaser-autopush-staging
       pipeline: guest-package-build
       result_state: success
       start_timestamp: ((.:start-timestamp-ms))
@@ -27,26 +27,26 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
         params:
-          ENVIRONMENT: staging
-        task: inject-artifact-releaser-autopush-deb11
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+        task: upload-artifact-releaser-autopush-deb11
         vars:
           package_path: artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb
           repo: guest-arle-autopush-trusty
           universe: cloud-apt
-      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
         params:
-          ENVIRONMENT: staging
-        task: inject-artifact-releaser-autopush-el7
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+        task: upload-artifact-releaser-autopush-el7
         vars:
           package_path: artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm
           repo: guest-arle-autopush-el7-x86_64
           universe: cloud-yum
-      - file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
         params:
-          ENVIRONMENT: staging
-        task: inject-artifact-releaser-autopush-win
+          TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+        task: upload-artifact-releaser-autopush-win
         vars:
           package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo
           repo: guest-arle-autopush
@@ -71,7 +71,7 @@ jobs:
   plan:
   - get: guest-test-infra
     passed:
-    - inject-artifact-releaser-autopush-staging
+    - upload-artifact-releaser-autopush-staging
   - file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
     task: generate-timestamp
   - file: timestamp/timestamp-ms
