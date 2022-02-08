@@ -192,7 +192,7 @@ local imgbuildjob = {
       put: tl.image + '-gcs',
       params: {
         // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.tar.gz'
-        file: 'build-id-dir/%s*' % tl.image,
+        file: 'build-id-dir/%s*' % tl.image_prefix,
       },
       get_params: {
         skip_download: 'true',
