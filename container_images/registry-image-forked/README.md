@@ -1,3 +1,11 @@
+# Forked registry image
+
+This is a fork of the upstream registry-image-resource repo with GCE specific
+modifications. Original source is at
+https://github.com/concourse/registry-image-resource.git
+
+Original README text follows:
+
 # Registry Image Resource
 
 Supports checking, fetching, and pushing of images to Docker registries.
