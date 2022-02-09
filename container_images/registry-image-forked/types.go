@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/google"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/sirupsen/logrus"
@@ -90,6 +91,8 @@ type Source struct {
 	BasicCredentials
 	AwsCredentials
 
+	Google bool `json:"google_auth,omitempty"`
+
 	RegistryMirror *RegistryMirror `json:"registry_mirror,omitempty"`
 
 	ContentTrust *ContentTrust `json:"content_trust,omitempty"`
@@ -142,6 +145,14 @@ func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([
 		auth = &authn.Basic{
 			Username: source.Username,
 			Password: source.Password,
+		}
+	} else if source.Google {
+		logrus.Warnf("Forked registry image: will use Google default credentials")
+		var err error
+		if auth, err = google.NewEnvAuthenticator(); err != nil {
+			logrus.Errorf("failed to determine Google default credentials: %v.", err)
+			logrus.Warnf("Will use anonymous access.")
+			auth = authn.Anonymous
 		}
 	} else {
 		auth = authn.Anonymous
