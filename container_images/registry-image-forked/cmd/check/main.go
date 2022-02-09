@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/concourse/registry-image-resource/commands"
+	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked/commands"
 	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 )

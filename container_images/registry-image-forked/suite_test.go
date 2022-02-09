@@ -91,21 +91,21 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	if _, err := os.Stat("/opt/resource/in"); err == nil {
 		b.In = "/opt/resource/in"
 	} else {
-		b.In, err = gexec.Build("github.com/concourse/registry-image-resource/cmd/in")
+		b.In, err = gexec.Build("github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked/cmd/in")
 		Expect(err).ToNot(HaveOccurred())
 	}
 
 	if _, err := os.Stat("/opt/resource/out"); err == nil {
 		b.Out = "/opt/resource/out"
 	} else {
-		b.Out, err = gexec.Build("github.com/concourse/registry-image-resource/cmd/out")
+		b.Out, err = gexec.Build("github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked/cmd/out")
 		Expect(err).ToNot(HaveOccurred())
 	}
 
 	if _, err := os.Stat("/opt/resource/check"); err == nil {
 		b.Check = "/opt/resource/check"
 	} else {
-		b.Check, err = gexec.Build("github.com/concourse/registry-image-resource/cmd/check")
+		b.Check, err = gexec.Build("github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked/cmd/check")
 		Expect(err).ToNot(HaveOccurred())
 	}
 

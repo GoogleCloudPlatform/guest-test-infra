@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	resource "github.com/concourse/registry-image-resource"
+	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
 )
 
 var _ = Describe("In", func() {

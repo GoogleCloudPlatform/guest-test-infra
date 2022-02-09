@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
-	resource "github.com/concourse/registry-image-resource"
+	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
 )
 
 var _ = Describe("Source", func() {
