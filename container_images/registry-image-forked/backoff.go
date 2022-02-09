@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// RetryOnRateLimit is
 func RetryOnRateLimit(op func() error) error {
 	bo := backoff.NewExponentialBackOff()
 	if os.Getenv("TEST") == "true" {

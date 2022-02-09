@@ -53,7 +53,7 @@ var _ = Describe("Source", func() {
 			source := resource.Source{
 				Repository: "foo",
 				AwsCredentials: resource.AwsCredentials{
-					AwsAccessKeyId:     "foo",
+					AwsAccessKeyID:     "foo",
 					AwsSecretAccessKey: "bar",
 					AwsRegion:          "us-east-1",
 				},
@@ -69,10 +69,10 @@ var _ = Describe("Source", func() {
 			source := resource.Source{
 				Repository: "foo",
 				AwsCredentials: resource.AwsCredentials{
-					AwsAccessKeyId:     "foo",
+					AwsAccessKeyID:     "foo",
 					AwsSecretAccessKey: "bar",
 					AwsRegion:          "us-east-1",
-					AWSECRRegistryId:   "012345678901",
+					AWSECRRegistryID:   "012345678901",
 				},
 			}
 
@@ -80,7 +80,7 @@ var _ = Describe("Source", func() {
 			_, err := source.GetECRAuthorizationToken(m)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(m.getAuthorizationInput.RegistryIds)).To(Equal(1))
-			Expect(*m.getAuthorizationInput.RegistryIds[0]).To(Equal(source.AwsCredentials.AWSECRRegistryId))
+			Expect(*m.getAuthorizationInput.RegistryIds[0]).To(Equal(source.AwsCredentials.AWSECRRegistryID))
 		})
 	})
 })

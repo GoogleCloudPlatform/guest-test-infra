@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Masterminds/semver"
 	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
+	"github.com/Masterminds/semver"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Out is
 type Out struct {
 	stdin  io.Reader
 	stderr io.Writer
@@ -28,6 +29,7 @@ type Out struct {
 	args   []string
 }
 
+// NewOut is
 func NewOut(
 	stdin io.Reader,
 	stderr io.Writer,
@@ -42,6 +44,7 @@ func NewOut(
 	}
 }
 
+// Execute is
 func (o *Out) Execute() error {
 	setupLogging(o.stderr)
 
@@ -63,7 +66,7 @@ func (o *Out) Execute() error {
 
 	src := o.args[1]
 
-	if req.Source.AwsAccessKeyId != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
+	if req.Source.AwsAccessKeyID != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
 		if !req.Source.AuthenticateToECR() {
 			return fmt.Errorf("cannot authenticate with ECR")
 		}

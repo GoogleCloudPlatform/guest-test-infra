@@ -27,55 +27,65 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// CheckRequest is
 type CheckRequest struct {
 	Source  Source   `json:"source"`
 	Version *Version `json:"version"`
 }
 
+// CheckResponse is
 type CheckResponse []Version
 
+// InRequest is
 type InRequest struct {
 	Source  Source    `json:"source"`
 	Params  GetParams `json:"params"`
 	Version Version   `json:"version"`
 }
 
+// InResponse is
 type InResponse struct {
 	Version  Version         `json:"version"`
 	Metadata []MetadataField `json:"metadata"`
 }
 
+// OutRequest is
 type OutRequest struct {
 	Source Source    `json:"source"`
 	Params PutParams `json:"params"`
 }
 
+// OutResponse is
 type OutResponse struct {
 	Version  Version         `json:"version"`
 	Metadata []MetadataField `json:"metadata"`
 }
 
+// AwsCredentials is
 type AwsCredentials struct {
-	AwsAccessKeyId     string   `json:"aws_access_key_id,omitempty"`
+	AwsAccessKeyID     string   `json:"aws_access_key_id,omitempty"`
 	AwsSecretAccessKey string   `json:"aws_secret_access_key,omitempty"`
 	AwsSessionToken    string   `json:"aws_session_token,omitempty"`
 	AwsRegion          string   `json:"aws_region,omitempty"`
-	AWSECRRegistryId   string   `json:"aws_ecr_registry_id,omitempty"`
+	AWSECRRegistryID   string   `json:"aws_ecr_registry_id,omitempty"`
 	AwsRoleArn         string   `json:"aws_role_arn,omitempty"`
 	AwsRoleArns        []string `json:"aws_role_arns,omitempty"`
 }
 
+// BasicCredentials is
 type BasicCredentials struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
+// RegistryMirror is
 type RegistryMirror struct {
 	Host string `json:"host,omitempty"`
 
 	BasicCredentials
 }
 
+// Source is
 type Source struct {
 	Repository string `json:"repository"`
 
@@ -102,6 +112,7 @@ type Source struct {
 	Debug bool `json:"debug,omitempty"`
 }
 
+// Mirror is
 func (source Source) Mirror() (Source, bool, error) {
 	if source.RegistryMirror == nil {
 		return Source{}, false, nil
@@ -139,6 +150,7 @@ func (source Source) Mirror() (Source, bool, error) {
 	return copy, true, nil
 }
 
+// AuthOptions is
 func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([]remote.Option, error) {
 	var auth authn.Authenticator
 	if source.Username != "" && source.Password != "" {
@@ -197,10 +209,12 @@ func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([
 	return []remote.Option{remote.WithAuth(auth), remote.WithTransport(rt)}, nil
 }
 
+// NewRepository is
 func (source Source) NewRepository() (name.Repository, error) {
 	return name.NewRepository(source.Repository, source.RepositoryOptions()...)
 }
 
+// RepositoryOptions is
 func (source Source) RepositoryOptions() []name.Option {
 	var opts []name.Option
 	if source.Insecure {
@@ -209,6 +223,7 @@ func (source Source) RepositoryOptions() []name.Option {
 	return opts
 }
 
+// ContentTrust is
 type ContentTrust struct {
 	Server               string `json:"server"`
 	RepositoryKeyID      string `json:"repository_key_id"`
@@ -228,6 +243,8 @@ type ContentTrust struct {
 		├── client.cert
 		└── client.key
 */
+
+// PrepareConfigDir is
 func (ct *ContentTrust) PrepareConfigDir() (string, error) {
 	configDir, err := ioutil.TempDir("", "notary-config")
 	if err != nil {
@@ -285,6 +302,7 @@ func (ct *ContentTrust) PrepareConfigDir() (string, error) {
 	return configDir, nil
 }
 
+// Name is
 func (source *Source) Name() string {
 	if source.Tag == "" {
 		return source.Repository
@@ -293,6 +311,7 @@ func (source *Source) Name() string {
 	return fmt.Sprintf("%s:%s", source.Repository, source.Tag)
 }
 
+// Metadata is
 func (source *Source) Metadata() []MetadataField {
 	return []MetadataField{
 		{
@@ -302,6 +321,7 @@ func (source *Source) Metadata() []MetadataField {
 	}
 }
 
+// AuthenticateToECR is
 func (source *Source) AuthenticateToECR() bool {
 	logrus.Warnln("ECR integration is experimental and untested")
 
@@ -312,7 +332,7 @@ func (source *Source) AuthenticateToECR() bool {
 
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String(source.AwsRegion),
-		Credentials: credentials.NewStaticCredentials(source.AwsAccessKeyId, source.AwsSecretAccessKey, source.AwsSessionToken),
+		Credentials: credentials.NewStaticCredentials(source.AwsAccessKeyID, source.AwsSecretAccessKey, source.AwsSessionToken),
 	}))
 
 	// Note: This implementation gives precedence to `aws_role_arn` since it
@@ -362,10 +382,11 @@ func (source *Source) AuthenticateToECR() bool {
 	return true
 }
 
+// GetECRAuthorizationToken is
 func (source *Source) GetECRAuthorizationToken(client ecriface.ECRAPI) (*ecr.GetAuthorizationTokenOutput, error) {
 	input := &ecr.GetAuthorizationTokenInput{}
-	if source.AWSECRRegistryId != "" {
-		input.RegistryIds = append(input.RegistryIds, aws.String(source.AWSECRRegistryId))
+	if source.AWSECRRegistryID != "" {
+		input.RegistryIds = append(input.RegistryIds, aws.String(source.AWSECRRegistryID))
 	}
 	return client.GetAuthorizationToken(input)
 }
@@ -387,25 +408,30 @@ func (tag *Tag) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
+// String is
 func (tag Tag) String() string {
 	return string(tag)
 }
 
+// Version is
 type Version struct {
 	Tag    string `json:"tag"`
 	Digest string `json:"digest"`
 }
 
+// MetadataField is
 type MetadataField struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
+// GetParams is
 type GetParams struct {
 	RawFormat    string `json:"format"`
 	SkipDownload bool   `json:"skip_download"`
 }
 
+// Format is
 func (p GetParams) Format() string {
 	if p.RawFormat == "" {
 		return "rootfs"
@@ -414,6 +440,7 @@ func (p GetParams) Format() string {
 	return p.RawFormat
 }
 
+// PutParams is
 type PutParams struct {
 	// Path to an OCI image tarball to push.
 	Image string `json:"image"`
@@ -438,6 +465,7 @@ type PutParams struct {
 	AdditionalTags string `json:"additional_tags"`
 }
 
+// ParseAdditionalTags is
 func (p *PutParams) ParseAdditionalTags(src string) ([]string, error) {
 	if p.AdditionalTags == "" {
 		return []string{}, nil

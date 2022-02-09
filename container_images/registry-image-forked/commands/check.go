@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Masterminds/semver"
 	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
+	"github.com/Masterminds/semver"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -17,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Check is
 type Check struct {
 	stdin  io.Reader
 	stderr io.Writer
@@ -24,6 +25,7 @@ type Check struct {
 	args   []string
 }
 
+// NewCheck is
 func NewCheck(
 	stdin io.Reader,
 	stderr io.Writer,
@@ -38,6 +40,7 @@ func NewCheck(
 	}
 }
 
+// Execute is
 func (c *Check) Execute() error {
 	setupLogging(c.stderr)
 
@@ -49,7 +52,7 @@ func (c *Check) Execute() error {
 		return fmt.Errorf("invalid payload: %s", err)
 	}
 
-	if req.Source.AwsAccessKeyId != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
+	if req.Source.AwsAccessKeyID != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
 		if !req.Source.AuthenticateToECR() {
 			return fmt.Errorf("cannot authenticate with ECR")
 		}
@@ -99,9 +102,9 @@ func check(source resource.Source, from *resource.Version) (resource.CheckRespon
 
 	if source.Tag != "" {
 		return checkTag(repo.Tag(source.Tag.String()), source, from, opts...)
-	} else {
-		return checkRepository(repo, source, from, opts...)
 	}
+
+	return checkRepository(repo, source, from, opts...)
 }
 
 func checkRepository(repo name.Repository, source resource.Source, from *resource.Version, opts ...remote.Option) (resource.CheckResponse, error) {
@@ -270,17 +273,24 @@ func checkRepository(repo name.Repository, source resource.Source, from *resourc
 	return response, nil
 }
 
+// TagVersion is
 type TagVersion struct {
 	TagName string
 	Digest  string
 	Version *semver.Version
 }
 
+// TagVersions is
 type TagVersions []TagVersion
 
-func (vs TagVersions) Len() int           { return len(vs) }
+// Len is
+func (vs TagVersions) Len() int { return len(vs) }
+
+// Less is
 func (vs TagVersions) Less(i, j int) bool { return vs[i].Version.LessThan(vs[j].Version) }
-func (vs TagVersions) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
+
+// Swap is
+func (vs TagVersions) Swap(i, j int) { vs[i], vs[j] = vs[j], vs[i] }
 
 func checkTag(tag name.Tag, source resource.Source, version *resource.Version, opts ...remote.Option) (resource.CheckResponse, error) {
 	digest, found, err := headOrGet(tag, opts...)

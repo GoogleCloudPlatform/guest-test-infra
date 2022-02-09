@@ -18,11 +18,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ImageMetadata is
 type ImageMetadata struct {
 	Env  []string `json:"env"`
 	User string   `json:"user"`
 }
 
+// In is
 type In struct {
 	stdin  io.Reader
 	stderr io.Writer
@@ -30,6 +32,7 @@ type In struct {
 	args   []string
 }
 
+// NewIn is
 func NewIn(
 	stdin io.Reader,
 	stderr io.Writer,
@@ -44,6 +47,7 @@ func NewIn(
 	}
 }
 
+// Execute is
 func (i *In) Execute() error {
 	setupLogging(i.stderr)
 
@@ -65,7 +69,7 @@ func (i *In) Execute() error {
 
 	dest := i.args[1]
 
-	if req.Source.AwsAccessKeyId != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
+	if req.Source.AwsAccessKeyID != "" && req.Source.AwsSecretAccessKey != "" && req.Source.AwsRegion != "" {
 		if !req.Source.AuthenticateToECR() {
 			return fmt.Errorf("cannot authenticate with ECR")
 		}
