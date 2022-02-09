@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
-	resource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/registry-image-forked"
 )
 
 var _ = Describe("Source", func() {
