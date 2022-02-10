@@ -167,7 +167,7 @@ jobs:
   - task: build-image
     file: guest-test-infra/concourse/tasks/build-container-image.yaml
     vars:
-      destination: gcr.io/gcp-guest/registry-image-forked:latest
+      destination: gcr.io/compute-image-tools/registry-image-forked:latest
       context: guest-test-infra/container_images/registry-image-forked
     params:
       DOCKERFILE: dockerfiles/alpine/Dockerfile
