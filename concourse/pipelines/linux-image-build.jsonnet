@@ -62,8 +62,8 @@ local publishresulttask = {
       repository: 'gcr.io/gcp-guest/concourse-metrics',
       tag: 'latest',
       // Use workload id to pull image
-      google_auth: 'true',
-      debug: 'true',
+      google_auth: true,
+      debug: true,
     },
   },
   run: {
