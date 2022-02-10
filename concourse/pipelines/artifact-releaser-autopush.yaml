@@ -27,25 +27,28 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         params:
           TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+          TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-deb11
         vars:
           package_path: artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb
           repo: guest-arle-autopush-trusty
           universe: cloud-apt
-      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         params:
           TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+          TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-el7
         vars:
           package_path: artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm
           repo: guest-arle-autopush-el7-x86_64
           universe: cloud-yum
-      - file: guest-test-infra/concourse/tasks/gcloud-upload-staging-package.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         params:
           TOPIC: projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush
+          TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-win
         vars:
           package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo

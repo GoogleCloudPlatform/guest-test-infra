@@ -10,9 +10,11 @@ image_resource:
 inputs:
 - name: credentials
 
+# TYPE can be set to be "uploadToUnstable", "uploadToStaging", or "promoteToStaging"
 params:
   GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
   TOPIC: "projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod"
+  TYPE: "uploadToUnstable"
 
 run:
   path: sh
@@ -20,4 +22,4 @@ run:
   - -exc
   - |
     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    gcloud pubsub topics publish $TOPIC --message '{"type": "uploadToStable", "request": {"bucket": "gcp-guest-package-uploads", "object": "((package_path))", "universe": "((universe))", "repo": "((repo))"}}'
+    gcloud pubsub topics publish $TOPIC --message "{\"type\": \"${TYPE}\", \"request\": {\"bucket\": \"gcp-guest-package-uploads\", \"object\": \"((package_path))\", \"universe\": \"((universe))\", \"repo\": \"((repo))\"}}"
