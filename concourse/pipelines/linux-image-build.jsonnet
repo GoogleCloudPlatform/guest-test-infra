@@ -57,10 +57,13 @@ local publishresulttask = {
   // Start of output.
   platform: 'linux',
   image_resource: {
-    type: 'docker-image',
+    type: 'registry-image-forked',
     source: {
       repository: 'gcr.io/gcp-guest/concourse-metrics',
       tag: 'latest',
+      // Use workload id to pull image
+      google_auth: 'true',
+      debug: 'true',
     },
   },
   run: {
@@ -480,6 +483,11 @@ local ImgGroup(name, images) = {
       name: 'gcs',
       type: 'registry-image',
       source: { repository: 'frodenas/gcs-resource' },
+    },
+    {
+      name: 'registry-image-forked',
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
     },
   ],
   resources: [
