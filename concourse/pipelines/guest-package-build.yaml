@@ -183,70 +183,70 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-agent-deb9
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-agent-deb9
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-guest-agent-stretch
         params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-deb10
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-guest-agent-deb10
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-guest-agent-buster
         params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-deb11
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-guest-agent-deb11
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-guest-agent-bullseye
         params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-el7
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-guest-agent-el7
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: google-guest-agent-el7
         params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-el8
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-guest-agent-el8
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: google-guest-agent-el8
         params:
-          ENVIRONMENT: staging
-      - task: inject-guest-agent-el9
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-guest-agent-el9
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm
           universe: cloud-yum
           repo: google-guest-agent-el9
         params:
-          ENVIRONMENT: staging
-      - task: inject-compute-engine-windows
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-compute-engine-windows
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
           repo: google-compute-engine-windows
         params:
-          ENVIRONMENT: staging
-      - task: inject-compute-engine-metadata-scripts
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+          TYPE: uploadToStaging
+      - task: upload-compute-engine-metadata-scripts
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
           universe: cloud-yuck
           repo: google-compute-engine-metadata-scripts
         params:
-          ENVIRONMENT: staging
+          TYPE: uploadToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -433,38 +433,38 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-oslogin-deb9
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-deb9
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
-      - task: inject-guest-oslogin-deb10
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-deb10
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
-      - task: inject-guest-oslogin-deb11
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-deb11
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-bullseye
-      - task: inject-guest-oslogin-el7
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-el7
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
-      - task: inject-guest-oslogin-el8
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-el8
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
-      - task: inject-guest-oslogin-el9
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-oslogin-el9
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm
           universe: cloud-yum
@@ -693,32 +693,32 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-osconfig-deb9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-osconfig-deb9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb
           universe: cloud-apt
           repo: google-osconfig-agent
-      - task: inject-osconfig-el7-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-osconfig-el7-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: google-osconfig-agent-el7
-      - task: inject-osconfig-el8-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-osconfig-el8-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: google-osconfig-agent-el8
-      - task: inject-osconfig-el9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-osconfig-el9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm
           universe: cloud-yum
           repo: google-osconfig-agent-el9
-      - task: inject-osconfig-goo-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-osconfig-goo-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo
           universe: cloud-yuck
@@ -805,26 +805,26 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-diskexpand-deb9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-diskexpand-deb9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-disk-expand
-      - task: inject-guest-diskexpand-el7-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-diskexpand-el7-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm
           universe: cloud-yum
           repo: gce-disk-expand-el7
-      - task: inject-guest-diskexpand-el8-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-diskexpand-el8-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm
           universe: cloud-yum
           repo: gce-disk-expand-el8
-      - task: inject-guest-diskexpand-el9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-diskexpand-el9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.x86_64.rpm
           universe: cloud-yum
@@ -911,38 +911,38 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-guest-configs-deb9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-deb9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-stretch
-      - task: inject-guest-configs-deb10-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-deb10-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-buster
-      - task: inject-guest-configs-deb11-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-deb11-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-bullseye
-      - task: inject-guest-configs-el7-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-el7-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el7
-      - task: inject-guest-configs-el8-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-el8-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
-      - task: inject-guest-configs-el9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-guest-configs-el9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm
           universe: cloud-yum
@@ -1151,20 +1151,20 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - task: inject-artifact-registry-yum-plugin-el7-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-artifact-registry-yum-plugin-el7-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm
           universe: cloud-yum
           repo: yum-plugin-artifact-registry
-      - task: inject-artifact-registry-dnf-plugin-el8-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-artifact-registry-dnf-plugin-el8-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
-      - task: inject-artifact-registry-dnf-plugin-el9-unstable
-        file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+      - task: upload-artifact-registry-dnf-plugin-el9-unstable
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm
           universe: cloud-yum
@@ -1221,8 +1221,8 @@ jobs:
       name: package-version/version
       tag: package-version/version
       commitish: artifact-registry-apt-transport/.git/ref
-  - task: inject-artifact-registry-apt-transport-unstable
-    file: guest-test-infra/concourse/tasks/gcloud-inject-package.yaml
+  - task: upload-artifact-registry-apt-transport-unstable
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
       package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb
       universe: cloud-apt
