@@ -30,241 +30,71 @@ local buildcontainerimgtask = {
   },
 };
 
+local buildcontainerimgjob = {
+  local job = self,
+
+  image:: error 'must set image in buildcontainerimgjob',
+  destination:: error 'must set destination in buildcontainerimgjob',
+  context:: error 'must set context in buildcontainerimgjob',
+  dockerfile:: 'Dockerfile',
+  passed:: '',
+
+  // Start of job definition
+  name: 'build-' + job.image,
+  serial_groups: ['serial'],
+  plan: [
+    {
+      get: 'guest-test-infra',
+      trigger: true,
+      [if job.passed != '' then 'passed']: [job.passed],
+    },
+    {
+      task: 'build-image',
+      config: buildcontainerimgtask {
+        destination: job.destination,
+        dockerfile: job.dockerfile,
+        context: job.context,
+      },
+    },
+  ],
+};
+
+local BuildContainerImage(image) = buildcontainerimgjob {
+  image: image,
+  destination: 'gcr.io/gcp-guest/%s:latest' % image,
+  context: 'guest-test-infra/container_images/' + image,
+};
+
 // Start of output.
 {
   resources: [
     common.GitResource('guest-test-infra'),
   ],
   jobs: [
-    {
-      name: 'build-cit-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            dockerfile: 'guest-test-infra/imagetest/Dockerfile',
-            context: 'guest-test-infra',
-            destination: 'gcr.io/gcp-guest/cloud-image-tests:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
+    BuildContainerImage('cloud-image-tests') {
+      dockerfile: 'guest-test-infra/imagetest/Dockerfile',
+      context: 'guest-test-infra',
     },
-    {
-      name: 'build-gobuild-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/gobuild',
-            destination: 'gcr.io/gcp-guest/gobuild:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
+    BuildContainerImage('gobuild'),
+    BuildContainerImage('gotest'),
+    BuildContainerImage('cli-tools-module-tests') {
+      passed: 'build-gotest',
     },
-    {
-      name: 'build-gotest-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/gotest',
-            destination: 'gcr.io/gcp-guest/gotest:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
+    BuildContainerImage('gocheck'),
+    BuildContainerImage('concourse-metrics') {
+      context: 'guest-test-infra',
+      dockerfile: 'guest-test-infra/container_images/concourse-metrics/Dockerfile',
     },
-    {
-      name: 'build-cli-tools-module-tests-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          passed: [
-            'build-gotest-container',
-          ],
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/cli-tools-module-tests',
-            destination: 'gcr.io/gcp-guest/cli-tools-module-tests:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
+    BuildContainerImage('flake8'),
+    BuildContainerImage('gointegtest'),
+    BuildContainerImage('pytest'),
+    BuildContainerImage('fly-validate-pipelines') {
+      passed: 'build-jsonnet-go',
     },
-    {
-      name: 'build-gocheck-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/gocheck',
-            destination: 'gcr.io/gcp-guest/gocheck:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-build-essential-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/build-essential',
-            destination: 'gcr.io/gcp-guest/build-essential:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-concourse-metrics-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          config: buildcontainerimgtask {
-            dockerfile: 'guest-test-infra/container_images/concourse-metrics/Dockerfile',
-            context: 'guest-test-infra',
-            destination: 'gcr.io/gcp-guest/concourse-metrics:latest',
-          },
-          task: 'build-image',
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-flake8-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/flake8',
-            destination: 'gcr.io/gcp-guest/flake8:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-gointegtest-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/gointegtest',
-            destination: 'gcr.io/gcp-guest/gointegtest:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-pytest-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/pytest',
-            destination: 'gcr.io/gcp-guest/pytest:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-fly-vp-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          passed: [
-            'build-jsonnet-go-container',
-          ],
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/fly-validate-pipelines',
-            destination: 'gcr.io/gcp-guest/fly-validate-pipelines:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-jsonnet-go-container',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            context: 'guest-test-infra/container_images/jsonnet-go',
-            destination: 'gcr.io/gcp-guest/jsonnet-go:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
-    },
-    {
-      name: 'build-registry-image-forked',
-      plan: [
-        {
-          get: 'guest-test-infra',
-          trigger: true,
-        },
-        {
-          task: 'build-image',
-          config: buildcontainerimgtask {
-            dockerfile: 'dockerfiles/alpine/Dockerfile',
-            context: 'guest-test-infra/container_images/registry-image-forked',
-            destination: 'gcr.io/compute-image-tools/registry-image-forked:latest',
-          },
-        },
-      ],
-      serial_groups: ['serial'],
+    BuildContainerImage('jsonnet-go'),
+    BuildContainerImage('registry-image-forked') {
+      destination: 'gcr.io/compute-image-tools/registry-image-forked:latest',
+      dockerfile: 'dockerfiles/alpine/Dockerfile',
     },
   ],
 }
