@@ -44,9 +44,10 @@ func main() {
 	defer c.Close()
 
 	req, err := requests.BuildCoverageRequest(requests.CoverageArgs{
+		CoveragePercent: *coveragePercent,
 		MetricPath:      *metricPath,
 		PackageName:     *packageName,
-		CoveragePercent: *coveragePercent,
+		ProjectID:       *projectID,
 	})
 	if err != nil {
 		fmt.Printf("Error creating request: %+v.\n", err)
