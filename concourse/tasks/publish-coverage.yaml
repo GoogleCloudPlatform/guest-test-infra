@@ -19,3 +19,4 @@ run:
   - --metric-path=golang/coverage/percent
   - --package-name=((package_name))
   - --coverage=((coverage_percent))
+  - --project-id=gcp-guest
