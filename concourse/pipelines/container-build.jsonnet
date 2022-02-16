@@ -60,8 +60,9 @@ local buildcontainerimgjob = {
 };
 
 local BuildContainerImage(image) = buildcontainerimgjob {
+  repo:: 'gcr.io/gcp-guest',
   image: image,
-  destination: 'gcr.io/gcp-guest/%s:latest' % image,
+  destination: '%s/%s:latest' % [self.repo, image],
   context: 'guest-test-infra/container_images/' + image,
 };
 
@@ -72,8 +73,9 @@ local BuildContainerImage(image) = buildcontainerimgjob {
   ],
   jobs: [
     BuildContainerImage('cloud-image-tests') {
-      dockerfile: 'guest-test-infra/imagetest/Dockerfile',
       context: 'guest-test-infra',
+      repo: 'gcr.io/compute-image-tools',
+      dockerfile: 'guest-test-infra/imagetest/Dockerfile',
     },
     BuildContainerImage('gobuild'),
     BuildContainerImage('gotest'),
@@ -93,8 +95,10 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     },
     BuildContainerImage('jsonnet-go'),
     BuildContainerImage('registry-image-forked') {
-      destination: 'gcr.io/compute-image-tools/registry-image-forked:latest',
+      repo: 'gcr.io/compute-image-tools',
       dockerfile: 'dockerfiles/alpine/Dockerfile',
     },
+    BuildContainerImage('daisy-builder'),
+    BuildContainerImage('build-essential'),
   ],
 }
