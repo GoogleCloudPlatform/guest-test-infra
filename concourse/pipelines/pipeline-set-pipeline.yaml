@@ -27,3 +27,5 @@ jobs:
     file: guest-test-infra/concourse/pipelines/container-build.yaml
   - set_pipeline: artifact-releaser-autopush
     file: guest-test-infra/concourse/pipelines/artifact-releaser-autopush.yaml
+  - set_pipeline: daisy-build
+    file: guest-test-infra/concourse/pipelines/daisy-build.yaml
