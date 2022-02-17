@@ -10,8 +10,8 @@ resources:
 - name: compute-daisy
   type: git
   source:
-    uri: https://github.com/GoogleCloudPlatform/compute-daisy.git
-    branch: master
+    uri: https://github.com/hopkiw/compute-daisy.git
+    branch: dockerfile
 - name: compute-image-tools
   type: git
   source:
@@ -19,28 +19,6 @@ resources:
     branch: master
     paths:
     - daisy_workflows/**
-
-# Docker images
-- name: busybox
-  type: registry-image
-  source:
-    repository: docker.io/busybox
-    tag: latest
-- name: container-structure-test
-  type: registry-image
-  source:
-    repository: gcr.io/gcp-runtimes/container-structure-test
-    tag: latest
-- name: golang
-  type: registry-image
-  source:
-    repository: docker.io/golang
-    tag: 1.17
-- name: oci-build
-  type: registry-image
-  source:
-    repository: docker.io/concourse/oci-build-task
-    tag: latest
 
 # Output artifacts
 - name: linux-executable
@@ -64,73 +42,75 @@ resources:
     json_key: |
       ((concourse-sa.credential))
     versioned_file: release/darwin/daisy
-- name: daisy-image
-  type: registry-image
-  source:
-    repository: gcr.io/compute-image-tools-test/daisy
-    tag: latest
-    username: _json_key
-    password: |
-      ((concourse-sa.credential))
 
 jobs:
 - name: daisy
   plan:
-  - get: busybox
   - get: compute-daisy
     trigger: true
   - get: compute-image-tools
     trigger: true
-  - get: container-structure-test
-  - get: golang
-  - get: oci-build
 
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
-
-  # Create a source overlay that includes both Daisy's source
-  # from compute-daisy and the daisy workflows from compute-image-tools.
-  #
-  # This is required since we historically included the workflows
-  # directory and it's unknown how many people are using it.
-  - task: add-daisy-workflows-to-compute-daisy
-    image: busybox
+  # Add daisy workflows dir
+  - task: get-daisy-workflows
     config:
       platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: busybox
       inputs:
       - name: compute-daisy
       - name: compute-image-tools
       outputs:
-      - name: overlayed-source
+      - name: compute-daisy
       run:
         path: sh
         args:
         - -ec
         - |
-          cp -a compute-daisy/. overlayed-source/
-          cp -a compute-image-tools/daisy_workflows overlayed-source/daisy_workflows
-
-  # Build artifacts.
-  - task: build-linux-image
-    image: oci-build
-    # At the time of writing, the OCI builder requires
-    # a privileged runtime: https://github.com/concourse/oci-build-task
-    privileged: true
+          cp -a compute-image-tools/daisy_workflows compute-daisy/daisy_workflows
+  - task: build-image
     config:
       platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: gcr.io/kaniko-project/executor
+          tag: latest
       inputs:
-      - name: overlayed-source
-        path: .
-      params:
-        UNPACK_ROOTFS: true
-      outputs:
-      - name: image
+      - name: compute-daisy
       run:
-        path: build
-  - task: build-windows-executable
-    image: golang
+        path: executor
+        args:
+        - --dockerfile=Dockerfile
+        - --context=compute-daisy
+        - --destination=gcr.io/liamh-testing/daisy:latest
+  - task: build-linux-executable
     config:
       platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: golang
+      inputs:
+      - name: compute-daisy
+        path: .
+      outputs:
+      - name: linux
+      params:
+        GOOS: linux
+      run:
+        path: go
+        dir: cli
+        args: [ build, -o=../linux/daisy ]
+  - task: build-windows-executable
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: golang
       inputs:
       - name: compute-daisy
         path: .
@@ -143,9 +123,12 @@ jobs:
         dir: cli
         args: [ build, -o=../windows/daisy ]
   - task: build-darwin-executable
-    image: golang
     config:
       platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: golang
       inputs:
       - name: compute-daisy
         path: .
@@ -157,52 +140,29 @@ jobs:
         path: go
         dir: cli
         args: [ build, -o=../darwin/daisy ]
-
-  # Validate artifacts before uploading.
-  - task: validate-contents-of-linux-image
-    image: container-structure-test
-    privileged: true # Required for container structure test to execute Docker
-    config:
-      platform: linux
-      inputs:
-      - name: compute-daisy
-      - name: image
-      run:
-        path: /container-structure-test
-        args:
-        - test
-        - --driver=tar
-        - --image=image/image.tar
-        - --config=compute-daisy/daisy_integration_tests/container_structure/base.yaml
-        - --config=compute-daisy/daisy_integration_tests/container_structure/workflows.yaml
-  - task: validate-binary-types
-    image: busybox
-    config:
-      platform: linux
-      inputs:
-      - name: image
-      - name: darwin
-      - name: windows
-      run:
-        path: sh
-        args:
-        - -ec
-        # Magic numbers from https://en.wikipedia.org/wiki/List_of_file_signatures
-        - |
-          xxd -p -l 4 image/rootfs/daisy | grep 7f454c46 ||
-            (echo "incorrect linux binary" && exit 1)
-          xxd -p -l 4 darwin/daisy | grep cffaedfe ||
-            (echo "incorrect darwin binary" && exit 1)
-          xxd -p -l 2 windows/daisy | grep 4d5a ||
-            (echo "incorrect windows binary" && exit 1)
+#  # Validate artifacts before uploading.
+#  - task: validate-contents-of-linux-image
+#    image: container-structure-test
+#    privileged: true # Required for container structure test to execute Docker
+#    config:
+#      platform: linux
+#      inputs:
+#      - name: compute-daisy
+#      - name: image
+#      run:
+#        path: /container-structure-test
+#        args:
+#        - test
+#        - --driver=tar
+#        - --image=image/image.tar
+#        - --config=compute-daisy/daisy_integration_tests/container_structure/base.yaml
+#        - --config=compute-daisy/daisy_integration_tests/container_structure/workflows.yaml
 
   # Upload artifacts and validate they are public.
-  - put: daisy-image
-    params: { image: image/image.tar }
   - put: linux-executable
     params:
       predefined_acl: publicRead
-      file: image/rootfs/daisy
+      file: linux/daisy
   - put: darwin-executable
     params:
       predefined_acl: publicRead
@@ -212,17 +172,19 @@ jobs:
       predefined_acl: publicRead
       file: windows/daisy
   - task: validate-artifacts-are-public
-    image: busybox
     config:
       platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: alpine/curl
       run:
         path: sh
         args:
         - -ec
         - |
-          wget -O linux "https://storage.googleapis.com/compute-image-tools-test/release/linux/daisy" ||
-            (echo "linux binary is not public" && exit 1)
-          wget -O darwin "https://storage.googleapis.com/compute-image-tools-test/release/darwin/daisy" ||
-            (echo "darwin binary is not public" && exit 1)
-          wget -O darwin "https://storage.googleapis.com/compute-image-tools-test/release/windows/daisy" ||
-            (echo "windows binary is not public" && exit 1)
+          for f in linux darwin windows; do 
+            url="https://storage.googleapis.com/compute-image-tools-test/release/$f/daisy"
+            [[ `curl -o /dev/null -Isw '%{http_code}' $url` -eq 200 ]] || 
+              (echo "$f binary is not public"; exit 1)
+          done
