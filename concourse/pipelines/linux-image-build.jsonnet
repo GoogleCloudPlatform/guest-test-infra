@@ -4,6 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local lego = import '../templates/lego.libsonnet';
+local sap_test = import '../templates/sap-test.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -385,16 +386,40 @@ local DebianImgPublishJob(image, env, workflow_dir) = imgpublishjob {
   image_prefix: common.debian_image_prefixes[image],
 };
 
-local ImgGroup(name, images) = {
-  name: name,
+local SapWorkloadTestJob(image) = sap_test.saptestjob {
+  image: image,
+};
+
+local imggroup = {
+  local tl = self,
+
+  group_name:: '',
+  images:: [],
+  extra_job_groups:: [],
+  
+  name: self.group_name,
   jobs: [
     'build-' + image
-    for image in images
+    for image in self.images
   ] + [
     'publish-to-%s-%s' % [env, image]
     for env in envs
-    for image in images
-  ],
+    for image in self.images
+  ] + tl.extra_job_groups,
+};
+
+local ImgGroup(name, images) = imggroup {
+  group_name: name,
+  images: images,
+};
+
+local RhelImgGroup(images) = imggroup {
+  group_name: 'rhel',
+  images: images,
+  extra_job_groups: [
+    'sap-workload-test-%s' % [image]
+    for image in std.filter(function(x) std.endsWith(x, '-sap') , images)
+  ]
 };
 
 {
@@ -487,6 +512,11 @@ local ImgGroup(name, images) = {
           for image in rhel_images
         ] +
         [
+          // SAP related test jobs
+          SapWorkloadTestJob(image)
+          for image in std.filter(function(x) std.endsWith(x, '-sap') , rhel_images)
+        ] +
+        [
           // CentOS publish jobs
           ImgPublishJob(image, env, 'centos', 'enterprise_linux/')
           for env in envs
@@ -502,7 +532,7 @@ local ImgGroup(name, images) = {
         ],
   groups: [
     ImgGroup('debian', debian_images),
-    ImgGroup('rhel', rhel_images),
+    RhelImgGroup(rhel_images),
     ImgGroup('centos', centos_images),
     ImgGroup('almalinux', ['almalinux-8']),
     ImgGroup('rocky-linux', ['rocky-linux-8']),
