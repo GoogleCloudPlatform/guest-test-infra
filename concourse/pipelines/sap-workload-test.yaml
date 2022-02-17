@@ -1,0 +1,149 @@
+jobs:
+- name: sap-workload-test
+  plan:
+  - task: generate-unique-id
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: busybox
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          # TODO - make more unique? guid?
+          echo $RANDOM | tee unique-id/id
+      outputs:
+      - name: unique-id
+
+  - load_var: id
+    file: unique-id/id
+
+  - task: generate-post-script
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: google/cloud-sdk
+          tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cat <<EOT >>sap_post_script.sh
+          if cat /var/log/messages | grep -q "ERROR - Deployment Exited"; then
+            echo "ERROR" > result.txt
+          else
+            echo "SUCCESS" > result.txt
+          fi
+          gsutil cp result.txt gs://test-bucket-for-terraform/((.:id))/run_result
+          EOT
+
+          gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/((.:id))/sap_post_script.sh
+
+  - task: create-sap-tf-environment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: hashicorp/terraform
+          tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cat <<EOT >> sap_hana.tf
+          terraform {
+            backend "gcs" {
+              bucket = "test-bucket-for-terraform"
+              prefix = "((.:id))/terraform"
+            }
+          }
+          module "sap_hana" {
+          source = "https://storage.googleapis.com/cloudsapdeploy/terraform/latest/terraform/sap_hana/sap_hana_module.zip"
+          project_id = "pneil-sandbox"
+          zone = "us-east1-b"
+          machine_type = "n1-highmem-32"
+          subnetwork = "default"
+          linux_image = "rhel-8-4-sap-ha"
+          linux_image_project = "rhel-sap-cloud"
+          instance_name = "hana-instance-((.:id))"
+          post_deployment_script = "gs://test-bucket-for-terraform/((.:id))/sap_post_script.sh"
+          }
+          EOT
+
+          terraform init -upgrade
+          terraform apply -auto-approve
+
+  - task: wait-for-and-check-post-script-results
+    timeout: 30m
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: google/cloud-sdk
+          tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          # Loop until we see the result file in the bucket.
+          # This task has a timeout of 30 minutes. So either this loop will break or the task will abort.
+          until gsutil -q stat gs://test-bucket-for-terraform/((.:id))/run_result
+          do
+            echo "Waiting for SAP to finish initializing..."
+            sleep 60
+          done
+
+          gsutil cat gs://test-bucket-for-terraform/((.:id))/run_result | grep -q "SUCCESS"
+
+  - task: destroy-sap-tf-environment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: hashicorp/terraform
+          tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          # Set up the backend configuration file
+          cat <<EOT >> terraform_file.tf
+          terraform {
+            backend "gcs" {
+              bucket = "test-bucket-for-terraform"
+              prefix = "((.:id))/terraform"
+            }
+          }
+          EOT
+
+          terraform init
+          terraform destroy -auto-approve
+
+  ensure:
+    task: cleanup-files-in-bucket
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: google/cloud-sdk
+          tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          # Clean up files created as part of this job
+          gsutil rm -r -f gs://test-bucket-for-terraform/((.:id))

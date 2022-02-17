@@ -39,3 +39,5 @@ jobs:
     file: rendered/container-build.json
   - set_pipeline: artifact-releaser-autopush
     file: guest-test-infra/concourse/pipelines/artifact-releaser-autopush.yaml
+  - set_pipeline: sap-workload-test
+    file: guest-test-infra/concourse/pipelines/sap-workload-test.yaml
