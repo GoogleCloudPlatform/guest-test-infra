@@ -38,26 +38,39 @@ local buildcontainerimgjob = {
   dockerfile:: 'Dockerfile',
   input:: 'guest-test-infra',
   passed:: '',
+  extra_steps:: [],
+  extra_resources:: [],
 
   // Start of job definition
   name: 'build-' + job.image,
   serial_groups: ['serial'],
   plan: [
-    {
-      get: job.input,
-      trigger: true,
-      [if job.passed != '' then 'passed']: [job.passed],
-    },
-    {
-      task: 'build-image',
-      config: buildcontainerimgtask {
-        destination: job.destination,
-        dockerfile: job.dockerfile,
-        context: job.context,
-        input: job.input,
-      },
-    },
-  ],
+          {
+            get: job.input,
+            trigger: true,
+            [if job.passed != '' then 'passed']: [job.passed],
+          },
+        ] +
+        [
+          {
+            get: resource,
+            trigger: true,
+          }
+          for resource in job.extra_resources
+        ] +
+        job.extra_steps +
+        [
+
+          {
+            task: 'build-image',
+            config: buildcontainerimgtask {
+              destination: job.destination,
+              dockerfile: job.dockerfile,
+              context: job.context,
+              input: job.input,
+            },
+          },
+        ],
 };
 
 local BuildContainerImage(image) = buildcontainerimgjob {
@@ -71,6 +84,9 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 {
   resources: [
     common.GitResource('guest-test-infra'),
+    common.GitResource('compute-image-tools') {
+      source+: { paths: ['daisy_workflows/**'] },
+    },
   ],
   jobs: [
     BuildContainerImage('cloud-image-tests') {
@@ -101,5 +117,33 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     },
     BuildContainerImage('daisy-builder'),
     BuildContainerImage('build-essential'),
+    buildcontainerimgjob {
+      image: 'daisy',
+      destination: 'gcr.io/compute-image-tools/daisy:latest',
+      context: 'compute-daisy',
+      input: 'compute-daisy',
+      // Add an extra step before build to layer in the daisy workflows.
+      extra_resources: ['compute-image-tools'],
+      extra_steps: [{
+        task: 'get-daisy-workflows',
+        config: {
+          platform: 'linux',
+          image_resource: {
+            type: 'registry-image',
+            source: { repository: 'busybox' },
+          },
+          inputs: [
+            { name: 'compute-daisy' },
+            { name: 'compute-image-tools' },
+          ],
+          outputs: [
+            { name: 'compute-daisy' },
+          ],
+          run: {
+            path: 'cp -a compute-image-tools/daisy_workflows compute-daisy/daisy_workflows',
+          },
+        },
+      }],
+    },
   ],
 }
