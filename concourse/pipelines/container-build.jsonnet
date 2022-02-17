@@ -5,7 +5,7 @@ local buildcontainerimgtask = {
   local task = self,
 
   dockerfile:: 'Dockerfile',
-  input:: 'guest-test-infra',
+  input:: error 'must set input in buildcontainerimgtask',
   context:: error 'must set context in buildcontainerimgtask',
   destination:: error 'must set destination in buildcontainerimgtask',
 
@@ -36,6 +36,7 @@ local buildcontainerimgjob = {
   destination:: error 'must set destination in buildcontainerimgjob',
   context:: error 'must set context in buildcontainerimgjob',
   dockerfile:: 'Dockerfile',
+  input:: 'guest-test-infra',
   passed:: '',
 
   // Start of job definition
@@ -43,7 +44,7 @@ local buildcontainerimgjob = {
   serial_groups: ['serial'],
   plan: [
     {
-      get: 'guest-test-infra',
+      get: job.input,
       trigger: true,
       [if job.passed != '' then 'passed']: [job.passed],
     },
@@ -53,6 +54,7 @@ local buildcontainerimgjob = {
         destination: job.destination,
         dockerfile: job.dockerfile,
         context: job.context,
+        input: job.input,
       },
     },
   ],
