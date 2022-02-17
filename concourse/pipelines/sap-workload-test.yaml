@@ -1,0 +1,80 @@
+jobs:
+- name: sap-workload-test
+  on_success:
+    task: job-success
+    run:
+      path: echo
+      args: ["Test successful"]
+  on_failure:
+    task: job-failure
+    run:
+      path: echo
+      args: ["Test failed"]
+  plan:
+  - get: sap-hana-tf-plan
+    trigger: false
+  - task: generate-post-script
+    config:
+      platform: linux
+      type: docker-image
+      source:
+        repository: google/cloud-sdk
+        tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          # TODO - versioning/id
+          cat "gsutil cp /var/log/messages gs://test-bucket-for-terraform/log_output" | sap_post_script.sh
+          gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/sap_post_script.sh
+
+  - task: run-sap-tf-environment
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: hashicorp/terraform
+          tag: latest
+      inputs:
+      - name: sap-hana-tf-plan
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+        - mv sap-hana-tf-plan/body ./sap_hana.tf;
+        - terraform apply -auto-approve;
+        - terraform destroy -auto-approve;
+
+  - task: check-post-script-results
+    config:
+      platform: linux
+      type: docker-image
+      source:
+        repository: google/cloud-sdk
+        tag: latest
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          if gsutil cat gs://test-bucket-for-terraform/log_output | grep "ERROR - Deployment Exited" | grep -v grep; then
+            return 1
+          else
+            return 0
+          fi
+
+resources:
+- name: sap-hana-result-gcs
+  type: gcs
+  source:
+    bucket: pneil-sandbox-daisy-bkt
+    json_key: |
+      ((gcs-key.credential))
+
+- name: sap-hana-tf-plan
+  type: http-resource
+  source:
+    url: http://storage.googleapis.com/cloudsapdeploy/terraform/latest/terraform/sap_hana/terraform/sap_hana.tf
