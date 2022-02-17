@@ -1,17 +1,7 @@
 jobs:
 - name: sap-workload-test
-  on_success:
-    task: job-success
-    run:
-      path: echo
-      args: ["Test successful"]
-  on_failure:
-    task: job-failure
-    run:
-      path: echo
-      args: ["Test failed"]
   plan:
-  - get: sap-hana-tf-plan
+  - get: sap-hana-post-script-gcs
     trigger: false
   - task: generate-post-script
     config:
@@ -25,7 +15,7 @@ jobs:
         args:
         - -exc
         - |
-          # TODO - versioning/id
+          # TODO - versioning/id. Want to map these logs for the check-post-script-results task
           cat "gsutil cp /var/log/messages gs://test-bucket-for-terraform/log_output" | sap_post_script.sh
           gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/sap_post_script.sh
 
@@ -37,15 +27,27 @@ jobs:
         source:
           repository: hashicorp/terraform
           tag: latest
-      inputs:
-      - name: sap-hana-tf-plan
       run:
         path: /bin/sh
         args:
-        - -c
-        - |
-        - mv sap-hana-tf-plan/body ./sap_hana.tf;
+        - -c - |
+          # TODO - will need a unique instance_name for parallel runs
+        - cat <<EOT >> sap_hana.tf
+          module "sap_hana" {
+          source = "https://storage.googleapis.com/cloudsapdeploy/terraform/latest/terraform/sap_hana/sap_hana_module.zip"
+          project_id = "pneil-sandbox"
+          zone = "us-east1-b"
+          machine_type = "n1-highmem-32"
+          subnetwork = "default"
+          linux_image = "rhel-8-4-sap-ha"
+          linux_image_project = "rhel-sap-coud"
+          instance_name = "hana-instance"
+          post_deployment_script = "gs://test-bucket-for-terraform/sap_post_script.sh"
+          }
+          EOT
         - terraform apply -auto-approve;
+          # TODO - handle crash here. What should we do if the plan is applied but never destroyed?
+          # Maybe just always destroy before apply?
         - terraform destroy -auto-approve;
 
   - task: check-post-script-results
@@ -67,14 +69,9 @@ jobs:
           fi
 
 resources:
-- name: sap-hana-result-gcs
+- name: sap-hana-post-script-gcs
   type: gcs
   source:
-    bucket: pneil-sandbox-daisy-bkt
+    bucket: test-bucket-for-terraform
     json_key: |
       ((gcs-key.credential))
-
-- name: sap-hana-tf-plan
-  type: http-resource
-  source:
-    url: http://storage.googleapis.com/cloudsapdeploy/terraform/latest/terraform/sap_hana/terraform/sap_hana.tf
