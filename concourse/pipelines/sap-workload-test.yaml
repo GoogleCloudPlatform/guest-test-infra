@@ -28,9 +28,10 @@ jobs:
           repository: hashicorp/terraform
           tag: latest
       run:
-        path: /bin/sh
+        path: sh
         args:
-        - -c - |
+        - -exc
+        - |
           # TODO - will need a unique instance_name for parallel runs
         - cat <<EOT >> sap_hana.tf
           module "sap_hana" {
