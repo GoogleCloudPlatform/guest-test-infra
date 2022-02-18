@@ -87,6 +87,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     common.GitResource('compute-image-tools') {
       source+: { paths: ['daisy_workflows/**'] },
     },
+    common.GitResource('compute-daisy'),
   ],
   jobs: [
     BuildContainerImage('cloud-image-tests') {
