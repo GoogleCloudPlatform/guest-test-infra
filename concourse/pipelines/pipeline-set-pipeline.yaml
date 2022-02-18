@@ -17,6 +17,8 @@ jobs:
   plan:
   - get: guest-test-infra
     trigger: true
+  # Produce the rendered/ output with one json file for every jsonnet file in guest-test-infra/((config_dir))
+  # Either may be referenced below.
   - task: render-templates
     file: guest-test-infra/concourse/tasks/render-templates.yaml
     vars:
@@ -34,6 +36,6 @@ jobs:
   - set_pipeline: windows-image-build
     file: guest-test-infra/concourse/pipelines/windows-image-build.yaml
   - set_pipeline: container-build
-    file: guest-test-infra/concourse/pipelines/container-build.yaml
+    file: rendered/container-build.json
   - set_pipeline: artifact-releaser-autopush
     file: guest-test-infra/concourse/pipelines/artifact-releaser-autopush.yaml
