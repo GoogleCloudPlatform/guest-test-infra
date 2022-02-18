@@ -32,7 +32,7 @@ jobs:
   - set_pipeline: partner-image-export
     file: guest-test-infra/concourse/pipelines/partner-image-export.yaml
   - set_pipeline: windows-image-build
-    file: guest-test-infra/concourse/pipelines/windows-image-build.yaml
+    file: rendered/windows-image-build.json
   - set_pipeline: container-build
     file: guest-test-infra/concourse/pipelines/container-build.yaml
   - set_pipeline: artifact-releaser-autopush

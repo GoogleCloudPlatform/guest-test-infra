@@ -309,7 +309,7 @@ local imgpublishjob = {
           [],
   on_success: {
     task: 'success',
-    config: publishresulttask {
+    config: common.publishresulttask {
       pipeline: 'linux-image-build',
       job: tl.name,
       result_state: 'success',
@@ -318,7 +318,7 @@ local imgpublishjob = {
   },
   on_failure: {
     task: 'failure',
-    config: publishresulttask {
+    config: common.publishresulttask {
       pipeline: 'linux-image-build',
       job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
