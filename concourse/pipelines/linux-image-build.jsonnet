@@ -1,4 +1,5 @@
 // Imports.
+local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
@@ -81,77 +82,6 @@ local publishresulttask = {
       ],
   },
 };
-
-local gcepublishtask = {
-  local task = self,
-
-  source_gcs_path:: error 'must set source_gcs_path in gcepublishtask',
-  source_version:: error 'must set source_version in gcepublishtask',
-  publish_version:: error 'must set publish_version in gcepublishtask',
-  environment:: error 'must set environment in gcepublishtask',
-  wf:: error 'must set wf in gcepublishtask',
-
-  platform: 'linux',
-  image_resource: {
-    type: 'docker-image',
-    source: {
-      repository: 'gcr.io/compute-image-tools/gce_image_publish',
-      tag: 'latest',
-    },
-  },
-  inputs: [
-    { name: 'compute-image-tools' },
-  ],
-  run: {
-    path: '/gce_image_publish',
-    args: [
-      '-rollout_rate=0',
-      '-skip_confirmation',
-      '-replace',
-      '-no_root',
-      '-source_gcs_path=' + task.source_gcs_path,
-      '-source_version=' + task.source_version,
-      '-publish_version=' + task.publish_version,
-      '-var:environment=' + task.environment,
-      './compute-image-tools/daisy_workflows/build-publish/' + task.wf,
-    ],
-  },
-};
-
-local arlepublishtask = {
-  local task = self,
-
-  topic:: common.prod_topic,
-  image_name:: error 'must set image_name in arlepublishtask',
-  gcs_image_path:: error 'must set gcs_image_path in arlepublishtask',
-  wf:: error 'must set wf in arlepublishtask',
-  source_version:: error 'must set source_version in arlepublishtask',
-  publish_version:: error 'must set publish_version in arlepublishtask',
-
-  platform: 'linux',
-  image_resource: {
-    type: 'docker-image',
-    source: {
-      repository: 'google/cloud-sdk',
-      tag: 'alpine',
-    },
-  },
-  inputs: [
-    {
-      name: 'compute-image-tools',
-    },
-  ],
-  run: {
-    path: 'sh',
-    args: [
-      '-exc',
-      "wf=$(sed 's/\\\"/\\\\\"/g' ./compute-image-tools/daisy_workflows/build-publish/%s | tr -d '\\n')\n" % task.wf +
-      'gcloud pubsub topics publish "%s" --message "{\\"type\\": \\"ImagePublish\\", \\"request\\":\n{\\"image_name\\": \\"%s\\", \\"gcs_image_path\\": \\"%s\\", \\"image_publish_template\\": \\"${wf}\\",\n      \\"source_version\\": \\"%s\\", \\"publish_version\\": \\"%s\\", \\"release_notes\\": \\"\\"}}"\n' %
-      [task.topic, task.image_name, task.gcs_image_path, task.source_version, task.publish_version],
-    ],
-  },
-};
-
 
 local imgbuildjob = {
   local tl = self,
@@ -328,7 +258,7 @@ local imgpublishjob = {
   image:: error 'must set image in template',
   image_prefix:: self.image,
 
-  gcs:: 'gs://%s%s' % [self.gcs_bucket, self.gcs_dir],
+  gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in template',
   gcs_bucket:: common.prod_bucket,
 
@@ -375,7 +305,7 @@ local imgpublishjob = {
           if tl.env == 'prod' then
             {
               task: 'publish-' + tl.image,
-              config: arlepublishtask {
+              config: arle.arlepublishtask {
                 gcs_image_path: tl.gcs,
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
@@ -390,7 +320,7 @@ local imgpublishjob = {
                 'publish-' + tl.image
               else
                 'publish-%s-%s' % [tl.env, tl.image],
-              config: gcepublishtask {
+              config: arle.gcepublishtask {
                 source_gcs_path: tl.gcs,
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
@@ -443,7 +373,7 @@ local ImgPublishJob(image, env, gcs_dir, workflow_dir) = imgpublishjob {
 local DebianImgPublishJob(image, env, workflow_dir) = imgpublishjob {
   image: image,
   env: env,
-  gcs_dir: '/debian',
+  gcs_dir: 'debian',
   workflow_dir: workflow_dir,
 
   // Debian tarballs and images use a longer name, but jobs use the shorter name.
@@ -498,10 +428,10 @@ local ImgGroup(name, images) = {
                },
                common.GitResource('compute-image-tools'),
                common.GitResource('guest-test-infra'),
-               common.GcsImgResource('almalinux-8', 'almalinux/'),
-               common.GcsImgResource('rocky-linux-8', 'rocky-linux/'),
-               common.GcsImgResource('rhua', 'rhui/'),
-               common.GcsImgResource('cds', 'rhui/'),
+               common.GcsImgResource('almalinux-8', 'almalinux'),
+               common.GcsImgResource('rocky-linux-8', 'rocky-linux'),
+               common.GcsImgResource('rhua', 'rhui'),
+               common.GcsImgResource('cds', 'rhui'),
              ] +
              [
                DebianGcsImgResource(image)
@@ -547,22 +477,22 @@ local ImgGroup(name, images) = {
         ] +
         [
           // RHEL publish jobs
-          ImgPublishJob(image, env, '/rhel', 'enterprise_linux/')
+          ImgPublishJob(image, env, 'rhel', 'enterprise_linux/')
           for env in envs
           for image in rhel_images
         ] +
         [
           // CentOS publish jobs
-          ImgPublishJob(image, env, '/centos', 'enterprise_linux/')
+          ImgPublishJob(image, env, 'centos', 'enterprise_linux/')
           for env in envs
           for image in centos_images
         ] +
         [
-          ImgPublishJob('almalinux-8', env, '/almalinux', 'enterprise_linux/')
+          ImgPublishJob('almalinux-8', env, 'almalinux', 'enterprise_linux/')
           for env in envs
         ] +
         [
-          ImgPublishJob('rocky-linux-8', env, '/rocky-linux', 'enterprise_linux/')
+          ImgPublishJob('rocky-linux-8', env, 'rocky-linux', 'enterprise_linux/')
           for env in envs
         ],
   groups: [
