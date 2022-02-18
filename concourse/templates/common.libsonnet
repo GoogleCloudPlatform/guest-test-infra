@@ -19,7 +19,7 @@
     name: error 'must set name in gitresource template',
     type: 'git',
     source: {
-      uri: 'https://github.com/' + resource.org + '/' + resource.name + '.git',
+      uri: 'https://github.com/%s/%s.git' % [resource.org, resource.name],
       branch: resource.branch,
     },
   },
@@ -40,7 +40,6 @@
     type: 'gcs',
     source: {
       bucket: resource.bucket,
-      json_key: '((gcs-key.credential))\n',
       regexp: resource.regexp,
     },
   },
