@@ -23,11 +23,7 @@
         tag: 'latest',
       },
     },
-    inputs: [
-      // Currently all our daisy workflows are in this repo. No need to make this overrideable because
-      // Concourse has 'input_mapping' to do that if needed.
-      { name: 'compute-image-tools' },
-    ],
+    inputs: [{ name: 'compute-image-tools' }],
     run: {
       path: '/daisy',
       args:
@@ -58,8 +54,6 @@
     ] + if self.build_date == '' then
       []
     else
-      [
-        'build_date=' + task.build_date,
-      ],
+      ['build_date=' + task.build_date],
   },
 }
