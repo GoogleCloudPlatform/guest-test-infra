@@ -80,56 +80,10 @@ local BuildContainerImage(image) = buildcontainerimgjob {
   context: 'guest-test-infra/container_images/' + image,
 };
 
-local GcsDaisyBinaryResource(arch) = {
-  name: 'daisy-%s-binary' % arch,
-  type: 'gcs',
-  source: {
-    bucket: 'compute-image-tools-test',
-    json_key: '((gcs-key.credential))\n',
-    versioned_file: 'release/%s/daisy' % arch,
-  },
-};
-
-local PutDaisyBinary(arch) = {
-  put: 'daisy-%s-binary' % arch,
-  params: {
-    predefined_acl: 'publicRead',
-    file: '%s/daisy' % arch,
-  },
-};
-
-local BuildDaisyBinary(arch) = {
-  task: 'build-%s-binary' % arch,
-  image: 'golang',
-  config: {
-    platform: 'linux',
-    inputs: [
-      {
-        name: 'compute-daisy',
-        path: '.',
-      },
-    ],
-    outputs: [
-      {
-        name: arch,
-      },
-    ],
-    params: {
-      GOOS: arch,
-    },
-    run: {
-      path: 'go',
-      dir: 'cli',
-      args: [
-        'build',
-        '-o=../%s/daisy' % arch,
-      ],
-    },
-  },
-};
-
 // Start of output.
 {
+  local daisy_architectures = ['linux', 'windows', 'darwin'],
+
   resource_types: [
     {
       name: 'gcs',
@@ -138,15 +92,24 @@ local BuildDaisyBinary(arch) = {
     },
   ],
   resources: [
-    GcsDaisyBinaryResource('linux'),
-    GcsDaisyBinaryResource('windows'),
-    GcsDaisyBinaryResource('darwin'),
-    common.GitResource('guest-test-infra'),
-    common.GitResource('compute-image-tools') {
-      source+: { paths: ['daisy_workflows/**'] },
-    },
-    common.GitResource('compute-daisy'),
-  ],
+               common.GitResource('guest-test-infra'),
+               common.GitResource('compute-image-tools') {
+                 source+: { paths: ['daisy_workflows/**'] },
+               },
+               common.GitResource('compute-daisy'),
+             ] +
+             [
+               // Track three daisy binaries as GCS artifacts
+               {
+                 name: 'daisy-%s-binary' % arch,
+                 type: 'gcs',
+                 source: {
+                   bucket: 'compute-image-tools-test',
+                   versioned_file: 'release/%s/daisy' % arch,
+                 },
+               }
+               for arch in daisy_architectures
+             ],
   jobs: [
     BuildContainerImage('cloud-image-tests') {
       context: 'guest-test-infra',
@@ -183,34 +146,69 @@ local BuildDaisyBinary(arch) = {
       input: 'compute-daisy',
       // Add an extra step before build to layer in the daisy workflows.
       extra_resources: ['compute-image-tools'],
-      extra_steps: [
-        {
-          task: 'get-daisy-workflows',
-          config: {
-            platform: 'linux',
-            image_resource: {
-              type: 'registry-image',
-              source: { repository: 'busybox' },
-            },
-            inputs: [
-              { name: 'compute-daisy' },
-              { name: 'compute-image-tools' },
-            ],
-            outputs: [
-              { name: 'compute-daisy' },
-            ],
-            run: {
-              path: 'cp -a compute-image-tools/daisy_workflows compute-daisy/daisy_workflows',
+      extra_steps:
+        //  Get daisy workflows from compute-image-tools and layer into compute-daisy.
+        [
+          {
+            task: 'get-daisy-workflows',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'busybox' },
+              },
+              inputs: [
+                { name: 'compute-daisy' },
+                { name: 'compute-image-tools' },
+              ],
+              outputs: [
+                { name: 'compute-daisy' },
+              ],
+              run: {
+                path: 'sh',
+                args: [
+                  '-exc',
+                  'cp -a compute-image-tools/daisy_workflows compute-daisy/daisy_workflows',
+                ],
+              },
             },
           },
-        },
-        BuildDaisyBinary('windows'),
-        BuildDaisyBinary('darwin'),
-        BuildDaisyBinary('linux'),
-        PutDaisyBinary('windows'),
-        PutDaisyBinary('darwin'),
-        PutDaisyBinary('linux'),
-      ],
+        ] +
+        //  Build three binaries.
+        [
+          {
+            task: 'build-%s-binary' % arch,
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: {
+                  repository: 'golang',
+                },
+              },
+              inputs: [{ name: 'compute-daisy', path: '.' }],
+              outputs: [{ name: arch }],
+              params: { GOOS: arch },
+              run: {
+                path: 'go',
+                dir: 'cli',
+                args: ['build', '-o=../%s/daisy' % arch],
+              },
+            },
+          }
+          for arch in daisy_architectures
+        ] +
+        //  Put three binaries. Use Concourse gcs resource so we can add promotion steps later.
+        [
+          {
+            put: 'daisy-%s-binary' % arch,
+            params: {
+              predefined_acl: 'publicRead',
+              file: '%s/daisy' % arch,
+            },
+          }
+          for arch in daisy_architectures
+        ],
     },
   ],
 }
