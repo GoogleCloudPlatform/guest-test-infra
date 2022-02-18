@@ -12,7 +12,7 @@ local imgbuildjob = {
   iso_secret:: error 'must set iso_secret in whatever',
   updates_secret:: error 'must set updates_secret in whatever',
 
-  // Start of output.
+  // Start of job.
   name: 'build-' + job.image,
   on_failure: {
     file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
@@ -46,8 +46,8 @@ local imgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
-      file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
       task: 'generate-build-id',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
       vars: { prefix: job.image },
     },
     {
@@ -135,11 +135,202 @@ local imgbuildjob = {
   ],
 };
 
+local sqlimgbuildjob = {
+  local job = self,
+
+  image:: error 'must set image in sqlbuildjob',
+  base_image:: error 'must set base_image in sqlbuildjob',
+  passed:: error 'must set passed in sqlbuildjob',
+  workflow:: error 'must set workflow in sqlbuildjob',
+  media_secret:: error 'must set media_secret in sqlbuildjob',
+
+  // Start of job.
+  name: 'build-' + job.image,
+  on_failure: {
+    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
+    task: 'failure',
+    vars: {
+      job: job.name,
+      pipeline: 'windows-image-build',
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_success: {
+    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
+    task: 'success',
+    vars: {
+      job: job.name,
+      pipeline: 'windows-image-build',
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  plan: [
+    { get: 'compute-image-tools' },
+    { get: 'guest-test-infra' },
+    {
+      task: 'generate-timestamp',
+      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+    },
+    {
+      load_var: 'start-timestamp-ms',
+      file: 'timestamp/timestamp-ms',
+    },
+    {
+      get: '%s-gcs' % job.base_image,
+      params: { skip_download: 'true' },
+      passed: [job.passed],
+      trigger: true,
+    },
+    {
+      task: 'generate-build-id',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
+      vars: { prefix: job.image },
+    },
+    {
+      put: job.image + '-gcs',
+      params: { file: 'build-id-dir/%s*' % job.image },
+    },
+    {
+      load_var: 'gcs-url',
+      file: '%s-gcs/url' % job.image,
+    },
+    {
+      task: 'generate-build-date',
+      file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
+    },
+    {
+      load_var: 'build-date',
+      file: 'publish-version/version',
+    },
+    {
+      task: 'get-secret-sql-server-media',
+      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
+      vars: { secret_name: job.media_secret },
+    },
+    {
+      load_var: 'sql-server-media',
+      file: 'gcp-secret-manager/' + job.media_secret,
+    },
+    {
+      task: 'get-secret-windows-gcs-ssms-exe',
+      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
+      vars: { secret_name: 'windows_gcs_ssms_exe' },
+    },
+    {
+      load_var: 'windows-gcs-ssms-exe',
+      file: 'gcp-secret-manager/windows_gcs_ssms_exe',
+    },
+    {
+      task: 'daisy-build',
+      config: daisy.daisyimagetask {
+        gcs_url: '((.:gcs-url))',
+        workflow: job.workflow,
+        vars+: [
+          'source_image_project=bct-prod-images',
+          'sql_server_media=((.:sql-server-media))',
+          'ssms_exe=((.:windows-gcs-ssms-exe))',
+          'timeout=4h',
+        ],
+      },
+    },
+  ],
+};
+
+local containerimgbuildjob = {
+  local job = self,
+
+  image:: error 'must set image in coreimgbuild',
+  base_image:: error 'must set base_image in coreimgbuild',
+  passed:: error 'must set passed in coreimgbuild',
+  workflow:: error 'must set workflow in corebuildjob',
+
+  // Start of job.
+  name: 'build-' + job.image,
+  on_failure: {
+    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
+    task: 'failure',
+    vars: {
+      job: job.name,
+      pipeline: 'windows-image-build',
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_success: {
+    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
+    task: 'success',
+    vars: {
+      job: job.name,
+      pipeline: 'windows-image-build',
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  plan: [
+    {
+      get: job.base_image,
+      params: { skip_download: 'true' },
+      passed: [job.passed],
+      trigger: true,
+    },
+    { get: 'compute-image-tools' },
+    { get: 'guest-test-infra' },
+    {
+      task: 'generate-timestamp',
+      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+    },
+    {
+      load_var: 'start-timestamp-ms',
+      file: 'timestamp/timestamp-ms',
+    },
+    {
+      task: 'generate-build-id',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
+      vars: { prefix: job.image },
+    },
+    {
+      put: '%s-gcs' % job.image,
+      params: { file: 'build-id-dir/%s*' % job.image },
+    },
+    {
+      load_var: 'gcs-url',
+      file: '%s-gcs/url' % job.image,
+    },
+    {
+      task: 'daisy-build',
+      config: daisy.daisyimagetask {
+        gcs_url: '((.:gcs-url))',
+        workflow: job.workflow,
+        vars+: [
+          'source_image_project=bct-prod-images',
+        ],
+      },
+    },
+  ],
+};
+
 local ImgBuildJob(image, workflow, iso_secret, updates_secret) = imgbuildjob {
   image: image,
   workflow: workflow,
   iso_secret: iso_secret,
   updates_secret: updates_secret,
+};
+
+local SQLImgBuildJob(image, base_image, workflow, passed, media_secret) = sqlimgbuildjob {
+  image: image,
+  base_image: base_image,
+  workflow: workflow,
+  passed: passed,
+  media_secret: media_secret,
+};
+
+local ContainerImgBuildJob(image, base_image, workflow, passed) = containerimgbuildjob {
+  image: image,
+  base_image: base_image,
+  workflow: workflow,
+  passed: passed,
 };
 
 // Start of output.
@@ -157,25 +348,15 @@ local ImgBuildJob(image, workflow, iso_secret, updates_secret) = imgbuildjob {
     common.GitResource('compute-image-tools'),
     common.GitResource('guest-test-infra'),
     common.GcsImgResource('windows-server-20h2-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-20h2-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2004-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2004-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2022-dc', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2022-dc-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2022-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2022-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2019-dc', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2019-dc-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2019-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2019-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2016-dc', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2016-dc-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2016-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2016-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2012-r2-dc', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2012-r2-dc-internal', 'windows-uefi/'),
     common.GcsImgResource('windows-server-2012-r2-dc-core', 'windows-uefi/'),
-    common.GcsImgResource('windows-server-2012-r2-dc-core-internal', 'windows-uefi/'),
     common.GcsImgResource('sql-2012-enterprise-windows-2012-r2-dc', 'sqlserver-uefi/'),
     common.GcsImgResource('sql-2012-standard-windows-2012-r2-dc', 'sqlserver-uefi/'),
     common.GcsImgResource('sql-2012-web-windows-2012-r2-dc', 'sqlserver-uefi/'),
@@ -254,3016 +435,189 @@ local ImgBuildJob(image, workflow, iso_secret, updates_secret) = imgbuildjob {
                 'windows/windows-server-2012r2-dc-core-uefi.wf.json',
                 'win2012-r2-64',
                 'windows_gcs_updates_server2012r2'),
-    {
-      name: 'build-sql-2012-enterprise-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2012-enterprise-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2012-enterprise-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2012-enterprise-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2012-enterprise-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2012-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2012-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2012-enterprise-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2012-standard-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2012-standard-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2012-standard-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2012-standard-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2012-standard-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2012-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2012-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2012-standard-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2012-standard-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2012-web-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2012-web-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2012-web-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2012-web-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2012-web-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2012-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2012-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2012-web-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2012-web-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2014-enterprise-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2014-enterprise-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2014-enterprise-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2014-enterprise-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2014-enterprise-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2014-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2014-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2014-enterprise-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2014-enterprise-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2014-enterprise-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2014-enterprise-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2014-enterprise-windows-2016-dc-v*',
-          },
-          put: 'sql-2014-enterprise-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2014-enterprise-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2014-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2014-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2014-enterprise-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2014-enterprise-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2014-standard-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2014-standard-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2014-standard-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2014-standard-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2014-standard-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2014-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2014-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2014-standard-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2014-standard-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2014-web-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2014-web-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2014-web-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2014-web-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2014-web-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2014-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2014-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2014-web-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2014-web-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-enterprise-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-enterprise-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-enterprise-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2016-enterprise-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2016-enterprise-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-enterprise-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-enterprise-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-enterprise-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-enterprise-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-enterprise-windows-2016-dc-v*',
-          },
-          put: 'sql-2016-enterprise-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2016-enterprise-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-enterprise-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-enterprise-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-enterprise-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-enterprise-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-enterprise-windows-2019-dc-v*',
-          },
-          put: 'sql-2016-enterprise-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2016-enterprise-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-enterprise-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-enterprise-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-standard-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-standard-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-standard-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2016-standard-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2016-standard-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-standard-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-standard-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-standard-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-standard-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-standard-windows-2016-dc-v*',
-          },
-          put: 'sql-2016-standard-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2016-standard-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-standard-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-standard-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-standard-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-standard-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-standard-windows-2019-dc-v*',
-          },
-          put: 'sql-2016-standard-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2016-standard-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-standard-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-standard-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-web-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-web-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-web-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2016-web-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2016-web-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-web-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-web-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-web-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-web-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-web-windows-2016-dc-v*',
-          },
-          put: 'sql-2016-web-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2016-web-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-web-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-web-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2016-web-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2016-web-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2016-web-windows-2019-dc-v*',
-          },
-          put: 'sql-2016-web-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2016-web-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2016-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2016-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2016-web-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2016-web-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-enterprise-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-enterprise-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-enterprise-windows-2016-dc-v*',
-          },
-          put: 'sql-2017-enterprise-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2017-enterprise-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-enterprise-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-enterprise-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-enterprise-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-enterprise-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-enterprise-windows-2019-dc-v*',
-          },
-          put: 'sql-2017-enterprise-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2017-enterprise-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-enterprise-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-enterprise-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-express-windows-2012-r2-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2012r2-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2012r2',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-express-windows-2012-r2-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-express-windows-2012-r2-dc-v*',
-          },
-          put: 'sql-2017-express-windows-2012-r2-dc-gcs',
-        },
-        {
-          file: 'sql-2017-express-windows-2012-r2-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-express',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-express',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-express-windows-2012-r2-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-express-windows-2012-r2-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-express-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-express-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-express-windows-2016-dc-v*',
-          },
-          put: 'sql-2017-express-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2017-express-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-express',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-express',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-express-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-express-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-express-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-express-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-express-windows-2019-dc-v*',
-          },
-          put: 'sql-2017-express-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2017-express-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-express',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-express',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-express-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-express-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-standard-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-standard-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-standard-windows-2016-dc-v*',
-          },
-          put: 'sql-2017-standard-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2017-standard-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-standard-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-standard-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-standard-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-standard-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-standard-windows-2019-dc-v*',
-          },
-          put: 'sql-2017-standard-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2017-standard-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-standard-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-standard-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-web-windows-2016-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2016-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2016',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-web-windows-2016-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-web-windows-2016-dc-v*',
-          },
-          put: 'sql-2017-web-windows-2016-dc-gcs',
-        },
-        {
-          file: 'sql-2017-web-windows-2016-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-web-windows-2016-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-web-windows-2016-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-web-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-web-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-web-windows-2019-dc-v*',
-          },
-          put: 'sql-2017-web-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2017-web-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-web-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-web-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-enterprise-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-enterprise-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-enterprise-windows-2019-dc-v*',
-          },
-          put: 'sql-2019-enterprise-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2019-enterprise-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-enterprise-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-enterprise-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-standard-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-standard-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-standard-windows-2019-dc-v*',
-          },
-          put: 'sql-2019-standard-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2019-standard-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-standard-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-standard-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-web-windows-2019-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-web-windows-2019-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-web-windows-2019-dc-v*',
-          },
-          put: 'sql-2019-web-windows-2019-dc-gcs',
-        },
-        {
-          file: 'sql-2019-web-windows-2019-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-web-windows-2019-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-web-windows-2019-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-enterprise-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-enterprise-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-enterprise-windows-2022-dc-v*',
-          },
-          put: 'sql-2019-enterprise-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2019-enterprise-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-enterprise-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-enterprise-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-standard-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-standard-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-standard-windows-2022-dc-v*',
-          },
-          put: 'sql-2019-standard-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2019-standard-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-standard-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-standard-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2019-web-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2019-web-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2019-web-windows-2022-dc-v*',
-          },
-          put: 'sql-2019-web-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2019-web-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2019-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2019-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2019-web-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2019-web-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-enterprise-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-enterprise-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-enterprise-windows-2022-dc-v*',
-          },
-          put: 'sql-2017-enterprise-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2017-enterprise-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-enterprise',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-enterprise',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-enterprise-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-enterprise-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-standard-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-standard-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-standard-windows-2022-dc-v*',
-          },
-          put: 'sql-2017-standard-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2017-standard-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-standard',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-standard',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-standard-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-standard-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-sql-2017-web-windows-2022-dc',
-      plan: [
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          get: 'windows-2022-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2022',
-          ],
-          trigger: true,
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'sql-2017-web-windows-2022-dc',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/sql-2017-web-windows-2022-dc-v*',
-          },
-          put: 'sql-2017-web-windows-2022-dc-gcs',
-        },
-        {
-          file: 'sql-2017-web-windows-2022-dc-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-sql-server-media',
-          vars: {
-            secret_name: 'sql-2017-web',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/sql-2017-web',
-          load_var: 'sql-server-media',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-          task: 'get-secret-windows-gcs-ssms-exe',
-          vars: {
-            secret_name: 'windows_gcs_ssms_exe',
-          },
-        },
-        {
-          file: 'gcp-secret-manager/windows_gcs_ssms_exe',
-          load_var: 'windows-gcs-ssms-exe',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-sql.yaml',
-          task: 'daisy-build-sql-2017-web-windows-2022-dc',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            sql_server_media: '((.:sql-server-media))',
-            ssms_exe: '((.:windows-gcs-ssms-exe))',
-            timeout: '4h',
-            wf: 'sqlserver/sql-2017-web-windows-2022-dc.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-windows-2019-core-for-containers',
-      plan: [
-        {
-          get: 'windows-2019-core-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019-core',
-          ],
-          trigger: true,
-        },
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'windows-server-2019-dc-core-for-containers',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/windows-server-2019-dc-core-for-containers-v*',
-          },
-          put: 'windows-2019-core-for-containers-gcs',
-        },
-        {
-          file: 'windows-2019-core-for-containers-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-container.yaml',
-          task: 'daisy-build-windows-2019-core-for-containers',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            wf: 'windows_container/windows-2019-core-for-containers-uefi.wf.json',
-          },
-        },
-      ],
-    },
-    {
-      name: 'build-windows-2019-for-containers',
-      plan: [
-        {
-          get: 'windows-2019-gcs',
-          params: {
-            skip_download: 'true',
-          },
-          passed: [
-            'publish-to-testing-2019',
-          ],
-          trigger: true,
-        },
-        {
-          get: 'compute-image-tools',
-        },
-        {
-          get: 'guest-test-infra',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/get-credential.yaml',
-          task: 'get-credential',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-build-ids-windows.yaml',
-          task: 'generate-build-id',
-          vars: {
-            prefix: 'windows-server-2019-dc-for-containers',
-          },
-        },
-        {
-          params: {
-            file: 'build-id-dir/windows-server-2019-dc-for-containers-v*',
-          },
-          put: 'windows-2019-for-containers-gcs',
-        },
-        {
-          file: 'windows-2019-for-containers-gcs/url',
-          load_var: 'gcs-url',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
-          task: 'generate-build-date',
-        },
-        {
-          file: 'publish-version/version',
-          load_var: 'build-date',
-        },
-        {
-          file: 'guest-test-infra/concourse/tasks/daisy-build-images-windows-container.yaml',
-          task: 'daisy-build-windows-2019-for-containers',
-          vars: {
-            build_date: '((.:build-date))',
-            gcs_url: '((.:gcs-url))',
-            source_image_project: 'bct-prod-images',
-            wf: 'windows_container/windows-2019-for-containers-uefi.wf.json',
-          },
-        },
-      ],
-    },
+    SQLImgBuildJob('sql-2012-enterprise-windows-2012-r2-dc',
+                   'windows-server-2012-r2-dc',
+                   'sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2012-enterprise'),
+    SQLImgBuildJob('sql-2012-enterprise-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2012-enterprise-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2012-enterprise'),
+    SQLImgBuildJob('sql-2012-standard-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2012-standard-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2012-standard'),
+    SQLImgBuildJob('sql-2012-web-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2012-web-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2012-web'),
+    SQLImgBuildJob('sql-2014-enterprise-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2014-enterprise-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2014-enterprise'),
+    SQLImgBuildJob('sql-2014-enterprise-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2014-enterprise-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2014-enterprise'),
+    SQLImgBuildJob('sql-2014-standard-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2014-standard-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2014-standard'),
+    SQLImgBuildJob('sql-2014-web-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2014-web-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2014-web'),
+    SQLImgBuildJob('sql-2016-enterprise-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2016-enterprise-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2016-enterprise'),
+    SQLImgBuildJob('sql-2016-enterprise-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2016-enterprise-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2016-enterprise'),
+    SQLImgBuildJob('sql-2016-enterprise-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2016-enterprise-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2016-enterprise'),
+    SQLImgBuildJob('sql-2016-standard-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2016-standard-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2016-standard'),
+    SQLImgBuildJob('sql-2016-standard-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2016-standard-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2016-standard'),
+    SQLImgBuildJob('sql-2016-standard-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2016-standard-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2016-standard'),
+    SQLImgBuildJob('sql-2016-web-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2016-web-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2016-web'),
+    SQLImgBuildJob('sql-2016-web-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2016-web-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2016-web'),
+    SQLImgBuildJob('sql-2016-web-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2016-web-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2016-web'),
+    SQLImgBuildJob('sql-2017-enterprise-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2017-enterprise-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2017-enterprise'),
+    SQLImgBuildJob('sql-2017-enterprise-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2017-enterprise-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2017-enterprise'),
+    SQLImgBuildJob('sql-2017-express-windows-2012-r2-dc',
+                   'windows-2012r2-gcs',
+                   'sqlserver/sql-2017-express-windows-2012-r2-dc.wf.json',
+                   'publish-to-testing-2012r2',
+                   'sql-2017-express'),
+    SQLImgBuildJob('sql-2017-express-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2017-express-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2017-express'),
+    SQLImgBuildJob('sql-2017-express-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2017-express-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2017-express'),
+    SQLImgBuildJob('sql-2017-standard-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2017-standard-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2017-standard'),
+    SQLImgBuildJob('sql-2017-standard-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2017-standard-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2017-standard'),
+    SQLImgBuildJob('sql-2017-web-windows-2016-dc',
+                   'windows-2016-gcs',
+                   'sqlserver/sql-2017-web-windows-2016-dc.wf.json',
+                   'publish-to-testing-2016',
+                   'sql-2017-web'),
+    SQLImgBuildJob('sql-2017-web-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2017-web-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2017-web'),
+    SQLImgBuildJob('sql-2019-enterprise-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2019-enterprise-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2019-enterprise'),
+    SQLImgBuildJob('sql-2019-standard-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2019-standard-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2019-standard'),
+    SQLImgBuildJob('sql-2019-web-windows-2019-dc',
+                   'windows-2019-gcs',
+                   'sqlserver/sql-2019-web-windows-2019-dc.wf.json',
+                   'publish-to-testing-2019',
+                   'sql-2019-web'),
+    SQLImgBuildJob('sql-2019-enterprise-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2019-enterprise-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2019-enterprise'),
+    SQLImgBuildJob('sql-2019-standard-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2019-standard-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2019-standard'),
+    SQLImgBuildJob('sql-2019-web-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2019-web-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2019-web'),
+    SQLImgBuildJob('sql-2017-enterprise-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2017-enterprise-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2017-enterprise'),
+    SQLImgBuildJob('sql-2017-standard-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2017-standard-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2017-standard'),
+    SQLImgBuildJob('sql-2017-web-windows-2022-dc',
+                   'windows-2022-gcs',
+                   'sqlserver/sql-2017-web-windows-2022-dc.wf.json',
+                   'publish-to-testing-2022',
+                   'sql-2017-web'),
+    ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
+                         'windows-2019-core-gcs',
+                         'windows_container/windows-2019-core-for-containers-uefi.wf.json',
+                         'publish-to-testing-2019-core'),
+    ContainerImgBuildJob('windows-server-2019-dc-for-containers',
+                         'windows-2019-gcs',
+                         'windows_container/windows-2019-for-containers-uefi.wf.json',
+                         'publish-to-testing-2019'),
     {
       name: 'publish-to-testing-2022',
       plan: [
