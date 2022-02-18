@@ -17,9 +17,7 @@
         tag: 'alpine',
       },
     },
-    outputs: [
-      { name: 'gcp-secret-manager' },
-    ],
+    outputs: [{ name: 'gcp-secret-manager' }],
     run: {
       path: 'sh',
       args: [

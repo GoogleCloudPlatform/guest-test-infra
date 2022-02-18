@@ -49,4 +49,42 @@
     image: image,
     gcs_dir: gcs_dir,
   },
+
+  publishresulttask:: {
+    local task = self,
+
+    project:: 'gcp-guest',
+    zone:: 'us-central1-a',
+    pipeline:: error 'must set pipeline in publishresulttask',
+    job:: error 'must set job in publishresulttask',
+    result_state:: error 'must set result_state in publishresulttask',
+    start_timestamp:: error 'must set start_timestamp in publishresulttask',
+
+    // Start of output.
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image-forked',
+      source: {
+        repository: 'gcr.io/gcp-guest/concourse-metrics',
+        tag: 'latest',
+        // Use workload id to pull image
+        google_auth: true,
+        debug: true,
+      },
+    },
+    run: {
+      path: '/publish-job-result',
+      args:
+        [
+          '--project-id=' + task.project,
+          '--zone=' + task.zone,
+          '--pipeline=' + task.pipeline,
+          '--job=' + task.job,
+          '--task=publish-job-result',
+          '--result-state=' + task.result_state,
+          '--start-timestamp=' + task.start_timestamp,
+          '--metric-path=concourse/job/duration',
+        ],
+    },
+  },
 }

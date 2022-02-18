@@ -17,23 +17,21 @@ local imgbuildjob = {
 
   // Start of job.
   name: 'build-' + job.image,
-  on_failure: {
-    task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'failure',
+      job: job.name,
+      result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
-  on_success: {
-    task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'success',
+      job: job.name,
+      result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
@@ -72,8 +70,7 @@ local imgbuildjob = {
     },
     {
       task: 'get-secret-iso',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: job.iso_secret },
+      config: gcp_secret_manager.getsecrettask { secret_name: job.iso_secret },
     },
     {
       load_var: 'windows-iso',
@@ -81,8 +78,7 @@ local imgbuildjob = {
     },
     {
       task: 'get-secret-updates',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: job.updates_secret },
+      config: gcp_secret_manager.getsecrettask { secret_name: job.updates_secret },
     },
     {
       load_var: 'windows-updates',
@@ -90,8 +86,7 @@ local imgbuildjob = {
     },
     {
       task: 'get-secret-pwsh',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: 'windows_gcs_pwsh' },
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_pwsh' },
     },
     // We download and then load each of the 3 following secrets; they could be merged.
     {
@@ -100,8 +95,7 @@ local imgbuildjob = {
     },
     {
       task: 'get-secret-cloud-sdk',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: 'windows_gcs_cloud_sdk' },
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_cloud_sdk' },
     },
     {
       load_var: 'windows-cloud-sdk',
@@ -109,8 +103,7 @@ local imgbuildjob = {
     },
     {
       task: 'get-secret-dotnet48',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: 'windows_gcs_dotnet48' },
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_dotnet48' },
     },
     {
       load_var: 'windows-gcs-dotnet48',
@@ -144,23 +137,21 @@ local sqlimgbuildjob = {
 
   // Start of job.
   name: 'build-' + job.image,
-  on_failure: {
-    task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'failure',
+      job: job.name,
+      result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
-  on_success: {
-    task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'success',
+      job: job.name,
+      result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
@@ -204,8 +195,7 @@ local sqlimgbuildjob = {
     },
     {
       task: 'get-secret-sql-server-media',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: job.sql_version },
+      config: gcp_secret_manager.getsecrettask { secret_name: job.sql_version },
     },
     {
       load_var: 'sql-server-media',
@@ -213,8 +203,7 @@ local sqlimgbuildjob = {
     },
     {
       task: 'get-secret-windows-gcs-ssms-exe',
-      file: 'guest-test-infra/concourse/tasks/gcloud-get-secret.yaml',
-      vars: { secret_name: 'windows_gcs_ssms_exe' },
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_ssms_exe' },
     },
     {
       load_var: 'windows-gcs-ssms-exe',
@@ -245,23 +234,21 @@ local containerimgbuildjob = {
 
   // Start of job.
   name: 'build-' + job.image,
-  on_failure: {
-    task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'failure',
+      job: job.name,
+      result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
-  on_success: {
-    task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      job: job.name,
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
       pipeline: 'windows-image-build',
-      result_state: 'success',
+      job: job.name,
+      result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
   },
@@ -379,15 +366,17 @@ local imgpublishjob = {
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
   image: image,
-  workflow: 'windows/%s-uefi.wf.json' % image,
   iso_secret: iso_secret,
   updates_secret: updates_secret,
+
+  workflow: 'windows/%s-uefi.wf.json' % image,
 };
 
 local SQLImgBuildJob(image, base_image, sql_version) = sqlimgbuildjob {
   image: image,
   base_image: base_image,
   sql_version: sql_version,
+
   workflow: 'sqlserver/%s.wf.json' % image,
 };
 
@@ -401,6 +390,7 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
+
   workflow: '%s/%s' % [workflow_dir, underscore(image) + '-uefi.publish.json'],
 };
 
@@ -514,6 +504,7 @@ local ImgGroup(name, images) = {
              ],
   jobs: [
           // Windows builds
+
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
@@ -526,6 +517,7 @@ local ImgGroup(name, images) = {
           ImgBuildJob('windows-server-2012-r2-dc-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
 
           // SQL derivative builds
+
           SQLImgBuildJob('sql-2012-enterprise-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-enterprise'),
           SQLImgBuildJob('sql-2012-standard-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-standard'),
           SQLImgBuildJob('sql-2012-web-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-web'),
@@ -566,6 +558,7 @@ local ImgGroup(name, images) = {
           SQLImgBuildJob('sql-2019-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-web'),
 
           // Container derivative builds
+
           ContainerImgBuildJob('windows-server-2019-dc-for-containers',
                                'windows-server-2019-dc',
                                // TODO: Broken naming scheme between image and workflow
@@ -574,21 +567,23 @@ local ImgGroup(name, images) = {
                                'windows-server-2019-dc-core',
                                'windows_container/windows-2019-core-for-containers-uefi.wf.json'),
 
-          // Publish jobs
         ] +
+
+        // Publish jobs
+
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_images
           for env in envs
         ] +
         [
-          ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
-          for image in container_images
+          ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
+          for image in sql_images
           for env in envs
         ] +
         [
-          ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
-          for image in sql_images
+          ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
+          for image in container_images
           for env in envs
         ],
 
