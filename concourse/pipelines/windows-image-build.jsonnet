@@ -134,7 +134,7 @@ local sqlimgbuildjob = {
   image:: error 'must set image in sqlimgbuildjob',
   base_image:: error 'must set base_image in sqlimgbuildjob',
   workflow:: error 'must set workflow in sqlimgbuildjob',
-  sqlimg_version:: error 'must set sql_version in sqlbuildjob',
+  sql_version:: error 'must set sql_version in sqlbuildjob',
 
   // Start of job.
   name: 'build-' + job.image,
