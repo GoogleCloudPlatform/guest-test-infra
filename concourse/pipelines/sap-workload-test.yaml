@@ -16,7 +16,15 @@ jobs:
         - -exc
         - |
           # TODO - versioning/id. Want to map these logs for the check-post-script-results task
-          cat "gsutil cp /var/log/messages gs://test-bucket-for-terraform/log_output" | sap_post_script.sh
+          cat <<EOT >>sap_post_script.sh
+          if cat /var/log/messages | grep -q "ERROR - Deployment Exited"; then
+            echo "ERROR" > result.txt
+          else
+            echo "SUCCESS" > result.txt
+          fi
+          gsutil cp result.txt gs://test-bucket-for-terraform/run_result.txt
+          EOT
+
           gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/sap_post_script.sh
 
   - task: run-sap-tf-environment
@@ -32,8 +40,7 @@ jobs:
         args:
         - -exc
         - |
-          # TODO - will need a unique instance_name for parallel runs
-        - cat <<EOT >> sap_hana.tf
+          cat <<EOT >> sap_hana.tf
           module "sap_hana" {
           source = "https://storage.googleapis.com/cloudsapdeploy/terraform/latest/terraform/sap_hana/sap_hana_module.zip"
           project_id = "pneil-sandbox"
@@ -46,28 +53,26 @@ jobs:
           post_deployment_script = "gs://test-bucket-for-terraform/sap_post_script.sh"
           }
           EOT
-        - terraform apply -auto-approve;
-          # TODO - handle crash here. What should we do if the plan is applied but never destroyed?
-          # Maybe just always destroy before apply?
-        - terraform destroy -auto-approve;
+
+          terraform init -upgrade
+          terraform apply -auto-approve
+          terraform destroy -auto-approve
 
   - task: check-post-script-results
     config:
       platform: linux
-      type: docker-image
-      source:
-        repository: google/cloud-sdk
-        tag: latest
+      image_resource:
+        type: docker-image
+        source:
+          repository: google/cloud-sdk
+          tag: latest
       run:
         path: sh
         args:
         - -exc
         - |
-          if gsutil cat gs://test-bucket-for-terraform/log_output | grep "ERROR - Deployment Exited" | grep -v grep; then
-            return 1
-          else
-            return 0
-          fi
+          gsutil cat gs://test-bucket-for-terraform/run_result.txt | grep -q "SUCCESS"
+
 
 resources:
 - name: sap-hana-post-script-gcs
