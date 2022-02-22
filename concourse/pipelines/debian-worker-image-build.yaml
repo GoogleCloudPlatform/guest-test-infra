@@ -49,8 +49,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-debian-10-worker
     file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
     vars:
@@ -90,8 +88,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: debian-10-worker-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -135,8 +131,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: debian-10-worker-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -180,8 +174,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: debian-10-worker-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version

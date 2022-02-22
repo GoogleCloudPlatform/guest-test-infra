@@ -2,16 +2,12 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
     repository: google/cloud-sdk
     tag: alpine
 
-inputs:
-- name: credentials
-
 params:
-  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
   TOPIC: "projects/artifact-releaser-prod/topics/gcp-guest-package-promote-prod"
 
 run:
@@ -19,5 +15,4 @@ run:
   args:
   - -exc
   - |
-    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     gcloud pubsub topics publish $TOPIC --message '{"type": "promote", "request": {"universe": "((universe))", "repo": "((repo))", "environment": "((environment))"}}'

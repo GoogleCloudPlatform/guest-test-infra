@@ -1,18 +1,12 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/compute-image-tools/daisy
-    tag: latest
 
 inputs:
 - name: compute-image-tools
-- name: credentials
-- name: publish-version
-
-params:
-  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
 
 run:
   path: /daisy
