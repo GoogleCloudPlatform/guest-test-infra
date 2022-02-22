@@ -2,16 +2,9 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/gcp-guest/concourse-metrics
-    tag: latest
-
-inputs:
-- name: credentials
-
-params:
-  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
 
 run:
   path: /publish-coverage

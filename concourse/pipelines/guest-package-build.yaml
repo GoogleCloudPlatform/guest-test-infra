@@ -14,8 +14,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-timestamp
@@ -128,8 +126,6 @@ jobs:
     file: timestamp/timestamp-ms
   - load_var: package-version
     file: guest-agent-tag/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -275,8 +271,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-last-stable-date
     file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
     input_mapping:
@@ -365,8 +359,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -495,8 +487,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -562,8 +552,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -633,8 +621,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -753,8 +739,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -859,8 +843,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -973,8 +955,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       - task: promote-deb9-staging
         file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
@@ -1038,8 +1018,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       - task: promote-deb9-stable
         file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
@@ -1107,8 +1085,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -1199,8 +1175,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: get-github-token
     file: guest-test-infra/concourse/tasks/get-github-token.yaml
   - task: generate-package-version
@@ -1253,8 +1227,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -1296,8 +1268,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -1339,8 +1309,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:
@@ -1376,8 +1344,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - in_parallel:
       fail_fast: true
       steps:

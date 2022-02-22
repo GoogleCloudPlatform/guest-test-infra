@@ -70,8 +70,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -118,8 +116,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-7-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -166,8 +162,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -214,8 +208,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-8-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -256,8 +248,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -301,8 +291,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -348,8 +336,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -393,8 +379,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -440,8 +424,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -485,8 +467,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -532,8 +512,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -579,8 +557,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
