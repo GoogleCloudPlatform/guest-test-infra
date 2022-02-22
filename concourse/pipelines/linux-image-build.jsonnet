@@ -37,6 +37,7 @@ local ELImgBuildTask(workflow, gcs_url, installer_iso) = daisy.daisyimagetask {
 local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
   vars+: [
     'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
+    'gcs_path=rhel-infra-daisy-bkt',
   ],
 
   project: 'google.com:rhel-infra',
