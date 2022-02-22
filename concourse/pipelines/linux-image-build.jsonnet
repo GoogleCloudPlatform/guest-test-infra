@@ -357,7 +357,7 @@ local ImgGroup(name, images) = {
 };
 
 {
-  local debian_images = ['debian-9', 'debian-10', 'debian-11', 'debian-11-arm'],
+  local debian_images = ['debian-9', 'debian-10', 'debian-11', 'debian-11-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_images = [
     'rhel-7',
@@ -414,7 +414,7 @@ local ImgGroup(name, images) = {
           DebianImgBuildJob('debian-9', 'debian/debian_9.wf.json'),
           DebianImgBuildJob('debian-10', 'debian/debian_10.wf.json'),
           DebianImgBuildJob('debian-11', 'debian/debian_11.wf.json'),
-          DebianImgBuildJob('debian-11-arm', 'debian/debian_11_arm.wf.json'),
+          DebianImgBuildJob('debian-11-arm64', 'debian/debian_11_arm.wf.json'),
           ELImgBuildJob('rhel-7', 'enterprise_linux/rhel_7.wf.json'),
           ELImgBuildJob('rhel-8', 'enterprise_linux/rhel_8.wf.json'),
           ELImgBuildJob('rhel-7-byos', 'enterprise_linux/rhel_7_byos.wf.json'),
