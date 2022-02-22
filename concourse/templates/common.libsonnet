@@ -7,7 +7,7 @@
     'debian-9': 'debian-9-stretch',
     'debian-10': 'debian-10-buster',
     'debian-11': 'debian-11-bullseye',
-    'debian-11-arm': 'debian-11-bullseye-arm',
+    'debian-11-arm64': 'debian-11-bullseye-arm64',
   },
 
   gitresource:: {
