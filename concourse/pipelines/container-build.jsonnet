@@ -104,7 +104,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
                  name: 'daisy-%s-binary' % arch,
                  type: 'gcs',
                  source: {
-                   bucket: 'compute-image-tools-test',
+                   bucket: 'compute-image-tools',
                    versioned_file: 'release/%s/daisy' % arch,
                  },
                }
