@@ -41,7 +41,7 @@ local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
 
   run+: {
     // Prepend, as the workflow must be the last arg. Daisy is picky.
-    args: ['-gcs_path=rhel-infra-daisy-bkt'] + super.args,
+    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
   },
 
   project: 'google.com:rhel-infra',
