@@ -415,7 +415,7 @@ local ImgGroup(name, images) = {
           DebianImgBuildJob('debian-9', 'debian/debian_9.wf.json'),
           DebianImgBuildJob('debian-10', 'debian/debian_10.wf.json'),
           DebianImgBuildJob('debian-11', 'debian/debian_11.wf.json'),
-          DebianImgBuildJob('debian-11-arm64', 'debian/debian_11_arm.wf.json'),
+          DebianImgBuildJob('debian-11-arm64', 'debian/debian_11_arm64.wf.json'),
           ELImgBuildJob('rhel-7', 'enterprise_linux/rhel_7.wf.json'),
           ELImgBuildJob('rhel-8', 'enterprise_linux/rhel_8.wf.json'),
           ELImgBuildJob('rhel-7-byos', 'enterprise_linux/rhel_7_byos.wf.json'),
