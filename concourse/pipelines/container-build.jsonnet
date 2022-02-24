@@ -84,32 +84,13 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 {
   local daisy_architectures = ['linux', 'windows', 'darwin'],
 
-  resource_types: [
-    {
-      name: 'gcs',
-      type: 'registry-image',
-      source: { repository: 'frodenas/gcs-resource' },
-    },
-  ],
   resources: [
-               common.GitResource('guest-test-infra'),
-               common.GitResource('compute-image-tools') {
-                 source+: { paths: ['daisy_workflows/**'] },
-               },
-               common.GitResource('compute-daisy'),
-             ] +
-             [
-               // Track three daisy binaries as GCS artifacts
-               {
-                 name: 'daisy-%s-binary' % arch,
-                 type: 'gcs',
-                 source: {
-                   bucket: 'compute-image-tools-test',
-                   versioned_file: 'release/%s/daisy' % arch,
-                 },
-               }
-               for arch in daisy_architectures
-             ],
+    common.GitResource('guest-test-infra'),
+    common.GitResource('compute-image-tools') {
+      source+: { paths: ['daisy_workflows/**'] },
+    },
+    common.GitResource('compute-daisy'),
+  ],
   jobs: [
     BuildContainerImage('cloud-image-tests') {
       context: 'guest-test-infra',
@@ -198,16 +179,31 @@ local BuildContainerImage(image) = buildcontainerimgjob {
           }
           for arch in daisy_architectures
         ] +
-        //  Put three binaries. Use Concourse gcs resource so we can add promotion steps later.
+        //  Put three binaries using gsutil.
         [
           {
-            put: 'daisy-%s-binary' % arch,
-            params: {
-              predefined_acl: 'publicRead',
-              file: '%s/daisy' % arch,
+            task: 'upload-daisy-binaries',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+              },
+              inputs: [
+                { name: 'windows' },
+                { name: 'linux' },
+                { name: 'darwin' },
+              ],
+              run: {
+                path: 'sh',
+                args: [
+                  '-exc ',
+                  'for f in darwin linux windows; do gsutil cp $f/daisy ' +
+                  'gs://compute-image-tools/release/$f/daisy; done',
+                ],
+              },
             },
-          }
-          for arch in daisy_architectures
+          },
         ],
     },
   ],
