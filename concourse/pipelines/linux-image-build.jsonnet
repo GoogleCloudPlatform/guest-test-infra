@@ -419,11 +419,11 @@ local ImgGroup(name, images) = {
                for image in debian_images
              ] +
              [
-               common.GcsImgResource(image, 'centos/')
+               common.GcsImgResource(image, 'centos')
                for image in centos_images
              ] +
              [
-               common.GcsImgResource(image, 'rhel/')
+               common.GcsImgResource(image, 'rhel')
                for image in rhel_images
              ],
   jobs: [
