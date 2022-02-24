@@ -153,20 +153,20 @@ local ELImgBuildJob(image, workflow) = imgbuildjob {
   else
     image,
 
-  // Add tasks to obtain ISO location and store it in .:iso_secret
+  // Add tasks to obtain ISO location and store it in .:iso-secret
   extra_tasks: [
     {
       task: 'get-secret-iso',
       config: gcp_secret_manager.getsecrettask { secret_name: isopath },
     },
     {
-      load_var: 'iso_secret',
+      load_var: 'iso-secret',
       file: 'gcp-secret-manager/' + isopath,
     },
   ],
 
   // Override build_task with an EL specific task.
-  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((.:iso_secret))'),
+  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((.:iso-secret))'),
 };
 
 local RHUAImgBuildJob(image, workflow) = imgbuildjob {
@@ -419,11 +419,11 @@ local ImgGroup(name, images) = {
                for image in debian_images
              ] +
              [
-               common.GcsImgResource(image, 'centos/')
+               common.GcsImgResource(image, 'centos')
                for image in centos_images
              ] +
              [
-               common.GcsImgResource(image, 'rhel/')
+               common.GcsImgResource(image, 'rhel')
                for image in rhel_images
              ],
   jobs: [
