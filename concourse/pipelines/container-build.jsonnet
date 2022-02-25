@@ -119,6 +119,13 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'dockerfiles/alpine/Dockerfile',
     },
     BuildContainerImage('daisy-builder'),
+    buildcontainerimgjob {
+      image: 'daisy-test-runner',
+      destination: 'gcr.io/compute-image-tools-test/test-runner:latest',
+      context: 'compute-daisy',
+      input: 'compute-daisy',
+      dockerfile: 'compute-daisy/daisy_test_runner.Dockerfile',
+    },
     BuildContainerImage('build-essential'),
     buildcontainerimgjob {
       image: 'daisy',
