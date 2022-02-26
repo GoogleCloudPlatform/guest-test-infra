@@ -200,7 +200,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
       config: gcp_secret_manager.getsecrettask {
         secret_name: 'rhui-tls-key',
         project: rhui_project,
-        output_path: 'accounts/%s/%s/%s.key' % [acme_server, acme_email, acme_email],
+        output_path: 'accounts/%s/%s/keys/%s.key' % [acme_server, acme_email, acme_email],
 
         // Layer onto the same output as previous task
         inputs+: gcp_secret_manager.getsecrettask.outputs,
