@@ -39,7 +39,7 @@ func TestAliasAfterReboot(t *testing.T) {
 }
 
 func verifyIPAliases() error {
-	iface, err := utils.GetPrimaryInterface()
+	iface, err := utils.GetInterface(0)
 	if err != nil {
 		return fmt.Errorf("couldn't get interface: %v", err)
 	}
@@ -79,7 +79,7 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 }
 
 func TestAliasAgentRestart(t *testing.T) {
-	iface, err := utils.GetPrimaryInterface()
+	iface, err := utils.GetInterface(0)
 	if err != nil {
 		t.Fatalf("couldn't get interface: %v", err)
 	}

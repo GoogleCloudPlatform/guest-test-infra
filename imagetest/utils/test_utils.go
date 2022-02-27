@@ -228,16 +228,11 @@ func GetInterfaceByMAC(mac string) (net.Interface, error) {
 	return net.Interface{}, fmt.Errorf("no interface found with MAC %s", mac)
 }
 
-func GetPrimaryInterface() (net.Interface, error) {
-	mac, err := GetMetadata("network-interfaces/0/mac")
+func GetInterface(index int) (net.Interface, error) {
+	mac, err := GetMetadata(fmt.Sprintf("network-interfaces/%d/mac", index))
 	if err != nil {
 		return net.Interface{}, err
 	}
 
-	iface, err := GetInterfaceByMAC(mac)
-	if err != nil {
-		return net.Interface{}, err
-	}
-
-	return iface, nil
+	return GetInterfaceByMAC(mac)
 }

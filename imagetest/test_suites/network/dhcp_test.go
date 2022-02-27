@@ -13,9 +13,9 @@ import (
 
 // TestDHCP test secondary interfaces are configured with a single dhclient process.
 func TestDHCP(t *testing.T) {
-	iface, err := utils.GetPrimaryInterface()
+	iface, err := utils.GetInterface(1)
 	if err != nil {
-		t.Fatalf("couldn't get primary interface: %v", err)
+		t.Fatalf("couldn't get secondary interface: %v", err)
 	}
 
 	cmd := exec.Command("ps", "x")
