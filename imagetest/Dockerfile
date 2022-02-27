@@ -23,13 +23,18 @@ ENV GOOS linux
 ENV GO111MODULE on
 
 RUN go mod download
-RUN go build -o /out/wrapper ./imagetest/cmd/wrapper/main.go
+RUN go build -o /out/wrapper.amd64 ./imagetest/cmd/wrapper/main.go
+RUN GOARCH=arm64 go build -o /out/wrapper.arm64 ./imagetest/cmd/wrapper/main.go
 RUN go build -o /out/manager ./imagetest/cmd/manager/main.go
 RUN cd imagetest/test_suites; for suite in *; do \
   [[ -d $suite ]] || continue; \
-  cd $suite; go test -c -tags cit || exit 1; \
+  cd $suite; \
+  go test -c -tags cit || exit 1; \
   ./"${suite}.test" -test.list '.*' > /out/"${suite}_tests.txt" || exit 1; \
-  mv "${suite}.test" /out || exit 1; cd ..; \
+  mv "${suite}.test" "/out/${suite}.amd64.test" || exit 1; \
+  GOARCH=arm64 go test -c -tags cit || exit 1; \
+  mv "${suite}.test" "/out/${suite}.arm64.test" || exit 1; \
+  cd ..; \
   done
 
 FROM alpine:edge

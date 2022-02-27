@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -206,4 +207,37 @@ func CreateClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func GetInterfaceByMAC(mac string) (net.Interface, error) {
+	hwaddr, err := net.ParseMAC(mac)
+	if err != nil {
+		return net.Interface{}, err
+	}
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return net.Interface{}, err
+	}
+
+	for _, iface := range interfaces {
+		if iface.HardwareAddr.String() == hwaddr.String() {
+			return iface, nil
+		}
+	}
+	return net.Interface{}, fmt.Errorf("no interface found with MAC %s", mac)
+}
+
+func GetPrimaryInterface() (net.Interface, error) {
+	mac, err := GetMetadata("network-interfaces/0/mac")
+	if err != nil {
+		return net.Interface{}, err
+	}
+
+	iface, err := GetInterfaceByMAC(mac)
+	if err != nil {
+		return net.Interface{}, err
+	}
+
+	return iface, nil
 }
