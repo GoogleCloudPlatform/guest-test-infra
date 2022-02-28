@@ -49,6 +49,7 @@ var licenseNames = []string{
 	"probably-PD",
 	"Paul Vixie\"s license",
 	"public-domain",
+	"PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2",
 	"REGCOMP",
 	"S2P",
 	"SDBM-PUBLIC-DOMAIN",
