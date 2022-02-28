@@ -257,7 +257,7 @@ func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, g
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix, machineType string) error {
 	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 	for _, twf := range tests {
 		if twf.wf == nil {
@@ -272,8 +272,19 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		twf.wf.Sources["wrapper"] = testWrapperPath
-		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", twf.Name)
+		arch := "amd64"
+		if machineType != "" {
+			createVMsStep := twf.wf.Steps[createVMsStepName]
+			for _, vm := range createVMsStep.CreateInstances.Instances {
+				vm.MachineType = machineType
+			}
+			if strings.HasPrefix(machineType, "t2a") {
+				arch = "arm64"
+			}
+		}
+
+		twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
+		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
@@ -344,13 +355,13 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		log.Printf("Error determining GCS prefix: %v", err)
 		gcsPrefix = ""
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType); err != nil {
 		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
@@ -363,12 +374,12 @@ func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflow
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string) error {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return err
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
@@ -403,13 +414,13 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string, parallelCount int, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return nil, err
 	}
 
-	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))

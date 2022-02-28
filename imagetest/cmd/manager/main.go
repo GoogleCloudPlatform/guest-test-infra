@@ -35,6 +35,7 @@ var (
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
+	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
 )
 
 var (
@@ -215,18 +216,18 @@ func main() {
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType, *parallelCount, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
