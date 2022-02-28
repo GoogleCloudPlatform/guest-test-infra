@@ -209,7 +209,7 @@ func CreateClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 	return client, nil
 }
 
-// GetInterface returns the interface with the specified MAC address.
+// GetInterfaceByMAC returns the interface with the specified MAC address.
 func GetInterfaceByMAC(mac string) (net.Interface, error) {
 	hwaddr, err := net.ParseMAC(mac)
 	if err != nil {
