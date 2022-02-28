@@ -204,7 +204,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
               run: {
                 path: 'sh',
                 args: [
-                  '-exc ',
+                  '-exc',
                   'for f in darwin linux windows; do' +
                   '  gsutil cp $f/daisy gs://compute-image-tools/latest/$f/daisy;' +
                   '  gsutil acl ch -u AllUsers:R gs://compute-image-tools/latest/$f/daisy;' +
