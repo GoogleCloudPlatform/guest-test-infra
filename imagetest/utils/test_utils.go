@@ -209,6 +209,7 @@ func CreateClient(user, host string, pembytes []byte) (*ssh.Client, error) {
 	return client, nil
 }
 
+// GetInterface returns the interface with the specified MAC address.
 func GetInterfaceByMAC(mac string) (net.Interface, error) {
 	hwaddr, err := net.ParseMAC(mac)
 	if err != nil {
@@ -228,6 +229,7 @@ func GetInterfaceByMAC(mac string) (net.Interface, error) {
 	return net.Interface{}, fmt.Errorf("no interface found with MAC %s", mac)
 }
 
+// GetInterface returns the interface corresponding to the metadata interface array at the specified index.
 func GetInterface(index int) (net.Interface, error) {
 	mac, err := GetMetadata(fmt.Sprintf("network-interfaces/%d/mac", index))
 	if err != nil {
