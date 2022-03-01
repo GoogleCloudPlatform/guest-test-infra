@@ -13,8 +13,6 @@
 # limitations under the License.
 FROM golang:1.13
 
-ENV GOOGLE_APPLICATION_CREDENTIALS /etc/compute-image-tools-test-service-account/creds.json
-
 RUN apt-get update && apt-get install -y git && \
     rm -rf /var/cache/apt/archives
 RUN go get -u golang.org/x/lint/golint
