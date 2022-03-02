@@ -491,41 +491,47 @@ jobs:
       fail_fast: true
       steps:
       - task: promote-deb9-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-deb10-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-deb11-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-bullseye
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el7-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el8-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el9-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el9
-          environment: staging
+        params:
+          TYPE: promoteToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -957,41 +963,47 @@ jobs:
     file: timestamp/timestamp-ms
   - in_parallel:
       - task: promote-deb9-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-stretch
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-deb10-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-buster
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-deb11-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: gce-google-compute-engine-bullseye
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el7-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-el7
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el8-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: gguest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-el9-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: gce-google-compute-engine-el9
-          environment: staging
+        params:
+          TYPE: promoteToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -1231,17 +1243,19 @@ jobs:
       fail_fast: true
       steps:
       - task: promote-yum-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: yum-plugin-artifact-registry
-          environment: staging
+        params:
+          TYPE: promoteToStaging
       - task: promote-dnf-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
-          environment: staging
+        params:
+          TYPE: promoteToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
