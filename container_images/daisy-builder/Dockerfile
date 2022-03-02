@@ -24,8 +24,10 @@ COPY --from=0 /daisy daisy
 # Daisy image copies this from gcr.io/distroless/base, we copy here.
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
+# Must be built from root of repo, where packagebuild dir is.
+COPY packagebuild packagebuild
 # Copy this Dockerfile for debugging.
-COPY Dockerfile Dockerfile
-COPY main.sh main.sh
+COPY container_images/daisy-builder/Dockerfile Dockerfile
+COPY container_images/daisy-builder/main.sh main.sh
 
 ENTRYPOINT ["./main.sh"]

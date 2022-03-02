@@ -118,7 +118,10 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       repo: 'gcr.io/compute-image-tools',
       dockerfile: 'dockerfiles/alpine/Dockerfile',
     },
-    BuildContainerImage('daisy-builder'),
+    BuildContainerImage('daisy-builder') {
+      context: 'guest-test-infra',
+      dockerfile: 'container_images/daisy-builder/Dockerfile',
+    },
     buildcontainerimgjob {
       image: 'daisy-test-runner',
       destination: 'gcr.io/compute-image-tools-test/test-runner:latest',
