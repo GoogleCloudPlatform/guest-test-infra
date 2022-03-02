@@ -34,7 +34,7 @@ local buildcontainerimgjob = {
 
   image:: error 'must set image in buildcontainerimgjob',
   destination:: error 'must set destination in buildcontainerimgjob',
-  context:: error 'must set context in buildcontainerimgjob',
+  context:: self.input,
   dockerfile:: 'Dockerfile',
   input:: 'guest-test-infra',
   passed:: '',
@@ -52,15 +52,11 @@ local buildcontainerimgjob = {
           },
         ] +
         [
-          {
-            get: resource,
-            trigger: true,
-          }
+          { get: resource, trigger: true }
           for resource in job.extra_resources
         ] +
         job.extra_steps +
         [
-
           {
             task: 'build-image',
             config: buildcontainerimgtask {
@@ -73,8 +69,10 @@ local buildcontainerimgjob = {
         ],
 };
 
+// Function for our builds in guest-test-infra/container_images
 local BuildContainerImage(image) = buildcontainerimgjob {
   repo:: 'gcr.io/gcp-guest',
+
   image: image,
   destination: '%s/%s:latest' % [self.repo, image],
   context: 'guest-test-infra/container_images/' + image,
@@ -86,57 +84,70 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 
   resources: [
     common.GitResource('guest-test-infra'),
-    common.GitResource('compute-image-tools') {
+    common.GitResource('compute-image-tools'),
+    common.GitResource('compute-image-tools-trigger') {
       source+: { paths: ['daisy_workflows/**'] },
     },
     common.GitResource('compute-daisy'),
   ],
   jobs: [
+    BuildContainerImage('build-essential'),
+    BuildContainerImage('flake8'),
+    BuildContainerImage('gobuild'),
+    BuildContainerImage('gocheck'),
+    BuildContainerImage('gointegtest'),
+    BuildContainerImage('gotest'),
+    BuildContainerImage('cli-tools-module-tests') { passed: 'build-gotest' },
+    BuildContainerImage('jsonnet-go'),
+    BuildContainerImage('fly-validate-pipelines') { passed: 'build-jsonnet-go' },
+    BuildContainerImage('pytest'),
+
+    // Non-standard dockerfile location and public image.
+    BuildContainerImage('registry-image-forked') {
+      dockerfile: 'dockerfiles/alpine/Dockerfile',
+      repo: 'gcr.io/compute-image-tools',
+    },
+
+    // These build from the root of the repo.
     BuildContainerImage('cloud-image-tests') {
       context: 'guest-test-infra',
-      repo: 'gcr.io/compute-image-tools',
       dockerfile: 'guest-test-infra/imagetest/Dockerfile',
+      // Public image.
+      repo: 'gcr.io/compute-image-tools',
     },
-    BuildContainerImage('gobuild'),
-    BuildContainerImage('gotest'),
-    BuildContainerImage('cli-tools-module-tests') {
-      passed: 'build-gotest',
-    },
-    BuildContainerImage('gocheck'),
     BuildContainerImage('concourse-metrics') {
       context: 'guest-test-infra',
       dockerfile: 'guest-test-infra/container_images/concourse-metrics/Dockerfile',
     },
-    BuildContainerImage('flake8'),
-    BuildContainerImage('gointegtest'),
-    BuildContainerImage('pytest'),
-    BuildContainerImage('fly-validate-pipelines') {
-      passed: 'build-jsonnet-go',
+    BuildContainerImage('daisy-builder') {
+      context: 'guest-test-infra',
+      dockerfile: 'container_images/daisy-builder/Dockerfile',
     },
-    BuildContainerImage('jsonnet-go'),
-    BuildContainerImage('registry-image-forked') {
-      repo: 'gcr.io/compute-image-tools',
-      dockerfile: 'dockerfiles/alpine/Dockerfile',
-    },
-    BuildContainerImage('daisy-builder'),
+
+    // Builds outside g-t-i repo.
     buildcontainerimgjob {
-      image: 'daisy-test-runner',
+      destination: 'gcr.io/compute-image-tools/gce_image_publish:latest',
+      dockerfile: 'gce_image_publish.Dockerfile',
+      image: 'gce_image_publish',
+      input: 'compute-image-tools',
+    },
+    buildcontainerimgjob {
+      context: 'compute-daisy',
       destination: 'gcr.io/compute-image-tools-test/test-runner:latest',
-      context: 'compute-daisy',
-      input: 'compute-daisy',
       dockerfile: 'compute-daisy/daisy_test_runner.Dockerfile',
-    },
-    BuildContainerImage('build-essential'),
-    buildcontainerimgjob {
-      image: 'daisy',
-      destination: 'gcr.io/compute-image-tools/daisy:latest',
-      context: 'compute-daisy',
+      image: 'daisy-test-runner',
       input: 'compute-daisy',
-      // Add an extra step before build to layer in the daisy workflows.
-      extra_resources: ['compute-image-tools'],
+    },
+    buildcontainerimgjob {
+      context: 'compute-daisy',
+      destination: 'gcr.io/compute-image-tools/daisy:latest',
+      image: 'daisy',
+      input: 'compute-daisy',
+
+      extra_resources: ['compute-image-tools-trigger'],
       extra_steps:
-        //  Get daisy workflows from compute-image-tools and layer into compute-daisy.
         [
+          // Add daisy workflows to compute-daisy.
           {
             task: 'get-daisy-workflows',
             config: {
@@ -147,7 +158,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
               },
               inputs: [
                 { name: 'compute-daisy' },
-                { name: 'compute-image-tools' },
+                { name: 'compute-image-tools-trigger' },
               ],
               outputs: [
                 { name: 'compute-daisy' },
@@ -156,7 +167,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
                 path: 'sh',
                 args: [
                   '-exc',
-                  'cp -a compute-image-tools/daisy_workflows compute-daisy/daisy_workflows',
+                  'cp -a compute-image-tools-trigger/daisy_workflows compute-daisy/daisy_workflows',
                 ],
               },
             },
@@ -170,9 +181,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
               platform: 'linux',
               image_resource: {
                 type: 'registry-image',
-                source: {
-                  repository: 'golang',
-                },
+                source: { repository: 'golang' },
               },
               inputs: [{ name: 'compute-daisy', path: '.' }],
               outputs: [{ name: arch }],
@@ -205,8 +214,10 @@ local BuildContainerImage(image) = buildcontainerimgjob {
                 path: 'sh',
                 args: [
                   '-exc',
-                  'for f in darwin linux windows; do gsutil cp $f/daisy ' +
-                  'gs://compute-image-tools/release/$f/daisy; done',
+                  'for f in darwin linux windows; do' +
+                  '  gsutil cp $f/daisy gs://compute-image-tools/latest/$f/daisy;' +
+                  '  gsutil acl ch -u AllUsers:R gs://compute-image-tools/latest/$f/daisy;' +
+                  'done',
                 ],
               },
             },
