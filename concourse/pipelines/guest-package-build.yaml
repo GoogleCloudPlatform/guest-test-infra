@@ -1327,11 +1327,12 @@ jobs:
       fail_fast: true
       steps:
       - task: promote-deb-staging
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
           universe: cloud-apt
           repo: apt-transport-artifact-registry
-          environment: staging
+        params:
+          TYPE: promoteToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
