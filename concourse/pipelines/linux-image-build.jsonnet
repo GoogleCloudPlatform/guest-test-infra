@@ -50,6 +50,29 @@ local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
   workflow: workflow,
 };
 
+local imagetesttask = {
+  local task = self,
+
+  images:: error 'must set images in imagetesttask',
+  extra_args:: [],
+
+  platform: 'linux',
+  image_resource: {
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+  },
+  run: {
+    path: '/manager',
+    args: [
+      '-project=gcp-guest',
+      '-zone=us-west1-a',
+      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+      '-exclude=oslogin',
+      '-images=' + task.images,
+    ] + task.extra_args,
+  },
+};
+
 local imgbuildjob = {
   local tl = self,
 
@@ -315,11 +338,12 @@ local imgpublishjob = {
           [
             {
               task: 'image-test-' + tl.image,
-              file: 'guest-test-infra/concourse/tasks/image-test.yaml',
-              attempts: 3,
-              vars: {
+              config: imagetesttask {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                // Special case ARM for now.
+                extra_args: if tl.image_prefix == 'debian-11-bullseye-arm64' then ['-machine_type=t2a-standard-2'] else [],
               },
+              attempts: 3,
             },
           ]
         else

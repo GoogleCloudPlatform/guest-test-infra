@@ -39,20 +39,12 @@ func TestAliasAfterReboot(t *testing.T) {
 }
 
 func verifyIPAliases() error {
-	var networkInterface string
-
-	image, err := utils.GetMetadata("image")
+	iface, err := utils.GetInterface(0)
 	if err != nil {
-		return fmt.Errorf("couldn't get image from metadata: %v", err)
-	}
-	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
-		networkInterface = defaultPredictableInterface
-	default:
-		networkInterface = defaultInterface
+		return fmt.Errorf("couldn't get interface: %v", err)
 	}
 
-	actualIPs, err := getGoogleRoutes(networkInterface)
+	actualIPs, err := getGoogleRoutes(iface.Name)
 	if err != nil {
 		return err
 	}
@@ -87,21 +79,12 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 }
 
 func TestAliasAgentRestart(t *testing.T) {
-	var networkInterface string
-
-	image, err := utils.GetMetadata("image")
+	iface, err := utils.GetInterface(0)
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		t.Fatalf("couldn't get interface: %v", err)
 	}
 
-	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "debian-11"), strings.Contains(image, "ubuntu"):
-		networkInterface = defaultPredictableInterface
-	default:
-		networkInterface = defaultInterface
-	}
-
-	beforeRestart, err := getGoogleRoutes(networkInterface)
+	beforeRestart, err := getGoogleRoutes(iface.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +93,7 @@ func TestAliasAgentRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	afterRestart, err := getGoogleRoutes(networkInterface)
+	afterRestart, err := getGoogleRoutes(iface.Name)
 	if err != nil {
 		t.Fatal(err)
 	}

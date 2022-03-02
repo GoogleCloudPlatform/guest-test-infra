@@ -125,6 +125,7 @@ var licenses = []string{
 	`FULLTEXT`,
 	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
 	`arping: GPL v2 or later`,      // iputils has a license summary file
+	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
 }
 
 const (
