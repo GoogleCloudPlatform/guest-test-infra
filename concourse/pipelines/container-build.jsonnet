@@ -8,6 +8,7 @@ local buildcontainerimgtask = {
   input:: error 'must set input in buildcontainerimgtask',
   context:: error 'must set context in buildcontainerimgtask',
   destination:: error 'must set destination in buildcontainerimgtask',
+  commit_sha:: error 'must set commit_sha in buildcontainerimgtask',
 
   platform: 'linux',
   image_resource: {
@@ -24,7 +25,8 @@ local buildcontainerimgtask = {
     args: [
       '--dockerfile=' + task.dockerfile,
       '--context=' + task.context,
-      '--destination=' + task.destination,
+      '--destination=%s:latest' % task.destination,
+      '--destination=%s:%s' % [task.destination, task.commit_sha],
     ],
   },
 };
@@ -58,8 +60,13 @@ local buildcontainerimgjob = {
         job.extra_steps +
         [
           {
+            load_var: '%s-commit-sha' % job.image,
+            file: '%s/.git/ref' % job.input,
+          },
+          {
             task: 'build-image',
             config: buildcontainerimgtask {
+              commit_sha: "((.:%s-commit-sha))" % job.image,
               destination: job.destination,
               dockerfile: job.dockerfile,
               context: job.context,
@@ -74,7 +81,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
   repo:: 'gcr.io/gcp-guest',
 
   image: image,
-  destination: '%s/%s:latest' % [self.repo, image],
+  destination: '%s/%s' % [self.repo, image],
   context: 'guest-test-infra/container_images/' + image,
 };
 
@@ -126,21 +133,21 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 
     // Builds outside g-t-i repo.
     buildcontainerimgjob {
-      destination: 'gcr.io/compute-image-tools/gce_image_publish:latest',
+      destination: 'gcr.io/compute-image-tools/gce_image_publish',
       dockerfile: 'gce_image_publish.Dockerfile',
       image: 'gce_image_publish',
       input: 'compute-image-tools',
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
-      destination: 'gcr.io/compute-image-tools-test/test-runner:latest',
+      destination: 'gcr.io/compute-image-tools-test/test-runner',
       dockerfile: 'compute-daisy/daisy_test_runner.Dockerfile',
       image: 'daisy-test-runner',
       input: 'compute-daisy',
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
-      destination: 'gcr.io/compute-image-tools/daisy:latest',
+      destination: 'gcr.io/compute-image-tools/daisy',
       image: 'daisy',
       input: 'compute-daisy',
 
