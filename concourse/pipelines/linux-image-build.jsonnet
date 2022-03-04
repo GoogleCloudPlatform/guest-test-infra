@@ -428,13 +428,13 @@ local saptestjob = {
       ],
       run: {
         path: 'sh',
+        dir: 'guest-test-infra/concourse/scripts',
         args: [
           '-exc',
           |||
-          cd guest-test-infra/concourse/scripts
           # We want to upload this actual script with the unique id
           sed -i 's/__BUCKET__/test-bucket-for-terraform/g' sap_post_script.sh
-          sed -i 's/__RUN__/((.:id))/g' sap_post_script.sh
+          sed -i 's/__RUNID__/((.:id))/g' sap_post_script.sh
           gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/sap_post_script.sh
 |||,
         ],
@@ -549,16 +549,18 @@ local ImgGroup(name, images) = {
 {
   local debian_images = ['debian-9', 'debian-10', 'debian-11', 'debian-11-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
-  local rhel_images = [
-    'rhel-7',
+  local rhel_sap_images = [
     'rhel-7-6-sap',
     'rhel-7-7-sap',
     'rhel-7-9-sap',
-    'rhel-7-byos',
-    'rhel-8',
     'rhel-8-1-sap',
     'rhel-8-2-sap',
     'rhel-8-4-sap',
+  ],
+  local rhel_images = rhel_sap_images + [
+    'rhel-7',
+    'rhel-7-byos',
+    'rhel-8',
     'rhel-8-byos',
   ],
 
@@ -640,7 +642,7 @@ local ImgGroup(name, images) = {
           saptestjob {
             image: image
           }
-          for image in std.filter(function(x) std.endsWith(x, '-sap'), rhel_images)
+          for image in rhel_sap_images
         ] +
         [
           // CentOS publish jobs
@@ -662,7 +664,7 @@ local ImgGroup(name, images) = {
       jobs+:
       [
         'sap-workload-test-%s' % [image]
-        for image in std.filter(function(x) std.endsWith(x, '-sap') , rhel_images)
+        for image in rhel_sap_images
       ]
     },
     ImgGroup('centos', centos_images),
