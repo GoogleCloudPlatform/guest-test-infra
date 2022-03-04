@@ -3,4 +3,4 @@ if cat /var/log/messages | grep -q "ERROR - Deployment Exited"; then
 else
     echo "SUCCESS" > result.txt
 fi
-gsutil cp result.txt gs://$1/workload-tests/sap/$2/run_result
+gsutil cp result.txt gs://__BUCKET__/workload-tests/sap/__RUNID__/run_result

@@ -4,7 +4,6 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local lego = import '../templates/lego.libsonnet';
-local sap_test = import '../templates/sap-test.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -386,40 +385,165 @@ local DebianImgPublishJob(image, env, workflow_dir) = imgpublishjob {
   image_prefix: common.debian_image_prefixes[image],
 };
 
-local SapWorkloadTestJob(image) = sap_test.saptestjob {
-  image: image,
-};
 
-local imggroup = {
+local saptestjob = {
   local tl = self,
 
-  group_name:: '',
-  images:: [],
-  extra_job_groups:: [],
-  
-  name: self.group_name,
+  image:: error 'must be set',
+
+  name: 'sap-workload-test-' + self.image,
+
+  plan: [
+  {
+    get: tl.image + '-gcs',
+    passed: [
+      'publish-to-testing-' + tl.image,
+    ],
+    params: {
+      skip_download: 'true',
+    }
+  },
+  { get: 'guest-test-infra' },
+  {
+    task: 'generate-timestamp',
+    file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+  },
+  {
+    load_var: 'id',
+    file: 'timestamp/timestamp-ms',
+  },
+  {
+    task: 'generate-post-script',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: {
+          repository: 'google/cloud-sdk',
+          tag: 'latest',
+        },
+      },
+      inputs: [
+        { name: "guest-test-infra" },
+      ],
+      run: {
+        path: 'sh',
+        args: [
+          '-exc',
+          |||
+          cd guest-test-infra/concourse/scripts
+          # We want to upload this actual script with the unique id
+          sed -i 's/__BUCKET__/test-bucket-for-terraform/g' sap_post_script.sh
+          sed -i 's/__RUN__/((.:id))/g' sap_post_script.sh
+          gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/sap_post_script.sh
+|||,
+        ],
+      },
+    },
+  },
+  {
+    task: 'create-sap-tf-environment',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: {
+          repository: 'hashicorp/terraform',
+          tag: 'latest',
+        },
+      },
+      inputs: [
+        { name: "guest-test-infra" },
+      ],
+      outputs: [
+        { name: "tf-state" },
+      ],
+      run: {
+        path: 'sh',
+        args: [
+          '-exc',
+          |||
+          cp guest-test-infra/concourse/scripts/sap_hana.tf tf-state/
+          cd tf-state
+
+          terraform init
+            terraform init -upgrade
+            terraform apply -auto-approve \
+              -var="instance_name=hana-instance-((.:id))" \
+              -var="post_deployment_script=gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/sap_post_script.sh" \
+              -var="linux_image=%(image)s-ha" 
+||| % {image: tl.image},
+        ]
+      },
+    },
+  },
+  {
+    task: 'wait-for-and-check-post-script-results',
+    timeout: '30m',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: {
+          repository: 'google/cloud-sdk',
+          tag: 'latest',
+        },
+      },
+      run: {
+        path: 'sh',
+        args: [
+          '-exc',
+          |||
+          until gsutil -q stat gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/run_result
+          do
+            echo "Waiting for results..."
+            sleep 60
+          done
+
+          gsutil cat gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/run_result | grep -q "SUCCESS"
+|||,
+        ]
+      },
+    },
+  },
+  {
+    task: 'destroy-sap-tf-environment',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: {
+          repository: 'hashicorp/terraform',
+          tag: 'latest',
+        },
+      },
+      inputs: [
+        { name: "tf-state", path: "." },
+      ],
+      run: {
+        path: 'sh',
+        args: [
+          '-exc',
+          |||
+          terraform destroy -auto-approve \
+            -var="instance_name=hana-instance-((.:id))"
+|||,
+        ]
+      },
+    },
+  }],
+};
+
+local ImgGroup(name, images) = {
+  name: name,
   jobs: [
     'build-' + image
-    for image in self.images
+    for image in images
   ] + [
     'publish-to-%s-%s' % [env, image]
     for env in envs
-    for image in self.images
-  ] + tl.extra_job_groups,
-};
-
-local ImgGroup(name, images) = imggroup {
-  group_name: name,
-  images: images,
-};
-
-local RhelImgGroup(images) = imggroup {
-  group_name: 'rhel',
-  images: images,
-  extra_job_groups: [
-    'sap-workload-test-%s' % [image]
-    for image in std.filter(function(x) std.endsWith(x, '-sap') , images)
-  ]
+    for image in images
+  ],
 };
 
 {
@@ -513,8 +637,10 @@ local RhelImgGroup(images) = imggroup {
         ] +
         [
           // SAP related test jobs
-          SapWorkloadTestJob(image)
-          for image in std.filter(function(x) std.endsWith(x, '-sap') , rhel_images)
+          saptestjob {
+            image: image
+          }
+          for image in std.filter(function(x) std.endsWith(x, '-sap'), rhel_images)
         ] +
         [
           // CentOS publish jobs
@@ -532,7 +658,13 @@ local RhelImgGroup(images) = imggroup {
         ],
   groups: [
     ImgGroup('debian', debian_images),
-    RhelImgGroup(rhel_images),
+    ImgGroup('rhel', rhel_images) + {
+      jobs+:
+      [
+        'sap-workload-test-%s' % [image]
+        for image in std.filter(function(x) std.endsWith(x, '-sap') , rhel_images)
+      ]
+    },
     ImgGroup('centos', centos_images),
     ImgGroup('almalinux', ['almalinux-8']),
     ImgGroup('rocky-linux', ['rocky-linux-8']),
