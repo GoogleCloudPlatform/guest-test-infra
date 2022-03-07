@@ -35,6 +35,7 @@
         '--server=https://' + task.acme_server + '/directory',
         '--accept-tos',
         '--eab',
+        '--dns.resolvers=ns-cloud-b2.googledomains.com:53',
         '--dns=gcloud',
         '--path=./' + task.input + '/',
         'run',
