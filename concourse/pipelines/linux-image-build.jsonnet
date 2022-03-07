@@ -243,7 +243,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
 
   // Append var to Daisy build task
   build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
-    inputs: [
+    inputs+: [
       { name: 'gcp-secret-manager' },
     ],
     vars+: [
