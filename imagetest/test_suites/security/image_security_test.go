@@ -206,8 +206,9 @@ func verifySSHConfig() error {
 
 	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
 	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
-	if !noRootSSH && !noRootPasswordSSH {
-		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\" or \"without-password\"")
+	prohibitRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin prohibit-password")
+	if !noRootSSH && !noRootPasswordSSH && !prohibitRootPasswordSSH {
+		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\", \"without-password\", or \"prohibit-password\"")
 	}
 	return nil
 }
