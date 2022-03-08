@@ -396,12 +396,8 @@ local saptestjob = {
   plan: [
     {
       get: tl.image + '-gcs',
-      passed: [
-        'publish-to-testing-' + tl.image,
-      ],
-      params: {
-        skip_download: 'true',
-      },
+      passed: ['publish-to-testing-' + tl.image],
+      params: { skip_download: 'true' },
     },
     { get: 'guest-test-infra' },
     {
@@ -418,14 +414,9 @@ local saptestjob = {
         platform: 'linux',
         image_resource: {
           type: 'registry-image',
-          source: {
-            repository: 'google/cloud-sdk',
-            tag: 'latest',
-          },
+          source: { repository: 'google/cloud-sdk' },
         },
-        inputs: [
-          { name: 'guest-test-infra' },
-        ],
+        inputs: [{ name: 'guest-test-infra' }],
         run: {
           path: 'sh',
           dir: 'guest-test-infra/concourse/scripts',
@@ -491,10 +482,7 @@ local saptestjob = {
         platform: 'linux',
         image_resource: {
           type: 'registry-image',
-          source: {
-            repository: 'google/cloud-sdk',
-            tag: 'latest',
-          },
+          source: { repository: 'google/cloud-sdk' },
         },
         run: {
           path: 'sh',
@@ -641,9 +629,7 @@ local ImgGroup(name, images) = {
         ] +
         [
           // SAP related test jobs
-          saptestjob {
-            image: image,
-          }
+          saptestjob { image: image }
           for image in rhel_sap_images
         ] +
         [
