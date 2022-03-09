@@ -1,15 +1,15 @@
-variable "instance_name" {}
+variable "project_id" {
+  default = "gcp-guest"
+}
 variable "linux_image" {
   default = ""
 }
 variable "linux_image_project" {
   default = "bct-prod-images"
 }
+variable "instance_name" {}
 variable "post_deployment_script" {
   default = ""
-}
-variable "project_id" {
-  default = "gcp-guest"
 }
 
 module "sap_hana" {

@@ -502,7 +502,7 @@ local saptestjob = {
       },
     },
     {
-      task: 'destroy-sap-tf-environment',
+      task: 'terraform-destroy',
       config: {
         platform: 'linux',
         image_resource: {
@@ -516,7 +516,7 @@ local saptestjob = {
           args: [
             'destroy',
             '-auto-approve',
-            '-var="instance_name=hana-instance-((.:id))',
+            '-var=instance_name=hana-instance-((.:id))',
           ],
         },
       },
