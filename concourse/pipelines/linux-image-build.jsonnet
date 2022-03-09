@@ -441,7 +441,7 @@ local saptestjob = {
           source: { repository: 'hashicorp/terraform' },
         },
         inputs: [{ name: 'guest-test-infra' }],
-        outputs: [{ name: 'tf-state', path: 'guest-test-infra/concourse/scripts' }],
+        outputs: [{ name: 'guest-test-infra' }],
         run: {
           path: 'terraform',
           dir: 'guest-test-infra/concourse/scripts',
@@ -460,11 +460,11 @@ local saptestjob = {
           type: 'registry-image',
           source: { repository: 'hashicorp/terraform' },
         },
-        inputs: [{ name: 'tf-state' }],
-        outputs: [{ name: 'tf-state' }],
+        inputs: [{ name: 'guest-test-infra' }],
+        outputs: [{ name: 'guest-test-infra' }],
         run: {
           path: 'terraform',
-          dir: 'tf-state',
+          dir: 'guest-test-infra/concourse/scripts',
           args: [
             'apply',
             '-auto-approve',
@@ -509,10 +509,10 @@ local saptestjob = {
           type: 'registry-image',
           source: { repository: 'hashicorp/terraform' },
         },
-        inputs: [{ name: 'tf-state' }],
+        inputs: [{ name: 'guest-test-infra' }],
         run: {
           path: 'terraform',
-          dir: 'tf-state',
+          dir: 'guest-test-infra/concourse/scripts',
           args: [
             'destroy',
             '-auto-approve',
