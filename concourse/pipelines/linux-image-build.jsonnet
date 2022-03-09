@@ -436,8 +436,8 @@ local saptestjob = {
 
   image:: error 'image must be set in saptestjob',
 
+  // Start of output.
   name: 'sap-workload-test-' + self.image,
-
   plan: [
     {
       get: tl.image + '-gcs',
