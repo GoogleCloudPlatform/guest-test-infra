@@ -1,12 +1,15 @@
-variable "instance_name" {}
+variable "project_id" {
+  default = "gcp-guest"
+}
 variable "linux_image" {
   default = ""
 }
+variable "linux_image_project" {
+  default = "bct-prod-images"
+}
+variable "instance_name" {}
 variable "post_deployment_script" {
   default = ""
-}
-variable "project_id" {
-  default = "gcp-guest"
 }
 
 module "sap_hana" {
@@ -17,7 +20,7 @@ module "sap_hana" {
   machine_type = "n1-highmem-32"
   subnetwork = "default"
   linux_image = "${var.linux_image}"
-  linux_image_project = "bct-prod-images"
+  linux_image_project = "${var.linux_image_project}"
   instance_name = "${var.instance_name}"
   post_deployment_script = "${var.post_deployment_script}"
 }
