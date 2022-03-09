@@ -1,4 +1,4 @@
-if cat /var/log/messages | grep -q "ERROR - Deployment Exited"; then
+if grep -q "ERROR - Deployment Exited" /var/log/messages; then
     echo "ERROR" > result.txt
 else
     echo "SUCCESS" > result.txt
