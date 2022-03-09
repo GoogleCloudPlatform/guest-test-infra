@@ -434,7 +434,7 @@ local DebianImgPublishJob(image, env, workflow_dir) = imgpublishjob {
 local saptestjob = {
   local tl = self,
 
-  image:: error 'must be set',
+  image:: error 'image must be set in saptestjob',
 
   name: 'sap-workload-test-' + self.image,
 
@@ -449,10 +449,7 @@ local saptestjob = {
       task: 'generate-timestamp',
       file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
     },
-    {
-      load_var: 'id',
-      file: 'timestamp/timestamp-ms',
-    },
+    { load_var: 'id', file: 'timestamp/timestamp-ms' },
     {
       task: 'generate-post-script',
       config: {
