@@ -2,6 +2,9 @@ variable "instance_name" {}
 variable "linux_image" {
   default = ""
 }
+variable "linux_image_project" {
+  default = "bct-prod-images"
+}
 variable "post_deployment_script" {
   default = ""
 }
@@ -17,7 +20,7 @@ module "sap_hana" {
   machine_type = "n1-highmem-32"
   subnetwork = "default"
   linux_image = "${var.linux_image}"
-  linux_image_project = "bct-prod-images"
+  linux_image_project = "${var.linux_image_project}"
   instance_name = "${var.instance_name}"
   post_deployment_script = "${var.post_deployment_script}"
 }
