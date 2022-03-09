@@ -254,7 +254,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
           args: [
             'req',
             '-new',
-            '-key=./gcp-secret-manager/rhui_tls_key.pem',
+            '-key=./gcp-secret-manager/rhui_tls_key',
             '-subj=/CN=rhui.googlecloud.com',
             '-out=./gcp-secret-manager/thecsr.pem',
           ],
