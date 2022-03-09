@@ -424,9 +424,9 @@ local saptestjob = {
             '-exc',
             |||
               # We want to upload this actual script with the unique id
-              sed -i 's/__BUCKET__/test-bucket-for-terraform/g' sap_post_script.sh
+              sed -i 's/__BUCKET__/gcp-guest-test-outputs/g' sap_post_script.sh
               sed -i 's/__RUNID__/((.:id))/g' sap_post_script.sh
-              gsutil cp sap_post_script.sh gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/sap_post_script.sh
+              gsutil cp sap_post_script.sh gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/sap_post_script.sh
             |||,
           ],
         },
@@ -469,7 +469,7 @@ local saptestjob = {
             'apply',
             '-auto-approve',
             '-var=instance_name=hana-instance-((.:id))',
-            '-var=post_deployment_script=gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/sap_post_script.sh',
+            '-var=post_deployment_script=gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/sap_post_script.sh',
             '-var=linux_image=%(image)s-ha' % { image: tl.image },
           ],
         },
@@ -489,13 +489,13 @@ local saptestjob = {
           args: [
             '-exc',
             |||
-              until gsutil -q stat gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/run_result
+              until gsutil -q stat gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/run_result
               do
                 echo "Waiting for results..."
                 sleep 60
               done
 
-              gsutil cat gs://test-bucket-for-terraform/workload-tests/sap/((.:id))/run_result | grep -q "SUCCESS"
+              gsutil cat gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/run_result | grep -q "SUCCESS"
             |||,
           ],
         },
