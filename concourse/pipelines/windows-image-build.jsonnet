@@ -413,8 +413,8 @@ local ImgGroup(name, images) = {
     'windows-server-2004-dc-core',
   ],
   local windows_2012_images = [
-    'windows-server-2012-r2-dc',
-    'windows-server-2012-r2-dc-core',
+    'windows-server-2012r2-dc',
+    'windows-server-2012r2-dc-core',
   ],
   local windows_2016_images = [
     'windows-server-2016-dc',
