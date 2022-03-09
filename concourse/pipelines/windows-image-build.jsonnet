@@ -514,8 +514,8 @@ local ImgGroup(name, images) = {
           ImgBuildJob('windows-server-2019-dc-core', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
           ImgBuildJob('windows-server-2016-dc-core', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2012-r2-dc', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
-          ImgBuildJob('windows-server-2012-r2-dc-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2012r2-dc', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2012r2-dc-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
 
           // SQL derivative builds
 
