@@ -213,15 +213,15 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
     {
       task: 'get-acme-account-json',
       config: gcp_secret_manager.getsecrettask {
-        secret_name: 'rhui-acme-account-json',
+        secret_name: 'rhui_acme_account_json',
         project: rhui_project,
         output_path: 'accounts/%s/%s/account.json' % [acme_server, acme_email],
       },
     },
     {
-      task: 'get-rhui-tls-key',
+      task: 'get-acme-account-key',
       config: gcp_secret_manager.getsecrettask {
-        secret_name: 'rhui-tls-key',
+        secret_name: 'rhui_acme_account_key',
         project: rhui_project,
         output_path: 'accounts/%s/%s/keys/%s.key' % [acme_server, acme_email, acme_email],
 
@@ -230,25 +230,68 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
       },
     },
     {
-      task: 'lego-provision-tls-crt',
-      config: lego.legotask {
-        domains: ['rhui.googlecloud.com', 'staging-rhui.googlecloud.com'],
-        acme_server: acme_server,
-        email: acme_email,
+      task: 'get-rhui-tls-key',
+      config: gcp_secret_manager.getsecrettask {
+        secret_name: 'rhui_tls_key',
         project: rhui_project,
-        input: 'gcp-secret-manager',
+
+        // Layer onto the same output as previous task
+        inputs+: gcp_secret_manager.getsecrettask.outputs,
+      },
+    },
+    {
+      task: 'generate-csr',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'alpine/openssl' },
+        },
+        run: {
+          path: 'openssl',
+          args: [
+            'req',
+            '-new',
+            '-key=./gcp-secret-manager/rhui_tls_key.pem',
+            '-subj=/CN=rhui.googlecloud.com',
+            '-out=./gcp-secret-manager/thecsr.pem',
+          ],
+        },
+      },
+    },
+    {
+      task: 'lego-provision-tls-crt',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'goacme/lego' },
+        },
+        params: { GCE_PROJECT: rhui_project },
+        inputs: [{ name: 'gcp-secret-manager' }],
+        outputs: [{ name: 'gcp-secret-manager' }],
+        run: {
+          path: 'lego',
+          args: [
+            '--csr=./gcp-secret-manager/thecsr.pem',
+            '--email=' + acme_email,
+            '--server=https://%s/directory' % acme_server,
+            '--accept-tos',
+            '--eab',
+            '--dns.resolvers=ns-cloud-b2.googledomains.com:53',
+            '--dns=gcloud',
+            '--path=./gcp-secret-manager/',
+            'run',
+          ],
+        },
       },
     },
   ],
 
   // Append var to Daisy build task
   build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
-    inputs+: [
-      { name: 'gcp-secret-manager' },
-    ],
-    vars+: [
-      'tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt',
-    ],
+    inputs+: [{ name: 'gcp-secret-manager' }],
+    vars+: ['tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt'],
   },
 };
 
