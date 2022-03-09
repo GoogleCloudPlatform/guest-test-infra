@@ -456,7 +456,10 @@ local saptestjob = {
         platform: 'linux',
         image_resource: {
           type: 'registry-image',
-          source: { repository: 'google/cloud-sdk' },
+          source: {
+            repository: 'google/cloud-sdk',
+            tag: 'alpine',
+          },
         },
         inputs: [{ name: 'guest-test-infra' }],
         run: {
@@ -524,7 +527,10 @@ local saptestjob = {
         platform: 'linux',
         image_resource: {
           type: 'registry-image',
-          source: { repository: 'google/cloud-sdk' },
+          source: {
+            repository: 'google/cloud-sdk',
+            tag: 'alpine',
+          },
         },
         run: {
           path: 'sh',
