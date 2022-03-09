@@ -348,7 +348,7 @@ local imgpublishjob = {
           source_version: 'v((.:source-version))',
           publish_version: '((.:publish-version))',
           wf: job.workflow,
-          image_name: underscore(job.image),
+          image_name: job.image,
         },
       }
     else
@@ -392,7 +392,7 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   env: env,
   gcs_dir: gcs_dir,
 
-  workflow: '%s/%s' % [workflow_dir, underscore(image) + '-uefi.publish.json'],
+  workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
 
 local ImgGroup(name, images) = {
