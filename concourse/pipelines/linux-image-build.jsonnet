@@ -247,6 +247,8 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
           type: 'registry-image',
           source: { repository: 'alpine/openssl' },
         },
+        inputs: [{ name: 'gcp-secret-manager' }],
+        outputs: [{ name: 'gcp-secret-manager' }],
         run: {
           path: 'openssl',
           args: [
