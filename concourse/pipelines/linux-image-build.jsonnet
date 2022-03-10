@@ -248,7 +248,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
           source: { repository: 'alpine/openssl' },
         },
         inputs: [{ name: 'gcp-secret-manager' }],
-        outputs: [{ name: 'gcp-secret-manager' }],
+        outputs: [{ name: 'rhui-csr' }],
         run: {
           path: 'openssl',
           args: [
@@ -256,7 +256,7 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
             '-new',
             '-key=./gcp-secret-manager/rhui_tls_key',
             '-subj=/CN=rhui.googlecloud.com',
-            '-out=./gcp-secret-manager/thecsr.pem',
+            '-out=./rhui-csr/thecsr.pem',
           ],
         },
       },
@@ -270,12 +270,15 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
           source: { repository: 'goacme/lego' },
         },
         params: { GCE_PROJECT: rhui_project },
-        inputs: [{ name: 'gcp-secret-manager' }],
+        inputs: [
+          { name: 'gcp-secret-manager' },
+          { name: 'rhui-csr' },
+        ],
         outputs: [{ name: 'gcp-secret-manager' }],
         run: {
           path: 'lego',
           args: [
-            '--csr=./gcp-secret-manager/thecsr.pem',
+            '--csr=./rhui-csr/thecsr.pem',
             '--email=' + acme_email,
             '--server=https://%s/directory' % acme_server,
             '--accept-tos',
