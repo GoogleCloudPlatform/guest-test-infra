@@ -303,7 +303,7 @@ local imgpublishjob = {
   env:: error 'must set publish env in imgpublishjob',
   workflow:: error 'must set workflow in imgpublishjob',
   gcs_dir:: error 'must set gcs_dir in imgpublishjob',
-  gcs:: 'gs://%s%s' % [self.gcs_bucket, self.gcs_dir],
+  gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
 
