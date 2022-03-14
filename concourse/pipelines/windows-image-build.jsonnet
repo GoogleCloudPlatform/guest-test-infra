@@ -392,7 +392,7 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   env: env,
   gcs_dir: gcs_dir,
 
-  workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
+  workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish'],
 };
 
 local ImgGroup(name, images) = {
