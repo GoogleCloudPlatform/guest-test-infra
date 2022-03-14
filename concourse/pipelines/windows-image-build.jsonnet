@@ -409,9 +409,6 @@ local ImgGroup(name, images) = {
 
 // Start of output.
 {
-  local windows_2004_images = [
-    'windows-server-2004-dc-core',
-  ],
   local windows_2012_images = [
     'windows-server-2012-r2-dc',
     'windows-server-2012-r2-dc-core',
@@ -480,7 +477,7 @@ local ImgGroup(name, images) = {
     'windows-server-2019-dc-core-for-containers',
   ],
 
-  local windows_images = windows_2004_images + windows_2012_images + windows_2016_images + windows_2019_images
+  local windows_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2012_images + sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
 
@@ -514,7 +511,6 @@ local ImgGroup(name, images) = {
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
-          ImgBuildJob('windows-server-2004-dc-core', 'winserver-2004-64', 'windows_gcs_updates_sac2004'),
           ImgBuildJob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2019-dc-core', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
@@ -594,7 +590,6 @@ local ImgGroup(name, images) = {
         ],
 
   groups: [
-    ImgGroup('windows-2004', windows_2004_images),
     ImgGroup('windows-2012', windows_2012_images),
     ImgGroup('windows-2016', windows_2016_images),
     ImgGroup('windows-2019', windows_2019_images),
