@@ -351,7 +351,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - get: debian-10-worker-gcs
+  - get: debian-11-worker-arm64-gcs
     passed: [publish-to-staging-debian-11-worker-arm64]
     trigger: false
     params:
