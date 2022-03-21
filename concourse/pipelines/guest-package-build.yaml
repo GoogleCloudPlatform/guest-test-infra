@@ -170,11 +170,11 @@ jobs:
       - task: build-package-image-debian-11-arm64
         file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
         vars:
-          source-image: projects/debian-cloud/global/images/family/debian-11-arm64
+          source-image: projects/debian-cloud-testing/global/images/family/debian-11-arm64
           dest-image: debian-11-arm64-((.:build-id))
           gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb
           machine-type: t2a-standard-2
-          worker-image: projects/debian-cloud-testing/global/images/family/debian-11-arm64
+          worker-image: projects/compute-image-tools/global/images/family/debian-11-worker-arm64
       - task: build-package-image-centos-7
         file: guest-test-infra/concourse/tasks/daisy-build-package-image.yaml
         vars:
