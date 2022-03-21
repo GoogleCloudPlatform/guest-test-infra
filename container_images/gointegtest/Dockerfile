@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang
+FROM golang:1.13
 RUN go get -u github.com/jstemmer/go-junit-report
 
 FROM gcr.io/compute-image-tools/daisy:latest
