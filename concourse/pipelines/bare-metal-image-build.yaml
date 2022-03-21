@@ -20,29 +20,21 @@ resources:
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    json_key: |
-      ((gcs-key.credential))
     regexp: "rhel/rhel-7-metal-v([0-9]+).tar.gz"
 - name: rhel-8-metal-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    json_key: |
-      ((gcs-key.credential))
     regexp: "rhel/rhel-8-metal-v([0-9]+).tar.gz"
 - name: rhel-7-metal-dev-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    json_key: |
-      ((gcs-key.credential))
     regexp: "rhel/rhel-7-metal-dev-v([0-9]+).tar.gz"
 - name: rhel-8-metal-dev-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    json_key: |
-      ((gcs-key.credential))
     regexp: "rhel/rhel-8-metal-dev-v([0-9]+).tar.gz"
 
 jobs:
