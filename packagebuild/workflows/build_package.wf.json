@@ -31,6 +31,10 @@
     },
     "build_dir": {
       "Required": true
+    },
+    "machine_type": {
+      "Value": "e2-standard-2",
+      "Description": "machine type"
     }
   },
   "Steps": {
@@ -52,7 +56,7 @@
             "build-dir": "${build_dir}",
             "version": "${version}"
           },
-          "machineType": "e2-standard-2",
+          "machineType": "${machine_type}",
           "name": "inst-build-pkg",
           "StartupScript": "startup.sh",
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"]
