@@ -52,6 +52,14 @@ jobs:
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/guest-agent
           git_ref: ((.:commit-sha))
+      - task: guest-package-build-guest-agent-deb11-arm64
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: build_deb11_arm64.wf.json
+          repo-name: guest-agent
+          version: ((.:package-version))
+          gcs_path: gs://gcp-guest-package-uploads/guest-agent
+          git_ref: ((.:commit-sha))
       - task: guest-package-build-guest-agent-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -393,6 +401,14 @@ jobs:
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/oslogin
           git_ref: master
+      - task: guest-package-build-guest-oslogin-deb11-arm64
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: build_deb11_arm64.wf.json
+          repo-name: guest-oslogin
+          version: ((.:package-version))
+          gcs_path: gs://gcp-guest-package-uploads/oslogin
+          git_ref: master
       - task: guest-package-build-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
@@ -635,6 +651,14 @@ jobs:
         file: guest-test-infra/concourse/tasks/guest-package-build.yaml
         vars:
           wf: build_deb10.wf.json
+          repo-name: osconfig
+          version: ((.:package-version))
+          gcs_path: gs://gcp-guest-package-uploads/osconfig
+          git_ref: master
+      - task: guest-package-build-osconfig-deb11-arm64
+        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+        vars:
+          wf: build_deb11_arm64.wf.json
           repo-name: osconfig
           version: ((.:package-version))
           gcs_path: gs://gcp-guest-package-uploads/osconfig
@@ -1190,6 +1214,14 @@ jobs:
       repo-name: artifact-registry-apt-transport
       version: ((.:package-version))
       wf: build_deb9.wf.json
+  - task: guest-package-build-artifact-registry-apt-transport-deb11-arm64
+    file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+    vars:
+      gcs_path: gs://gcp-guest-package-uploads/apt-transport-artifact-registry
+      git_ref: main
+      repo-name: artifact-registry-apt-transport
+      version: ((.:package-version))
+      wf: build_deb11_arm64.wf.json
   - put: artifact-registry-apt-transport-tag
     params:
       name: package-version/version
