@@ -112,6 +112,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     BuildContainerImage('flake8'),
     BuildContainerImage('gobuild'),
     BuildContainerImage('gocheck'),
+    BuildContainerImage('cleanerupper'),
     BuildContainerImage('gointegtest'),
     BuildContainerImage('gotest'),
     BuildContainerImage('cli-tools-module-tests') { passed: 'build-gotest' },
