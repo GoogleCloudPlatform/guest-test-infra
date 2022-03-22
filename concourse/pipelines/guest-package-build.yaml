@@ -206,7 +206,6 @@ jobs:
         file: guest-test-infra/concourse/tasks/image-test-args.yaml
         vars:
           images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))
-          machine-type: e2-medium
           extra-args: "-exclude=(image)|(disk)|(security)|(oslogin)"
       - task: guest-agent-image-tests-arm64
         file: guest-test-infra/concourse/tasks/image-test-args.yaml
