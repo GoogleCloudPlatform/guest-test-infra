@@ -16,6 +16,11 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
+- name: windows-install-media-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    regexp: "windows-install-media/windows-install-media-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -31,6 +36,13 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "windows-install-media"
+  - put: windows-install-media-gcs
+    params:
+      file: build-id-dir/windows-install-media*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: windows-install-media-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
@@ -38,28 +50,26 @@ jobs:
   - task: daisy-build-windows-install-media
     file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
     vars:
-      wf: "debian/debian_10_worker.wf.json"
+      wf: "windows_media/windows-install-media.wf.json"
       gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
-      build_date: ((.:build-date))
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "build-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "build-windows-install-media"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "build-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "build-windows-install-media"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 # Publish jobs
-- name: publish-to-testing-debian-10-worker
+- name: publish-to-testing-windows-install-media
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
@@ -67,24 +77,24 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - get: debian-10-worker-gcs
-    passed: [build-debian-10-worker]
+  - get: windows-install-media-gcs
+    passed: [build-windows-install-media]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: debian-10-worker-gcs/version
+    file: windows-install-media-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-debian-10-worker
+  - task: publish-windows-install-media
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-install-media"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "debian/debian_10_worker.publish.json"
+      wf: "windows_media/windows-install-media.publish.json"
       environment: "test"
   on_success:
     task: success
