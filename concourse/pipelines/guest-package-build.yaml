@@ -199,11 +199,19 @@ jobs:
           gcs-package-path: gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
           machine-type: e2-medium
           worker-image: projects/compute-image-tools/global/images/family/debian-10-worker
-  - task: guest-agent-image-tests
-    file: guest-test-infra/concourse/tasks/image-test-args.yaml
-    vars:
-      images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))
-      extra-args: "-exclude=(image)|(disk)|(security)|(oslogin)"
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: guest-agent-image-tests-amd64
+        file: guest-test-infra/concourse/tasks/image-test-args.yaml
+        vars:
+          images: projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))
+          extra-args: "-exclude=(image)|(disk)|(security)|(oslogin)"
+      - task: guest-agent-image-tests-arm64
+        file: guest-test-infra/concourse/tasks/image-test-args.yaml
+        vars:
+          images: projects/gcp-guest/global/images/debian-11-arm64-((.:build-id))
+          extra-args: "-exclude=(image)|(disk)|(security)|(oslogin)"
   - in_parallel:
       fail_fast: true
       steps:
