@@ -35,6 +35,10 @@
     "machine_type": {
       "Value": "e2-standard-2",
       "Description": "machine type"
+    },
+    "zone": {
+      "Value": "us-central1-a",
+      "Description": "zone"
     }
   },
   "Steps": {
@@ -57,6 +61,7 @@
             "version": "${version}"
           },
           "machineType": "${machine_type}",
+          "zone": "${zone}",
           "name": "inst-build-pkg",
           "StartupScript": "startup.sh",
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"]
