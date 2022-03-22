@@ -32,7 +32,7 @@
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
           "build_dir": "${build_dir}",
-          "machine-type": "t2a-standard-2",
+          "machine_type": "t2a-standard-2",
           "version": "${version}"
         }
       }

@@ -103,7 +103,6 @@ jobs:
     vars:
       wf: "debian/debian_11_worker_arm64.wf.json"
       gcs_url: ((.:gcs-url))
-      google_cloud_repo: "stable"
       build_date: ((.:build-date))
   on_success:
     task: success
