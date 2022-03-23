@@ -100,19 +100,19 @@ jobs:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-testing-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-testing-windows-install-media"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-testing-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-testing-windows-install-media"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-- name: publish-to-staging-debian-10-worker
+- name: publish-to-staging-windows-install-media
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
@@ -120,42 +120,42 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - get: debian-10-worker-gcs
-    passed: [build-debian-10-worker]
+  - get: windows-install-media-gcs
+    passed: [build-windows-install-media]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: debian-10-worker-gcs/version
+    file: windows-install-media-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-debian-10-worker
+  - task: publish-windows-install-media
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-install-media"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "debian/debian_10_worker.publish.json"
+      wf: "windows_media/windows-install-media.publish.json"
       environment: "staging"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-staging-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-staging-windows-install-media"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-staging-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-staging-windows-install-media"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-- name: publish-to-prod-debian-10-worker
+- name: publish-to-prod-windows-install-media
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
@@ -163,40 +163,40 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - get: debian-10-worker-gcs
-    passed: [publish-to-staging-debian-10-worker]
+  - get: windows-install-media-gcs
+    passed: [publish-to-staging-windows-install-media]
     trigger: false
     params:
       skip_download: "true"
   - load_var: source-version
-    file: debian-10-worker-gcs/version
+    file: windows-install-media-gcs/version
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
-  - task: publish-debian-10-worker
+  - task: publish-windows-install-media
     file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/windows-install-media"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
-      wf: "debian/debian_10_worker.publish.json"
+      wf: "windows_media/windows-install-media.publish.json"
       release_notes: ""
-      image_name: "debian_10_worker"
+      image_name: "windows_install_media"
       topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-prod-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-prod-windows-install-media"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
     task: failure
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
-      pipeline: "debian-worker-image-build"
-      job: "publish-to-prod-debian-10-worker"
+      pipeline: "windows-install-media-image-build"
+      job: "publish-to-prod-windows-install-media"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
