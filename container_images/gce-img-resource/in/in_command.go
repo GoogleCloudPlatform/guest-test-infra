@@ -69,6 +69,9 @@ func Run(destinationDir string, request Request) (Response, error) {
 	if err := writeOutput(destinationDir, "name", request.Version.Name); err != nil {
 		return Response{}, err
 	}
+	if err := writeOutput(destinationDir, "status", image.Status); err != nil {
+		return Response{}, err
+	}
 	if err := writeOutput(destinationDir, "url", image.SelfLink); err != nil {
 		return Response{}, err
 	}
