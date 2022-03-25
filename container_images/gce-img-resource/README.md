@@ -63,3 +63,7 @@ Places the following files in the destination:
   version string from the image name.
 
 ### `out`: Create an image. **Not implemented**.
+
+[gce]: https://cloud.google.com/compute/
+[frodenas]: https://github.com/frodenas/gcs-resource
+[s3-resource]: https://github.com/concourse/s3-resource
