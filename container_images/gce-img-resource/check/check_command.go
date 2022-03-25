@@ -63,7 +63,11 @@ func Run(request Request) (Response, error) {
 	// - https://concourse-ci.org/implementing-resource-types.html
 
 	sort.Slice(images, func(i, j int) bool {
-		return images[i].CreationTimestamp < images[j].CreationTimestamp
+		// image.CreationTimestamp is a string in rfc3339 format.
+		itime, _ := time.Parse(time.RFC3339, images[i].CreationTimestamp)
+		jtime, _ := time.Parse(time.RFC3339, images[j].CreationTimestamp)
+
+		return itime.Unix() < jtime.Unix()
 	})
 
 	// No version specified, return only the latest image.
@@ -86,6 +90,9 @@ func Run(request Request) (Response, error) {
 		if image.Name == request.Version.Name {
 			// Start appending from the image after the matching version, aka 'newer'.
 			start = true
+			continue
+		}
+		if image.Deprecated != nil && image.Deprecated.State == "DEPRECATED" {
 			continue
 		}
 		if start {
