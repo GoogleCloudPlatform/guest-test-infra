@@ -141,6 +141,10 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       context: 'guest-test-infra',
       dockerfile: 'container_images/daisy-builder/Dockerfile',
     },
+    BuildContainerImage('gce-img-resource') {
+      context: 'guest-test-infra',
+      dockerfile: 'guest-test-infra/container_images/gce-img-resource/Dockerfile',
+    },
 
     // Builds outside g-t-i repo.
     buildcontainerimgjob {
