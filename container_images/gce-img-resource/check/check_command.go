@@ -3,6 +3,7 @@ package check
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	gceimgresource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/gce-img-resource"
@@ -42,22 +43,32 @@ func Run(request Request) (Response, error) {
 		call = call.Filter(fmt.Sprintf("family = %s", request.Source.Family))
 	}
 
-	var is []*compute.Image
-	var pt string
-	for il, err := call.PageToken(pt).Do(); ; il, err = call.PageToken(pt).Do() {
+	var images []*compute.Image
+	var token string
+	for il, err := call.PageToken(token).Do(); ; il, err = call.PageToken(token).Do() {
 		if err != nil {
 			return Response{}, err
 		}
-		is = append(is, il.Items...)
+		images = append(images, il.Items...)
 		if il.NextPageToken == "" {
 			break
 		}
-		pt = il.NextPageToken
+		token = il.NextPageToken
 	}
 
-	if request.Version.Name == "" && len(is) > 0 {
-		// No version specified, return only the latest image.
-		image := is[len(is)-1]
+	// "By default, results are returned in alphanumerical order based on the resource name."
+	// - https://cloud.google.com/compute/docs/reference/rest/v1/images/list
+
+	// "[the] check script...must print the array of new versions, in chronological order (oldest first)"
+	// - https://concourse-ci.org/implementing-resource-types.html
+
+	sort.Slice(images, func(i, j int) bool {
+		return images[i].CreationTimestamp < images[j].CreationTimestamp
+	})
+
+	// No version specified, return only the latest image.
+	if request.Version.Name == "" && len(images) > 0 {
+		image := images[len(images)-1]
 
 		version, err := mkVersion(image.Name, image.CreationTimestamp)
 		if err != nil {
@@ -67,14 +78,15 @@ func Run(request Request) (Response, error) {
 		return Response{version}, nil
 	}
 
-	// Use this for correct encoding of empty list.
-	response := Response{}
+	// Requested version must at least be included in the response.
+	response := Response{request.Version}
 
 	var start bool
-	for _, image := range is {
+	for _, image := range images {
 		if image.Name == request.Version.Name {
-			// Start appending from the matching version.
+			// Start appending from the image after the matching version, aka 'newer'.
 			start = true
+			continue
 		}
 		if start {
 			version, err := mkVersion(image.Name, image.CreationTimestamp)
