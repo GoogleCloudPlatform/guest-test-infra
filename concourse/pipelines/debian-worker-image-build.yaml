@@ -314,7 +314,7 @@ jobs:
   - task: publish-debian-10-worker
     file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/debian-worker"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_10_worker.publish.json"
@@ -359,7 +359,7 @@ jobs:
   - task: publish-debian-11-worker-arm64
     file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/debian-worker"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "debian/debian_11_worker_arm64.publish.json"
