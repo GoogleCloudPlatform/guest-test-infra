@@ -11,6 +11,7 @@ RUN chmod +x /assets/*
 
 FROM scratch AS resource
 COPY --from=builder assets/ /opt/resource/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY ./container_images/gce-img-resource/Dockerfile .
 
 FROM resource
