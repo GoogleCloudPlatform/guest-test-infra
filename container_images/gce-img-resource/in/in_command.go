@@ -69,9 +69,6 @@ func Run(destinationDir string, request Request) (Response, error) {
 	if err := writeOutput(destinationDir, "name", request.Version.Name); err != nil {
 		return Response{}, err
 	}
-	if err := writeOutput(destinationDir, "status", image.Status); err != nil {
-		return Response{}, err
-	}
 	if err := writeOutput(destinationDir, "url", image.SelfLink); err != nil {
 		return Response{}, err
 	}
@@ -88,6 +85,7 @@ func Run(destinationDir string, request Request) (Response, error) {
 			{Name: "creation_timestamp", Value: image.CreationTimestamp},
 			{Name: "description", Value: image.Description},
 			{Name: "image_id", Value: fmt.Sprintf("%d", image.Id)},
+			{Name: "status", Value: image.Status},
 			{Name: "url", Value: image.SelfLink},
 		},
 	}, nil
