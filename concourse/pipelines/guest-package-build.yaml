@@ -119,7 +119,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: inject-guest-agent-staging
+- name: inject-guest-agent-linux-staging
   plan:
   - in_parallel:
       steps:
@@ -235,28 +235,12 @@ jobs:
           repo: google-guest-agent-el9
         params:
           TYPE: uploadToStaging
-      - task: upload-compute-engine-windows
-        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
-        vars:
-          package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
-          universe: cloud-yuck
-          repo: google-compute-engine-windows
-        params:
-          TYPE: uploadToStaging
-      - task: upload-compute-engine-metadata-scripts
-        file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
-        vars:
-          package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
-          universe: cloud-yuck
-          repo: google-compute-engine-metadata-scripts
-        params:
-          TYPE: uploadToStaging
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "inject-guest-agent-staging"
+      job: "inject-guest-agent-linux-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -264,14 +248,112 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "inject-guest-agent-staging"
+      job: "inject-guest-agent-linux-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: promote-guest-agent-stable
+- name: inject-guest-agent-windows-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: guest-agent-tag
+        passed: [build-guest-agent]
+      - get: guest-test-infra
+      - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: guest-agent-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-compute-engine-windows
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-windows
+    params:
+      TYPE: uploadToStaging
+  - task: upload-compute-engine-metadata-scripts
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-metadata-scripts
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-guest-agent-windows-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-guest-agent-windows-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: inject-metadata-scripts-windows-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: guest-agent-tag
+        passed: [build-guest-agent]
+      - get: guest-test-infra
+      - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: guest-agent-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-compute-engine-metadata-scripts
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-metadata-scripts
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-metadata-scripts-windows-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-metadata-scripts-windows-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-guest-agent-linux-stable
   plan:
   - get: guest-agent-tag
-    passed: [inject-guest-agent-staging]
+    passed: [inject-guest-agent-linux-staging]
   - get: guest-agent
     params: {fetch_tags: true}
   - get: guest-test-infra
@@ -342,7 +424,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "promote-guest-agent-stable"
+      job: "promote-guest-agent-linux-stable"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -350,7 +432,119 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "promote-guest-agent-stable"
+      job: "promote-guest-agent-linux-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-guest-agent-windows-stable
+  plan:
+  - get: guest-agent-tag
+    passed: [inject-guest-agent-windows-staging]
+  - get: guest-agent
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: get-last-stable-date
+    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
+    input_mapping:
+      repo: guest-agent
+  - load_var: last-stable-date
+    file: last-stable-tag/date
+  - in_parallel:
+      - task: promote-guest-agent-windows-x64-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yuck
+          repo: google-compute-engine-windows
+          environment: stable
+  - task: publish-time-since-stable
+    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+    vars:
+      last_publish_date: ((.:last-stable-date))
+      package_name: "google-guest-agent"
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable  # file contains only the word 'stable'
+      tag: last-stable-tag/stable
+      commitish: guest-agent-tag/commit_sha
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
+      tag: last-stable-tag/stable-today
+      commitish: guest-agent-tag/commit_sha
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-windows-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-guest-agent-windows-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-metadata-scripts-windows-stable
+  plan:
+  - get: guest-agent-tag
+    passed: [inject-metadata-scripts-windows-staging]
+  - get: guest-agent
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: get-last-stable-date
+    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
+    input_mapping:
+      repo: guest-agent
+  - load_var: last-stable-date
+    file: last-stable-tag/date
+  - in_parallel:
+      - task: promote-guest-agent-windows-x64-stable
+        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+        vars:
+          universe: cloud-yuck
+          repo: google-compute-engine-metadata-scripts
+          environment: stable
+  - task: publish-time-since-stable
+    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+    vars:
+      last_publish_date: ((.:last-stable-date))
+      package_name: "google-guest-agent"
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable  # file contains only the word 'stable'
+      tag: last-stable-tag/stable
+      commitish: guest-agent-tag/commit_sha
+  - put: guest-agent-tag
+    params:
+      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
+      tag: last-stable-tag/stable-today
+      commitish: guest-agent-tag/commit_sha
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-metadata-scripts-windows-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-metadata-scripts-windows-stable"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
@@ -1503,8 +1697,12 @@ groups:
 - name: guest-agent
   jobs:
   - build-guest-agent
-  - inject-guest-agent-staging
-  - promote-guest-agent-stable
+  - inject-guest-agent-linux-staging
+  - promote-guest-agent-linux-stable
+  - inject-guest-agent-windows-staging
+  - promote-guest-agent-windows-stable
+  - inject-metadata-scripts-windows-staging
+  - promote-metadata-scripts-windows-stable
 - name: guest-oslogin
   jobs:
   - build-guest-oslogin
