@@ -1674,7 +1674,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: upload-certgen-windows-staging
+- name: upload-windows-certgen-staging
   plan:
   - in_parallel:
       steps:
@@ -1707,7 +1707,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-certgen-windows-staging"
+      job: "upload-windows-certgen-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1715,14 +1715,14 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-certgen-windows-staging"
+      job: "upload-windows-certgen-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-windows-certgen-stable
   plan:
   - get: compute-image-windows-tag
-    passed: [upload-certgen-windows-staging]
+    passed: [upload-windows-certgen-staging]
   - get: compute-image-windows
     params: {fetch_tags: true}
   - get: guest-test-infra
@@ -2180,6 +2180,12 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/compute-image-windows.git
     branch: master
+- name: compute-image-windows-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: compute-image-windows
+    access_token: ((github-token.token))
 
 groups:
 - name: guest-agent
@@ -2217,7 +2223,7 @@ groups:
   - promote-artifact-registry-apt-transport-stable
 - name: compute-image-windows
   jobs:
-  - build-computer-image-windows
+  - build-compute-image-windows
   - upload-windows-certgen-staging
   - upload-windows-auto-updater-staging
   - upload-windows-powershell-staging
