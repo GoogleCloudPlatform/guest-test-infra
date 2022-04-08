@@ -12,7 +12,7 @@ local common = import '../templates/common.libsonnet';
 
     platform: 'linux',
     image_resource: {
-      type: 'docker-image',
+      type: 'registry-image',
       source: { repository: 'gcr.io/compute-image-tools/gce_image_publish' },
     },
     inputs: [
@@ -47,7 +47,7 @@ local common = import '../templates/common.libsonnet';
 
       platform: 'linux',
       image_resource: {
-        type: 'docker-image',
+        type: 'registry-image',
         source: { repository: 'google/cloud-sdk', tag: 'alpine' },
       },
       inputs: [{ name: 'compute-image-tools' }],

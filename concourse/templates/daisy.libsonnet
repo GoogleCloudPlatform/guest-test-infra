@@ -17,7 +17,7 @@
     // Start of output.
     platform: 'linux',
     image_resource: {
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'gcr.io/compute-image-tools/daisy',
         tag: 'latest',
