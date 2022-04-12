@@ -9,45 +9,18 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
-local DebianGcsImgResource(image) = common.gcsimgresource {
-  image: image,
-  gcs_dir: 'debian/',
-  regexp: self.gcs_dir + common.debian_image_prefixes[self.image] + '-v([0-9]+).tar.gz',
+local imgbuildtask = daisy.daisyimagetask {
+  gcs_url: '((.:gcs-url))',
 };
 
-local GitResource(name) = common.GitResource(name);
-
-local ImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
-  vars+: [
-    'google_cloud_repo=stable',
-  ],
-  gcs_url: gcs_url,
-  workflow: workflow,
-};
-
-local ELImgBuildTask(workflow, gcs_url, installer_iso) = daisy.daisyimagetask {
-  vars+: [
-    'google_cloud_repo=stable',
-    'installer_iso=' + installer_iso,
-  ],
-  gcs_url: gcs_url,
-  workflow: workflow,
-};
-
-local RHUIImgBuildTask(workflow, gcs_url) = daisy.daisyimagetask {
-  vars+: [
-    'instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com',
-  ],
+local rhuiimgbuildtask = imgbuildtask {
+  project: 'google.com:rhel-infra',
+  vars+: ['instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com'],
 
   run+: {
     // Prepend, as the workflow must be the last arg. Daisy is picky.
     args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
   },
-
-  project: 'google.com:rhel-infra',
-
-  gcs_url: gcs_url,
-  workflow: workflow,
 };
 
 local imagetesttask = {
@@ -56,6 +29,7 @@ local imagetesttask = {
   images:: error 'must set images in imagetesttask',
   extra_args:: [],
 
+  // Start of task
   platform: 'linux',
   image_resource: {
     type: 'registry-image',
@@ -76,10 +50,14 @@ local imagetesttask = {
 local imgbuildjob = {
   local tl = self,
 
-  image:: '',
+  image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
-  workflow:: '',
-  build_task:: ImgBuildTask(self.workflow, '((.:gcs-url))'),
+  workflow_dir:: error 'must set workflow_dir in imgbuildjob',
+  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
+  build_task:: imgbuildtask {
+    workflow: tl.workflow,
+    vars+: ['google_cloud_repo=stable'],
+  },
   extra_tasks:: [],
   daily:: true,
   daily_task:: if self.daily then [
@@ -89,6 +67,7 @@ local imgbuildjob = {
     },
   ] else [],
 
+  // Start of job
   name: 'build-' + self.image,
   plan: tl.daily_task + [
     { get: 'compute-image-tools' },
@@ -104,9 +83,7 @@ local imgbuildjob = {
     {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: {
-        prefix: tl.image_prefix,
-      },
+      vars: { prefix: tl.image_prefix },
     },
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
     // Concourse to treat this job as producing it. So we write an empty file now, and overwrite it later in
@@ -159,56 +136,39 @@ local imgbuildjob = {
   },
 };
 
-local DebianImgBuildJob(image, workflow) = imgbuildjob {
-  image: image,
-  workflow: workflow,
-  image_prefix: common.debian_image_prefixes[image],
-};
+local elimgbuildjob = imgbuildjob {
+  local tl = self,
 
-local ELImgBuildJob(image, workflow) = imgbuildjob {
-  image: image,
-  workflow: workflow,
-
-  local isopath = if std.endsWith(image, '-sap') then
-    std.strReplace(image, '-sap', '')
-  else if std.endsWith(image, '-byos') then
-    std.strReplace(image, '-byos', '')
-  else
-    image,
+  workflow_dir: 'enterprise_linux',
+  isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
 
   // Add tasks to obtain ISO location and store it in .:iso-secret
   extra_tasks: [
     {
       task: 'get-secret-iso',
-      config: gcp_secret_manager.getsecrettask { secret_name: isopath },
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
     },
     {
       load_var: 'iso-secret',
-      file: 'gcp-secret-manager/' + isopath,
+      file: 'gcp-secret-manager/' + tl.isopath,
     },
   ],
 
-  // Override build_task with an EL specific task.
-  build_task: ELImgBuildTask(workflow, '((.:gcs-url))', '((.:iso-secret))'),
+  // Add EL args to build task.
+  build_task+: { vars+: ['installer_iso=((.:iso-secret))'] },
 };
 
-local RHUAImgBuildJob(image, workflow) = imgbuildjob {
-  image: image,
-  workflow: workflow,
-  daily: false,
+local cdsimgbuildjob = imgbuildjob {
+  local tl = self,
 
-  // Append var to Daisy image build task
-  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))'),
-};
-
-local CDSImgBuildJob(image, workflow) = imgbuildjob {
   local acme_server = 'dv.acme-v02.api.pki.goog',
   local acme_email = 'bigcluster-guest-team@google.com',
   local rhui_project = 'google.com:rhel-infra',
 
-  image: image,
-  workflow: workflow,
+  image: 'cds',
+  workflow_dir: 'rhui',
   daily: false,
+
   extra_tasks: [
     {
       task: 'get-acme-account-json',
@@ -294,7 +254,8 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
   ],
 
   // Append var to Daisy build task
-  build_task: RHUIImgBuildTask(workflow, '((.:gcs-url))') {
+  build_task: rhuiimgbuildtask {
+    workflow: tl.workflow,
     inputs+: [{ name: 'gcp-secret-manager' }],
     vars+: ['tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt'],
   },
@@ -303,18 +264,25 @@ local CDSImgBuildJob(image, workflow) = imgbuildjob {
 local imgpublishjob = {
   local tl = self,
 
-  env:: error 'must set publish env in template',
-  workflow:: self.workflow_dir + underscore(self.image) + '.publish.json',
-  workflow_dir:: error 'must set workflow_dir in template',
+  env:: error 'must set publish env in imgpublishjob',
+  workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(self.image)],
+  workflow_dir:: error 'must set workflow_dir in imgpublishjob',
 
-  image:: error 'must set image in template',
+  image:: error 'must set image in imgpublishjob',
   image_prefix:: self.image,
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
-  gcs_dir:: error 'must set gcs directory in template',
+  gcs_dir:: error 'must set gcs directory in imgpublishjob',
   gcs_bucket:: common.prod_bucket,
 
-  // Begin output of Concourse Task definition.
+  passed:: if tl.env == 'testing' then
+    'build-' + tl.image
+  else
+    'publish-to-testing-' + tl.image,
+
+  trigger:: if tl.env == 'testing' then true else false,
+
+  // Start of job.
   name: 'publish-to-%s-%s' % [tl.env, tl.image],
   plan: [
           { get: 'guest-test-infra' },
@@ -329,17 +297,9 @@ local imgpublishjob = {
           },
           {
             get: tl.image + '-gcs',
-            passed: [
-              if tl.env == 'testing' then
-                'build-' + tl.image
-              else
-                // Everyone else depends on testing. If this changes, we'll parameterize this field.
-                'publish-to-testing-' + tl.image,
-            ],
-            trigger: if tl.env == 'testing' then true else false,
-            params: {
-              skip_download: 'true',
-            },
+            passed: [tl.passed],
+            trigger: tl.trigger,
+            params: { skip_download: 'true' },
           },
           {
             load_var: 'source-version',
@@ -416,30 +376,12 @@ local imgpublishjob = {
   },
 };
 
-local ImgPublishJob(image, env, gcs_dir, workflow_dir) = imgpublishjob {
-  image: image,
-  env: env,
-  gcs_dir: gcs_dir,
-  workflow_dir: workflow_dir,
-};
-
-local DebianImgPublishJob(image, env, workflow_dir) = imgpublishjob {
-  image: image,
-  env: env,
-  gcs_dir: 'debian',
-  workflow_dir: workflow_dir,
-
-  // Debian tarballs and images use a longer name, but jobs use the shorter name.
-  image_prefix: common.debian_image_prefixes[image],
-};
-
-
 local saptestjob = {
   local tl = self,
 
-  image:: error 'image must be set in saptestjob',
+  image:: error 'must set image in saptestjob',
 
-  // Start of output.
+  // Start of job.
   name: 'sap-workload-test-' + self.image,
   plan: [
     {
@@ -575,15 +517,21 @@ local saptestjob = {
   ],
 };
 
-local ImgGroup(name, images) = {
-  name: name,
+local imggroup = {
+  local tl = self,
+
+  images:: error 'must set images in imggroup',
+  envs:: envs,
+
+  // Start of group.
+  name: error 'must set name in imggroup',
   jobs: [
     'build-' + image
-    for image in images
+    for image in tl.images
   ] + [
     'publish-to-%s-%s' % [env, image]
-    for env in envs
-    for image in images
+    for env in tl.envs
+    for image in tl.images
   ],
 };
 
@@ -605,6 +553,7 @@ local ImgGroup(name, images) = {
     'rhel-8-byos',
   ],
 
+  // Start of output.
   resource_types: [
     {
       name: 'gcs',
@@ -623,58 +572,72 @@ local ImgGroup(name, images) = {
                  type: 'time',
                  source: { interval: '24h' },
                },
-               common.GitResource('compute-image-tools'),
-               common.GitResource('guest-test-infra'),
-               common.GcsImgResource('almalinux-8', 'almalinux'),
-               common.GcsImgResource('rocky-linux-8', 'rocky-linux'),
-               common.GcsImgResource('rhua', 'rhui'),
-               common.GcsImgResource('cds', 'rhui'),
+               common.gitresource { name: 'compute-image-tools' },
+               common.gitresource { name: 'guest-test-infra' },
+               common.gcsimgresource { image: 'almalinux-8', gcs_dir: 'almalinux' },
+               common.gcsimgresource { image: 'rocky-linux-8', gcs_dir: 'rocky-linux' },
+               common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
+               common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
              ] +
              [
-               DebianGcsImgResource(image)
+               common.gcsimgresource {
+                 image: image,
+                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+               }
                for image in debian_images
              ] +
-             [
-               common.GcsImgResource(image, 'centos')
-               for image in centos_images
-             ] +
-             [
-               common.GcsImgResource(image, 'rhel')
-               for image in rhel_images
-             ],
+             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images],
   jobs: [
-          // Image build jobs
-          DebianImgBuildJob('debian-9', 'debian/debian_9.wf.json'),
-          DebianImgBuildJob('debian-10', 'debian/debian_10.wf.json'),
-          DebianImgBuildJob('debian-11', 'debian/debian_11.wf.json'),
-          DebianImgBuildJob('debian-11-arm64', 'debian/debian_11_arm64.wf.json'),
-          ELImgBuildJob('rhel-7', 'enterprise_linux/rhel_7.wf.json'),
-          ELImgBuildJob('rhel-8', 'enterprise_linux/rhel_8.wf.json'),
-          ELImgBuildJob('rhel-7-byos', 'enterprise_linux/rhel_7_byos.wf.json'),
-          ELImgBuildJob('rhel-8-byos', 'enterprise_linux/rhel_8_byos.wf.json'),
-          ELImgBuildJob('rhel-7-6-sap', 'enterprise_linux/rhel_7_6_sap.wf.json'),
-          ELImgBuildJob('rhel-7-7-sap', 'enterprise_linux/rhel_7_7_sap.wf.json'),
-          ELImgBuildJob('rhel-7-9-sap', 'enterprise_linux/rhel_7_9_sap.wf.json'),
-          ELImgBuildJob('rhel-8-1-sap', 'enterprise_linux/rhel_8_1_sap.wf.json'),
-          ELImgBuildJob('rhel-8-2-sap', 'enterprise_linux/rhel_8_2_sap.wf.json'),
-          ELImgBuildJob('rhel-8-4-sap', 'enterprise_linux/rhel_8_4_sap.wf.json'),
-          ELImgBuildJob('centos-7', 'enterprise_linux/centos_7.wf.json'),
-          ELImgBuildJob('centos-stream-8', 'enterprise_linux/centos_stream_8.wf.json'),
-          ELImgBuildJob('centos-stream-9', 'enterprise_linux/centos_stream_9.wf.json'),
-          ELImgBuildJob('almalinux-8', 'enterprise_linux/almalinux_8.wf.json'),
-          ELImgBuildJob('rocky-linux-8', 'enterprise_linux/rocky_linux_8.wf.json'),
-          RHUAImgBuildJob('rhua', 'rhui/rhua.wf.json'),
-          CDSImgBuildJob('cds', 'rhui/cds.wf.json'),
+          // Debian build jobs
+          imgbuildjob {
+            image: image,
+            workflow_dir: 'debian',
+            image_prefix: common.debian_image_prefixes[image],
+          }
+          for image in debian_images
+        ] +
+        [
+          // EL build jobs
+          elimgbuildjob { image: image }
+          for image in rhel_images + centos_images + ['almalinux-8', 'rocky-linux-8']
+        ] +
+        [
+          // RHUI build jobs.
+          imgbuildjob {
+            local tl = self,
+
+            image: 'rhua',
+            workflow_dir: 'rhui',
+            daily: false,
+
+            // Append var to Daisy image build task
+            build_task: rhuiimgbuildtask { workflow: tl.workflow },
+          },
+          cdsimgbuildjob,
         ] +
         [
           // Debian publish jobs
-          DebianImgPublishJob(image, env, 'debian/')
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'debian',
+            workflow_dir: 'debian',
+
+            // Debian tarballs and images use a longer name, but jobs use the shorter name.
+            image_prefix: common.debian_image_prefixes[image],
+          }
           for env in envs
           for image in debian_images
         ] +
         [
           // RHEL publish jobs
-          ImgPublishJob(image, env, 'rhel', 'enterprise_linux/')
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+          }
           for env in envs
           for image in rhel_images
         ] +
@@ -685,31 +648,57 @@ local ImgGroup(name, images) = {
         ] +
         [
           // CentOS publish jobs
-          ImgPublishJob(image, env, 'centos', 'enterprise_linux/')
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'centos',
+            workflow_dir: 'enterprise_linux',
+          }
           for env in envs
           for image in centos_images
         ] +
         [
-          ImgPublishJob('almalinux-8', env, 'almalinux', 'enterprise_linux/')
+          imgpublishjob {
+            image: 'almalinux-8',
+            env: env,
+            gcs_dir: 'almalinux',
+            workflow_dir: 'enterprise_linux',
+          }
           for env in envs
         ] +
         [
-          ImgPublishJob('rocky-linux-8', env, 'rocky-linux', 'enterprise_linux/')
+          imgpublishjob {
+            image: 'rocky-linux-8',
+            env: env,
+            gcs_dir: 'rocky-linux',
+            workflow_dir: 'enterprise_linux',
+          }
           for env in envs
+        ] +
+        [
+          imgpublishjob {
+            image: image,
+            env: 'prod',
+            gcs_dir: 'rhui',
+            workflow_dir: 'rhui',
+            passed: 'build-' + image,
+          }
+          for image in ['cds', 'rhua']
         ],
   groups: [
-    ImgGroup('debian', debian_images),
-    ImgGroup('rhel', rhel_images) + {
+    imggroup { name: 'debian', images: debian_images },
+    imggroup {
+      name: 'rhel',
+      images: rhel_images,
       jobs+:
         [
           'sap-workload-test-%s' % [image]
           for image in rhel_sap_images
         ],
     },
-    ImgGroup('centos', centos_images),
-    ImgGroup('almalinux', ['almalinux-8']),
-    ImgGroup('rocky-linux', ['rocky-linux-8']),
-    // No publish jobs yet, can't use ImgGroup function.
-    { name: 'rhui', jobs: ['build-rhua', 'build-cds'] },
+    imggroup { name: 'centos', images: centos_images },
+    imggroup { name: 'almalinux', images: ['almalinux-8'] },
+    imggroup { name: 'rocky-linux', images: ['rocky-linux-8'] },
+    imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['prod'] },
   ],
 }

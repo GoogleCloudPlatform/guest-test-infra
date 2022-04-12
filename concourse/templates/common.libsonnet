@@ -31,8 +31,12 @@
   gcsimgresource:: {
     local resource = self,
 
-    regexp:: '%s/%s-v([0-9]+).tar.gz' % [self.gcs_dir, self.image],
-    gcs_dir:: error 'must set gcs_dir in gcsimgresource template',
+    regexp:: if self.gcs_dir != '' then
+      '%s/%s-v([0-9]+).tar.gz' % [self.gcs_dir, self.image]
+    else
+      error 'must set regexp or gcs_dir in gcsimgresource',
+
+    gcs_dir:: '',
     image:: error 'must set image in gcsimgresource template',
     bucket:: tl.prod_bucket,
 
