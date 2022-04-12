@@ -97,11 +97,11 @@ jobs:
       name: package-version/version
       tag: package-version/version
       commitish: guest-agent/.git/ref
-  - task: guest-agent-publish-coverage
-    file: guest-test-infra/concourse/tasks/publish-coverage.yaml
-    vars:
-      package_name: "google-guest-agent"
-      coverage_percent: ((.:coverage-percent))
+#  - task: guest-agent-publish-coverage
+#    file: guest-test-infra/concourse/tasks/publish-coverage.yaml
+#    vars:
+#      package_name: "google-guest-agent"
+#      coverage_percent: ((.:coverage-percent))
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
