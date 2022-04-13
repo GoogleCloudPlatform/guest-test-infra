@@ -29,10 +29,8 @@ jobs:
         - replace
         - --quiet
         - rhua-mig-staging-us-west1
-        - --region
-        - us-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-rhua
   - config:
@@ -51,10 +49,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - rhua-mig-staging-us-west1
-        - --region
-        - us-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-rhua
   - config:
@@ -73,10 +69,8 @@ jobs:
         - replace
         - --quiet
         - cds-mig-staging-us-west1
-        - --region
-        - us-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-cds
   - config:
@@ -95,10 +89,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - cds-mig-staging-us-west1
-        - --region
-        - us-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-cds
 - name: wave-1
@@ -137,10 +129,8 @@ jobs:
         - replace
         - --quiet
         - rhua-mig-prod-europe-west1
-        - --region
-        - europe-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-rhua
   - config:
@@ -159,10 +149,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - rhua-mig-prod-europe-west1
-        - --region
-        - europe-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-rhua
   - config:
@@ -181,10 +169,8 @@ jobs:
         - replace
         - --quiet
         - cds-mig-prod-europe-west1
-        - --region
-        - europe-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-cds
   - config:
@@ -203,10 +189,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - cds-mig-prod-europe-west1
-        - --region
-        - europe-west1
-        - --project
-        - google.com:rhel-infra
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-cds
 - name: deploy-prod-us-central1
@@ -235,10 +219,8 @@ jobs:
         - replace
         - --quiet
         - rhua-mig-prod-us-central1
-        - --region
-        - us-central1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-central1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-rhua
   - config:
@@ -257,10 +239,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - rhua-mig-prod-us-central1
-        - --region
-        - us-central1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-central1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-rhua
   - config:
@@ -279,10 +259,8 @@ jobs:
         - replace
         - --quiet
         - cds-mig-prod-us-central1
-        - --region
-        - us-central1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-central1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-cds
   - config:
@@ -301,10 +279,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - cds-mig-prod-us-central1
-        - --region
-        - us-central1
-        - --project
-        - google.com:rhel-infra
+        - --region=us-central1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-cds
 - name: deploy-prod-asia-southeast1
@@ -333,10 +309,8 @@ jobs:
         - replace
         - --quiet
         - rhua-mig-prod-asia-southeast1
-        - --region
-        - asia-southeast1
-        - --project
-        - google.com:rhel-infra
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-rhua
   - config:
@@ -355,10 +329,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - rhua-mig-prod-asia-southeast1
-        - --region
-        - asia-southeast1
-        - --project
-        - google.com:rhel-infra
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-rhua
   - config:
@@ -377,10 +349,8 @@ jobs:
         - replace
         - --quiet
         - cds-mig-prod-asia-southeast1
-        - --region
-        - asia-southeast1
-        - --project
-        - google.com:rhel-infra
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: deploy-cds
   - config:
@@ -399,10 +369,8 @@ jobs:
         - --version-target-reached
         - --quiet
         - cds-mig-prod-asia-southeast1
-        - --region
-        - asia-southeast1
-        - --project
-        - google.com:rhel-infra
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
         path: gcloud
     task: wait-cds
 resource_types:
@@ -412,6 +380,7 @@ resource_types:
   type: registry-image
 - name: gce-img
   source:
+    google_auth: true
     repository: gcr.io/gcp-guest/gce-img-resource
   type: registry-image-private
 resources:
