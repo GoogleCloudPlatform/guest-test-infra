@@ -1636,17 +1636,14 @@ jobs:
     input_mapping: {repo: compute-image-windows}
   - load_var: package-version
     file: package-version/version
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - task: guest-package-build-compute-image-windows-goo
-        file: guest-test-infra/concourse/tasks/guest-package-build.yaml
-        vars:
-          wf: build_goo.wf.json
-          repo-name: compute-image-windows
-          version: ((.:package-version))
-          gcs_path: gs://gcp-guest-package-uploads/compute-image-windows
-          git_ref: ((.:commit-sha))
+  - task: guest-package-build-compute-image-windows-goo
+    file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+    vars:
+      wf: build_goo.wf.json
+      repo-name: compute-image-windows
+      version: ((.:package-version))
+      gcs_path: gs://gcp-guest-package-uploads/compute-image-windows
+      git_ref: ((.:commit-sha))
   - put: compute-image-windows-tag
     params:
       name: package-version/version
@@ -1730,34 +1727,12 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-last-stable-date
-    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
-    input_mapping:
-      repo: compute-image-windows
-  - load_var: last-stable-date
-    file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-certgen-windows-x64-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: certgen
-          environment: stable
-  - task: publish-time-since-stable
-    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+  - task: promote-certgen-windows-x64-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
     vars:
-      last_publish_date: ((.:last-stable-date))
-      package_name: "google-certgen"
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable  # file contains only the word 'stable'
-      tag: last-stable-tag/stable
-      commitish: compute-image-windows-tag/commit_sha
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
-      tag: last-stable-tag/stable-today
-      commitish: compute-image-windows-tag/commit_sha
+      universe: cloud-yuck
+      repo: certgen
+      environment: stable
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -1831,34 +1806,12 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-last-stable-date
-    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
-    input_mapping:
-      repo: compute-image-windows
-  - load_var: last-stable-date
-    file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-windows-auto-updater-to-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: google-compute-engine-auto-updater
-          environment: stable
-  - task: publish-time-since-stable
-    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+  - task: promote-windows-auto-updater-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
     vars:
-      last_publish_date: ((.:last-stable-date))
-      package_name: "google-compute-engine-auto-updater"
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable  # file contains only the word 'stable'
-      tag: last-stable-tag/stable
-      commitish: compute-image-windows-tag/commit_sha
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
-      tag: last-stable-tag/stable-today
-      commitish: compute-image-windows-tag/commit_sha
+      universe: cloud-yuck
+      repo: google-compute-engine-auto-updater
+      environment: stable
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -1932,34 +1885,12 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-last-stable-date
-    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
-    input_mapping:
-      repo: compute-image-windows
-  - load_var: last-stable-date
-    file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-windows-powershell-to-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: google-compute-engine-powershell
-          environment: stable
-  - task: publish-time-since-stable
-    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+  - task: promote-windows-powershell-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
     vars:
-      last_publish_date: ((.:last-stable-date))
-      package_name: "google-compute-engine-powershell"
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable  # file contains only the word 'stable'
-      tag: last-stable-tag/stable
-      commitish: compute-image-windows-tag/commit_sha
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
-      tag: last-stable-tag/stable-today
-      commitish: compute-image-windows-tag/commit_sha
+      universe: cloud-yuck
+      repo: google-compute-engine-powershell
+      environment: stable
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -2033,34 +1964,12 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
-  - task: get-last-stable-date
-    file: guest-test-infra/concourse/tasks/get-last-stable-tag.yaml
-    input_mapping:
-      repo: compute-image-windows
-  - load_var: last-stable-date
-    file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-windows-sysprep-to-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: google-compute-engine-sysprep
-          environment: stable
-  - task: publish-time-since-stable
-    file: guest-test-infra/concourse/tasks/publish-time-since.yaml
+  - task: promote-windows-sysprep-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
     vars:
-      last_publish_date: ((.:last-stable-date))
-      package_name: "google-compute-engine-sysprep"
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable  # file contains only the word 'stable'
-      tag: last-stable-tag/stable
-      commitish: compute-image-windows-tag/commit_sha
-  - put: compute-image-windows-tag
-    params:
-      name: last-stable-tag/stable-today  # file contains 'stable-YYYYMMDD'
-      tag: last-stable-tag/stable-today
-      commitish: compute-image-windows-tag/commit_sha
+      universe: cloud-yuck
+      repo: google-compute-engine-sysprep
+      environment: stable
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
