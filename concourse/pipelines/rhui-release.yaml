@@ -22,9 +22,18 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet rhua-mig-staging-us-west1 --region=us-west1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet rhua-mig-staging-us-west1 --region=us-west1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - rhua-mig-staging-us-west1
+        - --region
+        - us-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-rhua
   - config:
       image_resource:
@@ -35,11 +44,64 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet cds-mig-staging-us-west1 --region=us-west1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet cds-mig-staging-us-west1 --region=us-west1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - rhua-mig-staging-us-west1
+        - --region
+        - us-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-rhua
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - cds-mig-staging-us-west1
+        - --region
+        - us-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-cds
-- name: wave-0-finished
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - cds-mig-staging-us-west1
+        - --region
+        - us-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-cds
+- name: wave-1
   plan:
   - get: cds-image
     passed:
@@ -53,11 +115,11 @@ jobs:
   plan:
   - get: cds-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - get: rhua-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - config:
       image_resource:
@@ -68,9 +130,18 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet rhua-mig-prod-europe-west1 --region=europe-west1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet rhua-mig-prod-europe-west1 --region=europe-west1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - rhua-mig-prod-europe-west1
+        - --region
+        - europe-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-rhua
   - config:
       image_resource:
@@ -81,19 +152,72 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet cds-mig-prod-europe-west1 --region=europe-west1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet cds-mig-prod-europe-west1 --region=europe-west1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - rhua-mig-prod-europe-west1
+        - --region
+        - europe-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-rhua
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - cds-mig-prod-europe-west1
+        - --region
+        - europe-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-cds
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - cds-mig-prod-europe-west1
+        - --region
+        - europe-west1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-cds
 - name: deploy-prod-us-central1
   plan:
   - get: cds-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - get: rhua-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - config:
       image_resource:
@@ -104,9 +228,18 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet rhua-mig-prod-us-central1 --region=us-central1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet rhua-mig-prod-us-central1 --region=us-central1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - rhua-mig-prod-us-central1
+        - --region
+        - us-central1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-rhua
   - config:
       image_resource:
@@ -117,19 +250,72 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet cds-mig-prod-us-central1 --region=us-central1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet cds-mig-prod-us-central1 --region=us-central1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - rhua-mig-prod-us-central1
+        - --region
+        - us-central1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-rhua
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - cds-mig-prod-us-central1
+        - --region
+        - us-central1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-cds
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - cds-mig-prod-us-central1
+        - --region
+        - us-central1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-cds
 - name: deploy-prod-asia-southeast1
   plan:
   - get: cds-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - get: rhua-image
     passed:
-    - wave-0-finished
+    - wave-1
     trigger: true
   - config:
       image_resource:
@@ -140,9 +326,18 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet rhua-mig-prod-asia-southeast1 --region=asia-southeast1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet rhua-mig-prod-asia-southeast1 --region=asia-southeast1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - rhua-mig-prod-asia-southeast1
+        - --region
+        - asia-southeast1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-rhua
   - config:
       image_resource:
@@ -153,15 +348,72 @@ jobs:
       platform: linux
       run:
         args:
-        - -exc
-        - gcloud compute instance-groups managed rolling-action replace --quiet cds-mig-prod-asia-southeast1 --region=asia-southeast1 --project=google.com:rhel-infra; gcloud compute instance-groups managed wait-until --version-target-reached --quiet cds-mig-prod-asia-southeast1 --region=asia-southeast1 --project=google.com:rhel-infra;
-        path: sh
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - rhua-mig-prod-asia-southeast1
+        - --region
+        - asia-southeast1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-rhua
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - rolling-action
+        - replace
+        - --quiet
+        - cds-mig-prod-asia-southeast1
+        - --region
+        - asia-southeast1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
     task: deploy-cds
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --version-target-reached
+        - --quiet
+        - cds-mig-prod-asia-southeast1
+        - --region
+        - asia-southeast1
+        - --project
+        - google.com:rhel-infra
+        path: gcloud
+    task: wait-cds
 resource_types:
+- name: registry-image-private
+  source:
+    repository: gcr.io/compute-image-tools/registry-image-forked
+  type: registry-image
 - name: gce-img
   source:
     repository: gcr.io/gcp-guest/gce-img-resource
-  type: registry-image
+  type: registry-image-private
 resources:
 - name: cds-image
   source:
