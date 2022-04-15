@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.13-alpine as builder
+FROM golang:1.17-alpine as builder
 
 WORKDIR /build
 COPY . .
@@ -23,10 +23,10 @@ ENV GOOS linux
 ENV GO111MODULE on
 
 RUN go mod download
-RUN go build -o /out/wrapper.amd64 ./imagetest/cmd/wrapper/main.go
-RUN GOARCH=arm64 go build -o /out/wrapper.arm64 ./imagetest/cmd/wrapper/main.go
-RUN go build -o /out/manager ./imagetest/cmd/manager/main.go
-RUN cd imagetest/test_suites; for suite in *; do \
+RUN go build -o /out/wrapper.amd64 ./cmd/wrapper/main.go
+RUN GOARCH=arm64 go build -o /out/wrapper.arm64 ./cmd/wrapper/main.go
+RUN go build -o /out/manager ./cmd/manager/main.go
+RUN cd test_suites; for suite in *; do \
   [[ -d $suite ]] || continue; \
   cd $suite; \
   go test -c -tags cit || exit 1; \
