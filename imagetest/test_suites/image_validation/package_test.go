@@ -40,7 +40,7 @@ func TestGuestPackages(t *testing.T) {
 		t.Fatalf("couldn't determine image from metadata")
 	}
 	cmdPrefix := []string{"rpm", "-q", "--queryformat", "'%{NAME}\n'"}
-	if strings.Contains(image, "debian") {
+	if strings.Contains(image, "debian") || strings.Contains(image, "ubuntu") {
 		cmdPrefix = []string{"dpkg-query", "-W", "--showformat", "'${Package}\n'"}
 	}
 	packages := []string{"google-guest-agent", "google-osconfig-agent"}
