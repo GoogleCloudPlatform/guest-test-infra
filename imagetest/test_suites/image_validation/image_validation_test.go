@@ -52,6 +52,10 @@ func TestCustomHostname(t *testing.T) {
 		// No dhclient and no dhclient exit hook.
 		t.Skip("Custom hostnames not supported on SLES")
 	}
+	if strings.Contains(image, "ubuntu") {
+		// No dhclient and no dhclient exit hook.
+		t.Skip("Custom hostnames not supported on Ubuntu")
+	}
 
 	TestFQDN(t)
 }
@@ -64,7 +68,7 @@ func TestFQDN(t *testing.T) {
 	}
 
 	if strings.Contains(image, "rhel-7-4-sap") {
-		t.Skip("hostname is not working well on RHEL 7-4-Sap")
+		t.Skip("hostname is not working well on RHEL 7.4 for SAP")
 	}
 
 	metadataHostname, err := utils.GetMetadata("hostname")
@@ -180,6 +184,10 @@ func TestHostsFile(t *testing.T) {
 	if strings.Contains(image, "sles") {
 		// SLES does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on SLES")
+	}
+	if strings.Contains(image, "ubuntu") {
+		// Ubuntu does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on Ubuntu")
 	}
 
 	b, err := ioutil.ReadFile("/etc/hosts")

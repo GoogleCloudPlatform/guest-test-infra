@@ -128,6 +128,11 @@ func TestPasswordSecurity(t *testing.T) {
 		// SLES ships with "PermitRootLogin yes" in SSHD config.
 		t.Skip("Not supported on SLES")
 	}
+	if strings.Contains(image, "ubuntu") {
+		// Ubuntu doesn't set this option, but Ubuntu sshd defaults to prohibit-password
+		// TODO: find a way to determine the default so we can support 'not set' generally.
+		return
+	}
 
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)

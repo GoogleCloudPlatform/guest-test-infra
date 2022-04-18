@@ -38,6 +38,7 @@ var licenseNames = []string{
 	"MIT",
 	"MIT license",
 	"MIT/X11 (BSD like)",
+	"MPL-2.0",
 	"no notice",
 	"noderivs",
 	"none",
@@ -126,6 +127,7 @@ var licenses = []string{
 	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
 	`arping: GPL v2 or later`,      // iputils has a license summary file
 	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
+	`This is the Python license. In short, you can use this product in commercial and non-commercial applications`,
 }
 
 const (
