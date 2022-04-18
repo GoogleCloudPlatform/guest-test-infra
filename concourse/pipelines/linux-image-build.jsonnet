@@ -19,7 +19,7 @@ local rhuiimgbuildtask = imgbuildtask {
 
   run+: {
     // Prepend, as the workflow must be the last arg. Daisy is picky.
-    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
+    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/', '-rollout_rate=0'] + super.args,
   },
 };
 
@@ -576,6 +576,7 @@ local imggroup = {
                common.gitresource { name: 'guest-test-infra' },
                common.gcsimgresource { image: 'almalinux-8', gcs_dir: 'almalinux' },
                common.gcsimgresource { image: 'rocky-linux-8', gcs_dir: 'rocky-linux' },
+               common.gcsimgresource { image: 'rocky-linux-optimized-gcp-8', gcs_dir: 'rocky-linux' },
                common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
                common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
              ] +
@@ -601,6 +602,10 @@ local imggroup = {
           // EL build jobs
           elimgbuildjob { image: image }
           for image in rhel_images + centos_images + ['almalinux-8', 'rocky-linux-8']
+        ] +
+        [
+          // GCP-optimized Rocky image uses the same ISO as base rocky.
+          elimgbuildjob { image: 'rocky-linux-optimized-gcp-8', isopath: 'rocky-linux-8' },
         ] +
         [
           // RHUI build jobs.
@@ -668,11 +673,12 @@ local imggroup = {
         ] +
         [
           imgpublishjob {
-            image: 'rocky-linux-8',
+            image: image,
             env: env,
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
           }
+          for image in ['rocky-linux-8', 'rocky-linux-optimized-gcp-8']
           for env in envs
         ] +
         [
@@ -697,7 +703,7 @@ local imggroup = {
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: ['almalinux-8'] },
-    imggroup { name: 'rocky-linux', images: ['rocky-linux-8'] },
+    imggroup { name: 'rocky-linux', images: ['rocky-linux-8', 'rocky-linux-optimized-gcp-8'] },
     imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['testing'] },
   ],
 }
