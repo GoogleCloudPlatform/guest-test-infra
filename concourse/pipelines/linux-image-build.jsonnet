@@ -678,10 +678,9 @@ local imggroup = {
         [
           imgpublishjob {
             image: image,
-            env: 'prod',
+            env: 'testing',
             gcs_dir: 'rhui',
             workflow_dir: 'rhui',
-            passed: 'build-' + image,
           }
           for image in ['cds', 'rhua']
         ],
@@ -699,6 +698,6 @@ local imggroup = {
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: ['almalinux-8'] },
     imggroup { name: 'rocky-linux', images: ['rocky-linux-8'] },
-    imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['prod'] },
+    imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['testing'] },
   ],
 }
