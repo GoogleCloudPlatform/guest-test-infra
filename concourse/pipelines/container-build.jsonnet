@@ -95,7 +95,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
   }],
   resources: [
     common.GitResource('guest-test-infra'),
-    common.GitResource('compute-image-tools'),
+    //common.GitResource('compute-image-tools'),
     {
       name: 'compute-image-tools-trigger',
       type: 'git',
@@ -146,7 +146,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     },
 
     // TODO: this is built like daisy, with multi-platform binaries in GCS. Currently being built by CB in
-    // compute-image-tools.
+    // compute-image-tools project.
     //    buildcontainerimgjob {
     //      destination: 'gcr.io/compute-image-tools/gce_image_publish',
     //      dockerfile: 'gce_image_publish.Dockerfile',
