@@ -19,7 +19,7 @@ local rhuiimgbuildtask = imgbuildtask {
 
   run+: {
     // Prepend, as the workflow must be the last arg. Daisy is picky.
-    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/', '-rollout_rate=0'] + super.args,
+    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
   },
 };
 
