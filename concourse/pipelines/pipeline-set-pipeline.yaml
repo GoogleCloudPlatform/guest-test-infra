@@ -41,3 +41,5 @@ jobs:
     file: guest-test-infra/concourse/pipelines/rhui-release.yaml
   - set_pipeline: artifact-releaser-autopush
     file: guest-test-infra/concourse/pipelines/artifact-releaser-autopush.yaml
+  - set_pipeline: partner-image-validations
+    file: rendered/partner-image-validations.json
