@@ -8,10 +8,10 @@ jobs:
 - name: deploy-staging-us-west1
   plan:
   - get: cds-image
-    passed: [ ]
+    passed: [manual-trigger]
     trigger: true
   - get: rhua-image
-    passed: [ ]
+    passed: [manual-trigger]
     trigger: true
   - config:
       image_resource:
