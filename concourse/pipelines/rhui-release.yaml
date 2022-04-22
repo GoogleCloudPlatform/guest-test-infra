@@ -34,7 +34,7 @@ jobs:
         - --region=us-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-rhua
+    task: rhua-start-rolling-update
   - config:
       image_resource:
         source:
@@ -54,7 +54,27 @@ jobs:
         - --region=us-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-rhua
+    task: rhua-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - rhua-mig-staging-us-west1
+        - --region=us-west1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: rhua-wait-for-stable
   - config:
       image_resource:
         source:
@@ -74,7 +94,7 @@ jobs:
         - --region=us-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-cds
+    task: cds-start-rolling-update
   - config:
       image_resource:
         source:
@@ -94,7 +114,27 @@ jobs:
         - --region=us-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-cds
+    task: cds-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - cds-mig-staging-us-west1
+        - --region=us-west1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: cds-wait-for-stable
 - name: wave-1
   plan:
   - get: cds-image
@@ -134,7 +174,7 @@ jobs:
         - --region=europe-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-rhua
+    task: rhua-start-rolling-update
   - config:
       image_resource:
         source:
@@ -154,7 +194,27 @@ jobs:
         - --region=europe-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-rhua
+    task: rhua-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - rhua-mig-prod-europe-west1
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: rhua-wait-for-stable
   - config:
       image_resource:
         source:
@@ -174,7 +234,7 @@ jobs:
         - --region=europe-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-cds
+    task: cds-start-rolling-update
   - config:
       image_resource:
         source:
@@ -194,7 +254,27 @@ jobs:
         - --region=europe-west1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-cds
+    task: cds-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - cds-mig-prod-europe-west1
+        - --region=europe-west1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: cds-wait-for-stable
 - name: deploy-prod-us-central1
   plan:
   - get: cds-image
@@ -224,7 +304,7 @@ jobs:
         - --region=us-central1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-rhua
+    task: rhua-start-rolling-update
   - config:
       image_resource:
         source:
@@ -244,7 +324,27 @@ jobs:
         - --region=us-central1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-rhua
+    task: rhua-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - rhua-mig-prod-us-central1
+        - --region=us-central1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: rhua-wait-for-stable
   - config:
       image_resource:
         source:
@@ -264,7 +364,7 @@ jobs:
         - --region=us-central1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-cds
+    task: cds-start-rolling-update
   - config:
       image_resource:
         source:
@@ -284,7 +384,27 @@ jobs:
         - --region=us-central1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-cds
+    task: cds-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - cds-mig-prod-us-central1
+        - --region=us-central1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: cds-wait-for-stable
 - name: deploy-prod-asia-southeast1
   plan:
   - get: cds-image
@@ -314,7 +434,7 @@ jobs:
         - --region=asia-southeast1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-rhua
+    task: rhua-start-rolling-update
   - config:
       image_resource:
         source:
@@ -334,7 +454,27 @@ jobs:
         - --region=asia-southeast1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-rhua
+    task: rhua-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - rhua-mig-prod-asia-southeast1
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: rhua-wait-for-stable
   - config:
       image_resource:
         source:
@@ -354,7 +494,7 @@ jobs:
         - --region=asia-southeast1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: deploy-cds
+    task: cds-start-rolling-update
   - config:
       image_resource:
         source:
@@ -374,7 +514,27 @@ jobs:
         - --region=asia-southeast1
         - --project=google.com:rhel-infra
         path: gcloud
-    task: wait-cds
+    task: cds-wait-for-version-target
+  - config:
+      image_resource:
+        source:
+          repository: google/cloud-sdk
+          tag: alpine
+        type: registry-image
+      platform: linux
+      run:
+        args:
+        - compute
+        - instance-groups
+        - managed
+        - wait-until
+        - --stable
+        - --quiet
+        - cds-mig-prod-asia-southeast1
+        - --region=asia-southeast1
+        - --project=google.com:rhel-infra
+        path: gcloud
+    task: cds-wait-for-stable
 resource_types:
 - name: registry-image-private
   source:
