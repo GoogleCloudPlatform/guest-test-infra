@@ -137,20 +137,22 @@ jobs:
     file: publish-version/version
   - in_parallel:
       steps:
-      - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-insert-image.yaml
         task: publish-debian-10
+        params:
+          TOPIC: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
         vars:
-          topic: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
           image_name: "debian_10"
           gcs_image_path: "gs://artifact-releaser-autopush-rtp/debian"
           wf: "debian/debian_10.publish.json"
           publish_version: ((.:version))
           source_version: "v20211027"
           release_notes: "Disregard this release. Debian 10 test."
-      - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+      - file: guest-test-infra/concourse/tasks/gcloud-insert-image.yaml
         task: publish-almalinux-8
+        params:
+          TOPIC: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
         vars:
-          topic: "projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush"
           image_name: "almalinux_8"
           gcs_image_path: "gs://artifact-releaser-autopush-rtp/almalinux"
           wf: "enterprise_linux/almalinux_8.publish.json"
