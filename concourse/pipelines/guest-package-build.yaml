@@ -1697,7 +1697,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-certgen-staging"
+      job: "inject-windows-certgen-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1705,14 +1705,14 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-certgen-staging"
+      job: "inject-windows-certgen-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-windows-certgen-stable
   plan:
   - get: compute-image-windows-tag
-    passed: [upload-windows-certgen-staging]
+    passed: [inject-windows-certgen-staging]
   - get: compute-image-windows
     params: {fetch_tags: true}
   - get: guest-test-infra
@@ -1776,7 +1776,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-auto-updater-staging"
+      job: "inject-windows-auto-updater-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1784,14 +1784,14 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-auto-updater-staging"
+      job: "inject-windows-auto-updater-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-windows-auto-updater-stable
   plan:
   - get: compute-image-windows-tag
-    passed: [upload-windows-auto-updater-staging]
+    passed: [inject-windows-auto-updater-staging]
   - get: compute-image-windows
     params: {fetch_tags: true}
   - get: guest-test-infra
@@ -1855,7 +1855,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-powershell-staging"
+      job: "inject-windows-powershell-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1863,14 +1863,14 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-powershell-staging"
+      job: "inject-windows-powershell-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-windows-powershell-stable
   plan:
   - get: compute-image-windows-tag
-    passed: [upload-windows-powershell-staging]
+    passed: [inject-windows-powershell-staging]
   - get: compute-image-windows
     params: {fetch_tags: true}
   - get: guest-test-infra
@@ -1934,7 +1934,7 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-sysprep-staging"
+      job: "inject-windows-sysprep-staging"
       result_state: "success"
       start_timestamp: ((.:start-timestamp-ms))
   on_failure:
@@ -1942,14 +1942,14 @@ jobs:
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
     vars:
       pipeline: "guest-package-build"
-      job: "upload-windows-sysprep-staging"
+      job: "inject-windows-sysprep-staging"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
 - name: promote-windows-sysprep-stable
   plan:
   - get: compute-image-windows-tag
-    passed: [upload-windows-sysprep-staging]
+    passed: [inject-windows-sysprep-staging]
   - get: compute-image-windows
     params: {fetch_tags: true}
   - get: guest-test-infra
