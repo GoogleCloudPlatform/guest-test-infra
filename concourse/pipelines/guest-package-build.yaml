@@ -1664,7 +1664,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: build-windows-certgen-staging
+- name: inject-windows-certgen-staging
   plan:
   - in_parallel:
       steps:
@@ -1743,7 +1743,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: upload-windows-auto-updater-staging
+- name: inject-windows-auto-updater-staging
   plan:
   - in_parallel:
       steps:
@@ -1822,7 +1822,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: upload-windows-powershell-staging
+- name: inject-windows-powershell-staging
   plan:
   - in_parallel:
       steps:
@@ -1901,7 +1901,7 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
-- name: upload-windows-sysprep-staging
+- name: inject-windows-sysprep-staging
   plan:
   - in_parallel:
       steps:
@@ -2126,10 +2126,10 @@ groups:
 - name: compute-image-windows
   jobs:
   - build-compute-image-windows
-  - upload-windows-certgen-staging
-  - upload-windows-auto-updater-staging
-  - upload-windows-powershell-staging
-  - upload-windows-sysprep-staging
+  - inject-windows-certgen-staging
+  - inject-windows-auto-updater-staging
+  - inject-windows-powershell-staging
+  - inject-windows-sysprep-staging
   - promote-windows-certgen-stable
   - promote-windows-auto-updater-stable
   - promote-windows-powershell-stable
