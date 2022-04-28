@@ -24,7 +24,7 @@ local gcloudmigtask = {
   region:: error 'must set region on gcloudmigtask',
   action:: error 'must set action on gcloudmigtask',
 
-  task: error 'must set task',
+  task: error 'must set task on gcloudmigtask',
   config: {
     image_resource: {
       source: {
@@ -50,37 +50,67 @@ local gcloudmigtask = {
   },
 };
 
-local deployjob = gatejob {
+local deployjob = {
   local job = self,
 
   stage:: 'prod',
+  passed:: [],
   region:: error 'must set region on deployjob',
-  plan: super.plan + std.flattenArrays([
-    [
-      gcloudmigtask {
-        task: nodeType + '-start-rolling-update',
-        node: nodeType,
-        stage: job.stage,
-        region: job.region,
-        action: ['rolling-action', 'replace'],
-      },
-      gcloudmigtask {
-        task: nodeType + '-wait-for-version-target',
-        node: nodeType,
-        stage: job.stage,
-        region: job.region,
-        action: ['wait-until', '--version-target-reached'],
-      },
-      gcloudmigtask {
-        task: nodeType + '-wait-for-stable',
-        node: nodeType,
-        stage: job.stage,
-        region: job.region,
-        action: ['wait-until', '--stable'],
-      },
-    ]
-    for nodeType in ['rhua', 'cds']
-  ]),
+  plan: [
+    {
+      get: 'cds-image',
+      passed: job.passed,
+      trigger: true,
+    },
+    {
+      get: 'rhua-image',
+      passed: job.passed,
+      trigger: true,
+    },
+    gcloudmigtask {
+      task: 'rhua-start-rolling-update',
+      node: 'rhua',
+      stage: job.stage,
+      region: job.region,
+      action: ['rolling-action', 'replace'],
+    },
+    gcloudmigtask {
+      task: 'rhua-wait-for-version-target',
+      node: 'rhua',
+      stage: job.stage,
+      region: job.region,
+      action: ['wait-until', '--version-target-reached'],
+    },
+    gcloudmigtask {
+      task: 'rhua-wait-for-stable',
+      node: 'rhua',
+      stage: job.stage,
+      region: job.region,
+      action: ['wait-until', '--stable'],
+    },
+
+    gcloudmigtask {
+      task: 'cds-start-rolling-update',
+      node: 'cds',
+      stage: job.stage,
+      region: job.region,
+      action: ['rolling-action', 'replace'],
+    },
+    gcloudmigtask {
+      task: 'cds-wait-for-version-target',
+      node: 'cds',
+      stage: job.stage,
+      region: job.region,
+      action: ['wait-until', '--version-target-reached'],
+    },
+    gcloudmigtask {
+      task: 'cds-wait-for-stable',
+      node: 'cds',
+      stage: job.stage,
+      region: job.region,
+      action: ['wait-until', '--stable'],
+    },
+  ],
 };
 
 {
@@ -113,7 +143,6 @@ local deployjob = gatejob {
   jobs: [
     gatejob {
       name: 'manual-trigger',
-      trigger: false,
     },
     deployjob {
       name: 'deploy-staging-us-west1',
@@ -121,17 +150,19 @@ local deployjob = gatejob {
       region: 'us-west1',
       passed: ['manual-trigger'],
     },
-  ] + [
     deployjob {
-      name: 'deploy-prod-' + region,
-      region: region,
+      name: 'deploy-prod-europe-west1',
+      region: 'europe-west1',
       passed: ['deploy-staging-us-west1'],
-    }
-    for region in ['europe-west1', 'us-central1']
-  ] + [
+    },
+    deployjob {
+      name: 'deploy-prod-us-central1',
+      region: 'us-central1',
+      passed: ['deploy-staging-us-west1'],
+    },
     gatejob {
       name: 'gate-1',
-      passed: ['deploy-prod-' + region for region in ['europe-west1', 'us-central1']],
+      passed: ['deploy-prod-europe-west1', 'deploy-prod-us-central1'],
     },
     deployjob {
       name: 'deploy-prod-asia-southeast1',
