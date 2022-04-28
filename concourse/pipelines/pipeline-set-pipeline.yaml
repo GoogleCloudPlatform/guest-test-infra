@@ -6,17 +6,24 @@ resources:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
 
-jobs:
-# Controller pipeline. Add pipelines here and *manually set-pipeline* the set-pipeline pipeline to have them
-# kept up to date automatically.
+# Controller pipeline. Add pipelines here to have them kept up to date automatically.
 #
 # Note: there is a relationship between this pipeline and the ones it creates - if you delete an entry here,
 # the corresponding pipeline will be deleted. If you delete this pipeline, *all* these pipelines will be
 # deleted.
+jobs:
+- name: set-self
+  plan:
+  - get: guest-test-infra
+    trigger: true
+  - set_pipeline: self
+    file: guest-test-infra/concourse/pipelines/pipeline-set-pipeline.yaml
+
 - name: set-pipelines
   plan:
   - get: guest-test-infra
     trigger: true
+    passed: [set-self]
   # Produce the rendered/ output with one json file for every jsonnet file in guest-test-infra/((config_dir))
   # Either may be referenced below.
   - task: render-templates
