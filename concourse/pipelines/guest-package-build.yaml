@@ -453,13 +453,12 @@ jobs:
       repo: guest-agent
   - load_var: last-stable-date
     file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-guest-agent-windows-x64-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: google-compute-engine-windows
-          environment: stable
+  - task: promote-guest-agent-windows-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-windows
+      environment: stable
   - task: publish-time-since-stable
     file: guest-test-infra/concourse/tasks/publish-time-since.yaml
     vars:
@@ -509,13 +508,12 @@ jobs:
       repo: guest-agent
   - load_var: last-stable-date
     file: last-stable-tag/date
-  - in_parallel:
-      - task: promote-guest-agent-windows-x64-stable
-        file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
-        vars:
-          universe: cloud-yuck
-          repo: google-compute-engine-metadata-scripts
-          environment: stable
+  - task: promote-metadata-scripts-windows-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-metadata-scripts
+      environment: stable
   - task: publish-time-since-stable
     file: guest-test-infra/concourse/tasks/publish-time-since.yaml
     vars:
@@ -1596,6 +1594,393 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
+- name: build-compute-image-windows
+  plan:
+  - get: compute-image-windows
+    trigger: true
+    params:
+      skip_download: true
+  - load_var: commit-sha
+    file: compute-image-windows/.git/ref
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: get-github-token
+    file: guest-test-infra/concourse/tasks/get-github-token.yaml
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: timestamp
+    file: timestamp/timestamp
+  - task: compute-image-windows-integration-test
+    file: guest-test-infra/concourse/tasks/package-gointegtest.yaml
+    vars:
+      repo-name: compute-image-windows
+      timestamp: ((.:timestamp))
+  - task: compute-image-windows-gotest-coverage
+    file: guest-test-infra/concourse/tasks/gotest.yaml
+    input_mapping:
+      repo: compute-image-windows
+  - load_var: coverage-percent
+    file: gotest/coverage.txt
+  - task: generate-package-version
+    file: guest-test-infra/concourse/tasks/generate-package-version.yaml
+    input_mapping: {repo: compute-image-windows}
+  - load_var: package-version
+    file: package-version/version
+  - task: guest-package-build-compute-image-windows-goo
+    file: guest-test-infra/concourse/tasks/guest-package-build.yaml
+    vars:
+      wf: build_goo.wf.json
+      repo-name: compute-image-windows
+      version: ((.:package-version))
+      gcs_path: gs://gcp-guest-package-uploads/compute-image-windows
+      git_ref: ((.:commit-sha))
+  - put: compute-image-windows-tag
+    params:
+      name: package-version/version
+      tag: package-version/version
+      commitish: compute-image-windows/.git/ref
+  - task: compute-image-windows-publish-coverage
+    file: guest-test-infra/concourse/tasks/publish-coverage.yaml
+    vars:
+      package_name: "google-compute-image-windows"
+      coverage_percent: ((.:coverage-percent))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-compute-image-windows"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "build-compute-image-windows"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: inject-windows-certgen-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: compute-image-windows-tag
+        passed: [build-compute-image-windows]
+      - get: guest-test-infra
+      - get: compute-image-windows
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: compute-image-windows-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-certgen-windows-to-staging
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: certgen
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-certgen-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-certgen-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-windows-certgen-stable
+  plan:
+  - get: compute-image-windows-tag
+    passed: [inject-windows-certgen-staging]
+  - get: compute-image-windows
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: promote-certgen-windows-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: certgen
+      environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-certgen-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-certgen-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: inject-windows-auto-updater-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: compute-image-windows-tag
+        passed: [build-compute-image-windows]
+      - get: guest-test-infra
+      - get: compute-image-windows
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: compute-image-windows-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-windows-auto-updater-to-staging
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: compute-image-windows/google-compute-engine-auto-updater.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-auto-updater
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-auto-updater-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-auto-updater-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-windows-auto-updater-stable
+  plan:
+  - get: compute-image-windows-tag
+    passed: [inject-windows-auto-updater-staging]
+  - get: compute-image-windows
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: promote-windows-auto-updater-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-auto-updater
+      environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-auto-updater-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-auto-updater-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: inject-windows-powershell-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: compute-image-windows-tag
+        passed: [build-compute-image-windows]
+      - get: guest-test-infra
+      - get: compute-image-windows
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: compute-image-windows-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-windows-powershell-to-staging
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: compute-image-windows/google-compute-engine-powershell.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-powershell
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-powershell-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-powershell-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-windows-powershell-stable
+  plan:
+  - get: compute-image-windows-tag
+    passed: [inject-windows-powershell-staging]
+  - get: compute-image-windows
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: promote-windows-powershell-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-powershell
+      environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-powershell-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-powershell-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: inject-windows-sysprep-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: compute-image-windows-tag
+        passed: [build-compute-image-windows]
+      - get: guest-test-infra
+      - get: compute-image-windows
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: compute-image-windows-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-windows-sysprep-to-staging
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_path: compute-image-windows/google-compute-engine-sysprep.((.:package-version)).0@1.goo
+      universe: cloud-yuck
+      repo: google-compute-engine-sysprep
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-sysprep-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-sysprep-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-windows-sysprep-stable
+  plan:
+  - get: compute-image-windows-tag
+    passed: [inject-windows-sysprep-staging]
+  - get: compute-image-windows
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: promote-windows-sysprep-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-sysprep
+      environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-sysprep-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-sysprep-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+
 resources:
 - name: guest-agent
   type: git
@@ -1692,6 +2077,17 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/compute-image-tools.git
     branch: master
+- name: compute-image-windows
+  type: git
+  source:
+    uri: https://github.com/GoogleCloudPlatform/compute-image-windows.git
+    branch: master
+- name: compute-image-windows-tag
+  type: github-release
+  source:
+    owner: GoogleCloudPlatform
+    repository: compute-image-windows
+    access_token: ((github-token.token))
 
 groups:
 - name: guest-agent
@@ -1727,3 +2123,14 @@ groups:
   - promote-artifact-registry-apt-transport-staging
   - promote-artifact-registry-el-plugins-stable
   - promote-artifact-registry-apt-transport-stable
+- name: compute-image-windows
+  jobs:
+  - build-compute-image-windows
+  - inject-windows-certgen-staging
+  - inject-windows-auto-updater-staging
+  - inject-windows-powershell-staging
+  - inject-windows-sysprep-staging
+  - promote-windows-certgen-stable
+  - promote-windows-auto-updater-stable
+  - promote-windows-powershell-stable
+  - promote-windows-sysprep-stable
