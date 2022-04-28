@@ -45,7 +45,7 @@ jobs:
   - set_pipeline: container-build
     file: rendered/container-build.json
   - set_pipeline: rhui-release
-    file: guest-test-infra/concourse/pipelines/rhui-release.yaml
+    file: rendered/rhui-release.json
   - set_pipeline: artifact-releaser-autopush
     file: guest-test-infra/concourse/pipelines/artifact-releaser-autopush.yaml
   - set_pipeline: partner-image-validations
