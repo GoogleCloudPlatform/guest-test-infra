@@ -3,6 +3,8 @@
 
   prod_topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod',
   prod_bucket:: 'artifact-releaser-prod-rtp',
+  image_task:: 'PublishImage',
+  package_task:: 'uploadToUnstable',
   debian_image_prefixes:: {
     'debian-9': 'debian-9-stretch',
     'debian-10': 'debian-10-buster',
