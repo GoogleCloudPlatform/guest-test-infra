@@ -1,5 +1,44 @@
 local project = 'google.com:rhel-infra';
 
+// List of regions where RHUA is deployed.
+local deployed_regions = [
+  'asia-east1',
+  'asia-east2',
+  'asia-northeast1',
+  'asia-northeast2',
+  'asia-northeast3',
+  'asia-south1',
+  'asia-south2',
+  'asia-southeast1',
+  'asia-southeast2',
+  'australia-southeast1',
+  'australia-southeast2',
+  'europe-central2',
+  'europe-north1',
+  'europe-west1',
+  'europe-west2',
+  'europe-west3',
+  'europe-west4',
+  'europe-west6',
+  'northamerica-northeast1',
+  'northamerica-northeast2',
+  'southamerica-east1',
+  'southamerica-west1',
+  'us-central1',
+  'us-east1',
+  'us-east4',
+  'us-west1',
+  'us-west2',
+  'us-west3',
+  'us-west4',
+];
+
+// Generate increasingly-larger waves.
+local wave1 = deployed_regions[0:2];
+local wave2 = deployed_regions[2:6];
+local wave3 = deployed_regions[6:14];
+local wave4 = deployed_regions[14:];
+
 local gatejob = {
   local job = self,
 
@@ -150,24 +189,57 @@ local deployjob = {
       region: 'us-west1',
       passed: ['manual-trigger'],
     },
+  ] + [  // Wave 1
     deployjob {
-      name: 'deploy-prod-europe-west1',
-      region: 'europe-west1',
+      name: 'deploy-prod-' + region,
+      region: region,
       passed: ['deploy-staging-us-west1'],
-    },
-    deployjob {
-      name: 'deploy-prod-us-central1',
-      region: 'us-central1',
-      passed: ['deploy-staging-us-west1'],
-    },
+    }
+    for region in wave1
+  ] + [
     gatejob {
       name: 'gate-1',
-      passed: ['deploy-prod-europe-west1', 'deploy-prod-us-central1'],
+      passed: [
+        'deploy-prod-' + region
+        for region in wave1
+      ],
     },
+  ] + [  // Wave 2
     deployjob {
-      name: 'deploy-prod-asia-southeast1',
-      region: 'asia-southeast1',
+      name: 'deploy-prod-' + region,
+      region: region,
       passed: ['gate-1'],
+    }
+    for region in wave2
+  ] + [
+    gatejob {
+      name: 'gate-2',
+      passed: [
+        'deploy-prod-' + region
+        for region in wave2
+      ],
     },
+  ] + [  // Wave 3
+    deployjob {
+      name: 'deploy-prod-' + region,
+      region: region,
+      passed: ['gate-2'],
+    }
+    for region in wave3
+  ] + [
+    gatejob {
+      name: 'gate-3',
+      passed: [
+        'deploy-prod-' + region
+        for region in wave3
+      ],
+    },
+  ] + [  // Wave 4
+    deployjob {
+      name: 'deploy-prod-' + region,
+      region: region,
+      passed: ['gate-3'],
+    }
+    for region in wave4
   ],
 }
