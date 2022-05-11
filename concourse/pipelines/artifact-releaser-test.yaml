@@ -77,8 +77,6 @@ jobs:
     task: generate-timestamp
   - file: timestamp/timestamp-ms
     load_var: start-timestamp-ms
-  - file: guest-test-infra/concourse/tasks/get-credential.yaml
-    task: get-credential
   - in_parallel:
       steps:
       - file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
@@ -129,8 +127,6 @@ jobs:
     task: generate-timestamp
   - file: timestamp/timestamp-ms
     load_var: start-timestamp-ms
-  - file: guest-test-infra/concourse/tasks/get-credential.yaml
-    task: get-credential
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: version
@@ -161,8 +157,6 @@ jobs:
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
-  - file: guest-test-infra/concourse/tasks/get-credential.yaml
-    task: get-credential
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: version
