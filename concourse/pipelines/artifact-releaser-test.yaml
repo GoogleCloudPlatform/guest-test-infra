@@ -159,6 +159,14 @@ jobs:
           release_notes: "Disregard this release. Alma Linux 8 test."
 - name: release-testing-image-to-artifact-releaser-prod
   plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - file: guest-test-infra/concourse/tasks/get-credential.yaml
+    task: get-credential
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: version
+    file: publish-version/version
   - task: publish-prod-test
     config:
       platform: linux
