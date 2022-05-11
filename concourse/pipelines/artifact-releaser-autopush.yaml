@@ -157,6 +157,21 @@ jobs:
           publish_version: ((.:version))
           source_version: "v20211027"
           release_notes: "Disregard this release. Alma Linux 8 test."
+      - task: publish-prod-debian-11
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: google/cloud-sdk
+              tag: alpine
+          run:
+            path: /bin/sh
+            args:
+            - -exc
+            - |
+              wf="{\"Name\": \"debian-prod-test\", {{$work_project := printf \"%q\" \"gce-image-builder\" -}} {{$endpoint := \`\"https://www.googleapis.com/compute/alpha/projects/\"\` -}} {{$delete_after := \`\"24h*30*6\"\` -}} {{if eq .environment \"prod\" -}} \"WorkProject\": {{$work_project}}, \"PublishProject\": \"bct-prod-images\", \"ComputeEndpoint\": {{$endpoint}}, \"DeleteAfter\": {{$delete_after}}, {{- else -}} \"WorkProject\": {{$work_project}}, \"PublishProject\": {{$work_project}}, \"ComputeEndpoint\": {{$endpoint}}, \"DeleteAfter\": {{$delete_after}}, {{- end}} {{$time := trimPrefix .publish_version \"v\"}} \"Images\": [{ \"Prefix\": \"debian-11-bullseye\", \"Family\": \"debian-11-prod-test\", \"Description\": \"Debian, Debian GNU/Linux, 11 (bullseye), amd64 built on {{$time}}, supports Shielded VM features\", \"Licenses\": [ {{if (or (eq .environment \"staging\") (eq .environment \"oslogin-staging\")) -}} \"projects/bct-staging-functional/global/licenses/debian-11-bullseye\" {{- else -}} \"projects/debian-cloud/global/licenses/debian-11-bullseye\" {{- end}} ], \"GuestOsFeatures\": [\"UEFI_COMPATIBLE\", \"VIRTIO_SCSI_MULTIQUEUE\"]}]}"
+              gcloud pubsub topics publish "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod" --message "{\"type\": \"insertImage\", \"request\": {\"image_name\": \"debian-11-publish-prod-test\", \"gcs_image_path\": \"gs://artifact-releaser-autopush-rtp/debian\", \"image_publish_template\": \"${wf}\", \"source_version\": \"v20220511\", \"publish_version\": \"((.:version))\", \"release_notes\": \"Prod test.\"}}"
 - name: test-workload-identity
   plan:
   - task: show-workload-identity
