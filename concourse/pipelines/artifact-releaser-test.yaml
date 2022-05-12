@@ -161,21 +161,16 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: version
     file: publish-version/version
-  - task: publish-prod-test
-    config:
-      platform: linux
-      image_resource:
-        type: registry-image
-        source:
-          repository: google/cloud-sdk
-          tag: alpine
-      run:
-        path: /bin/sh
-        args:
-        - -exc
-        - |
-          wf=$(sed 's/\"/\\"/g' ./compute-image-tools/daisy_workflows/build-publish/test-workflow.json | tr -d '\n')
-          gcloud pubsub topics publish "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod" --message "{\"type\": \"insertImage\", \"request\": {\"image_name\": \"publish-prod-test\", \"gcs_image_path\": \"gs://artifact-releaser-autopush-rtp/publish-prod-test\", \"image_publish_template\": \"${wf}\", \"source_version\": \"v20220511\", \"publish_version\": \"((.:version))\", \"release_notes\": \"Prod test.\"}}"
+  - file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    task: publish-prod-test
+    vars:
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+      image_name: "prod-publish-test"
+      gcs_image_path: "gs://artifact-releaser-autopush-rtp/publish-prod-test"
+      wf: "test-workflow.json"
+      publish_version: ((.:version))
+      source_version: "v20220511"
+      release_notes: "Test release."
 - name: test-workload-identity
   plan:
   - task: show-workload-identity
