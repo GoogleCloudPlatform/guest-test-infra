@@ -1,43 +1,43 @@
 local project = 'google.com:rhel-infra';
 
-// List of regions where RHUA is deployed.
-local deployed_regions = [
-  'asia-east1',
-  'asia-east2',
+// RHUA is deployed where NFS is available.
+local wave1 = [
   'asia-northeast1',
+  'australia-southeast2',
+];
+local wave2 = [
+  'asia-east1',
+  'australia-southeast1',
+  'europe-west6',
+  'us-west2',
+];
+local wave3 = [
+  'asia-east2',
+  'asia-south2',
+  'europe-west2',
+  'europe-west4',
+  'northamerica-northeast2',
+  'us-east1',
+  'us-west1',
+  'us-west4',
+];
+local wave4 = [
   'asia-northeast2',
   'asia-northeast3',
   'asia-south1',
-  'asia-south2',
   'asia-southeast1',
   'asia-southeast2',
-  'australia-southeast1',
-  'australia-southeast2',
   'europe-central2',
   'europe-north1',
   'europe-west1',
-  'europe-west2',
   'europe-west3',
-  'europe-west4',
-  'europe-west6',
   'northamerica-northeast1',
-  'northamerica-northeast2',
   'southamerica-east1',
   'southamerica-west1',
   'us-central1',
-  'us-east1',
   'us-east4',
-  'us-west1',
-  'us-west2',
   'us-west3',
-  'us-west4',
 ];
-
-// Generate increasingly-larger waves.
-local wave1 = deployed_regions[0:2];
-local wave2 = deployed_regions[2:6];
-local wave3 = deployed_regions[6:14];
-local wave4 = deployed_regions[14:];
 
 local gatejob = {
   local job = self,
