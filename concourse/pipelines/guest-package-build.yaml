@@ -206,7 +206,7 @@ jobs:
       - task: upload-guest-agent-deb11
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb;guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb
           universe: cloud-apt
           repo: google-guest-agent-bullseye
         params:
@@ -648,7 +648,7 @@ jobs:
       - task: upload-guest-oslogin-deb11
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb
+          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb;oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-bullseye
       - task: upload-guest-oslogin-el7
@@ -898,7 +898,7 @@ jobs:
       - task: upload-osconfig-deb9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb
+          package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb;osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb
           universe: cloud-apt
           repo: google-osconfig-agent
       - task: upload-osconfig-el7-unstable
@@ -1422,7 +1422,7 @@ jobs:
   - task: upload-artifact-registry-apt-transport-unstable
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb
+      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb;apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb
       universe: cloud-apt
       repo: apt-transport-artifact-registry
   on_success:
