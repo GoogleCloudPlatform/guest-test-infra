@@ -17,13 +17,4 @@ run:
   args:
   - -exc
   - |
-    paths=$(echo "((package_path))" | tr ";" "\n")
-    for path in $paths
-    do
-      if [[ "${objects}" != "" ]]; then
-        objects="${objects}, "
-      fi
-      objects="${objects}{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"${path}\"}"
-    done
-    
-    gcloud pubsub topics publish $TOPIC --message "{\"type\": \"${TYPE}\", \"request\": {\"bucket\": \"gcp-guest-package-uploads\", \"gcsfiles\": [${objects}], \"universe\": \"((universe))\", \"repo\": \"((repo))\"}}"
+    gcloud pubsub topics publish $TOPIC --message "{\"type\": \"${TYPE}\", \"request\": {\"gcsfiles\": [((package_path))], \"universe\": \"((universe))\", \"repo\": \"((repo))\"}}"
