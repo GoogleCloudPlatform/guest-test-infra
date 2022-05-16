@@ -31,7 +31,7 @@ jobs:
           TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-deb11
         vars:
-          package_path: artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"artifact-releaser/google-guest-agent_20211019.00-g1_amd64.deb\"}'
           repo: guest-arle-autopush-trusty
           universe: cloud-apt
       - file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
@@ -40,7 +40,7 @@ jobs:
           TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-el7
         vars:
-          package_path: artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"artifact-releaser/google-guest-agent-20211019.00-g1.el8.x86_64.rpm\"}'
           repo: guest-arle-autopush-el7-x86_64
           universe: cloud-yum
       - file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
@@ -49,7 +49,7 @@ jobs:
           TYPE: uploadToStaging
         task: upload-artifact-releaser-autopush-win
         vars:
-          package_path: artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"artifact-releaser/google-compute-engine-windows.x86_64.20211019.00.0@1.goo\"}'
           repo: guest-arle-autopush
           universe: cloud-yuck
 - name: promote-artifact-releaser-autopush-stable

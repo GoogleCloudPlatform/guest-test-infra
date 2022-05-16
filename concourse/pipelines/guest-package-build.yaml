@@ -190,7 +190,7 @@ jobs:
       - task: upload-guest-agent-deb9
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb\"}'
           universe: cloud-apt
           repo: google-guest-agent-stretch
         params:
@@ -198,7 +198,7 @@ jobs:
       - task: upload-guest-agent-deb10
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb\"}'
           universe: cloud-apt
           repo: google-guest-agent-buster
         params:
@@ -206,7 +206,7 @@ jobs:
       - task: upload-guest-agent-deb11
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb;guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb\"}, {\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb\"}'
           universe: cloud-apt
           repo: google-guest-agent-bullseye
         params:
@@ -214,7 +214,7 @@ jobs:
       - task: upload-guest-agent-el7
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-guest-agent-el7
         params:
@@ -222,7 +222,7 @@ jobs:
       - task: upload-guest-agent-el8
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-guest-agent-el8
         params:
@@ -230,7 +230,7 @@ jobs:
       - task: upload-guest-agent-el9
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-guest-agent-el9
         params:
@@ -275,7 +275,7 @@ jobs:
   - task: upload-compute-engine-windows
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-windows
     params:
@@ -283,7 +283,7 @@ jobs:
   - task: upload-compute-engine-metadata-scripts
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-metadata-scripts
     params:
@@ -328,7 +328,7 @@ jobs:
   - task: upload-compute-engine-metadata-scripts
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-metadata-scripts
     params:
@@ -636,37 +636,37 @@ jobs:
       - task: upload-guest-oslogin-deb9
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-stretch
       - task: upload-guest-oslogin-deb10
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-buster
       - task: upload-guest-oslogin-deb11
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb;oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb\"}, {\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-oslogin-bullseye
       - task: upload-guest-oslogin-el7
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el7
       - task: upload-guest-oslogin-el8
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el8
       - task: upload-guest-oslogin-el9
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-oslogin-el9
   on_success:
@@ -898,31 +898,31 @@ jobs:
       - task: upload-osconfig-deb9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb;osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb\"}, {\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb\"}'
           universe: cloud-apt
           repo: google-osconfig-agent
       - task: upload-osconfig-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-osconfig-agent-el7
       - task: upload-osconfig-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-osconfig-agent-el8
       - task: upload-osconfig-el9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm\"}'
           universe: cloud-yum
           repo: google-osconfig-agent-el9
       - task: upload-osconfig-goo-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo\"}'
           universe: cloud-yuck
           repo: google-osconfig-agent
   on_success:
@@ -1008,25 +1008,25 @@ jobs:
       - task: upload-guest-diskexpand-deb9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb\"}'
           universe: cloud-apt
           repo: gce-disk-expand
       - task: upload-guest-diskexpand-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-disk-expand-el7
       - task: upload-guest-diskexpand-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-disk-expand-el8
       - task: upload-guest-diskexpand-el9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.x86_64.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.x86_64.rpm\"}'
           universe: cloud-yum
           repo: gce-disk-expand-el9
   on_success:
@@ -1112,37 +1112,37 @@ jobs:
       - task: upload-guest-configs-deb9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-stretch
       - task: upload-guest-configs-deb10-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-buster
       - task: upload-guest-configs-deb11-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb\"}'
           universe: cloud-apt
           repo: gce-google-compute-engine-bullseye
       - task: upload-guest-configs-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-el7
       - task: upload-guest-configs-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-el8
       - task: upload-guest-configs-el9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm\"}'
           universe: cloud-yum
           repo: gce-google-compute-engine-el9
   on_success:
@@ -1346,19 +1346,19 @@ jobs:
       - task: upload-artifact-registry-yum-plugin-el7-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm\"}'
           universe: cloud-yum
           repo: yum-plugin-artifact-registry
       - task: upload-artifact-registry-dnf-plugin-el8-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm\"}'
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
       - task: upload-artifact-registry-dnf-plugin-el9-unstable
         file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
         vars:
-          package_path: dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm
+          package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"dnf-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm\"}'
           universe: cloud-yum
           repo: dnf-plugin-artifact-registry
   on_success:
@@ -1422,7 +1422,7 @@ jobs:
   - task: upload-artifact-registry-apt-transport-unstable
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb;apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb\"}, {\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb\"}'
       universe: cloud-apt
       repo: apt-transport-artifact-registry
   on_success:
@@ -1687,7 +1687,7 @@ jobs:
   - task: upload-certgen-windows-to-staging
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: certgen
     params:
@@ -1766,7 +1766,7 @@ jobs:
   - task: upload-windows-auto-updater-to-staging
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: compute-image-windows/google-compute-engine-auto-updater.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"compute-image-windows/google-compute-engine-auto-updater.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-auto-updater
     params:
@@ -1845,7 +1845,7 @@ jobs:
   - task: upload-windows-powershell-to-staging
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: compute-image-windows/google-compute-engine-powershell.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"compute-image-windows/google-compute-engine-powershell.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-powershell
     params:
@@ -1924,7 +1924,7 @@ jobs:
   - task: upload-windows-sysprep-to-staging
     file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
     vars:
-      package_path: compute-image-windows/google-compute-engine-sysprep.((.:package-version)).0@1.goo
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"compute-image-windows/google-compute-engine-sysprep.((.:package-version)).0@1.goo\"}'
       universe: cloud-yuck
       repo: google-compute-engine-sysprep
     params:
