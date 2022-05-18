@@ -151,23 +151,9 @@ local deployjob = {
       passed: ['manual-trigger'],
     },
     deployjob {
-      name: 'deploy-prod-europe-west1',
-      region: 'europe-west1',
+      name: 'deploy-prod-us-east1',
+      region: 'us-east1',
       passed: ['deploy-staging-us-west1'],
-    },
-    deployjob {
-      name: 'deploy-prod-us-central1',
-      region: 'us-central1',
-      passed: ['deploy-staging-us-west1'],
-    },
-    gatejob {
-      name: 'gate-1',
-      passed: ['deploy-prod-europe-west1', 'deploy-prod-us-central1'],
-    },
-    deployjob {
-      name: 'deploy-prod-asia-southeast1',
-      region: 'asia-southeast1',
-      passed: ['gate-1'],
     },
   ],
 }
