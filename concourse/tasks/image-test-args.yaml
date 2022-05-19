@@ -16,4 +16,5 @@ run:
   - -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
   - -images=((images))
   - -exclude=oslogin
+  - -machine-type=((machine-type))
   - ((extra-args))
