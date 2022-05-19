@@ -13,7 +13,7 @@ run:
   path: /daisy
   args:
   - -project=gcp-guest
-  - -zone=us-central1-c
+  - -zone=us-central1-a
   - -var:source_image=((source-image))
   - -var:gcs_package_path=((gcs-package-path))
   - -var:dest_image=((dest-image))
