@@ -551,6 +551,7 @@ local imggroup = {
     'rhel-7-byos',
     'rhel-8',
     'rhel-8-byos',
+    'rhel-9',
   ],
 
   // Start of output.
