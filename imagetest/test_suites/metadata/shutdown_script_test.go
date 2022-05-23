@@ -10,7 +10,8 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const shutdownTime = 110 // about 2 minutes
+// The designed shutdown limit is 90s. Let's verify it's executed no less than 80s.
+const shutdownTime = 80
 
 // TestShutdownScript test the standard metadata script.
 func TestShutdownScript(t *testing.T) {
@@ -45,7 +46,7 @@ func TestShutdownUrlScript(t *testing.T) {
 
 // TestShutdownScriptTime test that shutdown scripts can run for around two minutes
 func TestShutdownScriptTime(t *testing.T) {
-	bytes, err := ioutil.ReadFile("/shutdown.txt")
+	bytes, err := ioutil.ReadFile(shutdownOutputPath)
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
