@@ -46,7 +46,7 @@ func TestShutdownUrlScript(t *testing.T) {
 
 // TestShutdownScriptTime test that shutdown scripts can run for around two minutes
 func TestShutdownScriptTime(t *testing.T) {
-	bytes, err := ioutil.ReadFile(shutdownOutputPath)
+	bytes, err := ioutil.ReadFile("/shutdown.txt")
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
