@@ -38,7 +38,7 @@ local buildpackagejob = {
           path: '/usr/local/bin/bash',
           args: [
             '-c',
-            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo\n  $timestamp | tee timestamp/timestamp-ms',
+            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
           ],
         },
       },
@@ -208,7 +208,7 @@ local promotepackagejob = {
           path: '/usr/local/bin/bash',
           args: [
             '-c',
-            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo\n  $timestamp | tee timestamp/timestamp-ms',
+            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
           ],
         },
       },
