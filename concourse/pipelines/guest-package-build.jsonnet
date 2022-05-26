@@ -397,6 +397,7 @@ local promotepackagestabletask = {
 local buildpackageimagetask = {
   local tl = self,
 
+  image_name:: error 'must set image_name in buildpackageimagetask',
   source_image:: error 'must set source_image in buildpackageimagetask',
   dest_image:: error 'must set dest_image in buildpackageimagetask',
   gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetask',
@@ -404,7 +405,7 @@ local buildpackageimagetask = {
   worker_image:: 'projects/compute-image-tools/global/images/family/debian-10-worker',
 
   // Start of output.
-  task: '',
+  task: 'build-derivative-%s-image' % tl.image_name,
   config: {
     platform: 'linux',
     image_resource: {
@@ -460,21 +461,25 @@ local buildpackageimagetask = {
             fail_fast: true,
             steps: [
               buildpackageimagetask {
+                image_name: 'debian-9',
                 source_image: 'projects/debian-cloud/global/images/family/debian-9',
                 dest_image: 'debian-9-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
               buildpackageimagetask {
+                image_name: 'debian-10',
                 source_image: 'projects/debian-cloud/global/images/family/debian-10',
                 dest_image: 'debian-10-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
               buildpackageimagetask {
+                image_name: 'debian-11',
                 source_image: 'projects/debian-cloud/global/images/family/debian-11',
                 dest_image: 'debian-11-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
               buildpackageimagetask {
+                image_name: 'debian-11-arm64',
                 source_image: 'projects/debian-cloud-testing/global/images/family/debian-11-arm64',
                 dest_image: 'debian-11-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
@@ -482,16 +487,19 @@ local buildpackageimagetask = {
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
               buildpackageimagetask {
+                image_name: 'centos-7',
                 source_image: 'projects/centos-cloud/global/images/family/centos-7',
                 dest_image: 'centos-7-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
               },
               buildpackageimagetask {
+                image_name: 'rhel-7',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-7',
                 dest_image: 'rhel-7-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
               },
               buildpackageimagetask {
+                image_name: 'rhel-8',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
                 dest_image: 'rhel-8-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm',
