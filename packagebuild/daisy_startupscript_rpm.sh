@@ -48,7 +48,7 @@ GIT="git"
 if [[ ${VERSION_ID} =~ 6|7 ]]; then
   try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
   rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
-  GIT="git224"
+  GIT="git236"
 fi
 
 # Enable CRB repo on EL9.
