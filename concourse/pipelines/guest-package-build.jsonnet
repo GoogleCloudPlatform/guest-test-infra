@@ -27,17 +27,54 @@ local buildpackagejob = {
     { load_var: 'commit-sha', file: '%s/.git/ref' % tl.package },
     {
       task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'bash' },
+        },
+        outputs: [{ name: 'timestamp' }],
+        run: {
+          path: '/usr/local/bin/bash',
+          args: [
+            '-c',
+            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo\n  $timestamp | tee timestamp/timestamp-ms',
+          ],
+        },
+      },
     },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     {
-      task: 'get-github-token',
-      file: 'guest-test-infra/concourse/tasks/get-github-token.yaml',
-    },
-    {
       task: 'generate-package-version',
-      file: 'guest-test-infra/concourse/tasks/generate-package-version.yaml',
-      input_mapping: { repo: tl.package },
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'alpine/git' },
+        },
+
+        inputs: [{ name: tl.package, path: 'repo' }],
+        outputs: [{ name: 'package-version' }],
+
+        run: {
+          path: 'ash',
+          args: [
+            '-exc',
+            // Ugly way to produce multi-line script. TODO: maybe move to scripts?
+            std.lines([
+              'latest=$(cd repo;git tag -l "20*"|tail -1)',
+              'latest_date=${latest/.*}',
+              'todays_date=$(date "+%Y%m%d")',
+              'latest_build=0',
+              'if [[ $latest_date == $todays_date ]]; then',
+              '  latest_build=${latest/*.}',
+              '  latest_build=$((latest_build+1))',
+              'fi',
+              'printf "%s.%02d\n" "${todays_date}" "${latest_build}" | tee package-version/version',
+            ]),
+          ],
+        },
+      },
     },
     { load_var: 'package-version', file: 'package-version/version' },
     {
@@ -46,13 +83,27 @@ local buildpackagejob = {
         steps: [
           {
             task: 'guest-package-build-%s-%s' % [tl.package, repo],
-            file: 'guest-test-infra/concourse/tasks/guest-package-build.yaml',
-            vars: {
-              wf: 'build_%s.wf.json' % underscore(repo),
-              'repo-name': tl.package,
-              version: '((.:package-version))',
-              gcs_path: 'gs://gcp-guest-package-uploads/' + tl.gcs_dir,
-              git_ref: '((.:commit-sha))',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/daisy' },
+              },
+              inputs: [{ name: 'guest-test-infra' }],
+              run: {
+                path: 'daisy',
+                args: [
+                  '-project=gcp-guest',
+                  '-zone=us-west1-a',
+                  '-var:repo_owner=GoogleCloudPlatform',
+                  '-var:repo_name=' + tl.package,
+                  '-var:git_ref=((.:commit-sha))',
+                  '-var:version=((.:package-version))',
+                  '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
+                  '-var:build_dir=',
+                  'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(repo),
+                ],
+              },
             },
           }
           for repo in tl.repos
@@ -77,44 +128,52 @@ local buildpackagejob = {
   ],
   on_success: {
     task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'guest-package-build',
-      job: 'build-' + tl.package,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+      },
+      run: {
+        path: '/publish-job-result',
+        args: [
+          '--project-id=gcp-guest',
+          '--zone=us-west1-a',
+          '--pipeline=guest-package-build',
+          '--job=build-' + tl.package,
+          '--task=publish-job-result',
+          '--result-state=success',
+          '--start-timestamp=((.:start-timestamp-ms))',
+          '--metric-path=concourse/job/duration',
+        ],
+      },
     },
   },
   on_failure: {
     task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'guest-package-build',
-      job: 'build-' + tl.package,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+      },
+      run: {
+        path: '/publish-job-result',
+        args: [
+          '--project-id=gcp-guest',
+          '--zone=us-west1-a',
+          '--pipeline=guest-package-build',
+          '--job=build-' + tl.package,
+          '--task=publish-job-result',
+          '--result-state=failure',
+          '--start-timestamp=((.:start-timestamp-ms))',
+          '--metric-path=concourse/job/duration',
+        ],
+      },
     },
   },
 };
 
-local packageuploadtask = {
-  local tl = self,
-
-  package_paths:: error 'must set package_paths in packageuploadtask',
-  repo:: error 'must set rapture_repo in packageuploadtask',
-  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
-  type:: 'uploadToStaging',
-  universe:: error 'must set universe in packageuploadtask',
-
-  task: 'upload-' + tl.repo,
-  file: 'guest-test-infra/concourse/tasks/gcloud-package-operation.yaml',
-  vars: {
-    package_paths: tl.package_paths,
-    universe: tl.universe,
-    repo: tl.repo,
-  },
-  params: { TYPE: tl.type },
-};
 
 local promotepackagejob = {
   local tl = self,
@@ -122,11 +181,8 @@ local promotepackagejob = {
   package:: error 'must set package in promotepackagejob',
   promotions:: error 'must set promotions in promotepackagejob',
   dest:: error 'must set dest in promotepackagejob',
-  passed:: if tl.dest == 'staging' then
-    'build-' + tl.package
-  else
-    'promote-%s-staging' % tl.package,
-  tag:: true,
+  passed:: 'build-' + tl.package,
+  tag:: if tl.dest == 'stable' then true else false,
 
   // Start of output.
   name: 'promote-%s-%s' % [tl.package, tl.dest],
@@ -142,13 +198,50 @@ local promotepackagejob = {
     { get: 'guest-test-infra' },
     {
       task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'bash' },
+        },
+        run: {
+          path: '/usr/local/bin/bash',
+          args: [
+            '-c',
+            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo\n  $timestamp | tee timestamp/timestamp-ms',
+          ],
+        },
+      },
     },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     {
       task: 'get-last-stable-date',
-      file: 'guest-test-infra/concourse/tasks/get-last-stable-tag.yaml',
-      input_mapping: { repo: tl.package },
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+
+        inputs: [{ name: tl.package, path: 'repo' }],
+        outputs: [{ name: 'last-stable-tag' }],
+
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            // Ugly way to produce multi-line script. TODO: maybe move to scripts?
+            std.lines([
+              'commit=$(cat repo/.git/refs/tags/stable)',
+              'date=$(cd repo/.git/refs/tags; grep -l $commit stable-2*)',
+              '[[ -z $date ]] && exit 1',
+              'echo $date | sed "s/\\..*//" | sed "s/stable-//" | tee last-stable-tag/date',
+              'echo stable-`date +%Y%m%d` | tee last-stable-tag/stable-today',
+              'echo stable > last-stable-tag/stable',
+            ]),
+          ],
+        },
+      },
     },
     { load_var: 'last-stable-date', file: 'last-stable-tag/date' },
     { in_parallel: tl.promotions },
@@ -164,22 +257,79 @@ local promotepackagejob = {
   ] else [],
   on_success: {
     task: 'success',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'guest-package-build',
-      job: tl.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: { repository: 'gcr.io/compute-image-tools/daisy' },
+      },
+      run: {
+        path: '/publish-job-result',
+        args: [
+          '--project-id=gcp-guest',
+          '--zone=us-west1-a',
+          '--pipeline=guest-package-build',
+          '--job=build-' + tl.package,
+          '--task=publish-job-result',
+          '--result-state=success',
+          '--start-timestamp=((.:start-timestamp-ms))',
+          '--metric-path=concourse/job/duration',
+        ],
+      },
     },
   },
   on_failure: {
     task: 'failure',
-    file: 'guest-test-infra/concourse/tasks/publish-job-result.yaml',
-    vars: {
-      pipeline: 'guest-package-build',
-      job: tl.name,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
+    config: {
+      platform: 'linux',
+      image_resource: {
+        type: 'registry-image',
+        source: { repository: 'gcr.io/compute-image-tools/daisy' },
+      },
+      run: {
+        path: '/publish-job-result',
+        args: [
+          '--project-id=gcp-guest',
+          '--zone=us-west1-a',
+          '--pipeline=guest-package-build',
+          '--job=build-' + tl.package,
+          '--task=publish-job-result',
+          '--result-state=failure',
+          '--start-timestamp=((.:start-timestamp-ms))',
+          '--metric-path=concourse/job/duration',
+        ],
+      },
+    },
+  },
+};
+
+local uploadpackagetask = {
+  local tl = self,
+
+  package_paths:: error 'must set package_paths in uploadpackagetask',
+  repo:: error 'must set rapture_repo in uploadpackagetask',
+  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
+  type:: 'uploadToStaging',
+  universe:: error 'must set universe in uploadpackagetask',
+
+  task: 'upload-' + tl.repo,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "%s", "request": {"gcsfiles": [%s], "universe": "%s", "repo": "%s"}}' %
+        [tl.type, tl.package_paths, tl.universe, tl.repo],
+      ],
     },
   },
 };
@@ -189,16 +339,29 @@ local promotepackagestagingtask = {
 
   repo:: error 'must set repo in promotepackagestagingtask',
   universe:: error 'must set universe in promotepackagestagingtask',
+  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
 
   // Start of output.
   task: 'promote-staging-' + tl.repo,
-  file: 'guest-test-infra/concourse/tasks/gcloud-package-operation.yaml',
-  vars: {
-    package_paths: '',  // Unused for this RPC but required by the task.
-    repo: tl.repo,
-    universe: tl.universe,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "promoteToStaging", "request": {"gcsfiles": [], "universe": "%s", "repo": "%s"}}' %
+        [tl.universe, tl.repo],
+      ],
+    },
   },
-  params: { TYPE: 'promoteToStaging' },
 };
 
 local promotepackagestabletask = {
@@ -206,14 +369,62 @@ local promotepackagestabletask = {
 
   repo:: error 'must set repo in promotepackagestabletask',
   universe:: error 'must set universe in promotepackagestabletask',
+  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
 
   // Start of output.
   task: 'promote-stable-' + tl.repo,
-  file: 'guest-test-infra/concourse/tasks/gcloud-promote-package.yaml',
-  vars: {
-    environment: 'stable',
-    repo: tl.repo,
-    universe: tl.universe,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "insertPackage", "request": {"universe": "%s", "repo": "%s", "environment": "stable"}}' %
+        [tl.universe, tl.repo],
+      ],
+    },
+  },
+};
+
+local buildpackageimagetask = {
+  local tl = self,
+
+  source_image:: error 'must set source_image in buildpackageimagetask',
+  dest_image:: error 'must set dest_image in buildpackageimagetask',
+  gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetask',
+  machine_type:: 'e2-medium',
+  worker_image:: 'projects/compute-image-tools/global/images/family/debian-10-worker',
+
+  // Start of output.
+  task: '',
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/daisy' },
+    },
+    inputs: [{ name: 'compute-image-tools' }],
+    run: {
+      path: '/daisy',
+      args: [
+        '-project=gcp-guest',
+        '-zone=us-central1-a',
+        '-var:source_image=' + tl.source_image,
+        '-var:gcs_package_path=' + tl.gcs_package_path,
+        '-var:dest_image=' + tl.dest_image,
+        '-var:machine_type=' + tl.machine_type,
+        '-var:worker_image=' + tl.worker_image,
+        './compute-image-tools/daisy_workflows/image_build/install_package/install_package.wf.json',
+      ],
+    },
   },
 };
 
@@ -227,90 +438,63 @@ local promotepackagestabletask = {
       extra_tasks: [
         {
           task: 'generate-build-id',
-          file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-          vars: { prefix: '' },
+          config: {
+            platform: 'linux',
+            image_resource: {
+              type: 'registry-image',
+              source: { repository: 'busybox' },
+            },
+            outputs: [{ name: 'build-id-dir' }],
+            run: {
+              path: 'sh',
+              args: [
+                '-exc',
+                'buildid=$(date "+%s"); echo $buildid | tee build-id-dir/build-id',
+              ],
+            },
+          },
         },
         { load_var: 'build-id', file: 'build-id-dir/build-id' },
         {
           in_parallel: {
             fail_fast: true,
             steps: [
-              {
-                task: 'build-package-image-debian-9',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/debian-cloud/global/images/family/debian-9',
-                  'dest-image': 'debian-9-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/debian-cloud/global/images/family/debian-9',
+                dest_image: 'debian-9-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
-              {
-                task: 'build-package-image-debian-10',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/debian-cloud/global/images/family/debian-10',
-                  'dest-image': 'debian-10-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/debian-cloud/global/images/family/debian-10',
+                dest_image: 'debian-10-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
-              {
-                task: 'build-package-image-debian-11',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/debian-cloud/global/images/family/debian-11',
-                  'dest-image': 'debian-11-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/debian-cloud/global/images/family/debian-11',
+                dest_image: 'debian-11-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
               },
-              {
-                task: 'build-package-image-debian-11-arm64',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/debian-cloud-testing/global/images/family/debian-11-arm64',
-                  'dest-image': 'debian-11-arm64-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
-                  'machine-type': 't2a-standard-2',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/debian-cloud-testing/global/images/family/debian-11-arm64',
+                dest_image: 'debian-11-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
-              {
-                task: 'build-package-image-centos-7',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/centos-cloud/global/images/family/centos-7',
-                  'dest-image': 'centos-7-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/centos-cloud/global/images/family/centos-7',
+                dest_image: 'centos-7-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
               },
-              {
-                task: 'build-package-image-rhel-7',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/rhel-cloud/global/images/family/rhel-7',
-                  'dest-image': 'rhel-7-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-7',
+                dest_image: 'rhel-7-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
               },
-              {
-                task: 'build-package-image-rhel-8',
-                file: 'guest-test-infra/concourse/tasks/daisy-build-package-image.yaml',
-                vars: {
-                  'source-image': 'projects/rhel-cloud/global/images/family/rhel-8',
-                  'dest-image': 'rhel-8-((.:build-id))',
-                  'gcs-package-path': 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm',
-                  'machine-type': 'e2-medium',
-                  'worker-image': 'projects/compute-image-tools/global/images/family/debian-10-worker',
-                },
+              buildpackageimagetask {
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
+                dest_image: 'rhel-8-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm',
               },
             ],
           },
@@ -321,20 +505,44 @@ local promotepackagestabletask = {
             steps: [
               {
                 task: 'guest-agent-image-tests-amd64',
-                file: 'guest-test-infra/concourse/tasks/image-test-args.yaml',
-                vars: {
-                  images: 'projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))',
-                  'machine-type': 'e2-medium',
-                  'extra-args': '-exclude=(image)|(disk)|(security)|(oslogin)',
+                config: {
+                  platform: 'linux',
+                  image_resource: {
+                    type: 'registry-image',
+                    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                  },
+                  run: {
+                    path: '/manager',
+                    args: [
+                      '-project=gcp-guest',
+                      '-zone=us-central1-a',
+                      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+                      '-images=projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))',
+                      '-exclude=(image)|(disk)|(security)|(oslogin)',
+                    ],
+                  },
                 },
               },
               {
                 task: 'guest-agent-image-tests-arm64',
-                file: 'guest-test-infra/concourse/tasks/image-test-args.yaml',
-                vars: {
-                  images: 'projects/gcp-guest/global/images/debian-11-arm64-((.:build-id))',
-                  'machine-type': 't2a-standard-2',
-                  'extra-args': '-exclude=(image)|(disk)|(security)|(oslogin)',
+                config: {
+                  platform: 'linux',
+                  image_resource: {
+                    type: 'registry-image',
+                    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                  },
+                  inputs: [{ name: 'guest-test-infra' }],
+                  run: {
+                    path: '/manager',
+                    args: [
+                      '-project=gcp-guest',
+                      '-zone=us-central1-a',
+                      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id))',
+                      '-machine_type=t2a-standard-2',
+                      '-exclude=(image)|(disk)|(security)|(oslogin)',
+                    ],
+                  },
                 },
               },
             ],
@@ -342,59 +550,50 @@ local promotepackagestabletask = {
         },
       ],
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-guest-agent-stretch',
-          type: 'uploadToStaging',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-guest-agent-buster',
-          type: 'uploadToStaging',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
           repo: 'google-guest-agent-bullseye',
-          type: 'uploadToStaging',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm"}',
           repo: 'google-guest-agent-el7',
-          type: 'uploadToStaging',
           universe: 'cloud-yum',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm"}',
           repo: 'google-guest-agent-el8',
-          type: 'uploadToStaging',
           universe: 'cloud-yum',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm"}',
           repo: 'google-guest-agent-el9',
-          type: 'uploadToStaging',
           universe: 'cloud-yum',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-windows',
-          type: 'uploadToStaging',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-metadata-scripts',
-          type: 'uploadToStaging',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-metadata-scripts',
-          TYPE: 'uploadToStaging',
         },
       ],
     },
@@ -433,32 +632,32 @@ local promotepackagestabletask = {
       repos: ['deb9', 'deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el9'],
       gcs_dir: 'oslogin',
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-stretch',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-buster',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"}, {"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-bullseye',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm"}',
           repo: 'gce-google-compute-engine-oslogin-el7',
           universe: 'cloud-yum',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm"}',
           repo: 'gce-google-compute-engine-oslogin-el8',
           universe: 'cloud-yum',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm"}',
           repo: 'gce-google-compute-engine-oslogin-el9',
           universe: 'cloud-yum',
@@ -481,40 +680,47 @@ local promotepackagestabletask = {
       package: 'osconfig',
       repos: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb9_amd64.deb"}',
           repo: 'google-osconfig-agent-stretch',
           universe: 'cloud-apt',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb10_amd64.deb"}',
           repo: 'google-osconfig-agent-buster',
           universe: 'cloud-apt',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb11_amd64.deb"}, {"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb11_arm64.deb"}',
           repo: 'google-osconfig-agent-bullseye',
           universe: 'cloud-apt',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm"}',
           repo: 'google-osconfig-agent-el7',
           universe: 'cloud-yum',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm"}',
           repo: 'google-osconfig-agent-el8',
           universe: 'cloud-yum',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm"}',
           repo: 'google-osconfig-agent-el9',
           universe: 'cloud-yum',
+          type: 'uploadToUnstable',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo"}',
           repo: 'google-osconfig-agent',
           universe: 'cloud-yuck',
+          type: 'uploadToUnstable',
         },
       ],
     },
@@ -549,25 +755,25 @@ local promotepackagestabletask = {
       repos: ['deb9', 'el7', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb"}',
           repo: 'gce-disk-expand',
           universe: 'cloud-apt',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el7',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el8',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.x86_64.rpm"}',
           universe: 'cloud-yum',
@@ -591,32 +797,32 @@ local promotepackagestabletask = {
       repos: ['deb9', 'el7', 'el8', 'el9'],
       gcs_dir: 'google-compute-engine',
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
           universe: 'cloud-apt',
           repo: 'gce-google-compute-engine-stretch',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
           universe: 'cloud-apt',
           repo: 'gce-google-compute-engine-buster',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
           universe: 'cloud-apt',
           repo: 'gce-google-compute-engine-bullseye',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-google-compute-engine-el7',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-google-compute-engine-el8',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-google-compute-engine-el9',
@@ -639,17 +845,17 @@ local promotepackagestabletask = {
       package: 'artifact-registry-yum-plugin',
       repos: ['el7', 'el8', 'el9'],
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'yum-plugin-artifact-registry',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'dnf-plugin-artifact-registry',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'dnf-plugin-artifact-registry',
@@ -668,7 +874,7 @@ local promotepackagestabletask = {
       package: 'artifact-registry-apt-transport',
       repos: ['deb9', 'deb11-arm64'],
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"}',
           universe: 'cloud-apt',
@@ -687,25 +893,25 @@ local promotepackagestabletask = {
       package: 'compute-image-windows',
       repos: ['goo'],
       uploads: [
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'certgen',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-auto-updater.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-auto-updater',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-powershell.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-powershell',
         },
-        packageuploadtask {
+        uploadpackagetask {
           package_paths:
             '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-sysprep.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
@@ -906,11 +1112,8 @@ local promotepackagestabletask = {
       name: 'guest-agent',
       jobs: [
         'build-guest-agent',
-        'inject-guest-agent-linux-staging',
-        'promote-guest-agent-linux-stable',
-        'inject-guest-agent-windows-staging',
+        'promote-guest-agent-stable',
         'promote-guest-agent-windows-stable',
-        'inject-metadata-scripts-windows-staging',
         'promote-metadata-scripts-windows-stable',
       ],
     },
@@ -918,7 +1121,6 @@ local promotepackagestabletask = {
       name: 'guest-oslogin',
       jobs: [
         'build-guest-oslogin',
-        'promote-guest-oslogin-staging',
         'promote-guest-oslogin-stable',
       ],
     },
@@ -926,30 +1128,30 @@ local promotepackagestabletask = {
       name: 'osconfig',
       jobs: [
         'build-osconfig',
+        'promote-osconfig-staging',
+        'promote-osconfig-stable',
       ],
     },
     {
       name: 'disk-expand',
       jobs: [
         'build-guest-diskexpand',
+        'promote-guest-diskexpand-stable',
       ],
     },
     {
       name: 'google-compute-engine',
       jobs: [
         'build-guest-configs',
-        'promote-guest-configs-staging',
         'promote-guest-configs-stable',
       ],
     },
     {
       name: 'artifact-registry-plugins',
       jobs: [
-        'build-artifact-registry-el-plugins',
+        'build-artifact-registry-yum-plugin',
+        'promote-artifact-registry-yum-plugin-stable',
         'build-artifact-registry-apt-transport',
-        'promote-artifact-registry-el-plugins-staging',
-        'promote-artifact-registry-apt-transport-staging',
-        'promote-artifact-registry-el-plugins-stable',
         'promote-artifact-registry-apt-transport-stable',
       ],
     },
@@ -957,14 +1159,10 @@ local promotepackagestabletask = {
       name: 'compute-image-windows',
       jobs: [
         'build-compute-image-windows',
-        'inject-windows-certgen-staging',
-        'inject-windows-auto-updater-staging',
-        'inject-windows-powershell-staging',
-        'inject-windows-sysprep-staging',
-        'promote-windows-certgen-stable',
-        'promote-windows-auto-updater-stable',
-        'promote-windows-powershell-stable',
-        'promote-windows-sysprep-stable',
+        'promote-certgen-stable',
+        'promote-auto-updater-stable',
+        'promote-powershell-stable',
+        'promote-sysprep-stable',
       ],
     },
   ],
