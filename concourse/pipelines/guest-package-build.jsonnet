@@ -126,54 +126,45 @@ local buildpackagejob = {
       },
     },
   ],
-  on_success: {
-    task: 'success',
-    config: {
-      platform: 'linux',
-      image_resource: {
-        type: 'registry-image',
-        source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
-      },
-      run: {
-        path: '/publish-job-result',
-        args: [
-          '--project-id=gcp-guest',
-          '--zone=us-west1-a',
-          '--pipeline=guest-package-build',
-          '--job=build-' + tl.package,
-          '--task=publish-job-result',
-          '--result-state=success',
-          '--start-timestamp=((.:start-timestamp-ms))',
-          '--metric-path=concourse/job/duration',
-        ],
-      },
-    },
+  on_success: publishresulttask {
+    result: 'success',
+    package: tl.package,
   },
-  on_failure: {
-    task: 'failure',
-    config: {
-      platform: 'linux',
-      image_resource: {
-        type: 'registry-image',
-        source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
-      },
-      run: {
-        path: '/publish-job-result',
-        args: [
-          '--project-id=gcp-guest',
-          '--zone=us-west1-a',
-          '--pipeline=guest-package-build',
-          '--job=build-' + tl.package,
-          '--task=publish-job-result',
-          '--result-state=failure',
-          '--start-timestamp=((.:start-timestamp-ms))',
-          '--metric-path=concourse/job/duration',
-        ],
-      },
-    },
+  on_failure: publishresulttask {
+    result: 'failure',
+    package: tl.package,
   },
 };
 
+local publishresulttask = {
+  local tl = self,
+
+  result:: error 'must set result in publishresulttask',
+  package:: error 'must set package in publishresulttask',
+
+  // start of output.
+  task: tl.result,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+    },
+    run: {
+      path: '/publish-job-result',
+      args: [
+        '--project-id=gcp-guest',
+        '--zone=us-west1-a',
+        '--pipeline=guest-package-build',
+        '--job=build-' + tl.package,
+        '--task=publish-job-result',
+        '--result-state=' + tl.result,
+        '--start-timestamp=((.:start-timestamp-ms))',
+        '--metric-path=concourse/job/duration',
+      ],
+    },
+  },
+};
 
 local promotepackagejob = {
   local tl = self,
@@ -255,51 +246,13 @@ local promotepackagejob = {
       },
     },
   ] else [],
-  on_success: {
-    task: 'success',
-    config: {
-      platform: 'linux',
-      image_resource: {
-        type: 'registry-image',
-        source: { repository: 'gcr.io/compute-image-tools/daisy' },
-      },
-      run: {
-        path: '/publish-job-result',
-        args: [
-          '--project-id=gcp-guest',
-          '--zone=us-west1-a',
-          '--pipeline=guest-package-build',
-          '--job=build-' + tl.package,
-          '--task=publish-job-result',
-          '--result-state=success',
-          '--start-timestamp=((.:start-timestamp-ms))',
-          '--metric-path=concourse/job/duration',
-        ],
-      },
-    },
+  on_success: publishresulttask {
+    result: 'success',
+    package: tl.package,
   },
-  on_failure: {
-    task: 'failure',
-    config: {
-      platform: 'linux',
-      image_resource: {
-        type: 'registry-image',
-        source: { repository: 'gcr.io/compute-image-tools/daisy' },
-      },
-      run: {
-        path: '/publish-job-result',
-        args: [
-          '--project-id=gcp-guest',
-          '--zone=us-west1-a',
-          '--pipeline=guest-package-build',
-          '--job=build-' + tl.package,
-          '--task=publish-job-result',
-          '--result-state=failure',
-          '--start-timestamp=((.:start-timestamp-ms))',
-          '--metric-path=concourse/job/duration',
-        ],
-      },
-    },
+  on_failure: publishresulttask {
+    result: 'failure',
+    package: tl.package,
   },
 };
 
