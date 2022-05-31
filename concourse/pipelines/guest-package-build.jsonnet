@@ -1,5 +1,6 @@
 local underscore(input) = std.strReplace(input, '-', '_');
 
+// task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
   local tl = self,
 
@@ -30,6 +31,7 @@ local publishresulttask = {
   },
 };
 
+// job which builds a package - repos to build and individual upload tasks are passed in
 local buildpackagejob = {
   local tl = self,
 
@@ -42,6 +44,7 @@ local buildpackagejob = {
   // Start of output.
   name: 'build-' + tl.package,
   plan: [
+    // Prep build variables and content.
     {
       in_parallel: {
         steps: [
@@ -74,6 +77,8 @@ local buildpackagejob = {
       },
     },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
+    // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
+    // increments within a given day.
     {
       task: 'generate-package-version',
       config: {
@@ -107,6 +112,7 @@ local buildpackagejob = {
       },
     },
     { load_var: 'package-version', file: 'package-version/version' },
+    // Invoke daisy build workflows for all specified repos.
     {
       in_parallel: {
         fail_fast: true,
@@ -140,13 +146,16 @@ local buildpackagejob = {
         ],
       },
     },
+    // Layer in any provided additional tasks after build but before upload.
   ] + tl.extra_tasks + [
+    // Run provided upload tasks.
     {
       in_parallel: {
         fail_fast: true,
         steps: tl.uploads,
       },
     },
+    // Put the version tag onto the repo after uploads are complete.
     {
       put: '%s-tag' % tl.package,
       params: {
@@ -156,6 +165,7 @@ local buildpackagejob = {
       },
     },
   ],
+  // Publish success/failure metrics.
   on_success: publishresulttask {
     result: 'success',
     package: tl.package,
@@ -166,7 +176,7 @@ local buildpackagejob = {
   },
 };
 
-
+// job which promotes a package - individual promotion tasks are passed in.
 local promotepackagejob = {
   local tl = self,
 
@@ -179,6 +189,7 @@ local promotepackagejob = {
   // Start of output.
   name: 'promote-%s-%s' % [tl.package, tl.dest],
   plan: [
+    // Prep variables and content.
     {
       get: '%s-tag' % tl.package,
       passed: [tl.passed],
@@ -206,6 +217,7 @@ local promotepackagejob = {
       },
     },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
+    // Extract the date of the last stable tag on the repo, to use in time-since-last-promotion metric.
     {
       task: 'get-last-stable-date',
       config: {
@@ -236,7 +248,9 @@ local promotepackagejob = {
       },
     },
     { load_var: 'last-stable-date', file: 'last-stable-tag/date' },
+    // Run provided promotion tasks.
     { in_parallel: tl.promotions },
+    // Optionally tag the repo. This is optional because some repos produce multiple packages.
   ] + if tl.tag then [
     {
       put: '%s-tag' % tl.package,
@@ -247,6 +261,7 @@ local promotepackagejob = {
       },
     },
   ] else [],
+  // Publish success/failure metrics.
   on_success: publishresulttask {
     result: 'success',
     package: tl.package,
@@ -257,6 +272,7 @@ local promotepackagejob = {
   },
 };
 
+// task which uploads a package using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
 local uploadpackagetask = {
   local tl = self,
 
@@ -288,6 +304,7 @@ local uploadpackagetask = {
   },
 };
 
+// task which promotes a package using the 'promoteToStaging' ARLE RPC
 local promotepackagestagingtask = {
   local tl = self,
 
@@ -318,6 +335,7 @@ local promotepackagestagingtask = {
   },
 };
 
+// task which promotes a package to stable using the 'insertPackage' ARLE RPC
 local promotepackagestabletask = {
   local tl = self,
 
@@ -348,6 +366,7 @@ local promotepackagestabletask = {
   },
 };
 
+// task which builds a derivative OS image with a specific package added, for use in tests
 local buildpackageimagetask = {
   local tl = self,
 
@@ -605,7 +624,7 @@ local buildpackageimagetask = {
           universe: 'cloud-apt',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"}, {"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-bullseye',
           universe: 'cloud-apt',
         },
