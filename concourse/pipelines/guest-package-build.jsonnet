@@ -662,19 +662,19 @@ local buildpackageimagetask = {
       repos: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
       uploads: [
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb9_amd64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-osconfig-agent-stretch',
           universe: 'cloud-apt',
           type: 'uploadToUnstable',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb10_amd64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-osconfig-agent-buster',
           universe: 'cloud-apt',
           type: 'uploadToUnstable',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb11_amd64.deb"}, {"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1+deb11_arm64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
           repo: 'google-osconfig-agent-bullseye',
           universe: 'cloud-apt',
           type: 'uploadToUnstable',
