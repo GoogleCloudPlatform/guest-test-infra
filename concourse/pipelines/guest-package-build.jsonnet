@@ -31,13 +31,13 @@ local publishresulttask = {
   },
 };
 
-// job which builds a package - repos to build and individual upload tasks are passed in
+// job which builds a package - environments to build and individual upload tasks are passed in
 local buildpackagejob = {
   local tl = self,
 
   package:: error 'must set package in buildpackagejob',
   gcs_dir:: tl.package,
-  repos:: error 'must set repos in buildpackagejob',
+  builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
   extra_tasks:: [],
 
@@ -112,13 +112,13 @@ local buildpackagejob = {
       },
     },
     { load_var: 'package-version', file: 'package-version/version' },
-    // Invoke daisy build workflows for all specified repos.
+    // Invoke daisy build workflows for all specified builds.
     {
       in_parallel: {
         fail_fast: true,
         steps: [
           {
-            task: 'guest-package-build-%s-%s' % [tl.package, repo],
+            task: 'guest-package-build-%s-%s' % [tl.package, build],
             config: {
               platform: 'linux',
               image_resource: {
@@ -137,12 +137,12 @@ local buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=',
-                  'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(repo),
+                  'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
             },
           }
-          for repo in tl.repos
+          for build in tl.builds
         ],
       },
     },
@@ -250,7 +250,7 @@ local promotepackagejob = {
     { load_var: 'last-stable-date', file: 'last-stable-tag/date' },
     // Run provided promotion tasks.
     { in_parallel: tl.promotions },
-    // Optionally tag the repo. This is optional because some repos produce multiple packages.
+    // Optionally tag the repo. This is optional because some produce multiple packages.
   ] + if tl.tag then [
     {
       put: '%s-tag' % tl.package,
@@ -407,7 +407,7 @@ local buildpackageimagetask = {
   jobs: [
     buildpackagejob {
       package: 'guest-agent',
-      repos: ['deb9', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
+      builds: ['deb9', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
       // The guest agent has additional testing steps to build derivative images then run CIT against them.
       extra_tasks: [
         {
@@ -610,7 +610,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      repos: ['deb9', 'deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el9'],
+      builds: ['deb9', 'deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el9'],
       gcs_dir: 'oslogin',
       uploads: [
         uploadpackagetask {
@@ -659,7 +659,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'osconfig',
-      repos: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
@@ -733,7 +733,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-diskexpand',
-      repos: ['deb9', 'el7', 'el8', 'el9'],
+      builds: ['deb9', 'el7', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
         uploadpackagetask {
@@ -775,7 +775,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-configs',
-      repos: ['deb9', 'el7', 'el8', 'el9'],
+      builds: ['deb9', 'el7', 'el8', 'el9'],
       gcs_dir: 'google-compute-engine',
       uploads: [
         uploadpackagetask {
@@ -824,7 +824,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'artifact-registry-yum-plugin',
-      repos: ['el7', 'el8', 'el9'],
+      builds: ['el7', 'el8', 'el9'],
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm"}',
@@ -853,7 +853,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      repos: ['deb9', 'deb11-arm64'],
+      builds: ['deb9', 'deb11-arm64'],
       uploads: [
         uploadpackagetask {
           package_paths:
@@ -872,7 +872,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'compute-image-windows',
-      repos: ['goo'],
+      builds: ['goo'],
       uploads: [
         uploadpackagetask {
           package_paths:
