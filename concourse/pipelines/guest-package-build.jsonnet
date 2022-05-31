@@ -127,7 +127,7 @@ local buildpackagejob = {
               },
               inputs: [{ name: 'guest-test-infra' }],
               run: {
-                path: 'daisy',
+                path: '/daisy',
                 args: [
                   '-project=gcp-guest',
                   '-zone=us-west1-a',
