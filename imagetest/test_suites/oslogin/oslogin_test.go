@@ -1,5 +1,5 @@
-//go:build cit
 // +build cit
+// +build linux_test
 
 package oslogin
 

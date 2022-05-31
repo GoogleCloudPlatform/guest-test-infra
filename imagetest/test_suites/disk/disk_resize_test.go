@@ -1,5 +1,5 @@
-// +build linux
 // +build cit
+// +build linux_test
 
 package disk
 

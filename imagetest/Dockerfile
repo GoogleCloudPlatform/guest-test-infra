@@ -29,10 +29,16 @@ RUN go build -o /out/manager ./cmd/manager/main.go
 RUN cd test_suites; for suite in *; do \
   [[ -d $suite ]] || continue; \
   cd $suite; \
-  go test -c -tags cit || exit 1; \
+  go test -c -tags cit,linux_test || exit 1; \
+  # Check if anything was actually built. If not just continue with the next suite.
+  # This will happen if there's a directory with test files without matching tags.
+  [[ -f "./${suite}.test" ]] || cd ..; \
+  [[ -f "./${suite}.test" ]] || continue; \
+  # Output the test names to a file. This will be used to identify which tests to run.
   ./"${suite}.test" -test.list '.*' > /out/"${suite}_tests.txt" || exit 1; \
   mv "${suite}.test" "/out/${suite}.amd64.test" || exit 1; \
-  GOARCH=arm64 go test -c -tags cit || exit 1; \
+  # Build for arm64
+  GOARCH=arm64 go test -c -tags cit,linux_test || exit 1; \
   mv "${suite}.test" "/out/${suite}.arm64.test" || exit 1; \
   cd ..; \
   done
