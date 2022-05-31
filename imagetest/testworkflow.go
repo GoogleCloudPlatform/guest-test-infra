@@ -54,12 +54,7 @@ type TestWorkflow struct {
 	counter int
 	// Does this test require exclusive project
 	lockProject bool
-}
-
-// SingleVMTest configures one VM running tests.
-func SingleVMTest(t *TestWorkflow) error {
-	_, err := t.CreateTestVM("vm")
-	return err
+	osUnderTest string
 }
 
 func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *daisy.Instance, error) {
@@ -334,7 +329,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, image, timeout string, osUnderTest string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
@@ -346,6 +341,7 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
+	t.osUnderTest = osUnderTest
 
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
