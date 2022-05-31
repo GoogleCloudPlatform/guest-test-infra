@@ -33,7 +33,7 @@ jobs:
   - set_pipeline: linux-image-build
     file: rendered/linux-image-build.json
   - set_pipeline: guest-package-build
-    file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
+    file: rendered/guest-package-build.json
   - set_pipeline: debian-worker-image-build
     file: guest-test-infra/concourse/pipelines/debian-worker-image-build.yaml
   - set_pipeline: bare-metal-image-build
