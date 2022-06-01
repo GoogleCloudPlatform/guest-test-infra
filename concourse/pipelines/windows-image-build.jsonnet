@@ -328,11 +328,7 @@ local imgpublishjob = {
           'publish-to-staging-' + job.image,
       ],
       // Auto-publish to testing after build. Auto-publish to internal after staging publish
-      trigger: [
-        if job.env == 'testing' then true
-        else if job.env == 'internal' then true
-        else false,
-      ],
+      trigger: if job.env == 'testing' || job.env == 'internal' then true else false,
     },
     {
       load_var: 'source-version',
