@@ -429,6 +429,7 @@ local buildpackageimagetask = {
           },
         },
         { load_var: 'build-id', file: 'build-id-dir/build-id' },
+        { get: 'compute-image-tools' },
         {
           in_parallel: {
             fail_fast: true,
@@ -721,6 +722,7 @@ local buildpackageimagetask = {
     promotepackagejob {
       package: 'osconfig',
       dest: 'stable',
+      passed: 'promote-osconfig-staging',
       promotions: [
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-stretch' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
@@ -1066,6 +1068,15 @@ local buildpackageimagetask = {
       type: 'git',
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/guest-test-infra.git',
+        branch: 'master',
+        fetch_tags: true,
+      },
+    },
+    {
+      name: 'compute-image-tools',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/compute-image-tools.git',
         branch: 'master',
         fetch_tags: true,
       },
