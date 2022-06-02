@@ -317,13 +317,13 @@ local imgpublishjob = {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [
-        // build -> testing -> staging -> internal -> prod
+        // build -> testing -> staging -> prod -> internal
         if job.env == 'testing' then
           'build-' + job.image
         else if job.env == 'staging' then
           'publish-to-testing-' + job.image
         else if job.env == 'internal' then
-          'publish-to-internal-' + job.image
+          'publish-to-prod-' + job.image
         else if job.env == 'prod' then
           'publish-to-staging-' + job.image,
       ],
