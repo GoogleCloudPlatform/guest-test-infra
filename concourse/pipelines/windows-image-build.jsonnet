@@ -4,7 +4,8 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
-local envs = ['testing', 'staging', 'prod'];
+local server_envs = ['testing', 'staging', 'internal', 'prod'];
+local sql_envs = ['testing', 'staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
@@ -316,16 +317,18 @@ local imgpublishjob = {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [
-        // build -> testing -> staging -> prod
+        // build -> testing -> staging -> internal -> prod
         if job.env == 'testing' then
           'build-' + job.image
         else if job.env == 'staging' then
           'publish-to-testing-' + job.image
+        else if job.env == 'internal' then
+          'publish-to-internal-' + job.image
         else if job.env == 'prod' then
           'publish-to-staging-' + job.image,
       ],
-      // Auto-publish to testing after build.
-      trigger: if job.env == 'testing' then true else false,
+      // Auto-publish to testing after build. Auto-publish to internal after staging publish
+      trigger: if job.env == 'testing' || job.env == 'internal' then true else false,
     },
     {
       load_var: 'source-version',
@@ -395,14 +398,14 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
 
-local ImgGroup(name, images) = {
+local ImgGroup(name, images, environments) = {
   name: name,
   jobs: [
     'build-' + image
     for image in images
   ] + [
     'publish-to-%s-%s' % [env, image]
-    for env in envs
+    for env in environments
     for image in images
   ],
 };
@@ -576,30 +579,30 @@ local ImgGroup(name, images) = {
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_images
-          for env in envs
+          for env in server_envs
         ] +
         [
           ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
           for image in sql_images
-          for env in envs
+          for env in sql_envs
         ] +
         [
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
           for image in container_images
-          for env in envs
+          for env in server_envs
         ],
 
   groups: [
-    ImgGroup('windows-2012', windows_2012_images),
-    ImgGroup('windows-2016', windows_2016_images),
-    ImgGroup('windows-2019', windows_2019_images),
-    ImgGroup('windows-2022', windows_2022_images),
-    ImgGroup('windows-20h2', windows_20h2_images),
-    ImgGroup('sql-2012', sql_2012_images),
-    ImgGroup('sql-2014', sql_2014_images),
-    ImgGroup('sql-2016', sql_2016_images),
-    ImgGroup('sql-2017', sql_2017_images),
-    ImgGroup('sql-2019', sql_2019_images),
-    ImgGroup('container-2019', container_images),
+    ImgGroup('windows-2012', windows_2012_images, server_envs),
+    ImgGroup('windows-2016', windows_2016_images, server_envs),
+    ImgGroup('windows-2019', windows_2019_images, server_envs),
+    ImgGroup('windows-2022', windows_2022_images, server_envs),
+    ImgGroup('windows-20h2', windows_20h2_images, server_envs),
+    ImgGroup('sql-2012', sql_2012_images, sql_envs),
+    ImgGroup('sql-2014', sql_2014_images, sql_envs),
+    ImgGroup('sql-2016', sql_2016_images, sql_envs),
+    ImgGroup('sql-2017', sql_2017_images, sql_envs),
+    ImgGroup('sql-2019', sql_2019_images, sql_envs),
+    ImgGroup('container-2019', container_images, server_envs),
   ],
 }
