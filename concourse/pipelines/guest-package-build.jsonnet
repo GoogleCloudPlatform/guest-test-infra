@@ -204,7 +204,11 @@ local promotepackagejob = {
     { get: 'guest-test-infra' },
     generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    // Extract the date of the last stable tag on the repo, to use in time-since-last-promotion metric.
+    // Run provided promotion tasks.
+    { in_parallel: tl.promotions },
+    // Optionally tag the repo. This is optional because some produce multiple packages.
+  ] + if tl.tag then [
+    // Put the word 'stable' in a file for use in the put step.
     {
       task: 'get-last-stable-date',
       config: {
@@ -214,36 +218,22 @@ local promotepackagejob = {
           source: { repository: 'busybox' },
         },
 
-        inputs: [{ name: tl.package, path: 'repo' }],
-        outputs: [{ name: 'last-stable-tag' }],
+        outputs: [{ name: 'stable-tag' }],
 
         run: {
           path: 'sh',
           args: [
             '-exc',
-            // Ugly way to produce multi-line script. TODO: maybe move to scripts?
-            std.lines([
-              'commit=$(cat repo/.git/refs/tags/stable)',
-              'date=$(cd repo/.git/refs/tags; grep -l $commit stable-2*)',
-              '[[ -z $date ]] && exit 1',
-              'echo $date | sed "s/\\..*//" | sed "s/stable-//" | tee last-stable-tag/date',
-              'echo stable-`date +%Y%m%d` | tee last-stable-tag/stable-today',
-              'echo stable > last-stable-tag/stable',
-            ]),
+            'echo stable > stable-tag/stable',
           ],
         },
       },
     },
-    { load_var: 'last-stable-date', file: 'last-stable-tag/date' },
-    // Run provided promotion tasks.
-    { in_parallel: tl.promotions },
-    // Optionally tag the repo. This is optional because some produce multiple packages.
-  ] + if tl.tag then [
     {
       put: '%s-tag' % tl.package,
       params: {
-        name: 'last-stable-tag/stable',
-        tag: 'last-stable-tag/stable',
+        name: 'stable-tag/stable',
+        tag: 'stable-tag/stable',
         commitish: '%s-tag/commit_sha' % tl.package,
       },
     },
