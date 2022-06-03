@@ -855,31 +855,31 @@ local buildpackageimagetask = {
       uploads: [
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'certgen',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-auto-updater.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-auto-updater.noarch.((.:package-version))@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-auto-updater',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-powershell.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-powershell.noarch.((.:package-version))@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-powershell',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-sysprep.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-sysprep.noarch.((.:package-version))@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-sysprep',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-ssh.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-ssh.x86_64.((.:package-version)).0@1.goo"}',
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-ssh',
         },
