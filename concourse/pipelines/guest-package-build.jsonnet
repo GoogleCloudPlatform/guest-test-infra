@@ -1169,7 +1169,7 @@ local buildpackageimagetask = {
         'promote-auto-updater-stable',
         'promote-powershell-stable',
         'promote-sysprep-stable',
-        'promote-sysprep-ssh',
+        'promote-ssh-stable',
       ],
     },
   ],
