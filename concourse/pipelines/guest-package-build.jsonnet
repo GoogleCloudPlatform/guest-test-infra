@@ -31,6 +31,26 @@ local publishresulttask = {
   },
 };
 
+// task which generates timestamps used in metric publishing steps. common between build and promote jobs.
+local generatetimestamptask = {
+  task: 'generate-timestamp',
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'bash' },
+    },
+    outputs: [{ name: 'timestamp' }],
+    run: {
+      path: '/usr/local/bin/bash',
+      args: [
+        '-c',
+        'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
+      ],
+    },
+  },
+};
+
 // job which builds a package - environments to build and individual upload tasks are passed in
 local buildpackagejob = {
   local tl = self,
@@ -58,24 +78,7 @@ local buildpackagejob = {
       },
     },
     { load_var: 'commit-sha', file: '%s/.git/ref' % tl.package },
-    {
-      task: 'generate-timestamp',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'bash' },
-        },
-        outputs: [{ name: 'timestamp' }],
-        run: {
-          path: '/usr/local/bin/bash',
-          args: [
-            '-c',
-            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
-          ],
-        },
-      },
-    },
+    generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
     // increments within a given day.
@@ -199,23 +202,7 @@ local promotepackagejob = {
       params: { fetch_tags: true },
     },
     { get: 'guest-test-infra' },
-    {
-      task: 'generate-timestamp',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'bash' },
-        },
-        run: {
-          path: '/usr/local/bin/bash',
-          args: [
-            '-c',
-            'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
-          ],
-        },
-      },
-    },
+    generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Extract the date of the last stable tag on the repo, to use in time-since-last-promotion metric.
     {
