@@ -906,6 +906,7 @@ local buildpackageimagetask = {
       package: 'compute-image-windows',
       name: 'promote-powershell-stable',
       dest: 'stable',
+      tag: false,
       promotions: [
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-powershell' },
       ],
@@ -914,6 +915,7 @@ local buildpackageimagetask = {
       package: 'compute-image-windows',
       name: 'promote-sysprep-stable',
       dest: 'stable',
+      tag: false,
       promotions: [
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-sysprep' },
       ],
@@ -922,6 +924,7 @@ local buildpackageimagetask = {
       package: 'compute-image-windows',
       name: 'promote-ssh-stable',
       dest: 'stable',
+      tag: false,
       promotions: [
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-ssh' },
       ],
