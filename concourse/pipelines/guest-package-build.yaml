@@ -2010,6 +2010,84 @@ jobs:
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 
+- name: inject-windows-ssh-staging
+  plan:
+  - in_parallel:
+      steps:
+      - get: compute-image-windows-tag
+        passed: [build-compute-image-windows]
+      - get: guest-test-infra
+      - get: compute-image-windows
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - load_var: package-version
+    file: compute-image-windows-tag/version
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      prefix: ""
+  - load_var: build-id
+    file: build-id-dir/build-id
+  - task: upload-windows-ssh-to-staging
+    file: guest-test-infra/concourse/tasks/gcloud-package-operation.yaml
+    vars:
+      package_paths: '{\"bucket\":\"gcp-guest-package-uploads\",\"object\":\"compute-image-windows/google-compute-engine-ssh.((.:package-version)).0@1.goo\"}'
+      universe: cloud-yuck
+      repo: google-compute-engine-ssh
+    params:
+      TYPE: uploadToStaging
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-ssh-staging"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "inject-windows-ssh-staging"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+
+- name: promote-windows-ssh-stable
+  plan:
+  - get: compute-image-windows-tag
+    passed: [inject-windows-ssh-staging]
+  - get: compute-image-windows
+    params: {fetch_tags: true}
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: promote-windows-ssh-to-stable
+    file: guest-test-infra/concourse/tasks/gcloud-promote-package.yaml
+    vars:
+      universe: cloud-yuck
+      repo: google-compute-engine-ssh
+      environment: stable
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-ssh-stable"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "guest-package-build"
+      job: "promote-windows-ssh-stable"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 resources:
 - name: guest-agent
@@ -2160,7 +2238,9 @@ groups:
   - inject-windows-auto-updater-staging
   - inject-windows-powershell-staging
   - inject-windows-sysprep-staging
+  - inject-windows-ssh-staging
   - promote-windows-certgen-stable
   - promote-windows-auto-updater-stable
   - promote-windows-powershell-stable
   - promote-windows-sysprep-stable
+  - promote-windows-ssh-stable
