@@ -900,6 +900,12 @@ local buildpackageimagetask = {
           universe: 'cloud-yuck',
           repo: 'google-compute-engine-sysprep',
         },
+        uploadpackagetask {
+          package_paths:
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-ssh.((.:package-version)).0@1.goo"}',
+          universe: 'cloud-yuck',
+          repo: 'google-compute-engine-ssh',
+        },
       ],
     },
     promotepackagejob {
@@ -933,6 +939,14 @@ local buildpackageimagetask = {
       dest: 'stable',
       promotions: [
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-sysprep' },
+      ],
+    },
+    promotepackagejob {
+      package: 'compute-image-windows',
+      name: 'promote-ssh-stable',
+      dest: 'stable',
+      promotions: [
+        promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-ssh' },
       ],
     },
   ],
@@ -1155,6 +1169,7 @@ local buildpackageimagetask = {
         'promote-auto-updater-stable',
         'promote-powershell-stable',
         'promote-sysprep-stable',
+        'promote-ssh-stable',
       ],
     },
   ],
