@@ -96,8 +96,7 @@ func testLinuxGuestSecureBoot(t *testing.T) {
 func testWindowsGuestSecureBoot(t *testing.T) {
 	cmd := exec.Command("powershell.exe", "Confirm-SecureBootUEFI")
 
-	output, err := cmd.Output(); 
-	
+	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("failed to run SecureBoot command: %v", err)
 	}
