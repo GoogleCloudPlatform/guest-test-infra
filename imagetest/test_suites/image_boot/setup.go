@@ -38,6 +38,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return nil
 	}
 
+	if strings.Contains(t.Image, "arm64") {
+		// secure boot is not supported on ARM images
+		return nil
+	}
+
 	vm3, err := t.CreateTestVM("vm3")
 	if err != nil {
 		return err
