@@ -349,7 +349,11 @@ local imgpublishjob = {
               config: imagetesttask {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 // Special case ARM for now.
-                extra_args: if tl.image_prefix == 'debian-11-bullseye-arm64' then ['-machine_type=t2a-standard-2'] else [],
+                extra_args: if
+                  tl.image_prefix == 'debian-11-bullseye-arm64' || tl.image_prefix == 'rhel-9-arm64'
+                then
+                  ['-machine_type=t2a-standard-2']
+                else [],
               },
               attempts: 3,
             },
@@ -552,6 +556,7 @@ local imggroup = {
     'rhel-8',
     'rhel-8-byos',
     'rhel-9',
+    'rhel-9-arm64',
   ],
 
   // Start of output.
