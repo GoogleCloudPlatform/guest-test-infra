@@ -36,7 +36,6 @@ var (
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
 	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
-	osUnderTest   = flag.String("os", "linux", "operating system that tests will be run on")
 )
 
 var (
@@ -192,7 +191,7 @@ func main() {
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout, *osUnderTest)
+			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}

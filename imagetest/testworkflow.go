@@ -329,7 +329,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image, timeout string, osUnderTest string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
@@ -341,7 +341,11 @@ func NewTestWorkflow(name, image, timeout string, osUnderTest string) (*TestWork
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
-	t.osUnderTest = osUnderTest
+
+	t.osUnderTest = "linux"
+	if strings.Contains(t.Image, "windows") {
+		t.osUnderTest = "windows"
+	}
 
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
