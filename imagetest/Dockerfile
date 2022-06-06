@@ -25,6 +25,7 @@ ENV GO111MODULE on
 RUN go mod download
 RUN go build -o /out/wrapper.amd64 ./cmd/wrapper/main.go
 RUN GOARCH=arm64 go build -o /out/wrapper.arm64 ./cmd/wrapper/main.go
+RUN GOOS=windows go build -o /out/wrapper.exe ./cmd/wrapper/main.go
 RUN go build -o /out/manager ./cmd/manager/main.go
 RUN cd test_suites; for suite in *; do \
   [[ -d $suite ]] || continue; \
@@ -34,8 +35,15 @@ RUN cd test_suites; for suite in *; do \
   mv "${suite}.test" "/out/${suite}.amd64.test" || exit 1; \
   GOARCH=arm64 go test -c -tags cit || exit 1; \
   mv "${suite}.test" "/out/${suite}.arm64.test" || exit 1; \
+  GOOS=windows go test -c -tags cit || exit 1; \
+  if [ -f "${suite}.test.exe" ]; then \
+    mv "${suite}.test.exe" "/out/${suite}.amd64.test.exe" || exit 1; \
+  fi; \
   cd ..; \
   done
+
+# The startup.ps1 script is temporary until the new windows image is released
+RUN mv ./cmd/startup.ps1 /out/startup.ps1
 
 FROM alpine:edge
 RUN apk add --no-cache openssh-keygen

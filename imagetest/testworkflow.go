@@ -61,7 +61,11 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *
 	attachedDisk := &compute.AttachedDisk{Source: name}
 
 	instance := &daisy.Instance{}
-	instance.StartupScript = "wrapper"
+	if t.osUnderTest == "windows" {
+		instance.StartupScript = "startup.ps1"
+	} else {
+		instance.StartupScript = "wrapper"
+	}
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 	instance.Disks = append(instance.Disks, attachedDisk)
@@ -278,8 +282,14 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			}
 		}
 
-		twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
-		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
+		if twf.osUnderTest == "windows" {
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test.exe", twf.Name, arch)
+			twf.wf.Sources["wrapper.exe"] = "/wrapper.exe"
+			twf.wf.Sources["startup.ps1"] = "/startup.ps1"
+		} else {
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
+		}
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}

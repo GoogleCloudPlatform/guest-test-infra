@@ -16,10 +16,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const (
-	testPackage = "image_test"
-)
-
 func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
@@ -64,6 +60,11 @@ func main() {
 		log.Fatalf("failed to create work dir: %v", err)
 	}
 	workDir = workDir + "/"
+
+	testPackage := "image_test"
+	if runtime.GOOS == "windows" {
+		testPackage = "image_test.exe"
+	}
 
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)

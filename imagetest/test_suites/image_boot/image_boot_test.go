@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,6 +25,10 @@ func TestGuestBoot(t *testing.T) {
 }
 
 func TestGuestReboot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Reboot not implemented on Windows")
+	}
+
 	_, err := os.Stat(markerFile)
 	if os.IsNotExist(err) {
 		// first boot
@@ -37,6 +42,10 @@ func TestGuestReboot(t *testing.T) {
 }
 
 func TestGuestRebootOnHost(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Reboot not implemented on Windows")
+	}
+
 	_, err := os.Stat(markerFile)
 	if os.IsNotExist(err) {
 		// first boot
@@ -54,6 +63,14 @@ func TestGuestRebootOnHost(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		testWindowsGuestSecureBoot(t)
+	} else {
+		testLinuxGuestSecureBoot(t)
+	}
+}
+
+func testLinuxGuestSecureBoot(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
@@ -73,6 +90,23 @@ func TestGuestSecureBoot(t *testing.T) {
 	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
 	if data[len(data)-1] != 1 {
 		t.Fatal("secure boot is not enabled as expected")
+	}
+}
+
+func testWindowsGuestSecureBoot(t *testing.T) {
+	cmd := exec.Command("powershell.exe", "Confirm-SecureBootUEFI")
+
+	output, err := cmd.Output(); 
+	
+	if err != nil {
+		t.Fatalf("failed to run SecureBoot command: %v", err)
+	}
+
+	// The output will return a string that is either 'True' or 'False'
+	// so we need to parse it and compare here.
+	trimmed_output := strings.TrimSpace(string(output))
+	if trimmed_output != "True" {
+		t.Fatalf("Secure boot is not enabled as expected: %v", trimmed_output)
 	}
 }
 
