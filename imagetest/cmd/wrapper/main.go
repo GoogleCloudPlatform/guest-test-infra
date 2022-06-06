@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/url"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 
@@ -56,16 +55,17 @@ func main() {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
+	testPackage, err := utils.GetMetadataAttribute("_test_package_name")
+	if err != nil {
+		log.Fatalf("failed to get metadata _test_package_name: %v", err)
+	}
+
 	workDir, err := ioutil.TempDir("", "image_test")
 	if err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
 	}
 	workDir = workDir + "/"
 
-	testPackage := "image_test"
-	if runtime.GOOS == "windows" {
-		testPackage = "image_test.exe"
-	}
 
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
