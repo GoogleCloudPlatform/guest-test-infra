@@ -3,10 +3,10 @@
 package network
 
 import (
-	"os/exec"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/go-ping/ping"
 )
 
 func TestPingVMToVM(t *testing.T) {
@@ -47,11 +47,14 @@ func pingTargetRetries(source, target string) error {
 // pingTarget sends ICMP ping to target from source once a second for 5
 // seconds, expecting 5 responses.
 func pingTarget(source, target string) error {
-	cmd := exec.Command("ping", "-q", "-c", "5", "-I", source, "-w", "5", target)
-	if err := cmd.Run(); err != nil {
+	pinger, err := ping.NewPinger(target)
+	if err != nil {
 		return err
 	}
-	return nil
+	pinger.SetPrivileged(true)
+	pinger.Source = source
+	pinger.Count = 5
+	return pinger.Run()
 }
 
 // dummy test for target VM.

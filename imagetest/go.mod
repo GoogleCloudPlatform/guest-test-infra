@@ -5,6 +5,7 @@ go 1.17
 require (
 	cloud.google.com/go/storage v1.22.0
 	github.com/GoogleCloudPlatform/compute-image-tools/daisy v0.0.0-20220307223029-04ad9f09e70d
+	github.com/go-ping/ping v1.1.0
 	github.com/google/uuid v1.3.0
 	github.com/jstemmer/go-junit-report v1.0.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
