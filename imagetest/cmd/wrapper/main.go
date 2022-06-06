@@ -66,7 +66,6 @@ func main() {
 	}
 	workDir = workDir + "/"
 
-
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}

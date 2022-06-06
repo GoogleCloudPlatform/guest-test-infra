@@ -71,7 +71,6 @@ func TestGuestSecureBoot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("couldn't get image from metadata")
 		}
-	
 		if strings.Contains(image, "debian-9") {
 			t.Skip("secure boot is not supported on Debian 9")
 		}
