@@ -3,6 +3,7 @@ local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
+local image_test_task = import '../templates/image-test-task.libsonnet';
 
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
@@ -365,7 +366,23 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
         },
       },
-  ],
+  ]  +
+    // Run post-publish tests in 'publish-to-testing-' jobs.
+    if job.env == 'testing' then
+      [
+        {
+          task: 'image-test-' + job.image,
+          config: image_test_task.imagetesttask {
+            // images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+            images: 'projects/pneil-sandbox-windows/global/images/windows-w-new-metadata-scripts',
+            extra_args:
+              ['-filter=image_boot']
+          },
+          attempts: 3,
+        },
+      ]
+    else
+      [],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {

@@ -4,6 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local lego = import '../templates/lego.libsonnet';
+local image_test_task = import '../templates/image-test-task.libsonnet';
 
 // Common
 local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
@@ -20,30 +21,6 @@ local rhuiimgbuildtask = imgbuildtask {
   run+: {
     // Prepend, as the workflow must be the last arg. Daisy is picky.
     args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
-  },
-};
-
-local imagetesttask = {
-  local task = self,
-
-  images:: error 'must set images in imagetesttask',
-  extra_args:: [],
-
-  // Start of task
-  platform: 'linux',
-  image_resource: {
-    type: 'registry-image',
-    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-  },
-  run: {
-    path: '/manager',
-    args: [
-      '-project=gcp-guest',
-      '-zone=us-central1-a',
-      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=oslogin',
-      '-images=' + task.images,
-    ] + task.extra_args,
   },
 };
 
@@ -346,7 +323,7 @@ local imgpublishjob = {
           [
             {
               task: 'image-test-' + tl.image,
-              config: imagetesttask {
+              config: image_test_task.imagetesttask {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 // Special case ARM for now.
                 extra_args: if
