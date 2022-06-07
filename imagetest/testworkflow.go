@@ -351,11 +351,6 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
 
-	t.osUnderTest = "linux"
-	if strings.Contains(t.Image, "windows") {
-		t.osUnderTest = "windows"
-	}
-
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
 	t.wf.DisableStdoutLogging()
