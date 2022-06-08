@@ -3,9 +3,12 @@
 package imageboot
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -43,7 +46,12 @@ func TestGuestRebootOnHost(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		cmd := exec.Command("sudo", "nohup", "reboot")
+		var cmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			cmd = exec.Command("shutdown", "-r", "-t", "0")
+		} else {
+			cmd = exec.Command("sudo", "nohup", "reboot")
+		}
 		if err := cmd.Run(); err != nil {
 			t.Fatalf("failed to run reboot command: %v", err)
 		}
@@ -54,26 +62,56 @@ func TestGuestRebootOnHost(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
+	if runtime.GOOS == "windows" {
+		if err := testWindowsGuestSecureBoot(); err != nil {
+			t.Fatalf("SecureBoot test failed with: %v", err)
+		}
+	} else {
+		image, err := utils.GetMetadata("image")
+		if err != nil {
+			t.Fatalf("couldn't get image from metadata")
+		}
+		if strings.Contains(image, "debian-9") {
+			t.Skip("secure boot is not supported on Debian 9")
+		}
 
-	if strings.Contains(image, "debian-9") {
-		t.Skip("secure boot is not supported on Debian 9")
+		if err := testLinuxGuestSecureBoot(); err != nil {
+			t.Fatalf("SecureBoot test failed with: %v", err)
+		}
 	}
+}
 
+func testLinuxGuestSecureBoot() error {
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
-		t.Fatal("efi var is missing")
+		return errors.New("efi var is missing")
 	}
 	data, err := ioutil.ReadFile(secureBootFile)
 	if err != nil {
-		t.Fatal("failed reading secure boot file")
+		return errors.New("failed reading secure boot file")
 	}
 	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
 	if data[len(data)-1] != 1 {
-		t.Fatal("secure boot is not enabled as expected")
+		return errors.New("secure boot is not enabled as expected")
 	}
+
+	return nil
+}
+
+func testWindowsGuestSecureBoot() error {
+	cmd := exec.Command("powershell.exe", "Confirm-SecureBootUEFI")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return errors.New(fmt.Sprintf("failed to run SecureBoot command: %v", err))
+	}
+
+	// The output will return a string that is either 'True' or 'False'
+	// so we need to parse it and compare here.
+	if trimmed_output := strings.TrimSpace(string(output)); trimmed_output != "True" {
+		return errors.New("Secure boot is not enabled as expected")
+	}
+
+	return nil
 }
 
 func TestBootTime(t *testing.T) {

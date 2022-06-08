@@ -16,10 +16,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const (
-	testPackage = "image_test"
-)
-
 func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
@@ -57,6 +53,11 @@ func main() {
 	testRun, err := utils.GetMetadataAttribute("_test_run")
 	if err == nil && testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
+	}
+
+	testPackage, err := utils.GetMetadataAttribute("_test_package_name")
+	if err != nil {
+		log.Fatalf("failed to get metadata _test_package_name: %v", err)
 	}
 
 	workDir, err := ioutil.TempDir("", "image_test")
