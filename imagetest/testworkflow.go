@@ -36,6 +36,7 @@ var (
 
 const (
 	testWrapperPath = "/wrapper"
+	testWrapperPathWindows = "/wrapp"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -289,7 +290,7 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 				arch_bits = "32"
 			}
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, arch_bits)
-			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPath, arch_bits)
+			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, arch_bits)
 		} else {
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
 			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)

@@ -25,8 +25,9 @@ ENV GO111MODULE on
 RUN go mod download
 RUN go build -o /out/wrapper.amd64 ./cmd/wrapper/main.go
 RUN GOARCH=arm64 go build -o /out/wrapper.arm64 ./cmd/wrapper/main.go
-RUN GOOS=windows GOARCH=amd64 go build -o /out/wrapper64.exe ./cmd/wrapper/main.go
-RUN GOOS=windows GOARCH=386 go build -o /out/wrapper32.exe ./cmd/wrapper/main.go
+# Setting the windows file names to respect 8.3 file naming.
+RUN GOOS=windows GOARCH=amd64 go build -o /out/wrapp64.exe ./cmd/wrapper/main.go
+RUN GOOS=windows GOARCH=386 go build -o /out/wrapp32.exe ./cmd/wrapper/main.go
 RUN go build -o /out/manager ./cmd/manager/main.go
 RUN cd test_suites; for suite in *; do \
   [[ -d $suite ]] || continue; \
