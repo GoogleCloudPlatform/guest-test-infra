@@ -373,8 +373,7 @@ local imgpublishjob = {
         {
           task: 'image-test-' + job.image,
           config: image_test_task.imagetesttask {
-            // images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-            images: 'projects/pneil-sandbox-windows/global/images/windows-w-new-metadata-scripts',
+            images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
             extra_args:
               ['-filter=image_boot']
           },
