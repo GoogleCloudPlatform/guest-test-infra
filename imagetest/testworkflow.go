@@ -283,12 +283,17 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			}
 		}
 
-		var suffix string
 		if strings.Contains(twf.Image, "windows") {
-			suffix = ".exe"
+			arch_bits := "64"
+			if strings.Contains(twf.Image, "x86") {
+				arch_bits = "32"
+			}
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, arch_bits)
+			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPath, arch_bits)
+		} else {
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
 		}
-		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test%s", twf.Name, arch, suffix)
-		twf.wf.Sources[fmt.Sprintf("wrapper%s", suffix)] = fmt.Sprintf("%s.%s%s", testWrapperPath, arch, suffix)
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
