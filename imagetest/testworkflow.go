@@ -35,7 +35,7 @@ var (
 )
 
 const (
-	testWrapperPath = "/wrapper"
+	testWrapperPath        = "/wrapper"
 	testWrapperPathWindows = "/wrapp"
 )
 
@@ -285,9 +285,9 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 		}
 
 		if strings.Contains(twf.Image, "windows") {
-			arch_bits := "64"
+			archBits := "64"
 			if strings.Contains(twf.Image, "x86") {
-				arch_bits = "32"
+				archBits = "32"
 			}
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, arch_bits)
 			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, arch_bits)
