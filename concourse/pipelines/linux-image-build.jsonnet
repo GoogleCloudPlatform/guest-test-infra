@@ -582,7 +582,7 @@ local imggroup = {
                common.gitresource { name: 'guest-test-infra' },
                common.gcsimgresource { image: 'almalinux-8', gcs_dir: 'almalinux' },
                common.gcsimgresource { image: 'rocky-linux-8', gcs_dir: 'rocky-linux' },
-               common.gcsimgresource { image: 'rocky-linux-optimized-gcp-8', gcs_dir: 'rocky-linux' },
+               common.gcsimgresource { image: 'rocky-linux-8-optimized-gcp', gcs_dir: 'rocky-linux' },
                common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
                common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
              ] +
@@ -611,7 +611,7 @@ local imggroup = {
         ] +
         [
           // GCP-optimized Rocky image uses the same ISO as base rocky.
-          elimgbuildjob { image: 'rocky-linux-optimized-gcp-8', isopath: 'rocky-linux-8' },
+          elimgbuildjob { image: 'rocky-linux-8-optimized-gcp', isopath: 'rocky-linux-8' },
         ] +
         [
           // RHUI build jobs.
@@ -684,7 +684,7 @@ local imggroup = {
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
           }
-          for image in ['rocky-linux-8', 'rocky-linux-optimized-gcp-8']
+          for image in ['rocky-linux-8', 'rocky-linux-8-optimized-gcp']
           for env in envs
         ] +
         [
@@ -709,7 +709,7 @@ local imggroup = {
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: ['almalinux-8'] },
-    imggroup { name: 'rocky-linux', images: ['rocky-linux-8', 'rocky-linux-optimized-gcp-8'] },
+    imggroup { name: 'rocky-linux', images: ['rocky-linux-8', 'rocky-linux-8-optimized-gcp'] },
     imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['testing'] },
   ],
 }
