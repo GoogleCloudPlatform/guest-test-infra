@@ -143,6 +143,7 @@ local deployjob = {
   jobs: [
     gatejob {
       name: 'manual-trigger',
+      trigger: false,
     },
     deployjob {
       name: 'deploy-staging-us-west1',
