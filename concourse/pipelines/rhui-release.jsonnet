@@ -152,8 +152,8 @@ local deployjob = {
       passed: ['manual-trigger'],
     },
     deployjob {
-      name: 'deploy-prod-us-east1',
-      region: 'us-east1',
+      name: 'deploy-prod-us-central1',
+      region: 'us-central1',
       passed: ['deploy-staging-us-west1'],
     },
   ],
