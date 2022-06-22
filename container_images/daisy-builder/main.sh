@@ -55,10 +55,12 @@ function generate_build_workflow() {
   "Steps": {'
 
   for distro in ${DISTROS//,/ }; do
+    distrodash=$(echo "$distro" | tr '_' '-')
     if [[ "$config" =~ IncludeWorkflow ]]; then
+      # Append additional steps
       config="${config},"
     fi
-    config="${config}\n"'    "'"$distro"'": {
+    config="${config}\n"'    "'"$distrodash"'": {
       "IncludeWorkflow": {
         "Path": "./workflows/build_'"$distro"'.wf.json",
         "Vars": {
