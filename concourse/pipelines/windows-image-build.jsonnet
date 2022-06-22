@@ -322,13 +322,19 @@ local imgpublishjob = {
           'build-' + job.image
         else if job.env == 'staging' then
           'publish-to-testing-' + job.image
-        else if job.env == 'internal' then
-          'publish-to-prod-' + job.image
         else if job.env == 'prod' then
-          'publish-to-staging-' + job.image,
+          'publish-to-staging-' + job.image
+        else if job.env == 'internal' then
+          'publish-to-prod-' + job.image,
       ],
-      // Auto-publish to testing after build. Auto-publish to internal after staging publish
-      trigger: if job.env == 'testing' || job.env == 'internal' then true else false,
+      // Auto-publish to testing after build. Auto-publish to prod (still gated by ARLE) and internal after staging publish.
+      trigger: if job.env == 'testing' then
+        true
+      else if job.env == 'prod' then
+        true
+      else if job.env == 'internal' then
+        true
+      else false,
     },
     {
       load_var: 'source-version',
