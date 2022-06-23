@@ -322,13 +322,13 @@ local imgpublishjob = {
           'build-' + job.image
         else if job.env == 'staging' then
           'publish-to-testing-' + job.image
-        else if job.env == 'internal' then
-          'publish-to-prod-' + job.image
         else if job.env == 'prod' then
-          'publish-to-staging-' + job.image,
+          'publish-to-staging-' + job.image
+        else if job.env == 'internal' then
+          'publish-to-prod-' + job.image,
       ],
-      // Auto-publish to testing after build. Auto-publish to internal after staging publish
-      trigger: if job.env == 'testing' || job.env == 'internal' then true else false,
+      // Builds are automatically pushed to testing. Triggering staging will automatically progress to prod and internal.
+      trigger: if job.env == 'staging' then false else true,
     },
     {
       load_var: 'source-version',
