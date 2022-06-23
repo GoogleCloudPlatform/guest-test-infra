@@ -1,3 +1,4 @@
+//go:build cit
 // +build cit
 
 package imagevalidation
@@ -131,7 +132,7 @@ var licenses = []string{
 }
 
 const (
-	licenseNameRegex = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
+	licenseNameRegex = `(?i)(((Licen[sc]e|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
 )
 
 var licenseGlobs = []string{
