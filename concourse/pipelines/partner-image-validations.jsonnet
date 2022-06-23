@@ -278,26 +278,26 @@ local ubuntudevelimages = [
 ];
 
 local ubuntuproposedimages = [
-  'ubuntu-1804-arm64-lts',
+  //'ubuntu-1804-arm64-lts',
   'ubuntu-1804-lts',
-  'ubuntu-2004-arm64-lts',
+  //'ubuntu-2004-arm64-lts',
   'ubuntu-2004-lts',
   'ubuntu-2110',
-  'ubuntu-2110-arm64',
-  'ubuntu-2204-arm64-lts',
-  'ubuntu-2204-lts',
-  'ubuntu-2210-amd64',
-  'ubuntu-2210-arm64',
-  'ubuntu-minimal-1804-arm64-lts',
-  'ubuntu-minimal-1804-lts',
-  'ubuntu-minimal-2004-arm64-lts',
-  'ubuntu-minimal-2004-lts',
-  'ubuntu-minimal-2110',
-  'ubuntu-minimal-2110-arm64',
-  'ubuntu-minimal-2204-arm64-lts',
-  'ubuntu-minimal-2204-lts',
-  'ubuntu-minimal-2210-amd64',
-  'ubuntu-minimal-2210-arm64',
+  //'ubuntu-2110-arm64',
+  //'ubuntu-2204-arm64-lts',
+  //'ubuntu-2204-lts',
+  //'ubuntu-2210-amd64',
+  //'ubuntu-2210-arm64',
+  //'ubuntu-minimal-1804-arm64-lts',
+  //'ubuntu-minimal-1804-lts',
+  //'ubuntu-minimal-2004-arm64-lts',
+  //'ubuntu-minimal-2004-lts',
+  //'ubuntu-minimal-2110',
+  //'ubuntu-minimal-2110-arm64',
+  //'ubuntu-minimal-2204-arm64-lts',
+  //'ubuntu-minimal-2204-lts',
+  //'ubuntu-minimal-2210-amd64',
+  //'ubuntu-minimal-2210-arm64',
   'ubuntu-pro-1604-lts',
   'ubuntu-pro-1804-lts',
   'ubuntu-pro-2004-lts',
@@ -351,5 +351,21 @@ local ubuntuproposedimages = [
   ] + [
     imagevalidationjob { image: family + '-proposed' }
     for family in ubuntuproposedimages
+  ],
+  groups: [
+    {
+      name: 'ubuntu-devel',
+      jobs: [
+        family + '-devel'
+        for family in ubuntudevelimages
+      ],
+    },
+    {
+      name: 'ubuntu-proposed',
+      jobs: [
+        family + '-proposed'
+        for family in ubuntuproposedimages
+      ],
+    },
   ],
 }
