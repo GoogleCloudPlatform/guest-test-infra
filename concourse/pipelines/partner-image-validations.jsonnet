@@ -350,6 +350,6 @@ local ubuntuproposedimages = [
     for family in ubuntudevelimages
   ] + [
     imagevalidationjob { image: family + '-proposed' }
-    for family in ubuntudevelimages
+    for family in ubuntuproposedimages
   ],
 }
