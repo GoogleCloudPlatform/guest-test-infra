@@ -4,6 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
+local client_envs = ['testing', 'staging', 'internal']
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
@@ -418,6 +419,12 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
+  local windows_81_images = [
+    'windows-client-81',
+  ]
+  local windows_10_images = [
+    'windows-client-10-21h2',
+  ]
   local windows_2012_images = [
     'windows-server-2012-r2-dc',
     'windows-server-2012-r2-dc-core',
@@ -517,6 +524,8 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
+          ImgBuildJob('windows-client-81, 'win-81-64', 'windows_gcs_updates_client81-64'),
+          ImgBuildJob('windows-client-10-21h2, 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
@@ -599,6 +608,8 @@ local ImgGroup(name, images, environments) = {
         ],
 
   groups: [
+    ImgGroup('windows-81', windows_81_images, client_envs),
+    ImgGroup('windows-10', windows_10_images, client_envs),
     ImgGroup('windows-2012', windows_2012_images, server_envs),
     ImgGroup('windows-2016', windows_2016_images, server_envs),
     ImgGroup('windows-2019', windows_2019_images, server_envs),
