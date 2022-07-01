@@ -590,7 +590,11 @@ local ImgGroup(name, images, environments) = {
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi') {passed:'publish-to-staging-' + image}
           for image in windows_client_images
-          for env in client_envs
+          for env in ['testing', 'staging']
+        ] +
+        [
+          ImgPublishJob(image, 'internal'', 'windows', 'windows-uefi') {passed:'publish-to-staging-' + image}
+          for image in windows_client_images
         ] +
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
