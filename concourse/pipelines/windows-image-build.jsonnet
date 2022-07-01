@@ -308,6 +308,15 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
+  // build -> testing -> staging -> prod -> internal
+  passed:: if job.env == 'testing' then
+             'build-' + job.image
+           else if job.env == 'staging' then
+             'publish-to-testing-' + job.image
+           else if job.env == 'prod' then
+             'publish-to-staging-' + job.image
+           else if job.env == 'internal' then
+             'publish-to-prod-' + job.image,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
@@ -318,15 +327,7 @@ local imgpublishjob = {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [
-        // build -> testing -> staging -> prod -> internal
-        if job.env == 'testing' then
-          'build-' + job.image
-        else if job.env == 'staging' then
-          'publish-to-testing-' + job.image
-        else if job.env == 'prod' then
-          'publish-to-staging-' + job.image
-        else if job.env == 'internal' then
-          'publish-to-prod-' + job.image,
+        job.passed,
       ],
       // Builds are automatically pushed to testing. Triggering staging will automatically progress to prod and internal.
       trigger: if job.env == 'staging' then false else true,
@@ -587,7 +588,7 @@ local ImgGroup(name, images, environments) = {
         // Publish jobs
 
         [
-          ImgPublishJob(image, env, 'windows', 'windows-uefi')
+          ImgPublishJob(image, env, 'windows', 'windows-uefi') {passed:'publish-to-staging-' + image}
           for image in windows_client_images
           for env in client_envs
         ] +
