@@ -4,7 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
-local client_envs = ['testing', 'staging', 'internal']
+local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
