@@ -328,14 +328,8 @@ local imgpublishjob = {
         else if job.env == 'internal' then
           'publish-to-prod-' + job.image,
       ],
-      // Auto-publish to testing after build. Auto-publish to prod (still gated by ARLE) and internal after staging publish.
-      trigger: if job.env == 'testing' then
-        true
-      else if job.env == 'prod' then
-        true
-      else if job.env == 'internal' then
-        true
-      else false,
+      // Builds are automatically pushed to testing. Triggering staging will automatically progress to prod and internal.
+      trigger: if job.env == 'staging' then false else true,
     },
     {
       load_var: 'source-version',
@@ -524,8 +518,8 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
-          ImgBuildJob('windows-client-81, 'win-81-64', 'windows_gcs_updates_client81-64'),
-          ImgBuildJob('windows-client-10-21h2, 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
+          ImgBuildJob('windows-client-81', 'win-81-64', 'windows_gcs_updates_client81-64'),
+          ImgBuildJob('windows-client-10-21h2', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
