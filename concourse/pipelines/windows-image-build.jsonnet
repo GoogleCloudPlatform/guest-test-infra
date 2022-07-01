@@ -602,7 +602,7 @@ local ImgGroup(name, images, environments) = {
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_server_images
-          for env in windows_server_envs
+          for env in server_envs
         ] +
         [
           ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
