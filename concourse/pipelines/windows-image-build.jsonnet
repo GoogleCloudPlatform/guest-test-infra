@@ -487,8 +487,8 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2019-dc-core-for-containers',
   ],
 
-  local windows_images = windows_2012_images + windows_2016_images + windows_2019_images
-                         + windows_20h2_images + windows_2022_images,
+  local windows_images = windows_81_images + windows_10_images + windows_2012_images + windows_2016_images
+                         + windows_2019_images + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2012_images + sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
 
   resource_types: [
