@@ -118,6 +118,9 @@ for spec in $TOBUILD; do
 done
 
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
+for rpm in $rpms; do
+  rpm -qpilR $rpm
+done
 echo "copying ${rpms} to $GCS_PATH/"
 gsutil cp -n ${rpms} "$GCS_PATH/"
 build_success "Built $(echo ${rpms}|xargs)"
