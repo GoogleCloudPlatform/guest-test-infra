@@ -26,6 +26,7 @@ local imagevalidationjob = {
   local tl = self,
 
   image:: error 'must provide image in imagevalidationjob',
+  bucket:: error 'must provide bucket in imagevalidationjob',
 
   // Start of output.
   name: tl.image,
@@ -93,7 +94,7 @@ local imagevalidationjob = {
           args: [
             'cp',
             'started/started.json',
-            'gs://ubuntu-gce-validation-results/((.:startedjson.timestamp))/started.json',
+            'gs://%s/((.:startedjson.timestamp))/started.json' % tl.bucket,
           ],
         },
       },
@@ -115,7 +116,7 @@ local imagevalidationjob = {
           args: [
             'cp',
             'started/latest-build.txt',
-            'gs://ubuntu-gce-validation-results/latest-build.txt',
+            'gs://%s/latest-build.txt' % tl.bucket,
           ],
         },
       },
@@ -159,7 +160,7 @@ local imagevalidationjob = {
                 args: [
                   'cp',
                   'finished/finished.json',
-                  'gs://ubuntu-gce-validation-results/((.:startedjson.timestamp))/finished.json',
+                  'gs://%s/((.:startedjson.timestamp))/finished.json' % tl.bucket,
                 ],
               },
             },
@@ -181,7 +182,7 @@ local imagevalidationjob = {
                 args: [
                   'cp',
                   'junit/junit.xml',
-                  'gs://ubuntu-gce-validation-results/((.:startedjson.timestamp))/artifacts/junit.xml',
+                  'gs://%s/((.:startedjson.timestamp))/artifacts/junit.xml' % tl.bucket,
                 ],
               },
             },
@@ -225,7 +226,7 @@ local imagevalidationjob = {
                 args: [
                   'cp',
                   'finished/finished.json',
-                  'gs://ubuntu-gce-validation-results/((.:startedjson.timestamp))/finished.json',
+                  'gs://%s/((.:startedjson.timestamp))/finished.json' % tl.bucket,
                 ],
               },
             },
@@ -247,7 +248,7 @@ local imagevalidationjob = {
                 args: [
                   'cp',
                   'junit/junit.xml',
-                  'gs://ubuntu-gce-validation-results/((.:startedjson.timestamp))/artifacts/junit.xml',
+                  'gs://%s/((.:startedjson.timestamp))/artifacts/junit.xml' % tl.bucket,
                 ],
               },
             },
@@ -344,13 +345,33 @@ local ubuntuproposedimages = [
       },
     }
     for family in ubuntuproposedimages
+  ] + [
+    {
+      name: 'sles-15',
+      type: 'gce-image',
+      source: {
+        project: 'suse-cloud-testing',
+        family: 'sles-15',
+      },
+    },
   ],
   jobs: [
-    imagevalidationjob { image: family + '-devel' }
+    imagevalidationjob {
+      image: family + '-devel',
+      bucket: 'ubuntu-gce-validation-results',
+    }
     for family in ubuntudevelimages
   ] + [
-    imagevalidationjob { image: family + '-proposed' }
+    imagevalidationjob {
+      image: family + '-proposed',
+      bucket: 'ubuntu-gce-validation-results',
+    }
     for family in ubuntuproposedimages
+  ] + [
+    imagevalidationjob {
+      image: 'sles-15',
+      bucket: 'sles-gce-validation-results',
+    },
   ],
   groups: [
     {
@@ -365,6 +386,12 @@ local ubuntuproposedimages = [
       jobs: [
         family + '-proposed'
         for family in ubuntuproposedimages
+      ],
+    },
+    {
+      name: 'suse-cloud-testing',
+      jobs: [
+        'sles-15',
       ],
     },
   ],
