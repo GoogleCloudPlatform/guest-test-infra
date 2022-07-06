@@ -4,6 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
+local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
@@ -307,6 +308,15 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
+  // build -> testing -> staging -> prod -> internal
+  passed:: if job.env == 'testing' then
+             'build-' + job.image
+           else if job.env == 'staging' then
+             'publish-to-testing-' + job.image
+           else if job.env == 'prod' then
+             'publish-to-staging-' + job.image
+           else if job.env == 'internal' then
+             'publish-to-prod-' + job.image,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
@@ -317,15 +327,7 @@ local imgpublishjob = {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [
-        // build -> testing -> staging -> prod -> internal
-        if job.env == 'testing' then
-          'build-' + job.image
-        else if job.env == 'staging' then
-          'publish-to-testing-' + job.image
-        else if job.env == 'prod' then
-          'publish-to-staging-' + job.image
-        else if job.env == 'internal' then
-          'publish-to-prod-' + job.image,
+        job.passed,
       ],
       // Builds are automatically pushed to testing. Triggering staging will automatically progress to prod and internal.
       trigger: if job.env == 'staging' then false else true,
@@ -412,6 +414,12 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
+  local windows_81_images = [
+    'windows-client-81-x64',
+  ],
+  local windows_10_images = [
+    'windows-client-10-21h2-x64',
+  ],
   local windows_2012_images = [
     'windows-server-2012-r2-dc',
     'windows-server-2012-r2-dc-core',
@@ -480,7 +488,8 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2019-dc-core-for-containers',
   ],
 
-  local windows_images = windows_2012_images + windows_2016_images + windows_2019_images
+  local windows_client_images = windows_81_images + windows_10_images,
+  local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2012_images + sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
 
@@ -502,7 +511,7 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_images + container_images
+               for image in windows_client_images + windows_server_images + container_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
@@ -511,6 +520,8 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
+          ImgBuildJob('windows-client-81-x64', 'win-81-64', 'windows_gcs_updates_client81-64'),
+          ImgBuildJob('windows-client-10-21h2-x64', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
@@ -576,9 +587,21 @@ local ImgGroup(name, images, environments) = {
 
         // Publish jobs
 
+        // Windows client has 2 jobs to account for skipping of prod environment. This avoids needing to
+        // rewrite the rest of the passed logic. TODO: Mod logic such that only 1 ImgPublishJob is needed
+
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
-          for image in windows_images
+          for image in windows_client_images
+          for env in ['testing', 'staging']
+        ] +
+        [
+          ImgPublishJob(image, 'internal', 'windows', 'windows-uefi') {passed:'publish-to-staging-' + image}
+          for image in windows_client_images
+        ] +
+        [
+          ImgPublishJob(image, env, 'windows', 'windows-uefi')
+          for image in windows_server_images
           for env in server_envs
         ] +
         [
@@ -593,6 +616,8 @@ local ImgGroup(name, images, environments) = {
         ],
 
   groups: [
+    ImgGroup('windows-81', windows_81_images, client_envs),
+    ImgGroup('windows-10', windows_10_images, client_envs),
     ImgGroup('windows-2012', windows_2012_images, server_envs),
     ImgGroup('windows-2016', windows_2016_images, server_envs),
     ImgGroup('windows-2019', windows_2019_images, server_envs),
