@@ -520,7 +520,7 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
-          ImgBuildJob('windows-81-ent-x64', 'win-81-64', 'windows_gcs_updates_client81-64'),
+          ImgBuildJob('windows-81-ent-x64', 'win81-64', 'windows_gcs_updates_client81-64'),
           ImgBuildJob('windows-10-21h2-ent-x64', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
