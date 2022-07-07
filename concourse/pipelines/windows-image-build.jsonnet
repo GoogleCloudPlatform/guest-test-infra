@@ -415,10 +415,10 @@ local ImgGroup(name, images, environments) = {
 // Start of output.
 {
   local windows_81_images = [
-    'windows-client-81-x64',
+    'windows-81-ent-x64',
   ],
   local windows_10_images = [
-    'windows-client-10-21h2-x64',
+    'windows-10-21h2-ent-x64',
   ],
   local windows_2012_images = [
     'windows-server-2012-r2-dc',
