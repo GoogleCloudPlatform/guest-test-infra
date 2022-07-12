@@ -350,7 +350,7 @@ local imgpublishjob = {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 // Special case ARM for now.
                 extra_args: if
-                  tl.image_prefix == 'debian-11-bullseye-arm64' || tl.image_prefix == 'rhel-9-arm64'
+                  std.endsWith(tl.image_prefix, '-arm64')
                 then
                   ['-machine_type=t2a-standard-2']
                 else [],
@@ -540,6 +540,7 @@ local imggroup = {
 };
 
 {
+  local almalinux_images = ['almalinux-8'],
   local debian_images = ['debian-9', 'debian-10', 'debian-11', 'debian-11-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_sap_images = [
@@ -557,6 +558,11 @@ local imggroup = {
     'rhel-8-byos',
     'rhel-9',
     'rhel-9-arm64',
+  ],
+  local rocky_linux_images = [
+    'rocky-linux-8',
+    'rocky-linux-8-optimized-gcp',
+    'rocky-linux-8-optimized-gcp-arm64',
   ],
 
   // Start of output.
@@ -580,12 +586,11 @@ local imggroup = {
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
-               common.gcsimgresource { image: 'almalinux-8', gcs_dir: 'almalinux' },
-               common.gcsimgresource { image: 'rocky-linux-8', gcs_dir: 'rocky-linux' },
-               common.gcsimgresource { image: 'rocky-linux-8-optimized-gcp', gcs_dir: 'rocky-linux' },
                common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
                common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
              ] +
+             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -607,11 +612,7 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + ['almalinux-8', 'rocky-linux-8']
-        ] +
-        [
-          // GCP-optimized Rocky image uses the same ISO as base rocky.
-          elimgbuildjob { image: 'rocky-linux-8-optimized-gcp', isopath: 'rocky-linux-8' },
+          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
         ] +
         [
           // RHUI build jobs.
@@ -669,23 +670,26 @@ local imggroup = {
           for image in centos_images
         ] +
         [
+          // AlmaLinux publish jobs
           imgpublishjob {
-            image: 'almalinux-8',
+            image: image,
             env: env,
             gcs_dir: 'almalinux',
             workflow_dir: 'enterprise_linux',
           }
           for env in envs
+          for image in almalinux_images
         ] +
         [
+          // Rocky Linux publish jobs
           imgpublishjob {
             image: image,
             env: env,
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
           }
-          for image in ['rocky-linux-8', 'rocky-linux-8-optimized-gcp']
           for env in envs
+          for image in rocky_linux_images
         ] +
         [
           imgpublishjob {
@@ -708,8 +712,8 @@ local imggroup = {
         ],
     },
     imggroup { name: 'centos', images: centos_images },
-    imggroup { name: 'almalinux', images: ['almalinux-8'] },
-    imggroup { name: 'rocky-linux', images: ['rocky-linux-8', 'rocky-linux-8-optimized-gcp'] },
+    imggroup { name: 'almalinux', images: almalinux_images },
+    imggroup { name: 'rocky-linux', images: rocky_linux_images },
     imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['testing'] },
   ],
 }
