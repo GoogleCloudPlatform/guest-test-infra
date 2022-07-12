@@ -53,7 +53,13 @@ fi
 
 # Enable CRB repo on EL9.
 if [[ ${VERSION_ID} = 9 ]]; then
-  dnf config-manager --set-enabled crb
+  eval $(grep ID /etc/os-release)
+  # RHEL has a different CRB repo than Rocky/CentOS.
+  if [[ ${ID} == "rhel" ]]; then
+    dnf config-manager --set-enabled rhui-codeready-builder-for-rhel-9-$(uname -m)-rhui-rpms
+  else
+    dnf config-manager --set-enabled crb
+  fi
 fi
 
 try_command yum install -y $GIT rpmdevtools yum-utils

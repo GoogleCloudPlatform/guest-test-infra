@@ -1,5 +1,5 @@
 {
-  "Name": "deb11",
+  "Name": "el8",
   "Vars": {
     "gcs_path": {
       "Required": true
@@ -25,8 +25,8 @@
       "SubWorkflow": {
         "Path": "./build_package.wf.json",
         "Vars": {
-          "type": "deb",
-          "sourceImage": "projects/debian-cloud/global/images/family/debian-11-arm64",
+          "type": "rpm",
+          "sourceImage": "projects/bct-prod-images/global/images/family/rocky-linux-8-optimized-gcp-arm64",
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
