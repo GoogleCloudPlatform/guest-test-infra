@@ -425,7 +425,7 @@ local buildpackageimagetask = {
               },
               buildpackageimagetask {
                 image_name: 'debian-11-arm64',
-                source_image: 'projects/debian-cloud-testing/global/images/family/debian-11-arm64',
+                source_image: 'projects/debian-cloud/global/images/family/debian-11-arm64',
                 dest_image: 'debian-11-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
                 machine_type: 't2a-standard-2',
@@ -465,7 +465,7 @@ local buildpackageimagetask = {
               },
               buildpackageimagetask {
                 image_name: 'rhel-9-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/rhel-9-arm64',
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
                 dest_image: 'rhel-9-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm',
                 machine_type: 't2a-standard-2',
