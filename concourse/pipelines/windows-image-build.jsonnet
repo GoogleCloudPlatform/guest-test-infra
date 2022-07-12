@@ -420,6 +420,9 @@ local ImgGroup(name, images, environments) = {
   local windows_10_images = [
     'windows-10-21h2-ent-x64',
   ],
+  local windows_11_images = [
+    'windows-11-21h2-ent-x64',
+  ],
   local windows_2012_images = [
     'windows-server-2012-r2-dc',
     'windows-server-2012-r2-dc-core',
@@ -488,7 +491,7 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2019-dc-core-for-containers',
   ],
 
-  local windows_client_images = windows_81_images + windows_10_images,
+  local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2012_images + sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
@@ -522,6 +525,7 @@ local ImgGroup(name, images, environments) = {
 
           ImgBuildJob('windows-81-ent-x64', 'win81-64', 'windows_gcs_updates_client81-64'),
           ImgBuildJob('windows-10-21h2-ent-x64', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
+          ImgBuildJob('windows-11-21h2-ent-x64', 'win11-21h2-64', 'windows_gcs_updates_client11-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
@@ -618,6 +622,7 @@ local ImgGroup(name, images, environments) = {
   groups: [
     ImgGroup('windows-81', windows_81_images, client_envs),
     ImgGroup('windows-10', windows_10_images, client_envs),
+    ImgGroup('windows-11', windows_11_images, client_envs),
     ImgGroup('windows-2012', windows_2012_images, server_envs),
     ImgGroup('windows-2016', windows_2016_images, server_envs),
     ImgGroup('windows-2019', windows_2019_images, server_envs),
