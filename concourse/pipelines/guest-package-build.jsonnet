@@ -384,7 +384,7 @@ local buildpackageimagetask = {
   jobs: [
     buildpackagejob {
       package: 'guest-agent',
-      builds: ['deb9', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64', 'goo'],
       // The guest agent has additional testing steps to build derivative images then run CIT against them.
       extra_tasks: [
         {
@@ -411,12 +411,6 @@ local buildpackageimagetask = {
           in_parallel: {
             fail_fast: true,
             steps: [
-              buildpackageimagetask {
-                image_name: 'debian-9',
-                source_image: 'projects/debian-cloud/global/images/family/debian-9',
-                dest_image: 'debian-9-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
-              },
               buildpackageimagetask {
                 image_name: 'debian-10',
                 source_image: 'projects/debian-cloud/global/images/family/debian-10',
@@ -455,6 +449,28 @@ local buildpackageimagetask = {
                 dest_image: 'rhel-8-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm',
               },
+              buildpackageimagetask {
+                image_name: 'rocky-linux-8-optimized-gcp-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/rocky-linux-8-optimzied-gcp-arm64',
+                dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+              },
+              buildpackageimagetask {
+                image_name: 'rhel-9',
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+                dest_image: 'rhel-9-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm',
+              },
+              buildpackageimagetask {
+                image_name: 'rhel-9-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/rhel-9-arm64',
+                dest_image: 'rhel-9-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+              },
             ],
           },
         },
@@ -476,7 +492,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                      '-images=projects/gcp-guest/global/images/debian-9-((.:build-id)),projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-exclude=(image)|(disk)|(security)|(oslogin)',
                     ],
                   },
@@ -497,7 +513,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-machine_type=t2a-standard-2',
                       '-exclude=(image)|(disk)|(security)|(oslogin)',
                     ],
@@ -509,11 +525,6 @@ local buildpackageimagetask = {
         },
       ],
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
-          repo: 'google-guest-agent-stretch',
-          universe: 'cloud-apt',
-        },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-guest-agent-buster',
@@ -530,12 +541,12 @@ local buildpackageimagetask = {
           universe: 'cloud-yum',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm"}',
           repo: 'google-guest-agent-el8',
           universe: 'cloud-yum',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm"}',
           repo: 'google-guest-agent-el9',
           universe: 'cloud-yum',
         },
@@ -560,7 +571,6 @@ local buildpackageimagetask = {
       package: 'guest-agent',
       dest: 'stable',
       promotions: [
-        promotepackagestabletask { repo: 'google-guest-agent-stretch', universe: 'cloud-apt' },
         promotepackagestabletask { repo: 'google-guest-agent-buster', universe: 'cloud-apt' },
         promotepackagestabletask { repo: 'google-guest-agent-bullseye', universe: 'cloud-apt' },
         promotepackagestabletask { repo: 'google-guest-agent-el7', universe: 'cloud-yum' },
@@ -588,14 +598,9 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb9', 'deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el9'],
+      builds: ['deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64'],
       gcs_dir: 'oslogin',
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb9_amd64.deb"}',
-          repo: 'gce-google-compute-engine-oslogin-stretch',
-          universe: 'cloud-apt',
-        },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-buster',
@@ -612,12 +617,12 @@ local buildpackageimagetask = {
           universe: 'cloud-yum',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.aarch64.rpm"}',
           repo: 'gce-google-compute-engine-oslogin-el8',
           universe: 'cloud-yum',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.aarch64.rpm"}',
           repo: 'gce-google-compute-engine-oslogin-el9',
           universe: 'cloud-yum',
         },
@@ -627,7 +632,6 @@ local buildpackageimagetask = {
       package: 'guest-oslogin',
       dest: 'stable',
       promotions: [
-        promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-stretch' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-bullseye' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-oslogin-el7' },
@@ -637,14 +641,8 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'osconfig',
-      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el9', 'goo'],
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64', 'goo'],
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
-          repo: 'google-osconfig-agent-stretch',
-          universe: 'cloud-apt',
-          type: 'uploadToUnstable',
-        },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
           repo: 'google-osconfig-agent-buster',
@@ -664,13 +662,13 @@ local buildpackageimagetask = {
           type: 'uploadToUnstable',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.aarch64.rpm"}',
           repo: 'google-osconfig-agent-el8',
           universe: 'cloud-yum',
           type: 'uploadToUnstable',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.aarch64.rpm"}',
           repo: 'google-osconfig-agent-el9',
           universe: 'cloud-yum',
           type: 'uploadToUnstable',
@@ -687,7 +685,6 @@ local buildpackageimagetask = {
       package: 'osconfig',
       dest: 'staging',
       promotions: [
-        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-stretch' },
         promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
         promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
         promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
@@ -701,7 +698,6 @@ local buildpackageimagetask = {
       dest: 'stable',
       passed: 'promote-osconfig-staging',
       promotions: [
-        promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-stretch' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
@@ -712,7 +708,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-diskexpand',
-      builds: ['deb9', 'el7', 'el8', 'el9'],
+      builds: ['deb10', 'el7', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
         uploadpackagetask {
@@ -723,19 +719,19 @@ local buildpackageimagetask = {
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.x86_64.rpm"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el7',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.x86_64.rpm"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el8',
         },
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.x86_64.rpm"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el9',
         },
@@ -754,14 +750,9 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-configs',
-      builds: ['deb9', 'el7', 'el8', 'el9'],
+      builds: ['deb10', 'el7', 'el8', 'el9'],
       gcs_dir: 'google-compute-engine',
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
-          universe: 'cloud-apt',
-          repo: 'gce-google-compute-engine-stretch',
-        },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
           universe: 'cloud-apt',
@@ -793,7 +784,6 @@ local buildpackageimagetask = {
       package: 'guest-configs',
       dest: 'stable',
       promotions: [
-        promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-stretch' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-bullseye' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-el7' },
@@ -832,7 +822,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb9', 'deb11-arm64'],
+      builds: ['deb10', 'deb11-arm64'],
       uploads: [
         uploadpackagetask {
           package_paths:
