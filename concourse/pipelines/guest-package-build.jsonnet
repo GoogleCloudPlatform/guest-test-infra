@@ -384,7 +384,7 @@ local buildpackageimagetask = {
   jobs: [
     buildpackagejob {
       package: 'guest-agent',
-      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64', 'goo'],
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       // The guest agent has additional testing steps to build derivative images then run CIT against them.
       extra_tasks: [
         {
@@ -598,7 +598,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64'],
+      builds: ['deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       uploads: [
         uploadpackagetask {
@@ -641,7 +641,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'osconfig',
-      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-aarch64', 'el9', 'el9-aarch64', 'goo'],
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
