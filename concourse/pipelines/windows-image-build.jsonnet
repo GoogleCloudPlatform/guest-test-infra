@@ -326,12 +326,6 @@ local windowsinstallmediaimgbuildjob = {
     },
   },
   plan: [
-    {
-      get: '%s-gcs' % job.base_image,
-      params: { skip_download: 'true' },
-      passed: ['publish-to-testing-' + job.base_image],
-      trigger: true,
-    },
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
