@@ -7,6 +7,7 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
+local windows_install_media_envs = ['testing', 'staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
@@ -298,6 +299,145 @@ local containerimgbuildjob = {
   ],
 };
 
+local windowsinstallmediaimgbuildjob = {
+  local job = self,
+
+  image:: error 'must set image in windowsinstallmediaimgbuildjob',
+  base_image:: error 'must set base_image in windowsinstallmediaimgbuildjob',
+  workflow:: error 'must set workflow in windowsinstallmediaimgbuildjob',
+
+  // Start of job.
+  name: 'build-' + job.image,
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  plan: [
+    {
+      get: '%s-gcs' % job.base_image,
+      params: { skip_download: 'true' },
+      passed: ['publish-to-testing-' + job.base_image],
+      trigger: true,
+    },
+    { get: 'compute-image-tools' },
+    { get: 'guest-test-infra' },
+    {
+      task: 'generate-timestamp',
+      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+    },
+    {
+      load_var: 'start-timestamp-ms',
+      file: 'timestamp/timestamp-ms',
+    },
+    {
+      task: 'generate-build-id',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
+      vars: { prefix: job.image },
+    },
+    {
+      put: '%s-gcs' % job.image,
+      params: { file: 'build-id-dir/%s*' % job.image },
+    },
+    {
+      load_var: 'gcs-url',
+      file: '%s-gcs/url' % job.image,
+    },
+    {
+      task: 'get-secret-iso-path-2022',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2022-64' },
+    },
+    {
+      load_var: 'iso_path_2022',
+      file: 'gcp-secret-manager/' + 'win2022-64',
+    },
+    {
+      task: 'get-secret-iso-path-2019',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2019-64' },
+    },
+    {
+      load_var: 'iso_path_2019',
+      file: 'gcp-secret-manager/' + 'win2019-64',
+    },
+    {
+      task: 'get-secret-iso-path-2016',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2016-64' },
+    },
+    {
+      load_var: 'iso_path_2016',
+      file: 'gcp-secret-manager/' + 'win2016-64',
+    },
+    {
+      task: 'get-secret-iso-path-2012r2',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2012-r2-64' },
+    },
+    {
+      load_var: 'iso_path_2012r2',
+      file: 'gcp-secret-manager/' + 'win2012-r2-64',
+    },
+    {
+       task: 'get-secret-updates-path-2022',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2022' },
+     },
+     {
+       load_var: 'updates_path_2022',
+       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2022',
+     },
+    {
+       task: 'get-secret-updates-path-2019',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2019' },
+     },
+     {
+       load_var: 'updates_path_2019',
+       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2019',
+     },
+    {
+       task: 'get-secret-updates-path-2016',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2016' },
+     },
+     {
+       load_var: 'updates_path_2016',
+       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2016',
+     },
+    {
+       task: 'get-secret-updates-path-2012r2',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2012r2' },
+     },
+     {
+       load_var: 'updates_path_2012r2',
+       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2012r2',
+     },
+     {
+      task: 'daisy-build',
+      config: daisy.daisywindowsinstallmediatask {
+        workflow: job.workflow,
+        gcs_url: '((.:gcs-url))',
+        iso_path_2022: '((.:iso_path_2022))',
+        iso_path_2019: '((.:iso_path_2019))',
+        iso_path_2016: '((.:iso_path_2016))',
+        iso_path_2012r2: '((.:iso_path_2012r2))',
+        updates_path_2022: '((.:iso_path_2022))',
+        updates_path_2019: '((.:iso_path_2019))',
+        updates_path_2016: '((.:iso_path_2016))',
+        updates_path_2012r2: '((.:iso_path_2012r2))',
+      },
+    },
+  ],
+};
+
 local imgpublishjob = {
   local job = self,
 
@@ -392,12 +532,28 @@ local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
   workflow: workflow,
 };
 
+local WindowsInstallMediaImgBuildJob(image, iso_secret, updates_secret) = windowsinstallmediaimgbuildjob {
+  image: image,
+  iso_secret: iso_secret,
+  updates_secret: updates_secret,
+
+  workflow: 'windows-install-media/%s.wf.json' % image,
+};
+
 local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
+};
+
+local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
+  image: image,
+  env: env,
+  gcs_dir: gcs_dir,
+
+  workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
 
 local ImgGroup(name, images, environments) = {
@@ -487,6 +643,9 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2019-dc-for-containers',
     'windows-server-2019-dc-core-for-containers',
   ],
+  local windows_install_media_images = [
+    'windows-install-media',
+  ],
 
   local windows_client_images = windows_81_images + windows_10_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
@@ -516,6 +675,10 @@ local ImgGroup(name, images, environments) = {
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
+             ] +
+             [
+               common.GcsImgResource(image, 'windows-install-media')
+               for image in windows_install_media_images
              ],
   jobs: [
           // Windows builds
@@ -583,6 +746,9 @@ local ImgGroup(name, images, environments) = {
                                'windows-server-2019-dc-core',
                                'windows_container/windows-2019-core-for-containers-uefi.wf.json'),
 
+          // Windows install media builds
+
+          WindowsInstallMediaImgBuildJob('windows-install-media', 'win2012-r2-64'),
         ] +
 
         // Publish jobs
@@ -613,6 +779,11 @@ local ImgGroup(name, images, environments) = {
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
           for image in container_images
           for env in server_envs
+        ] +
+        [
+          MediaImgPublishJob(image, env, 'windows_install_media', 'windows-install-media')
+          for image in windows_install_media_images
+          for env in windows_install_media_envs
         ],
 
   groups: [
@@ -629,5 +800,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('container-2019', container_images, server_envs),
+    ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
   ],
 }
