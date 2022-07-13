@@ -531,7 +531,7 @@ local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
   workflow: workflow,
 };
 
-local WindowsInstallMediaImgBuildJob(image, iso_secret, updates_secret) = windowsinstallmediaimgbuildjob {
+local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
   workflow: 'windows-install-media/%s.wf.json' % image,
 };
@@ -744,7 +744,7 @@ local ImgGroup(name, images, environments) = {
 
           // Windows install media builds
 
-          WindowsInstallMediaImgBuildJob('windows-install-media', 'win2012-r2-64'),
+          WindowsInstallMediaImgBuildJob('windows-install-media'),
         ] +
 
         // Publish jobs
