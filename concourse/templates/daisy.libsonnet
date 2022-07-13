@@ -78,7 +78,6 @@
       // enterprise_linux and then out of build-publish, ending in daisy_workflows
       'workflow_root=../../',
       'gcs_url=' + task.gcs_url,
-      'gcs_resource_path=' + task.gcs_resource_path,
       'iso_path_2022=' + task.iso_path_2022,
       'iso_path_2019=' + task.iso_path_2019,
       'iso_path_2016=' + task.iso_path_2016,
