@@ -303,7 +303,6 @@ local windowsinstallmediaimgbuildjob = {
   local job = self,
 
   image:: error 'must set image in windowsinstallmediaimgbuildjob',
-  base_image:: error 'must set base_image in windowsinstallmediaimgbuildjob',
   workflow:: error 'must set workflow in windowsinstallmediaimgbuildjob',
 
   // Start of job.
@@ -534,9 +533,6 @@ local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
 
 local WindowsInstallMediaImgBuildJob(image, iso_secret, updates_secret) = windowsinstallmediaimgbuildjob {
   image: image,
-  iso_secret: iso_secret,
-  updates_secret: updates_secret,
-
   workflow: 'windows-install-media/%s.wf.json' % image,
 };
 
