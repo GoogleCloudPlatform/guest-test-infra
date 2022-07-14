@@ -563,6 +563,10 @@ local imggroup = {
     'rocky-linux-8',
     'rocky-linux-8-optimized-gcp',
     'rocky-linux-8-optimized-gcp-arm64',
+    'rocky-linux-9',
+    'rocky-linux-9-arm64',
+    'rocky-linux-9-optimized-gcp',
+    'rocky-linux-9-optimized-gcp-arm64',
   ],
 
   // Start of output.
