@@ -60,6 +60,7 @@ local buildpackagejob = {
   builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
   extra_tasks:: [],
+  build_dir:: '',
 
   // Start of output.
   name: 'build-' + tl.package,
@@ -139,7 +140,7 @@ local buildpackagejob = {
                   '-var:git_ref=((.:commit-sha))',
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
-                  '-var:build_dir=',
+                  '-var:build_dir=' + tl.build_dir,
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
@@ -1057,6 +1058,30 @@ local buildpackageimagetask = {
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-ssh' },
       ],
     },
+    buildpackagejob {
+      package: 'compute-image-tools',
+      builds: ['goo'],
+      name: 'build-diagnostics',
+      uploads: [
+        uploadpackagetask {
+          package_paths:
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-tools/google-compute-engine-diagnostics.x86_64.((.:package-version)).0@0.goo"}',
+          universe: 'cloud-yuck',
+          repo: 'google-compute-engine-diagnostics',
+        },
+      ],
+      build_dir: 'cli_tools/diagnostics'
+    },
+    promotepackagejob {
+      package: 'compute-image-tools',
+      name: 'promote-diagnostics-stable',
+      passed: 'build-diagnostics',
+      dest: 'stable',
+      tag: false,
+      promotions: [
+        promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-diagnostics' },
+      ],
+    },
   ],
   resources: [
     {
@@ -1204,6 +1229,15 @@ local buildpackageimagetask = {
       },
     },
     {
+      name: 'compute-image-tools-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'compute-image-tools',
+        access_token: '((github-token.token))',
+      },
+    },
+    {
       name: 'compute-image-windows',
       type: 'git',
       source: {
@@ -1278,6 +1312,13 @@ local buildpackageimagetask = {
         'promote-powershell-stable',
         'promote-sysprep-stable',
         'promote-ssh-stable',
+      ],
+    },
+    {
+      name: 'gce-diagnostics',
+      jobs: [
+        'build-diagnostics',
+        'promote-diagnostics-stable',
       ],
     },
   ],
