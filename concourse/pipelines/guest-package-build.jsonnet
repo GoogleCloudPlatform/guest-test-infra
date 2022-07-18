@@ -451,7 +451,7 @@ local buildpackageimagetask = {
               },
               buildpackageimagetask {
                 image_name: 'rocky-linux-8-optimized-gcp-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/rocky-linux-8-optimized-gcp-arm64',
+                source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
                 dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm',
                 machine_type: 't2a-standard-2',
@@ -665,7 +665,7 @@ local buildpackageimagetask = {
               },
               buildpackageimagetask {
                 image_name: 'rocky-linux-8-optimized-gcp-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/rocky-linux-8-optimized-gcp-arm64',
+                source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
                 dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.aarch64.rpm',
                 machine_type: 't2a-standard-2',
