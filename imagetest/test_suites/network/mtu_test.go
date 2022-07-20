@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	gceMTU = 1460
+	gceMTU = 1500
 )
 
 func TestDefaultMTU(t *testing.T) {

@@ -231,11 +231,11 @@ Restart the guest agent and confirm the host keys are not changed.
 ### Test suite: network ###
 
 #### TestDefaultMTU
-Validate the primary interface has correct MTU of 1460
+Validate the primary interface has correct MTU of 1500
 
 Background
 
-The default MTU for a GCE VPC is 1460. Setting the correct MTU on the network
+The default MTU for a GCE VPC is 1500. Setting the correct MTU on the network
 interface to match will prevent unnecessary packet fragmentation.
 
 Test logic
