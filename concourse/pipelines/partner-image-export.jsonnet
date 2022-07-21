@@ -21,12 +21,18 @@ local freebsd_images = [
 ];
 local suse_images = [
   'opensuse-leap-15',
+  'opensuse-leap-15-arm64',
   'sles-12',
   'sles-15',
+  'sles-15-arm64',
 ];
 local ubuntu_images = [
   'ubuntu-1804',
   'ubuntu-2004',
+  'ubuntu-2204',
+  'ubuntu-1804-arm64',
+  'ubuntu-2004-arm64',
+  'ubuntu-2204-arm64',
   'ubuntu-pro-1604',
   'ubuntu-pro-1804',
   'ubuntu-pro-2004',
@@ -245,40 +251,30 @@ local publishjob = {
     exportjob { image: image }
     for image in cos_images + fedora_images + freebsd_images + suse_images + ubuntu_images
   ] + [
-    publishjob { image: 'cos-85-lts', environment: 'oslogin-staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-89-lts', environment: 'oslogin-staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-93-lts', environment: 'oslogin-staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-97-lts', environment: 'oslogin-staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-dev', environment: 'oslogin-staging', gcsdir: 'cos' },
-    publishjob { image: 'opensuse-leap-15', environment: 'oslogin-staging', gcsdir: 'suse' },
-    publishjob { image: 'sles-12', environment: 'oslogin-staging', gcsdir: 'suse' },
-    publishjob { image: 'sles-15', environment: 'oslogin-staging', gcsdir: 'suse' },
-    publishjob { image: 'ubuntu-1804', environment: 'oslogin-staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-2004', environment: 'oslogin-staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-1604', environment: 'oslogin-staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-1804', environment: 'oslogin-staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-2004', environment: 'oslogin-staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'cos-85-lts', environment: 'staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-89-lts', environment: 'staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-93-lts', environment: 'staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-97-lts', environment: 'staging', gcsdir: 'cos' },
-    publishjob { image: 'cos-dev', environment: 'staging', gcsdir: 'cos' },
-    publishjob { image: 'fedora-33', environment: 'staging', gcsdir: 'fedora' },
-    publishjob { image: 'fedora-34', environment: 'staging', gcsdir: 'fedora' },
-    publishjob { image: 'fedora-coreos-next', environment: 'staging', gcsdir: 'fedora' },
-    publishjob { image: 'fedora-coreos-stable', environment: 'staging', gcsdir: 'fedora' },
-    publishjob { image: 'fedora-coreos-testing', environment: 'staging', gcsdir: 'fedora' },
-    publishjob { image: 'freebsd-11', environment: 'staging', gcsdir: 'freebsd' },
-    publishjob { image: 'freebsd-12', environment: 'staging', gcsdir: 'freebsd' },
-    publishjob { image: 'freebsd-13', environment: 'staging', gcsdir: 'freebsd' },
-    publishjob { image: 'opensuse-leap-15', environment: 'staging', gcsdir: 'suse' },
-    publishjob { image: 'sles-12', environment: 'staging', gcsdir: 'suse' },
-    publishjob { image: 'sles-15', environment: 'staging', gcsdir: 'suse' },
-    publishjob { image: 'ubuntu-1804', environment: 'staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-2004', environment: 'staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-1604', environment: 'staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-1804', environment: 'staging', gcsdir: 'ubuntu' },
-    publishjob { image: 'ubuntu-pro-2004', environment: 'staging', gcsdir: 'ubuntu' },
+    publishjob { image: image, environment: 'oslogin-staging', gcsdir: 'cos' }
+    for image in cos_images
+  ] + [
+    publishjob { image: image, environment: 'oslogin-staging', gcsdir: 'suse' }
+    for image in suse_images
+  ] + [
+    publishjob { image: image, environment: 'oslogin-staging', gcsdir: 'ubuntu' }
+    for image in ubuntu_images
+  ] + [
+    publishjob { image: image, environment: 'staging', gcsdir: 'cos' }
+    for image in cos_images
+  ] + [
+    publishjob { image: image, environment: 'staging', gcsdir: 'fedora' }
+    for image in fedora_images
+  ] + [
+    publishjob { image: image, environment: 'staging', gcsdir: 'freebsd' }
+    for image in freebsd_images
+  ] + [
+    publishjob { image: image, environment: 'staging', gcsdir: 'suse' }
+    for image in suse_images
+  ] + [
+    publishjob { image: image, environment: 'staging', gcsdir: 'ubuntu' }
+    for image in ubuntu_images
+  ] + [
   ],
   groups: [
     {
@@ -331,14 +327,18 @@ local publishjob = {
       name: 'suse',
       jobs: [
         'export-opensuse-leap-15',
+        'export-opensuse-leap-15-arm64',
         'export-sles-12',
         'export-sles-15',
+        'export-sles-15-arm64',
         'publish-oslogin-opensuse-leap-15',
         'publish-oslogin-sles-12',
         'publish-oslogin-sles-15',
         'publish-staging-opensuse-leap-15',
+        'publish-staging-opensuse-leap-15-arm64',
         'publish-staging-sles-12',
         'publish-staging-sles-15',
+        'publish-staging-sles-15-arm64',
       ],
     },
     {
@@ -346,6 +346,10 @@ local publishjob = {
       jobs: [
         'export-ubuntu-1804',
         'export-ubuntu-2004',
+        'export-ubuntu-2204',
+        'export-ubuntu-1804-arm64',
+        'export-ubuntu-2004-arm64',
+        'export-ubuntu-2204-arm64',
         'export-ubuntu-pro-1604',
         'export-ubuntu-pro-1804',
         'export-ubuntu-pro-2004',
@@ -356,6 +360,10 @@ local publishjob = {
         'publish-oslogin-ubuntu-pro-2004',
         'publish-staging-ubuntu-1804',
         'publish-staging-ubuntu-2004',
+        'publish-staging-ubuntu-2204',
+        'publish-staging-ubuntu-1804-arm64',
+        'publish-staging-ubuntu-2004-arm64',
+        'publish-staging-ubuntu-2204-arm64',
         'publish-staging-ubuntu-pro-1604',
         'publish-staging-ubuntu-pro-1804',
         'publish-staging-ubuntu-pro-2004',
