@@ -36,6 +36,7 @@ local ubuntu_images = [
   'ubuntu-pro-1604',
   'ubuntu-pro-1804',
   'ubuntu-pro-2004',
+  'ubuntu-pro-2204',
 ];
 
 
@@ -355,6 +356,7 @@ local publishjob = {
         'export-ubuntu-pro-1604',
         'export-ubuntu-pro-1804',
         'export-ubuntu-pro-2004',
+        'export-ubuntu-pro-2204',
         'publish-oslogin-ubuntu-1804',
         'publish-oslogin-ubuntu-2004',
         'publish-oslogin-ubuntu-2204',
@@ -364,6 +366,7 @@ local publishjob = {
         'publish-oslogin-ubuntu-pro-1604',
         'publish-oslogin-ubuntu-pro-1804',
         'publish-oslogin-ubuntu-pro-2004',
+        'publish-oslogin-ubuntu-pro-2204',
         'publish-staging-ubuntu-1804',
         'publish-staging-ubuntu-2004',
         'publish-staging-ubuntu-2204',
@@ -373,6 +376,7 @@ local publishjob = {
         'publish-staging-ubuntu-pro-1604',
         'publish-staging-ubuntu-pro-1804',
         'publish-staging-ubuntu-pro-2004',
+        'publish-staging-ubuntu-pro-2204',
       ],
     },
   ],
