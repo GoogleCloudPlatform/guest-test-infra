@@ -1070,7 +1070,7 @@ local buildpackageimagetask = {
           repo: 'google-compute-engine-diagnostics',
         },
       ],
-      build_dir: 'cli_tools/diagnostics'
+      build_dir: 'cli_tools/diagnostics',
     },
     promotepackagejob {
       package: 'compute-image-tools',
@@ -1226,6 +1226,7 @@ local buildpackageimagetask = {
         uri: 'https://github.com/GoogleCloudPlatform/compute-image-tools.git',
         branch: 'master',
         fetch_tags: true,
+        paths: ['cli_tools/diagnostics/**'],
       },
     },
     {
