@@ -527,7 +527,7 @@ local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
 
 local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
-  workflow: 'windows-install-media/%s.wf.json' % image,
+  workflow: 'windows/%s.wf.json' % image,
 };
 
 local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
@@ -771,7 +771,7 @@ local ImgGroup(name, images, environments) = {
           for env in server_envs
         ] +
         [
-          MediaImgPublishJob(image, env, 'windows_install_media', 'windows-install-media')
+          MediaImgPublishJob(image, env, 'windows', 'windows-install-media')
           for image in windows_install_media_images
           for env in windows_install_media_envs
         ],
