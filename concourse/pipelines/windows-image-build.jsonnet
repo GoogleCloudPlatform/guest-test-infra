@@ -441,15 +441,7 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
-  // build -> testing -> staging -> prod -> internal
-  passed:: if job.env == 'testing' then
-             'build-' + job.image
-           else if job.env == 'staging' then
-             'publish-to-testing-' + job.image
-           else if job.env == 'prod' then
-             'publish-to-staging-' + job.image
-           else if job.env == 'internal' then
-             'publish-to-prod-' + job.image,
+  passed:: error 'must set passed in imgpublishjob',
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
@@ -534,6 +526,15 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
+  // build -> testing -> staging -> prod -> internal
+  passed:: if job.env == 'testing' then
+             'build-' + job.image
+           else if job.env == 'staging' then
+             'publish-to-testing-' + job.image
+           else if job.env == 'prod' then
+             'publish-to-staging-' + job.image
+           else if job.env == 'internal' then
+             'publish-to-prod-' + job.image,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
@@ -542,6 +543,11 @@ local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
+  // build -> testing -> prod
+  passed:: if job.env == 'testing' then
+             'build-' + job.image
+           else if job.env == 'prod' then
+             'publish-to-testing-' + job.image,
 
   workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
