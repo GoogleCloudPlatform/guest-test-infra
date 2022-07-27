@@ -527,14 +527,14 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   env: env,
   gcs_dir: gcs_dir,
   // build -> testing -> staging -> prod -> internal
-  passed:: if job.env == 'testing' then
-             'build-' + job.image
-           else if job.env == 'staging' then
-             'publish-to-testing-' + job.image
-           else if job.env == 'prod' then
-             'publish-to-staging-' + job.image
-           else if job.env == 'internal' then
-             'publish-to-prod-' + job.image,
+  passed:: if env == 'testing' then
+             'build-' + image
+           else if env == 'staging' then
+             'publish-to-testing-' + image
+           else if env == 'prod' then
+             'publish-to-staging-' + image
+           else if env == 'internal' then
+             'publish-to-prod-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
@@ -544,10 +544,10 @@ local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   env: env,
   gcs_dir: gcs_dir,
   // build -> testing -> prod
-  passed:: if job.env == 'testing' then
-             'build-' + job.image
-           else if job.env == 'prod' then
-             'publish-to-testing-' + job.image,
+  passed:: if env == 'testing' then
+             'build-' + image
+           else if env == 'prod' then
+             'publish-to-testing-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
