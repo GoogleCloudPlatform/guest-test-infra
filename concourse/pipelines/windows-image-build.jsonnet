@@ -7,7 +7,7 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
-local windows_install_media_envs = ['testing', 'staging', 'prod'];
+local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
@@ -355,7 +355,7 @@ local windowsinstallmediaimgbuildjob = {
     },
     {
       load_var: 'iso_path_2022',
-      file: 'gcp-secret-manager/' + 'win2022-64',
+      file: 'gcp-secret-manager/win2022-64',
     },
     {
       task: 'get-secret-iso-path-2019',
@@ -363,7 +363,7 @@ local windowsinstallmediaimgbuildjob = {
     },
     {
       load_var: 'iso_path_2019',
-      file: 'gcp-secret-manager/' + 'win2019-64',
+      file: 'gcp-secret-manager/win2019-64',
     },
     {
       task: 'get-secret-iso-path-2016',
@@ -371,7 +371,7 @@ local windowsinstallmediaimgbuildjob = {
     },
     {
       load_var: 'iso_path_2016',
-      file: 'gcp-secret-manager/' + 'win2016-64',
+      file: 'gcp-secret-manager/win2016-64',
     },
     {
       task: 'get-secret-iso-path-2012r2',
@@ -379,7 +379,7 @@ local windowsinstallmediaimgbuildjob = {
     },
     {
       load_var: 'iso_path_2012r2',
-      file: 'gcp-secret-manager/' + 'win2012-r2-64',
+      file: 'gcp-secret-manager/win2012-r2-64',
     },
     {
        task: 'get-secret-updates-path-2022',
@@ -387,7 +387,7 @@ local windowsinstallmediaimgbuildjob = {
      },
      {
        load_var: 'updates_path_2022',
-       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2022',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2022',
      },
     {
        task: 'get-secret-updates-path-2019',
@@ -395,7 +395,7 @@ local windowsinstallmediaimgbuildjob = {
      },
      {
        load_var: 'updates_path_2019',
-       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2019',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2019',
      },
     {
        task: 'get-secret-updates-path-2016',
@@ -403,7 +403,7 @@ local windowsinstallmediaimgbuildjob = {
      },
      {
        load_var: 'updates_path_2016',
-       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2016',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2016',
      },
     {
        task: 'get-secret-updates-path-2012r2',
@@ -411,7 +411,7 @@ local windowsinstallmediaimgbuildjob = {
      },
      {
        load_var: 'updates_path_2012r2',
-       file: 'gcp-secret-manager/' + 'windows_gcs_updates_server2012r2',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2012r2',
      },
      {
       task: 'daisy-build',
