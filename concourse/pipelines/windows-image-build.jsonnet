@@ -442,11 +442,6 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2022-dc',
     'windows-server-2022-dc-core',
   ],
-  local sql_2012_images = [
-    'sql-2012-enterprise-windows-2012-r2-dc',
-    'sql-2012-standard-windows-2012-r2-dc',
-    'sql-2012-web-windows-2012-r2-dc',
-  ],
   local sql_2014_images = [
     'sql-2014-enterprise-windows-2012-r2-dc',
     'sql-2014-enterprise-windows-2016-dc',
@@ -494,7 +489,7 @@ local ImgGroup(name, images, environments) = {
   local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
-  local sql_images = sql_2012_images + sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
+  local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
 
   resource_types: [
     {
@@ -537,10 +532,6 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-server-2012-r2-dc-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
 
           // SQL derivative builds
-
-          SQLImgBuildJob('sql-2012-enterprise-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-enterprise'),
-          SQLImgBuildJob('sql-2012-standard-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-standard'),
-          SQLImgBuildJob('sql-2012-web-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2012-web'),
 
           SQLImgBuildJob('sql-2014-enterprise-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-enterprise'),
           SQLImgBuildJob('sql-2014-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2014-enterprise'),
@@ -628,7 +619,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('windows-2019', windows_2019_images, server_envs),
     ImgGroup('windows-2022', windows_2022_images, server_envs),
     ImgGroup('windows-20h2', windows_20h2_images, server_envs),
-    ImgGroup('sql-2012', sql_2012_images, sql_envs),
     ImgGroup('sql-2014', sql_2014_images, sql_envs),
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
