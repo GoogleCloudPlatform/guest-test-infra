@@ -73,12 +73,6 @@
           "Type": "pd-ssd"
         },
         {
-          "Name": "disk-debian-9",
-          "SourceImage": "projects/debian-cloud/global/images/family/debian-9",
-          "SizeGb": "20",
-          "Type": "pd-ssd"
-        },
-        {
           "Name": "disk-debian-10",
           "SourceImage": "projects/debian-cloud/global/images/family/debian-10",
           "SizeGb": "20",
@@ -207,20 +201,6 @@
           "MachineType": "e2-standard-2"
         },
         {
-          "Name": "debian-9",
-          "Disks": [
-            {"Source": "disk-debian-9"}
-          ],
-          "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
-          "StartupScript": "run_integ_tests",
-          "Metadata": {
-            "repo-owner": "${repo_owner}",
-            "repo-name": "${repo_name}",
-            "git-ref": "${git_ref}"
-          },
-          "MachineType": "e2-standard-2"
-        },
-        {
           "Name": "debian-10",
           "Disks": [
             {"Source": "disk-debian-10"}
@@ -310,14 +290,6 @@
         },
         {
           "Name": "ubuntu-2004-lts",
-          "SerialOutput": {
-            "Port": 1,
-            "FailureMatch": "Build failed",
-            "SuccessMatch": "Build succeeded"
-          }
-        },
-        {
-          "Name": "debian-9",
           "SerialOutput": {
             "Port": 1,
             "FailureMatch": "Build failed",
