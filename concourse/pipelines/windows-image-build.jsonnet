@@ -7,7 +7,6 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
-local prev_envs = ['testing', 'staging'];
 local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -636,9 +635,6 @@ local ImgGroup(name, images, environments) = {
     'sql-2019-web-windows-2019-dc',
     'sql-2019-web-windows-2022-dc',
   ],
-  local sql_2022_images = [
-    'sql-2022-preview-windows-2022-dc'
-  ],
   local container_images = [
     'windows-server-2019-dc-for-containers',
     'windows-server-2019-dc-core-for-containers',
@@ -651,7 +647,6 @@ local ImgGroup(name, images, environments) = {
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
-  local prev_images = sql_2022_images,
 
   resource_types: [
     {
@@ -676,6 +671,10 @@ local ImgGroup(name, images, environments) = {
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
+             ] +
+             //ImgResource for SQL Preview build. Will be rolled into sql_images on formal release.
+             [
+               common.GcsImgResource('sql-2022-preview-windows-2022-dc', 'sqlserver-uefi')
              ] +
              [
                common.GcsImgResource(image, 'windows-install-media')
@@ -775,10 +774,10 @@ local ImgGroup(name, images, environments) = {
           for image in sql_images
           for env in sql_envs
         ] +
+        //Publish job for SQL Preview build. Will be rolled into sql_images on formal release.
         [
-          ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
-          for image in prev_images
-          for env in prev_envs
+          ImgPublishJob('sql-2022-preview-windows-2022-dc', env, 'sqlserver', 'sqlserver-uefi')
+          for env in ['testing', 'staging']
         ] +
         [
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
