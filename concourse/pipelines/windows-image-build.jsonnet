@@ -509,7 +509,7 @@ local SQLImgBuildJob(image, base_image, sql_version, ssms_version) = sqlimgbuild
   image: image,
   base_image: base_image,
   sql_version: sql_version,
-  ssms_verion: ssms_version,
+  ssms_version: ssms_version,
 
   workflow: 'sqlserver/%s.wf.json' % image,
 };
