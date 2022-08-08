@@ -803,7 +803,7 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
-    ImgGroup('sql-2022', sql_2022_images, prev_envs),
+    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', ['testing', 'staging']),
     ImgGroup('container-2019', container_images, server_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
   ],
