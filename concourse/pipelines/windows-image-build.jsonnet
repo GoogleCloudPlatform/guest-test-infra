@@ -7,7 +7,6 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
-local prev_envs = ['testing', 'staging'];
 local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -777,8 +776,10 @@ local ImgGroup(name, images, environments) = {
         ] +
         //Publish job for SQL Preview build. Will be rolled into sql_images on formal release.
         [
-          ImgPublishJob('sql-2022-preview-windows-2022-dc', env, 'sqlserver', 'sqlserver-uefi')
-          for env in prev_envs
+          ImgPublishJob('sql-2022-preview-windows-2022-dc', 'testing', 'sqlserver', 'sqlserver-uefi')
+        ] +
+        [
+          ImgPublishJob('sql-2022-preview-windows-2022-dc', 'staging', 'sqlserver', 'sqlserver-uefi')
         ] +
         [
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
@@ -804,7 +805,8 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
-    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', prev_envs),
+    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', 'testing'),
+    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', 'staging'),
     ImgGroup('container-2019', container_images, server_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
   ],
