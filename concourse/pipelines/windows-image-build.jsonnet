@@ -7,6 +7,7 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'staging', 'internal'];
 local server_envs = ['testing', 'staging', 'internal', 'prod'];
 local sql_envs = ['testing', 'staging', 'prod'];
+local prerelease_envs = ['testing', 'staging'];
 local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -635,6 +636,9 @@ local ImgGroup(name, images, environments) = {
     'sql-2019-web-windows-2019-dc',
     'sql-2019-web-windows-2022-dc',
   ],
+  local sql_2022_images = [
+    'sql-2022-preview-windows-2022-dc',
+  ],
   local container_images = [
     'windows-server-2019-dc-for-containers',
     'windows-server-2019-dc-core-for-containers',
@@ -647,6 +651,7 @@ local ImgGroup(name, images, environments) = {
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                          + windows_20h2_images + windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
+  local prerelease_images = sql_2022_images,
 
   resource_types: [
     {
@@ -776,10 +781,9 @@ local ImgGroup(name, images, environments) = {
         ] +
         //Publish job for SQL Preview build. Will be rolled into sql_images on formal release.
         [
-          ImgPublishJob('sql-2022-preview-windows-2022-dc', 'testing', 'sqlserver', 'sqlserver-uefi')
-        ] +
-        [
-          ImgPublishJob('sql-2022-preview-windows-2022-dc', 'staging', 'sqlserver', 'sqlserver-uefi')
+          ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
+          for image in prerelease_images
+          for env in prerelease_envs
         ] +
         [
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
@@ -805,9 +809,8 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
-    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', 'testing'),
-    ImgGroup('sql-2022', 'sql-2022-preview-windows-2022-dc', 'staging'),
     ImgGroup('container-2019', container_images, server_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
+    ImgGroup('pre-release', prerelease_images, prerelease_envs),
   ],
 }
