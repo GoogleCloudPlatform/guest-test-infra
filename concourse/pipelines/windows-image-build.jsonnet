@@ -213,7 +213,7 @@ local sqlimgbuildjob = {
     },
     {
       load_var: 'ssms-version',
-      file: 'gcp-secret-manager/windows_gcs_ssms_exe',
+      file: 'gcp-secret-manager/' + job.ssms_version,
     },
     {
       task: 'daisy-build',
