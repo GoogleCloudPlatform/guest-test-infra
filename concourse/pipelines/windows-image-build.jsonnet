@@ -208,11 +208,11 @@ local sqlimgbuildjob = {
       file: 'gcp-secret-manager/' + job.sql_version,
     },
     {
-      task: 'get-secret-windows-gcs-ssms-exe',
+      task: 'get-secret-ssms-version',
       config: gcp_secret_manager.getsecrettask { secret_name: job.ssms_version },
     },
     {
-      load_var: 'windows-gcs-ssms-exe',
+      load_var: 'ssms-version',
       file: 'gcp-secret-manager/windows_gcs_ssms_exe',
     },
     {
@@ -223,7 +223,7 @@ local sqlimgbuildjob = {
         vars+: [
           'source_image_project=bct-prod-images',
           'sql_server_media=((.:sql-server-media))',
-          'ssms_exe=((.:ssms_version))',
+          'ssms_exe=((.:ssms-version))',
           'timeout=4h',
         ],
       },
