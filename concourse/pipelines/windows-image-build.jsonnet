@@ -590,9 +590,6 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2019-dc',
     'windows-server-2019-dc-core',
   ],
-  local windows_20h2_images = [
-    'windows-server-20h2-dc-core',
-  ],
   local windows_2022_images = [
     'windows-server-2022-dc',
     'windows-server-2022-dc-core',
@@ -649,7 +646,7 @@ local ImgGroup(name, images, environments) = {
 
   local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
-                         + windows_20h2_images + windows_2022_images,
+                              + windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
   local prerelease_images = sql_2022_images,
 
@@ -693,7 +690,6 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-11-21h2-ent-x64', 'win11-21h2-64', 'windows_gcs_updates_client11-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
-          ImgBuildJob('windows-server-20h2-dc-core', 'winserver-20h2-64', 'windows_gcs_updates_sac20h2'),
           ImgBuildJob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2019-dc-core', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
@@ -804,7 +800,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('windows-2016', windows_2016_images, server_envs),
     ImgGroup('windows-2019', windows_2019_images, server_envs),
     ImgGroup('windows-2022', windows_2022_images, server_envs),
-    ImgGroup('windows-20h2', windows_20h2_images, server_envs),
     ImgGroup('sql-2014', sql_2014_images, sql_envs),
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
