@@ -20,14 +20,14 @@ import (
 
 // The values have been decided based on running spot tests for different images.
 var imageFamilyBootTimeThresholdMap = map[string]float64{
-	"centos":      60.00,
-	"debian":      50.00,
-	"rhel":        60.00,
-	"rocky-linux": 60.00,
-	"sles-12":     85.00,
-	"sles-15":     120.00,
-	"ubuntu":      75.00,
-	"ubuntu-pro":  110.00,
+	"centos":      60,
+	"debian":      50,
+	"rhel":        60,
+	"rocky-linux": 60,
+	"sles-12":     85,
+	"sles-15":     120,
+	"ubuntu":      75,
+	"ubuntu-pro":  110,
 }
 
 const (
@@ -46,7 +46,7 @@ func getThresholdValue(image string) float64 {
 			return imageFamilyBootTimeThresholdMap[name]
 		}
 	}
-	return 0.0
+	return 0
 }
 
 func lookForProcesses() error {
@@ -208,8 +208,8 @@ func TestBootTime(t *testing.T) {
 
 	MAX_THRESHOLD := getThresholdValue(image)
 
-	if MAX_THRESHOLD == 0.0 {
-		t.Errorf("unrecognized image, no threshold value found")
+	if MAX_THRESHOLD == 0 {
+		t.Fatalf("unrecognized image, no threshold value found")
 	}
 
 	var foundGuestAgentAndSshd bool
@@ -223,18 +223,18 @@ func TestBootTime(t *testing.T) {
 	}
 
 	if !foundGuestAgentAndSshd {
-		t.Errorf("Condition for guest agent and sshd process to start not reached within timeout")
+		t.Fatalf("Condition for guest agent and sshd process to start not reached within timeout")
 	}
 
 	// Reading the system uptime once both guest agent and sshd are found in the processes
 	uptimefile, err := os.ReadFile("/proc/uptime")
 	if err != nil {
-		t.Errorf("Failed to read uptime file")
+		t.Fatalf("Failed to read uptime file")
 	}
 	fields := strings.Split(string(uptimefile), " ")
 	uptime, err := strconv.ParseFloat(fields[0], 64)
 	if err != nil {
-		t.Errorf("Failed to read uptime numeric value")
+		t.Fatalf("Failed to read uptime numeric value")
 	}
 	t.Logf("The boot time is %v seconds", uptime)
 
