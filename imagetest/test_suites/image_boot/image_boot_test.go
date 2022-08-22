@@ -206,9 +206,9 @@ func TestBootTime(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	MAX_THRESHOLD := getThresholdValue(image)
+	maxThreshold := getThresholdValue(image)
 
-	if MAX_THRESHOLD == 0 {
+	if maxThreshold == 0 {
 		t.Fatalf("unrecognized image, no threshold value found")
 	}
 
@@ -227,11 +227,11 @@ func TestBootTime(t *testing.T) {
 	}
 
 	// Reading the system uptime once both guest agent and sshd are found in the processes
-	uptimefile, err := os.ReadFile("/proc/uptime")
+	uptimeData, err := os.ReadFile("/proc/uptime")
 	if err != nil {
 		t.Fatalf("Failed to read uptime file")
 	}
-	fields := strings.Split(string(uptimefile), " ")
+	fields := strings.Split(string(uptimeData), " ")
 	uptime, err := strconv.ParseFloat(fields[0], 64)
 	if err != nil {
 		t.Fatalf("Failed to read uptime numeric value")
@@ -239,7 +239,7 @@ func TestBootTime(t *testing.T) {
 	t.Logf("The boot time is %v seconds", uptime)
 
 	//Validating the uptime against the allowed threshold value
-	if uptime > MAX_THRESHOLD {
-		t.Errorf("Boot time too long: %v is beyond max of %v", uptime, MAX_THRESHOLD)
+	if uptime > maxThreshold {
+		t.Errorf("Boot time too long: %v is beyond max of %v", uptime, maxThreshold)
 	}
 }
