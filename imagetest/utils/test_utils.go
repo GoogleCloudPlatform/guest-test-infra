@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,8 +11,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"testing"
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/crypto/ssh"
@@ -237,4 +241,84 @@ func GetInterface(index int) (net.Interface, error) {
 	}
 
 	return GetInterfaceByMAC(mac)
+}
+
+// WindowsOnly skips tests not on Windows.
+func WindowsOnly(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Test only run on Windows.")
+	}
+}
+
+// Skip32BitWindows skips tests on 32-bit client images.
+func Skip32BitWindows(t *testing.T, skipMsg string) {
+	image, err := GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "-x86") {
+		t.Skip(skipMsg)
+	}
+}
+
+// PowershellOutput holds stdout, stderr and the exit code from running a powershell command.
+type PowershellOutput struct {
+	Stdout   string
+	Stderr   string
+	Exitcode int
+}
+
+// RunPowershellCmd runs a powershell command and returns stdout and stderr if successful.
+func RunPowershellCmd(command string) (PowershellOutput, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	cmd := exec.Command("powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", command)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+
+	output := PowershellOutput{
+		Stdout:   stdout.String(),
+		Stderr:   stderr.String(),
+		Exitcode: cmd.ProcessState.ExitCode(),
+	}
+
+	return output, err
+}
+
+// CheckPowershellSuccess returns an error if the powershell command fails.
+func CheckPowershellSuccess(command string) error {
+	output, err := RunPowershellCmd(command)
+	if err != nil {
+		return err
+	}
+
+	if output.Exitcode != 0 {
+		return fmt.Errorf("Non-zero exit code: %d", output.Exitcode)
+	}
+
+	return nil
+}
+
+// CheckPowershellReturnCode returns an error if the exit code doesn't match the expected value.
+func CheckPowershellReturnCode(command string, want int) error {
+	output, _ := RunPowershellCmd(command)
+
+	if output.Exitcode == want {
+		return nil
+	}
+
+	return fmt.Errorf("Exit Code not as expected: want %d, got %d", want, output.Exitcode)
+
+}
+
+// FailOnPowershellFail fails the test if the powershell command fails.
+func FailOnPowershellFail(command string, errorMsg string, t *testing.T) {
+	err := CheckPowershellSuccess(command)
+	if err != nil {
+		t.Fatalf("%s: %v", errorMsg, err)
+	}
 }
