@@ -262,6 +262,7 @@ func Skip32BitWindows(t *testing.T, skipMsg string) {
 	}
 }
 
+// PowershellOutput holds stdout, stderr and the exit code from running a powershell command.
 type PowershellOutput struct {
 	Stdout   string
 	Stderr   string
