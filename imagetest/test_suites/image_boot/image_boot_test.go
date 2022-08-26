@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -35,21 +34,31 @@ const (
 	secureBootFile = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
 )
 
+// Returns the threshold value
 func getThresholdValue(image string) float64 {
-	names := make([]string, 0, len(imageFamilyBootTimeThresholdMap))
-	for name := range imageFamilyBootTimeThresholdMap {
-		names = append(names, name)
+	switch {
+	case strings.Contains(image, "centos"):
+		return imageFamilyBootTimeThresholdMap["centos"]
+	case strings.Contains(image, "debian"):
+		return imageFamilyBootTimeThresholdMap["debian"]
+	case strings.Contains(image, "rhel"):
+		return imageFamilyBootTimeThresholdMap["rhel"]
+	case strings.Contains(image, "rocky-linux"):
+		return imageFamilyBootTimeThresholdMap["rocky-linux"]
+	case strings.Contains(image, "sles-12"):
+		return imageFamilyBootTimeThresholdMap["sles-12"]
+	case strings.Contains(image, "sles-15"):
+		return imageFamilyBootTimeThresholdMap["sles-15"]
+	case strings.Contains(image, "ubuntu-pro"):
+		return imageFamilyBootTimeThresholdMap["ubuntu-pro"]
+	case strings.Contains(image, "ubuntu"):
+		return imageFamilyBootTimeThresholdMap["ubuntu"]
+	default:
+		return 0
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(names)))
-	for _, name := range names {
-		if strings.Contains(image, name) {
-			return imageFamilyBootTimeThresholdMap[name]
-		}
-	}
-	return 0
 }
 
-func lookForProcesses() error {
+func lookForSshdAndGuestAgentProcess() error {
 	dir, _ := os.Open("/proc")
 	defer dir.Close()
 
@@ -214,8 +223,9 @@ func TestBootTime(t *testing.T) {
 
 	var foundGuestAgentAndSshd bool
 
+	// 120 is the current maximum number of seconds to allow any distro to start sshd and guest-agent before returning a test failure
 	for i := 0; i < 120; i++ {
-		if err := lookForProcesses(); err == nil {
+		if err := lookForSshdAndGuestAgentProcess(); err == nil {
 			foundGuestAgentAndSshd = true
 			break
 		}
@@ -236,7 +246,7 @@ func TestBootTime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read uptime numeric value")
 	}
-	t.Logf("The boot time is %v seconds", uptime)
+	t.Logf("found guest agent and sshd running at %v seconds", uptime)
 
 	//Validating the uptime against the allowed threshold value
 	if uptime > maxThreshold {

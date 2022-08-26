@@ -28,12 +28,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	vm3, err := t.CreateTestVM("vm3")
-	if err != nil {
-		return err
-	}
-	vm3.RunTests("TestBootTime")
-
 	if strings.Contains(t.Image, "debian-9") {
 		// secure boot is not supported on Debian 9
 		return nil
@@ -49,12 +43,14 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return nil
 	}
 
-	vm4, err := t.CreateTestVM("vm4")
+	vm3, err := t.CreateTestVM("vm3")
 	if err != nil {
 		return err
 	}
-	vm4.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
-	vm4.EnableSecureBoot()
-	vm4.RunTests("TestGuestSecureBoot|TestStartTime")
+	
+	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
+	vm3.EnableSecureBoot()
+	vm3.RunTests("TestGuestSecureBoot|TestStartTime|TestBootTime")
+	
 	return nil
 }
