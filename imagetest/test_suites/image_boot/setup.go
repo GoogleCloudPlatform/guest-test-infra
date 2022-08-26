@@ -49,6 +49,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.EnableSecureBoot()
-	vm3.RunTests("TestGuestSecureBoot|TestBootTime")
+	vm3.RunTests("TestGuestSecureBoot|TestStartTime|TestBootTime")
 	return nil
 }
