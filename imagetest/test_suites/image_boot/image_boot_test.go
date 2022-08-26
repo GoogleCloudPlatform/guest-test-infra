@@ -34,30 +34,6 @@ const (
 	secureBootFile = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
 )
 
-// Returns the threshold value
-func getThresholdValue(image string) float64 {
-	switch {
-	case strings.Contains(image, "centos"):
-		return imageFamilyBootTimeThresholdMap["centos"]
-	case strings.Contains(image, "debian"):
-		return imageFamilyBootTimeThresholdMap["debian"]
-	case strings.Contains(image, "rhel"):
-		return imageFamilyBootTimeThresholdMap["rhel"]
-	case strings.Contains(image, "rocky-linux"):
-		return imageFamilyBootTimeThresholdMap["rocky-linux"]
-	case strings.Contains(image, "sles-12"):
-		return imageFamilyBootTimeThresholdMap["sles-12"]
-	case strings.Contains(image, "sles-15"):
-		return imageFamilyBootTimeThresholdMap["sles-15"]
-	case strings.Contains(image, "ubuntu-pro"):
-		return imageFamilyBootTimeThresholdMap["ubuntu-pro"]
-	case strings.Contains(image, "ubuntu"):
-		return imageFamilyBootTimeThresholdMap["ubuntu"]
-	default:
-		return 0
-	}
-}
-
 func lookForSshdAndGuestAgentProcess() error {
 	dir, _ := os.Open("/proc")
 	defer dir.Close()
@@ -215,10 +191,27 @@ func TestBootTime(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	maxThreshold := getThresholdValue(image)
+	var maxThreshold float64
 
-	if maxThreshold == 0 {
-		t.Fatalf("unrecognized image, no threshold value found")
+	switch {
+	case strings.Contains(image, "centos"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["centos"]
+	case strings.Contains(image, "debian"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["debian"]
+	case strings.Contains(image, "rhel"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["rhel"]
+	case strings.Contains(image, "rocky-linux"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["rocky-linux"]
+	case strings.Contains(image, "sles-12"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["sles-12"]
+	case strings.Contains(image, "sles-15"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["sles-15"]
+	case strings.Contains(image, "ubuntu-pro"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu-pro"]
+	case strings.Contains(image, "ubuntu"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu"]
+	default:
+		t.Fatalf("OS not supported for boot time test")
 	}
 
 	var foundGuestAgentAndSshd bool
