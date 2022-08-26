@@ -18,7 +18,7 @@ import (
 )
 
 // The values have been decided based on running spot tests for different images.
-var imageFamilyBootTimeThresholdMap = map[string]float64{
+var imageFamilyBootTimeThresholdMap = map[string]int{
 	"centos":      60,
 	"debian":      50,
 	"rhel":        60,
@@ -191,7 +191,7 @@ func TestBootTime(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	var maxThreshold float64
+	var maxThreshold int
 
 	switch {
 	case strings.Contains(image, "centos"):
@@ -239,10 +239,10 @@ func TestBootTime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read uptime numeric value")
 	}
-	t.Logf("found guest agent and sshd running at %v seconds", uptime)
+	t.Logf("found guest agent and sshd running at %v seconds", int(uptime))
 
 	//Validating the uptime against the allowed threshold value
-	if uptime > maxThreshold {
+	if int(uptime) > maxThreshold {
 		t.Errorf("Boot time too long: %v is beyond max of %v", uptime, maxThreshold)
 	}
 }
