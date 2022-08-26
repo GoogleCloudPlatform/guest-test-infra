@@ -47,10 +47,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.EnableSecureBoot()
 	vm3.RunTests("TestGuestSecureBoot|TestStartTime|TestBootTime")
-	
 	return nil
 }
