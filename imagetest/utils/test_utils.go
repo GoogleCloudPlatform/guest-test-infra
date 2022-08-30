@@ -23,6 +23,13 @@ import (
 
 const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 
+var windowsClientImagePatterns = []string{
+	"windows-7-",
+	"windows-8-",
+	"windows-10-",
+	"windows-11-",
+}
+
 // GetRealVMName returns the real name of a VM running in the same test.
 func GetRealVMName(name string) (string, error) {
 	hostname, err := os.Hostname()
@@ -250,27 +257,42 @@ func WindowsOnly(t *testing.T) {
 	}
 }
 
+// Is32BitWindows returns true if the image contains -x86.
+func Is32BitWindows(image string) bool {
+	return strings.Contains(image, "-x86")
+}
+
 // Skip32BitWindows skips tests on 32-bit client images.
 func Skip32BitWindows(t *testing.T, skipMsg string) {
 	image, err := GetMetadata("image")
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		t.Fatalf("Couldn't get image from metadata: %v", err)
 	}
 
-	if strings.Contains(image, "-x86") {
+	if Is32BitWindows(image) {
 		t.Skip(skipMsg)
 	}
 }
 
-// PowershellOutput holds stdout, stderr and the exit code from running a powershell command.
-type PowershellOutput struct {
+// IsWindowsClient returns true if the image is a client (non-server) Windows image.
+func IsWindowsClient(image string) bool {
+	for _, pattern := range windowsClientImagePatterns {
+		if strings.Contains(image, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// ProcessStatus holds stdout, stderr and the exit code from an external command call.
+type ProcessStatus struct {
 	Stdout   string
 	Stderr   string
 	Exitcode int
 }
 
 // RunPowershellCmd runs a powershell command and returns stdout and stderr if successful.
-func RunPowershellCmd(command string) (PowershellOutput, error) {
+func RunPowershellCmd(command string) (ProcessStatus, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
@@ -280,7 +302,7 @@ func RunPowershellCmd(command string) (PowershellOutput, error) {
 
 	err := cmd.Run()
 
-	output := PowershellOutput{
+	output := ProcessStatus{
 		Stdout:   stdout.String(),
 		Stderr:   stderr.String(),
 		Exitcode: cmd.ProcessState.ExitCode(),
