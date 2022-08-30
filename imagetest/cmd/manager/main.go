@@ -85,14 +85,14 @@ var (
 		"ubuntu-pro-1604-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts",
 		"ubuntu-pro-1804-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts",
 		"ubuntu-pro-2004-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts",
-		"windows-2012-r2-core":    "projects/windows-cloud/global/images/family/windows-2012-r2-core",
 		"windows-2012-r2":         "projects/windows-cloud/global/images/family/windows-2012-r2",
-		"windows-2016-core":       "projects/windows-cloud/global/images/family/windows-2016-core",
+		"windows-2012-r2-core":    "projects/windows-cloud/global/images/family/windows-2012-r2-core",
 		"windows-2016":            "projects/windows-cloud/global/images/family/windows-2016",
-		"windows-2019-core":       "projects/windows-cloud/global/images/family/windows-2019-core",
+		"windows-2016-core":       "projects/windows-cloud/global/images/family/windows-2016-core",
 		"windows-2019":            "projects/windows-cloud/global/images/family/windows-2019",
-		"windows-2022-core":       "projects/windows-cloud/global/images/family/windows-2022-core",
+		"windows-2019-core":       "projects/windows-cloud/global/images/family/windows-2019-core",
 		"windows-2022":            "projects/windows-cloud/global/images/family/windows-2022",
+		"windows-2022-core":       "projects/windows-cloud/global/images/family/windows-2022-core",
 	}
 )
 

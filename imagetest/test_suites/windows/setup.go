@@ -13,6 +13,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm.RunTests("TestGooGetInstalled|TestGooGetAvailable|TestSigned|TestRemoveInstall|TestRepoManagement")
+	vm.RunTests("TestGooGetInstalled|TestGooGetAvailable|TestSigned|TestRemoveInstall" +
+		"|TestPackagesInstalled|TestPackagesAvailable|TestPackagesSigned")
+	vm2, err := t.CreateTestVM("vm2")
+	if err != nil {
+		return err
+	}
+	vm2.RunTests("TestRepoManagement")
 	return nil
 }
