@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
