@@ -8,7 +8,10 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var licenseNames = []string{
@@ -171,6 +174,14 @@ func isValidLicenseText(licenseCheck string) bool {
 }
 
 func TestArePackagesLegal(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "ubuntu-pro-fips") {
+		// Ubuntu Pro FIPS images have some non-standard packages.
+		t.Skip("Not supported on Ubuntu Pro Fips")
+	}
 	for _, pathGlob := range licenseGlobs {
 		filenames, err := filepath.Glob(pathGlob)
 		if err != nil || len(filenames) == 0 {
