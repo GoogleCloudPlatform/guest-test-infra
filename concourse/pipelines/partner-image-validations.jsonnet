@@ -266,17 +266,15 @@ local imagevalidationjob = {
 };
 
 local ubuntudevelimages = [
-  'ubuntu-minimal-2204-lts',
   'ubuntu-1604-lts',
   'ubuntu-1804-lts',
   'ubuntu-2004-lts',
-  'ubuntu-2110',
   'ubuntu-2204-lts',
   'ubuntu-2210-amd64',
   'ubuntu-minimal-1604-lts',
   'ubuntu-minimal-1804-lts',
   'ubuntu-minimal-2004-lts',
-  'ubuntu-minimal-2110',
+  'ubuntu-minimal-2204-lts',
   'ubuntu-minimal-2210-amd64',
 ];
 
