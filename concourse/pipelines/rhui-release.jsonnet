@@ -60,12 +60,12 @@ local deployjob = {
     {
       get: 'cds-image',
       passed: job.passed,
-      trigger: true,
+      trigger: if job.stage == 'prod' then false else true,
     },
     {
       get: 'rhua-image',
       passed: job.passed,
-      trigger: true,
+      trigger: if job.stage == 'prod' then false else true,
     },
     gcloudmigtask {
       task: 'rhua-start-rolling-update',
@@ -149,6 +149,12 @@ local deployjob = {
       name: 'deploy-staging-us-west1',
       stage: 'staging',
       region: 'us-west1',
+      passed: ['manual-trigger'],
+    },
+    deployjob {
+      name: 'deploy-staging-europe-north1',
+      stage: 'staging',
+      region: 'europe-north1',
       passed: ['manual-trigger'],
     },
     deployjob {
