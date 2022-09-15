@@ -27,6 +27,7 @@ local imagevalidationjob = {
 
   image:: error 'must provide image in imagevalidationjob',
   bucket:: error 'must provide bucket in imagevalidationjob',
+  extra_args:: [],
 
   // Start of output.
   name: tl.image,
@@ -257,6 +258,7 @@ local imagevalidationjob = {
       },
       config: imagetesttask {
         images: '((.:partial))',
+        extra_args: tl.extra_args,
         outputs: [
           { name: 'junit', path: '.' },
         ],
@@ -276,6 +278,17 @@ local ubuntudevelimages = [
   'ubuntu-minimal-2004-lts',
   'ubuntu-minimal-2204-lts',
   'ubuntu-minimal-2210-amd64',
+];
+
+local ubuntuarm64develimages = [
+  'ubuntu-1804-lts-arm64',
+  'ubuntu-2004-lts-arm64',
+  'ubuntu-2204-lts-arm64',
+  'ubuntu-2210-arm64',
+  'ubuntu-minimal-1804-lts-arm64',
+  'ubuntu-minimal-2004-lts-arm64',
+  'ubuntu-minimal-2204-lts-arm64',
+  'ubuntu-minimal-2210-arm64',
 ];
 
 local ubuntuproposedimages = [
@@ -337,7 +350,7 @@ local ubuntuproposedimages = [
         family: family,
       },
     }
-    for family in ubuntudevelimages
+    for family in ubuntudevelimages + ubuntuarm64develimages
   ] + [
     {
       name: family + '-proposed',
@@ -366,6 +379,15 @@ local ubuntuproposedimages = [
     for family in ubuntudevelimages
   ] + [
     imagevalidationjob {
+      image: family + '-devel',
+      bucket: 'ubuntu-gce-validation-results',
+      extra_args: [
+        '-machine_type=t2a-standard-2'
+      ],
+    }
+    for family in ubuntuarm64develimages
+  ] + [
+    imagevalidationjob {
       image: family + '-proposed',
       bucket: 'ubuntu-gce-validation-results',
     }
@@ -381,7 +403,7 @@ local ubuntuproposedimages = [
       name: 'ubuntu-devel',
       jobs: [
         family + '-devel'
-        for family in ubuntudevelimages
+        for family in ubuntudevelimages + ubuntuarm64develimages
       ],
     },
     {
