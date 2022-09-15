@@ -284,7 +284,7 @@ func IsWindowsClient(image string) bool {
 	return false
 }
 
-// WindowwContainersOnly skips tests not on Windows "for Containers" images.
+// WindowsContainersOnly skips tests not on Windows "for Containers" images.
 func WindowsContainersOnly(t *testing.T) {
 	WindowsOnly(t)
 	image, err := GetMetadata("image")

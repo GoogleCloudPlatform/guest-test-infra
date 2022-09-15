@@ -76,7 +76,6 @@ func testBaseContainerImagesRun(t *testing.T) {
 	if !strings.Contains(output.Stdout, "C:\\>") {
 		t.Fatalf("Docker run of %s:%s did not complete as expected", baseContainerImageRepo, baseContainerImageTag)
 	}
-
 }
 
 func TestCanBuildNewContainerFromDockerfile(t *testing.T) {
@@ -177,5 +176,4 @@ func testContainerCanMountStorageVolume(t *testing.T) {
 	if !strings.Contains(output.Stdout, testFileContents) {
 		t.Fatalf("Command Stdout '%s' does not contain '%s'", output.Stdout, testFileContents)
 	}
-
 }
