@@ -284,6 +284,19 @@ func IsWindowsClient(image string) bool {
 	return false
 }
 
+// WindowwContainersOnly skips tests not on Windows "for Containers" images.
+func WindowsContainersOnly(t *testing.T) {
+	WindowsOnly(t)
+	image, err := GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata: %v", err)
+	}
+
+	if !strings.Contains(image, "-for-containers") {
+		t.Skip("Test only run on Windows for Containers images")
+	}
+}
+
 // ProcessStatus holds stdout, stderr and the exit code from an external command call.
 type ProcessStatus struct {
 	Stdout   string
