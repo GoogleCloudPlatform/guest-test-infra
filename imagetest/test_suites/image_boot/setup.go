@@ -33,11 +33,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return nil
 	}
 
-	if strings.Contains(t.Image, "rocky-linux-8") {
-		// secure boot is not supported on Rocky Linux
-		return nil
-	}
-
 	if strings.Contains(t.Image, "arm64") {
 		// secure boot is not supported on ARM images
 		return nil
