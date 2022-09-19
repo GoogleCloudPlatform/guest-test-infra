@@ -19,6 +19,7 @@ import (
 
 // The values have been decided based on running spot tests for different images.
 var imageFamilyBootTimeThresholdMap = map[string]int{
+	"almalinux":   60,
 	"centos":      60,
 	"debian":      50,
 	"rhel":        60,
@@ -194,6 +195,8 @@ func TestBootTime(t *testing.T) {
 	var maxThreshold int
 
 	switch {
+	case strings.Contains(image, "almalinux"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["almalinux"]
 	case strings.Contains(image, "centos"):
 		maxThreshold = imageFamilyBootTimeThresholdMap["centos"]
 	case strings.Contains(image, "debian"):
