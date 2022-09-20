@@ -24,6 +24,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.RunTests("TestNetworkDriverLoaded|TestDriversInstalled")
+	vm3.RunTests("TestNetworkDriverLoaded|TestDriversInstalled|TestDriversRemoved")
 	return nil
 }
