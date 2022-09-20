@@ -20,5 +20,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm2.RunTests("TestRepoManagement")
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.RunTests("TestNetworkDriverLoaded|TestDriversInstalled")
 	return nil
 }
