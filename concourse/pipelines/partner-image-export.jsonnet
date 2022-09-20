@@ -260,22 +260,6 @@ local publishjob = {
   ] + [
     publishjob { image: image, environment: 'oslogin-staging', gcsdir: 'ubuntu' }
     for image in ubuntu_images
-  ] + [
-    publishjob { image: image, environment: 'staging', gcsdir: 'cos' }
-    for image in cos_images
-  ] + [
-    publishjob { image: image, environment: 'staging', gcsdir: 'fedora' }
-    for image in fedora_images
-  ] + [
-    publishjob { image: image, environment: 'staging', gcsdir: 'freebsd' }
-    for image in freebsd_images
-  ] + [
-    publishjob { image: image, environment: 'staging', gcsdir: 'suse' }
-    for image in suse_images
-  ] + [
-    publishjob { image: image, environment: 'staging', gcsdir: 'ubuntu' }
-    for image in ubuntu_images
-  ] + [
   ],
   groups: [
     {
@@ -291,11 +275,6 @@ local publishjob = {
         'publish-oslogin-cos-93-lts',
         'publish-oslogin-cos-97-lts',
         'publish-oslogin-cos-dev',
-        'publish-staging-cos-85-lts',
-        'publish-staging-cos-89-lts',
-        'publish-staging-cos-93-lts',
-        'publish-staging-cos-97-lts',
-        'publish-staging-cos-dev',
       ],
     },
     {
@@ -306,11 +285,6 @@ local publishjob = {
         'export-fedora-coreos-next',
         'export-fedora-coreos-stable',
         'export-fedora-coreos-testing',
-        'publish-staging-fedora-33',
-        'publish-staging-fedora-34',
-        'publish-staging-fedora-coreos-next',
-        'publish-staging-fedora-coreos-stable',
-        'publish-staging-fedora-coreos-testing',
       ],
     },
     {
@@ -319,9 +293,6 @@ local publishjob = {
         'export-freebsd-11',
         'export-freebsd-12',
         'export-freebsd-13',
-        'publish-staging-freebsd-11',
-        'publish-staging-freebsd-12',
-        'publish-staging-freebsd-13',
       ],
     },
     {
@@ -337,11 +308,6 @@ local publishjob = {
         'publish-oslogin-sles-12',
         'publish-oslogin-sles-15',
         'publish-oslogin-sles-15-arm64',
-        'publish-staging-opensuse-leap-15',
-        'publish-staging-opensuse-leap-15-arm64',
-        'publish-staging-sles-12',
-        'publish-staging-sles-15',
-        'publish-staging-sles-15-arm64',
       ],
     },
     {
@@ -367,16 +333,6 @@ local publishjob = {
         'publish-oslogin-ubuntu-pro-1804',
         'publish-oslogin-ubuntu-pro-2004',
         'publish-oslogin-ubuntu-pro-2204',
-        'publish-staging-ubuntu-1804',
-        'publish-staging-ubuntu-2004',
-        'publish-staging-ubuntu-2204',
-        'publish-staging-ubuntu-1804-arm64',
-        'publish-staging-ubuntu-2004-arm64',
-        'publish-staging-ubuntu-2204-arm64',
-        'publish-staging-ubuntu-pro-1604',
-        'publish-staging-ubuntu-pro-1804',
-        'publish-staging-ubuntu-pro-2004',
-        'publish-staging-ubuntu-pro-2204',
       ],
     },
   ],

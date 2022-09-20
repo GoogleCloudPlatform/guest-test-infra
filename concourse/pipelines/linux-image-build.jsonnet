@@ -6,7 +6,7 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local lego = import '../templates/lego.libsonnet';
 
 // Common
-local envs = ['testing', 'staging', 'oslogin-staging', 'prod'];
+local envs = ['testing', 'oslogin-staging', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local imgbuildtask = daisy.daisyimagetask {

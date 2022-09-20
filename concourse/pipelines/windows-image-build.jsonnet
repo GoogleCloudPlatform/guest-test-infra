@@ -4,10 +4,10 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
-local client_envs = ['testing', 'staging', 'internal'];
-local server_envs = ['testing', 'staging', 'internal', 'prod'];
-local sql_envs = ['testing', 'staging', 'prod'];
-local prerelease_envs = ['testing', 'staging'];
+local client_envs = ['testing', 'internal'];
+local server_envs = ['testing', 'internal', 'prod'];
+local sql_envs = ['testing', 'prod'];
+local prerelease_envs = ['testing'];
 local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -456,8 +456,8 @@ local imgpublishjob = {
       passed: [
         job.passed,
       ],
-      // Builds are automatically pushed to testing. Triggering staging will automatically progress to prod and internal.
-      trigger: if job.env == 'staging' then false else true,
+      // Builds are automatically pushed to testing.
+      trigger: true,
     },
     {
       load_var: 'source-version',
@@ -529,13 +529,11 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
-  // build -> testing -> staging -> prod -> internal
+  // build -> testing -> prod -> internal
   passed:: if env == 'testing' then
              'build-' + image
-           else if env == 'staging' then
-             'publish-to-testing-' + image
            else if env == 'prod' then
-             'publish-to-staging-' + image
+             'publish-to-testing-' + image
            else if env == 'internal' then
              'publish-to-prod-' + image,
 
@@ -759,10 +757,10 @@ local ImgGroup(name, images, environments) = {
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_client_images
-          for env in ['testing', 'staging']
+          for env in ['testing']
         ] +
         [
-          ImgPublishJob(image, 'internal', 'windows', 'windows-uefi') {passed:'publish-to-staging-' + image}
+          ImgPublishJob(image, 'internal', 'windows', 'windows-uefi') {passed:'publish-to-testing-' + image}
           for image in windows_client_images
         ] +
         [
