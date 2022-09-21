@@ -457,7 +457,7 @@ local imgpublishjob = {
         job.passed,
       ],
       // Builds are automatically pushed to testing.
-      trigger: true,
+      trigger: if job.env == 'testing' then true else false,
     },
     {
       load_var: 'source-version',
