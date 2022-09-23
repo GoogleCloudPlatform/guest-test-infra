@@ -445,10 +445,10 @@ local imgpublishjob = {
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
-  passed:: if tl.env == 'testing' then
-    'build-' + tl.image
+  passed:: if job.env == 'testing' then
+    'build-' + job.image
   else
-    'publish-to-testing-' + tl.image,
+    'publish-to-testing-' + job.image,
 
   // Builds are automatically pushed to testing.
   trigger:: if job.env == 'testing' then true else false,
@@ -463,7 +463,7 @@ local imgpublishjob = {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [job.passed],
-      tigger: job.trigger],
+      trigger: job.trigger,
     },
     {
       load_var: 'source-version',
