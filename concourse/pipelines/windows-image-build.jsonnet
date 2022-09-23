@@ -451,8 +451,9 @@ local imgpublishjob = {
     'publish-to-testing-' + job.image,
 
   // Builds are automatically pushed to testing.
-  trigger:: if job.env == 'testing' then true else false,
-
+  trigger:: if job.env == 'testing' then true
+    else if job.env == 'internal' then true
+    else false,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
