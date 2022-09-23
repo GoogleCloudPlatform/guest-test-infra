@@ -443,7 +443,16 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
-  passed:: error 'must set passed in imgpublishjob',
+
+  // Publish can proceed if build passes.
+  passed:: if tl.env == 'testing' then
+    'build-' + tl.image
+  else
+    'publish-to-testing-' + tl.image,
+
+  // Builds are automatically pushed to testing.
+  trigger:: if job.env == 'testing' then true else false,
+
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
@@ -453,11 +462,8 @@ local imgpublishjob = {
     {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
-      passed: [
-        job.passed,
-      ],
-      // Builds are automatically pushed to testing.
-      trigger: if job.env == 'testing' then true else false,
+      passed: [job.passed],
+      tigger: job.trigger],
     },
     {
       load_var: 'source-version',
