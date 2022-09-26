@@ -1,23 +1,11 @@
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local cos_images = [
-  'cos-85-lts',
   'cos-89-lts',
   'cos-93-lts',
   'cos-97-lts',
+  'cos-101-lts',
   'cos-dev',
-];
-local fedora_images = [
-  'fedora-33',
-  'fedora-34',
-  'fedora-coreos-next',
-  'fedora-coreos-stable',
-  'fedora-coreos-testing',
-];
-local freebsd_images = [
-  'freebsd-11',
-  'freebsd-12',
-  'freebsd-13',
 ];
 local suse_images = [
   'opensuse-leap-15',
@@ -213,26 +201,6 @@ local publishjob = {
       type: 'gcs',
       source: {
         bucket: 'gce-image-archive',
-        regexp: 'partner/fedora/%s-v([0-9]+).tar.gz' % image,
-      },
-    }
-    for image in fedora_images
-  ] + [
-    {
-      name: '%s-gcs' % image,
-      type: 'gcs',
-      source: {
-        bucket: 'gce-image-archive',
-        regexp: 'partner/freebsd/%s-v([0-9]+).tar.gz' % image,
-      },
-    }
-    for image in freebsd_images
-  ] + [
-    {
-      name: '%s-gcs' % image,
-      type: 'gcs',
-      source: {
-        bucket: 'gce-image-archive',
         regexp: 'partner/suse/%s-v([0-9]+).tar.gz' % image,
       },
     }
@@ -250,7 +218,7 @@ local publishjob = {
   ],
   jobs: [
     exportjob { image: image }
-    for image in cos_images + fedora_images + freebsd_images + suse_images + ubuntu_images
+    for image in cos_images + suse_images + ubuntu_images
   ] + [
     publishjob { image: image, environment: 'oslogin-staging', gcsdir: 'cos' }
     for image in cos_images
@@ -265,34 +233,16 @@ local publishjob = {
     {
       name: 'cos',
       jobs: [
-        'export-cos-85-lts',
         'export-cos-89-lts',
         'export-cos-93-lts',
         'export-cos-97-lts',
+        'export-cos-101-lts',
         'export-cos-dev',
-        'publish-oslogin-cos-85-lts',
         'publish-oslogin-cos-89-lts',
         'publish-oslogin-cos-93-lts',
         'publish-oslogin-cos-97-lts',
+        'publish-oslogin-cos-101-lts',
         'publish-oslogin-cos-dev',
-      ],
-    },
-    {
-      name: 'fedora',
-      jobs: [
-        'export-fedora-33',
-        'export-fedora-34',
-        'export-fedora-coreos-next',
-        'export-fedora-coreos-stable',
-        'export-fedora-coreos-testing',
-      ],
-    },
-    {
-      name: 'freebsd',
-      jobs: [
-        'export-freebsd-11',
-        'export-freebsd-12',
-        'export-freebsd-13',
       ],
     },
     {
