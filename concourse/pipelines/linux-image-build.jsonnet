@@ -275,7 +275,7 @@ local imgpublishjob = {
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
   gcs_bucket:: common.prod_bucket,
 
-  // Publish to testing after build, on publish to prod trigger, auto publish to the oslogin-staging project.
+  // Publish to testing after build, on publish to prod, auto publish to the oslogin-staging project.
   passed:: if tl.env == 'testing' then
     'build-' + tl.image
   else if tl.env == 'oslogin-staging' then
