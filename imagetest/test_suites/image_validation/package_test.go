@@ -1,3 +1,4 @@
+//go:build cit
 // +build cit
 
 package imagevalidation
@@ -50,6 +51,9 @@ func TestGuestPackages(t *testing.T) {
 	} else {
 		packages = append(packages, "google-compute-engine")
 		packages = append(packages, "google-compute-engine-oslogin")
+	}
+	if strings.Contains(image, "centos-7") {
+		packages = append(packages, "epel-release")
 	}
 
 	for _, pkg := range packages {
