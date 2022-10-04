@@ -13,7 +13,6 @@ import (
 
 func getDriverList(remove bool) []string {
 	drivers := []string{
-		"google-compute-engine-driver-netkvm",
 		"google-compute-engine-driver-pvpanic",
 		"google-compute-engine-driver-gga",
 		"google-compute-engine-driver-balloon",
@@ -24,6 +23,7 @@ func getDriverList(remove bool) []string {
 		drivers = append(
 			drivers,
 			"google-compute-engine-driver-gvnic",
+			"google-compute-engine-driver-netkvm",
 			"google-compute-engine-driver-vioscsi",
 		)
 	}
@@ -43,7 +43,7 @@ func getInstalledDrivers() ([]string, error) {
 
 }
 
-func TestNetworkDriverLoaded(t *testing.T) {
+func TestVirtIONetworkDriverLoaded(t *testing.T) {
 	utils.WindowsOnly(t)
 	command := fmt.Sprintf("ipconfig /all | Select-String Description")
 	output, err := utils.RunPowershellCmd(command)
