@@ -126,39 +126,34 @@ func (t *TestVM) AddMetadata(key, value string) {
 // RunTests runs only the named tests on the testVM.
 //
 // From go help test:
-//    -run regexp
-//     Run only those tests and examples matching the regular expression.
-//     For tests, the regular expression is split by unbracketed slash (/)
-//     characters into a sequence of regular expressions, and each part
-//     of a test's identifier must match the corresponding element in
-//     the sequence, if any. Note that possible parents of matches are
-//     run too, so that -run=X/Y matches and runs and reports the result
-//     of all tests matching X, even those without sub-tests matching Y,
-//     because it must run them to look for those sub-tests.
+//
+//	-run regexp
+//	 Run only those tests and examples matching the regular expression.
+//	 For tests, the regular expression is split by unbracketed slash (/)
+//	 characters into a sequence of regular expressions, and each part
+//	 of a test's identifier must match the corresponding element in
+//	 the sequence, if any. Note that possible parents of matches are
+//	 run too, so that -run=X/Y matches and runs and reports the result
+//	 of all tests matching X, even those without sub-tests matching Y,
+//	 because it must run them to look for those sub-tests.
 func (t *TestVM) RunTests(runtest string) {
 	t.AddMetadata("_test_run", runtest)
 }
 
-// SetShutdownScript sets the `shutdown-script` metadata key for a VM.
-func (t *TestVM) SetShutdownScript(script string) {
-	t.AddMetadata("shutdown-script", script)
-}
-
-// SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
-func (t *TestVM) SetShutdownScriptURL(script string) error {
-	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
+// SetMetadataScriptURL sets a URL metadata key for a VM. For Windows VMs,
+// the filename must have an extention which should be supplied with the
+// dot (e.g. ".ps1"). Otherwise, 'ext' can be an empty string.
+func (t *TestVM) SetMetadataScriptURL(metadataKey, script, ext string) error {
+	fileName := fmt.Sprintf("/metadata_script-%s", uuid.New())
 	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
 		return err
 	}
-	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
+	sourceFile := metadataKey + ext
+	t.testWorkflow.wf.Sources[sourceFile] = fileName
 
-	t.AddMetadata("shutdown-script-url", "${SOURCESPATH}/shutdown-script")
+	sourcesPath := "${SOURCESPATH}/" + sourceFile
+	t.AddMetadata(metadataKey, sourcesPath)
 	return nil
-}
-
-// SetStartupScript sets the `startup-script` metadata key for a VM.
-func (t *TestVM) SetStartupScript(script string) {
-	t.AddMetadata("startup-script", script)
 }
 
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your

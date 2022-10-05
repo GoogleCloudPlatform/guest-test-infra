@@ -250,6 +250,20 @@ func GetInterface(index int) (net.Interface, error) {
 	return GetInterfaceByMAC(mac)
 }
 
+// CmpStringSlice returns true if two slices of strings are equal to each other.
+func CmpStringSlice(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+
+	}
+	return true
+}
+
 // WindowsOnly skips tests not on Windows.
 func WindowsOnly(t *testing.T) {
 	if runtime.GOOS != "windows" {
