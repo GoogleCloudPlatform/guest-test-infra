@@ -4,8 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
-local client_envs = ['testing', 'internal'];
-local server_envs = ['testing', 'internal', 'prod'];
+local windows_envs = ['testing', 'internal', 'prod'];
 local sql_envs = ['testing', 'prod'];
 local prerelease_envs = ['testing'];
 local windows_install_media_envs = ['testing', 'prod'];
@@ -649,9 +648,9 @@ local ImgGroup(name, images, environments) = {
     'windows-install-media',
   ],
 
-  local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
-  local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
-                              + windows_2022_images,
+  local windows_images = windows_81_images + windows_10_images + windows_11_images +
+                         windows_2012_images + windows_2016_images + windows_2019_images +
+                         windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
   local prerelease_images = sql_2022_images,
 
@@ -673,7 +672,7 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_client_images + windows_server_images + container_images
+               for image in windows_images + windows_images + container_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
@@ -758,22 +757,10 @@ local ImgGroup(name, images, environments) = {
 
         // Publish jobs
 
-        // Windows client has 2 jobs to account for skipping of prod environment. This avoids needing to
-        // rewrite the rest of the passed logic. TODO: Mod logic such that only 1 ImgPublishJob is needed
-
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
-          for image in windows_client_images
-          for env in ['testing']
-        ] +
-        [
-          ImgPublishJob(image, 'internal', 'windows', 'windows-uefi') {passed:'publish-to-testing-' + image}
-          for image in windows_client_images
-        ] +
-        [
-          ImgPublishJob(image, env, 'windows', 'windows-uefi')
-          for image in windows_server_images
-          for env in server_envs
+          for image in windows_images
+          for env in windows_envs
         ] +
         [
           ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
@@ -789,7 +776,7 @@ local ImgGroup(name, images, environments) = {
         [
           ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
           for image in container_images
-          for env in server_envs
+          for env in windows_envs
         ] +
         [
           MediaImgPublishJob(image, env, 'windows', 'windows-install-media')
@@ -798,18 +785,18 @@ local ImgGroup(name, images, environments) = {
         ],
 
   groups: [
-    ImgGroup('windows-81', windows_81_images, client_envs),
-    ImgGroup('windows-10', windows_10_images, client_envs),
-    ImgGroup('windows-11', windows_11_images, client_envs),
-    ImgGroup('windows-2012', windows_2012_images, server_envs),
-    ImgGroup('windows-2016', windows_2016_images, server_envs),
-    ImgGroup('windows-2019', windows_2019_images, server_envs),
-    ImgGroup('windows-2022', windows_2022_images, server_envs),
+    ImgGroup('windows-81', windows_81_images, windows_envs),
+    ImgGroup('windows-10', windows_10_images, windows_envs),
+    ImgGroup('windows-11', windows_11_images, windows_envs),
+    ImgGroup('windows-2012', windows_2012_images, windows_envs),
+    ImgGroup('windows-2016', windows_2016_images, windows_envs),
+    ImgGroup('windows-2019', windows_2019_images, windows_envs),
+    ImgGroup('windows-2022', windows_2022_images, windows_envs),
     ImgGroup('sql-2014', sql_2014_images, sql_envs),
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
-    ImgGroup('container-2019', container_images, server_envs),
+    ImgGroup('container-2019', container_images, windows_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
     ImgGroup('pre-release', prerelease_images, prerelease_envs),
   ],
