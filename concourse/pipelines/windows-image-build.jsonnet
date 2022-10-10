@@ -672,7 +672,7 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_images + windows_images + container_images
+               for image in windows_images + container_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
