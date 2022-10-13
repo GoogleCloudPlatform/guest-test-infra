@@ -759,10 +759,17 @@ local ImgGroup(name, images, environments) = {
 
         // Publish jobs
 
+        // Windows client has 2 jobs to account for skipping of prod environment. This avoids needing to
+        // rewrite the rest of the passed logic. TODO: Mod logic such that only 1 ImgPublishJob is needed
+
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_client_images
           for env in client_envs
+        ] +
+        [
+          ImgPublishJob(image, 'internal', 'windows', 'windows-uefi') {passed:'publish-to-testing-' + image}
+          for image in windows_client_images
         ] +
         [
           ImgPublishJob(image, env, 'windows', 'windows-uefi')
