@@ -6,7 +6,7 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local lego = import '../templates/lego.libsonnet';
 
 // Common
-local envs = ['testing', 'oslogin-staging', 'prod'];
+local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local imgbuildtask = daisy.daisyimagetask {
@@ -275,16 +275,13 @@ local imgpublishjob = {
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
   gcs_bucket:: common.prod_bucket,
 
-  // Publish to testing after build, on publish to prod, auto publish to the oslogin-staging project.
+  // Publish to testing after build
   passed:: if tl.env == 'testing' then
     'build-' + tl.image
-  else if tl.env == 'oslogin-staging' then
-    'publish-to-prod-' + tl.image
   else if tl.env == 'prod' then
     'publish-to-testing-' + tl.image,
 
   trigger:: if tl.env == 'testing' then true
-    else if tl.env == 'oslogin-staging' then true
     else false,
 
   // Start of job.

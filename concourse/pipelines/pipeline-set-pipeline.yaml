@@ -38,8 +38,6 @@ jobs:
     file: guest-test-infra/concourse/pipelines/debian-worker-image-build.yaml
   - set_pipeline: bare-metal-image-build
     file: guest-test-infra/concourse/pipelines/bare-metal-image-build.yaml
-  - set_pipeline: partner-image-export
-    file: rendered/partner-image-export.json
   - set_pipeline: windows-image-build
     file: rendered/windows-image-build.json
   - set_pipeline: container-build
