@@ -537,13 +537,15 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
-  // build -> testing -> prod -> internal
+  // build -> testing -> prod/client -> internal
   passed:: if env == 'testing' then
              'build-' + image
            else if env == 'prod' then
              'publish-to-testing-' + image
            else if env == 'internal' then
-             'publish-to-prod-' + image,
+             'publish-to-prod-' + image
+           else if env == 'client' then
+             'publish-to-testing' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
