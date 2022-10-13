@@ -4,7 +4,7 @@ local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
-local client_envs = ['testing', 'internal', 'client'];
+local client_envs = ['testing', 'client'];
 local server_envs = ['testing', 'internal', 'prod'];
 local sql_envs = ['testing', 'prod'];
 local prerelease_envs = ['testing'];
