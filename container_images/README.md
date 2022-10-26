@@ -1,7 +1,7 @@
 # Docker container images
 
 The source for Docker container images used in our CI/CD infrastructure. Each
-folder represents one image. These are built by kaniko jobs in our Concourse
+folder represents one image. These are built by [Kaniko] jobs in our Concourse
 `container-build` pipeline and generally published on gcr.io container registry,
 but are not made publicly available.
 
@@ -9,6 +9,7 @@ We use these in [Prow] jobs and [Concourse] pipelines. Concourse pipelines are
 located in the [concourse](../concourse/) directory. Prow jobs are configured in
 the [oss-test-infra] repository.
 
+[Kaniko]: https://github.com/GoogleContainerTools/kaniko
 [Prow]: https://github.com/kubernetes/test-infra/tree/master/prow
 [Concourse]: https://concourse-ci.org
 [oss-test-infra]: https://github.com/GoogleCloudPlatform/oss-test-infra/tree/master/prow/prowjobs/GoogleCloudPlatform/gcp-guest/
@@ -102,7 +103,7 @@ repository.
 
 ### selinux-tools
 
-SELinux tools for building SELinux modules. Currently broken, see issue: blah
+SELinux tools for building SELinux modules.
 
 ### validate-integtest
 

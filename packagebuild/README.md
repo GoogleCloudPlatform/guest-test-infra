@@ -6,6 +6,8 @@ repository set up for package building, build it and produce a system package.
 
 We use these packagebuild workflows from our Concourse pipelines and Prow jobs.
 
+[Daisy]: https://github.com/GoogleCloudPlatform/compute-daisy
+
 ## Repo layout for package building
 
 The package builder expects to check out a git repository that contains a
