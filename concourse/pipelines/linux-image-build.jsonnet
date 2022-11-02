@@ -724,6 +724,6 @@ local imggroup = {
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
     imggroup { name: 'rocky-linux', images: rocky_linux_images },
-    imggroup { name: 'rhui', images: ['rhua', 'cds'], envs: ['prod'] },
+    imggroup { name: 'rhui', images: ['rhua', 'cds'] },
   ],
 }
