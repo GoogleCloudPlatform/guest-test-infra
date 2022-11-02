@@ -284,6 +284,9 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
+  runtests:: if tl.env == 'testing' then true
+  else false,
+
   // Start of job.
   name: 'publish-to-%s-%s' % [tl.env, tl.image],
   plan: [
@@ -344,7 +347,7 @@ local imgpublishjob = {
             },
         ] +
         // Run post-publish tests in 'publish-to-testing-' jobs.
-        if tl.env == 'testing' then
+        if tl.runtests then
           [
             {
               task: 'image-test-' + tl.image,
@@ -705,7 +708,7 @@ local imggroup = {
             env: env,
             gcs_dir: 'rhui',
             workflow_dir: 'rhui',
-            passed: 'build-' + image,
+            runtests: false,
           }
           for env in envs
           for image in ['cds', 'rhua']
