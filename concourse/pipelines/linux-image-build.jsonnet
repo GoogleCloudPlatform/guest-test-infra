@@ -282,7 +282,7 @@ local imgpublishjob = {
     'publish-to-testing-' + tl.image,
 
   trigger:: if tl.env == 'testing' then true
-    else false,
+  else false,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [tl.env, tl.image],
@@ -702,11 +702,12 @@ local imggroup = {
         [
           imgpublishjob {
             image: image,
-            env: 'prod',
+            env: env,
             gcs_dir: 'rhui',
             workflow_dir: 'rhui',
             passed: 'build-' + image,
           }
+          for env in envs
           for image in ['cds', 'rhua']
         ],
   groups: [
