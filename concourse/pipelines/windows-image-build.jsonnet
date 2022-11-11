@@ -727,7 +727,7 @@ local ImgGroup(name, images, environments) = {
              //ImgResource for SQL Preview build. Will be rolled into sql_images on formal release.
              [
                common.GcsImgResource('sql-2022-preview-windows-2022-dc', 'sqlserver-uefi'),
-               common.GcsImgResource('sql-2022-preview-windows-2022', 'sqlserver-uefi'),
+               common.GcsImgResource('sql-2022-preview-windows-2022', 'sqlserver-uefi')
              ] +
              [
                common.GcsImgResource(image, 'windows-install-media')
