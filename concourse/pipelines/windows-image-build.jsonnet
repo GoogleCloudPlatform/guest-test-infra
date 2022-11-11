@@ -762,7 +762,7 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2014-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2014-standard-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-standard', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2014-web-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-web', 'windows_gcs_ssms_exe'),
-          
+
           SQLImgBuildJob('sql-2014-enterprise-windows-2012-r2', 'windows-server-2012-r2', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2014-enterprise-windows-2016', 'windows-server-2016', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2014-standard-windows-2012-r2', 'windows-server-2012-r2', 'sql-2014-standard', 'windows_gcs_ssms_exe'),
@@ -839,6 +839,7 @@ local ImgGroup(name, images, environments) = {
           ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
                                'windows-server-2019-dc-core',
                                'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
+                               
           ContainerImgBuildJob('windows-server-2019-for-containers',
                                'windows-server-2019',
                                'windows_container/windows-2019-for-containers-uefi.wf.json'),
