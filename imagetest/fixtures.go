@@ -240,6 +240,19 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
+// ChangeNicTypeToGVNIC changes the type of vNIC to be used to GVNIC
+func (t *TestVM) ChangeNicTypeToGVNIC() {
+    if t.instance.NetworkInterfaces == nil {
+        t.instance.NetworkInterfaces = []*compute.NetworkInterface{
+            &compute.NetworkInterface{
+                NicType: "GVNIC",
+            },
+        }
+    } else {
+        t.instance.NetworkInterfaces[0].NicType = "GVNIC"
+    }
+}
+
 // AddCustomNetwork add current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
