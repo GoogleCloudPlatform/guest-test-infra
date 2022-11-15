@@ -57,7 +57,6 @@ type metadataScript struct {
 	scriptTemplate string
 	outputPath     string
 	outputContent  string
-	extension      string
 }
 
 // A list of all metadata script types. Windows scripts should be listed
@@ -118,7 +117,6 @@ var metadataScripts = []metadataScript{
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\sysprep_url.txt",
 		outputContent:  startupContent,
-		extension:      ".ps1",
 	},
 	{
 		description:    "Windows Startup Powershell",
@@ -176,7 +174,6 @@ var metadataScripts = []metadataScript{
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\shutdown_url.txt",
 		outputContent:  shutdownContent,
-		extension:      ".ps1",
 	},
 }
 
@@ -205,7 +202,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	for _, ms := range metadataScripts {
 		if ms.url {
-			vm2.SetMetadataScriptURL(ms.metadataKey, ms.script(), ms.extension)
+			vm2.SetMetadataScriptURL(ms.metadataKey, ms.script())
 		} else {
 			vm2.AddMetadata(ms.metadataKey, ms.script())
 		}

@@ -143,10 +143,14 @@ func (t *TestVM) RunTests(runtest string) {
 // SetMetadataScriptURL sets a URL metadata key for a VM. For Windows VMs,
 // the filename must have an extention which should be supplied with the
 // dot (e.g. ".ps1"). Otherwise, 'ext' can be an empty string.
-func (t *TestVM) SetMetadataScriptURL(metadataKey, script, ext string) error {
+func (t *TestVM) SetMetadataScriptURL(metadataKey, script string) error {
 	fileName := fmt.Sprintf("/metadata_script-%s", uuid.New())
 	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
 		return err
+	}
+	var ext string
+	if strings.HasPrefix(metadataKey, "windows") || strings.HasPrefix(metadataKey, "sysprep") {
+		ext = ".ps1"
 	}
 	sourceFile := metadataKey + ext
 	t.testWorkflow.wf.Sources[sourceFile] = fileName
