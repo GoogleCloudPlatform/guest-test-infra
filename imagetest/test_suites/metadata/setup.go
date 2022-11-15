@@ -26,17 +26,17 @@ const (
 	startupContent  = "The startup script worked."
 	shutdownContent = "The shutdown script worked."
 
-	timeOutputPath        = "/shutdown.txt"
-	windowsTimeOutputPath = "C:\\shutdown.txt"
+	shutdownTimeOutputPath        = "/shutdown.txt"
+	windowsShutdownTimeOutputPath = "C:\\shutdown.txt"
 
-	bashTimeScriptTemplate = `#!/bin/bash
+	bashShutdownTimeScriptTemplate = `#!/bin/bash
 	while [[ 1 ]]; do
 	date +%%s >> %s
 	  sync
 	  sleep 1
 	  done`
 
-	windowsTimeScriptTemplate = `while ($true) {
+	windowsShutdownTimeScriptTemplate = `while ($true) {
 		$time = (Get-Date).ToString("yyyyMMdd-HHMMss")
 		Add-Content -Path %s -Value $time
 		Start-Sleep  1
@@ -186,12 +186,10 @@ func (ms metadataScript) script() string {
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	daemonScript := fmt.Sprintf(daemonScriptTemplate, daemonOutputPath)
-	shutdownTimeScript := fmt.Sprintf(bashTimeScriptTemplate, timeOutputPath)
-	daemonMetadataKey := "startup-script"
+	shutdownTimeScript := fmt.Sprintf(bashShutdownTimeScriptTemplate, shutdownTimeOutputPath)
 	shutdownTimeMetadataKey := "shutdown-script"
 	if strings.Contains(t.Image, "windows") {
-		shutdownTimeScript = fmt.Sprintf(windowsTimeScriptTemplate, windowsTimeOutputPath)
+		shutdownTimeScript = fmt.Sprintf(windowsShutdownTimeScriptTemplate, windowsShutdownTimeOutputPath)
 		shutdownTimeMetadataKey = "windows-shutdown-script-ps1"
 	}
 
@@ -245,7 +243,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		vm5.AddMetadata(daemonMetadataKey, daemonScript)
+		daemonScript := fmt.Sprintf(daemonScriptTemplate, daemonOutputPath)
+		vm5.AddMetadata("startup-script", daemonScript)
 		vm5.RunTests("TestDaemonScript")
 
 		// Tests after this point are Windows-only

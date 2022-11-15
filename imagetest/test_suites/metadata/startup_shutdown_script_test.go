@@ -76,11 +76,12 @@ func TestWindowsScriptOrder(t *testing.T) {
 
 	for _, outputFile := range outputSlice {
 		outputFile = strings.TrimSpace(outputFile)
-		if strings.HasPrefix(outputFile, "shutdown") {
+		switch {
+		case strings.HasPrefix(outputFile, "shutdown"):
 			actualShutdownOrder = append(actualShutdownOrder, outputFile)
-		} else if strings.HasPrefix(outputFile, "startup") {
+		case strings.HasPrefix(outputFile, "startup"):
 			actualStartupOrder = append(actualStartupOrder, outputFile)
-		} else if strings.HasPrefix(outputFile, "sysprep") {
+		case strings.HasPrefix(outputFile, "sysprep"):
 			actualStartupOrder = append(actualStartupOrder, outputFile)
 		}
 	}
@@ -111,9 +112,9 @@ func TestDaemonScript(t *testing.T) {
 
 // TestShutdownScriptTime tests that shutdown scripts can run for around two minutes.
 func TestShutdownScriptTime(t *testing.T) {
-	outputPath := timeOutputPath
+	outputPath := shutdownTimeOutputPath
 	if runtime.GOOS == "windows" {
-		outputPath = windowsTimeOutputPath
+		outputPath = windowsShutdownTimeOutputPath
 	}
 	bytes, err := ioutil.ReadFile(outputPath)
 	if err != nil {
