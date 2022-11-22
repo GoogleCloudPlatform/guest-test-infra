@@ -32,18 +32,4 @@ func TestGVNIC(t *testing.T) {
 	if err := CheckGVNICPresent(iface.Name, t); err != nil {
 		t.Fatalf("Error : %v", err.Error())
 	}
-	if err := PingTest(); err != nil {
-		t.Fatalf("ping test error : %v", err.Error())
-	}
-}
-
-func PingTest() error {
-	command := fmt.Sprintf("ping -S %s -w 2999 -n 5 %s", ip1, ip2)
-	_, err := utils.RunPowershellCmd(command)
-	return err
-}
-
-// Dummy test for target VM.
-func TestEmptyTest(t *testing.T) {
-	t.Log("vm boot successfully")
 }
