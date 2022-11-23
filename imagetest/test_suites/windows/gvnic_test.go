@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func CheckGVNICPresent(interfaceName string, t *testing.T) error {
+func CheckGVNICPresent(interfaceName string) error {
 	command := fmt.Sprintf("Get-NetAdapter -Name \"%s\"", interfaceName)
 	result, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -29,7 +29,7 @@ func TestGVNIC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't find primary NIC: %v", err)
 	}
-	if err := CheckGVNICPresent(iface.Name, t); err != nil {
+	if err := CheckGVNICPresent(iface.Name); err != nil {
 		t.Fatalf("Error : %v", err.Error())
 	}
 }

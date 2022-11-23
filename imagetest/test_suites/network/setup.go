@@ -73,7 +73,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.ChangeNicTypeToGVNIC()
+	if err := vm3.Reboot(); err != nil {
+		return err
+	}
+
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 	vm2.RunTests("TestAlias")
+	vm3.RunTests("TestGVNIC")
 	return nil
 }
