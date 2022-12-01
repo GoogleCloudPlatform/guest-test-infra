@@ -25,14 +25,5 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm3.RunTests("TestNetworkDriverLoaded|TestDriversInstalled|TestDriversRemoved")
-	vm4, err := t.CreateTestVM("vm4")
-	if err != nil {
-		return err
-	}
-	vm4.ChangeNicTypeToGVNIC()
-	if err := vm4.Reboot(); err != nil {
-		return err
-	}
-	vm4.RunTests("TestGVNIC")
 	return nil
 }

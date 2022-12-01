@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -15,32 +15,34 @@ import (
 )
 
 const (
-	driverInfoPath = "/sys/class/net/%s/device/uevent"
-)
-
-var (
-	driverRegex = regexp.MustCompile("DRIVER=[a-zA-Z0-9_-]+")
+	driverPath = "/sys/class/net/%s/device/driver"
 )
 
 func CheckGVNICPresent(interfaceName string) error {
-	file := fmt.Sprintf(driverInfoPath, interfaceName)
-	_, err := os.Stat(file)
-	if os.IsNotExist(err) {
-		return err
-	}
-	fileData, err := os.ReadFile(file)
+	file := fmt.Sprintf(driverPath, interfaceName)
+	data, err := os.Readlink(file)
 	if err != nil {
 		return err
 	}
-	driver := driverRegex.FindString(string(fileData))
-	if driver == "" {
-		return errors.New("No network driver information found")
-	}
-	if !strings.Contains(driver, "gvnic") {
-		errMsg := fmt.Sprintf("Driver set as %v want gvnic", driver[7:])
+	s := strings.Split(data, "/")
+	driver := s[len(s)-1]
+	if driver != "gvnic" {
+		errMsg := fmt.Sprintf("Driver set as %v want gvnic", driver)
 		return errors.New(errMsg)
 	}
 	return nil
+}
+
+func CheckGVNICPresentWindows(interfaceName string) error {
+	command := fmt.Sprintf("Get-NetAdapter -Name \"%s\"", interfaceName)
+	result, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(result.Stdout, "Google Ethernet Adapter") {
+		return nil
+	}
+	return errors.New("GVNIC not present")
 }
 
 func TestGVNIC(t *testing.T) {
@@ -48,7 +50,13 @@ func TestGVNIC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't find primary NIC: %v", err)
 	}
-	if err := CheckGVNICPresent(iface.Name); err != nil {
-		t.Fatalf("Error : %v", err.Error())
+	var errMsg error
+	if runtime.GOOS == "windows" {
+		errMsg = CheckGVNICPresentWindows(iface.Name)
+	} else {
+		errMsg = CheckGVNICPresent(iface.Name)
+	}
+	if errMsg != nil {
+		t.Fatalf("Error : %v", errMsg.Error())
 	}
 }

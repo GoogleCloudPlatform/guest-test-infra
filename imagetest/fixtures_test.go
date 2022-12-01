@@ -113,9 +113,9 @@ func TestEnableSecureBoot(t *testing.T) {
 	}
 }
 
-// TestChangeNicTypeToGVNIC tests that *TestVM.ChangeNicTypeToGVNIC succeeds and
+// TestUseGVNIC tests that *TestVM.UseGVNIC succeeds and
 // populates the Network Interface with a NIC type of GVNIC.
-func TestChangeNicTypeToGVNIC(t *testing.T) {
+func TestUseGVNIC(t *testing.T) {
 	twf, err := NewTestWorkflow("name", "image", "30m")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
@@ -124,7 +124,7 @@ func TestChangeNicTypeToGVNIC(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
-	tvm.ChangeNicTypeToGVNIC()
+	tvm.UseGVNIC()
 	if tvm.instance.NetworkInterfaces == nil {
 		t.Errorf("VM Network Interfaces is nil")
 	}
