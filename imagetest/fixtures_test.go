@@ -113,6 +113,26 @@ func TestEnableSecureBoot(t *testing.T) {
 	}
 }
 
+// TestUseGVNIC tests that *TestVM.UseGVNIC succeeds and
+// populates the Network Interface with a NIC type of GVNIC.
+func TestUseGVNIC(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	tvm.UseGVNIC()
+	if tvm.instance.NetworkInterfaces == nil {
+		t.Errorf("VM Network Interfaces is nil")
+	}
+	if tvm.instance.NetworkInterfaces[0].NicType != "GVNIC" {
+		t.Errorf("VM Network Interface type not set to GVNIC")
+	}
+}
+
 // TestAddAliasIPRanges tests that *TestVM.AddAliasIPRanges succeeds and that
 // it fails if *TestVM.AddCustomNetwork hasn't been called first.
 func TestAddAliasIPRanges(t *testing.T) {

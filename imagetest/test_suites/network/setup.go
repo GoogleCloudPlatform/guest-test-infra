@@ -72,8 +72,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-
+	vm2.UseGVNIC()
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
-	vm2.RunTests("TestAlias")
+	vm2.RunTests("TestAlias|TestGVNIC")
 	return nil
 }

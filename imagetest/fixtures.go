@@ -126,15 +126,16 @@ func (t *TestVM) AddMetadata(key, value string) {
 // RunTests runs only the named tests on the testVM.
 //
 // From go help test:
-//    -run regexp
-//     Run only those tests and examples matching the regular expression.
-//     For tests, the regular expression is split by unbracketed slash (/)
-//     characters into a sequence of regular expressions, and each part
-//     of a test's identifier must match the corresponding element in
-//     the sequence, if any. Note that possible parents of matches are
-//     run too, so that -run=X/Y matches and runs and reports the result
-//     of all tests matching X, even those without sub-tests matching Y,
-//     because it must run them to look for those sub-tests.
+//
+//	-run regexp
+//	 Run only those tests and examples matching the regular expression.
+//	 For tests, the regular expression is split by unbracketed slash (/)
+//	 characters into a sequence of regular expressions, and each part
+//	 of a test's identifier must match the corresponding element in
+//	 the sequence, if any. Note that possible parents of matches are
+//	 run too, so that -run=X/Y matches and runs and reports the result
+//	 of all tests matching X, even those without sub-tests matching Y,
+//	 because it must run them to look for those sub-tests.
 func (t *TestVM) RunTests(runtest string) {
 	t.AddMetadata("_test_run", runtest)
 }
@@ -237,6 +238,19 @@ func (t *TestVM) ResizeDiskAndReboot(diskSize int) error {
 func (t *TestVM) EnableSecureBoot() {
 	t.instance.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
 		EnableSecureBoot: true,
+	}
+}
+
+// UseGVNIC sets the type of vNIC to be used to GVNIC
+func (t *TestVM) UseGVNIC() {
+	if t.instance.NetworkInterfaces == nil {
+		t.instance.NetworkInterfaces = []*compute.NetworkInterface{
+			&compute.NetworkInterface{
+				NicType: "GVNIC",
+			},
+		}
+	} else {
+		t.instance.NetworkInterfaces[0].NicType = "GVNIC"
 	}
 }
 
