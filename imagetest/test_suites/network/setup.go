@@ -1,6 +1,10 @@
 package network
 
-import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+import (
+	"strings"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+)
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "network"
@@ -74,6 +78,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.UseGVNIC()
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
-	vm2.RunTests("TestAlias|TestGVNIC")
+	vm2.RunTests("TestAlias")
+	if strings.Contains(t.Image, "debian-10") {
+		// GVNIC Guest OS Feature not set on Debian 10
+		return nil
+	}
+	vm3, err := t.CreateTestVM("vm3")
+	if err != nil {
+		return err
+	}
+	vm3.UseGVNIC()
+	vm3.RunTests("TestGVNIC")
 	return nil
 }
