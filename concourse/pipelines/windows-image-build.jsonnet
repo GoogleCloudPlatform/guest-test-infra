@@ -681,8 +681,12 @@ local ImgGroup(name, images, environments) = {
     'sql-2019-web-windows-2022-dc',
   ],
   local sql_2022_images = [
-    'sql-2022-preview-windows-2022',
-    'sql-2022-preview-windows-2022-dc',
+    'sql-2022-enterprise-windows-2019-dc',
+    'sql-2022-enterprise-windows-2022-dc',
+    'sql-2022-standard-windows-2019-dc',
+    'sql-2022-standard-windows-2022-dc',
+    'sql-2022-web-windows-2019-dc',
+    'sql-2022-web-windows-2022-dc',
   ],
   local container_images = [
     'windows-server-2019-for-containers',
@@ -693,12 +697,15 @@ local ImgGroup(name, images, environments) = {
   local windows_install_media_images = [
     'windows-install-media',
   ],
+  local prerelease_images = [
+    'sql-2022-preview-windows-2022',
+    'sql-2022-preview-windows-2022-dc',
+  ],
 
   local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                               + windows_2022_images,
-  local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images,
-  local prerelease_images = sql_2022_images,
+  local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
 
   resource_types: [
     {
@@ -830,6 +837,12 @@ local ImgGroup(name, images, environments) = {
 
           SQLImgBuildJob('sql-2022-preview-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-preview', 'windows_gcs_ssms_preview_exe'),
           SQLImgBuildJob('sql-2022-preview-windows-2022', 'windows-server-2022', 'sql-2022-preview', 'windows_gcs_ssms_preview_exe'),
+          SQLImgBuildJob('sql-2022-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
 
           // Container derivative builds
 
@@ -905,6 +918,7 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
+    ImgGroup('sql-2022', sql_2022_images, sql_envs),
     ImgGroup('container-2019', container_images, server_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
     ImgGroup('pre-release', prerelease_images, prerelease_envs),
