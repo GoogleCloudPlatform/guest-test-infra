@@ -76,18 +76,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-	vm2.UseGVNIC()
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
-	vm2.RunTests("TestAlias")
 	if strings.Contains(t.Image, "debian-10") {
-		// GVNIC Guest OS Feature not set on Debian 10
-		return nil
+		vm2.RunTests("TestAlias")
+	} else {
+		vm2.UseGVNIC()
+		vm2.RunTests("TestAlias|TestGVNIC")
 	}
-	vm3, err := t.CreateTestVM("vm3")
-	if err != nil {
-		return err
-	}
-	vm3.UseGVNIC()
-	vm3.RunTests("TestGVNIC")
 	return nil
 }
