@@ -19,11 +19,11 @@ const shutdownTime = 80
 // TestStartupShutdownScripts tests that all startup/shutdown scripts
 // appropriate for the platform ran successfully.
 func TestStartupShutdownScripts(t *testing.T) {
-	isWindows := runtime.GOOS == "windows"
+	metadataScripts := linuxMetadataScripts
+	if runtime.GOOS == "windows" {
+		metadataScripts = windowsMetadataScripts
+	}
 	for _, ms := range metadataScripts {
-		if ms.windows != isWindows {
-			continue
-		}
 		bytes, err := ioutil.ReadFile(ms.outputPath)
 		if err != nil {
 			t.Fatalf("failed to read %s output %v", ms.outputPath, err)
@@ -39,6 +39,10 @@ func TestStartupShutdownScripts(t *testing.T) {
 // TestStartupShutdownScriptFailed tests that a script that fails to execute
 // doesn't crash the vm.
 func TestStartupShutdownScriptFailed(t *testing.T) {
+	metadataScripts := linuxMetadataScripts
+	if runtime.GOOS == "windows" {
+		metadataScripts = windowsMetadataScripts
+	}
 	for _, script := range metadataScripts {
 		if _, err := utils.GetMetadataAttribute(script.metadataKey); err != nil {
 			t.Fatalf("Couldn't get %s from metadata: %v", script.metadataKey, err)
@@ -55,15 +59,15 @@ func TestWindowsScriptOrder(t *testing.T) {
 
 	var expectedStartupOrder, actualStartupOrder, expectedShutdownOrder, actualShutdownOrder []string
 
-	for _, ms := range metadataScripts {
-		if ms.windows {
-			outputFile := strings.TrimPrefix(ms.outputPath, "C:\\")
-			if strings.HasPrefix(outputFile, "shutdown") {
-				expectedShutdownOrder = append(expectedShutdownOrder, outputFile)
-			} else {
-				expectedStartupOrder = append(expectedStartupOrder, outputFile)
-			}
-		}
+	for _, script := range windowsStartupScriptOrder {
+		ms := windowsMetadataScripts[script]
+		outputFile := strings.TrimPrefix(ms.outputPath, "C:\\")
+		expectedStartupOrder = append(expectedStartupOrder, outputFile)
+	}
+	for _, script := range windowsShutdownScriptOrder {
+		ms := windowsMetadataScripts[script]
+		outputFile := strings.TrimPrefix(ms.outputPath, "C:\\")
+		expectedShutdownOrder = append(expectedShutdownOrder, outputFile)
 	}
 
 	command := "Get-ChildItem \"C:\\*.txt\" | Sort-Object LastWriteTime | Select-Object Name"

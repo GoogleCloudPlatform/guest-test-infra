@@ -59,122 +59,113 @@ type metadataScript struct {
 	outputContent  string
 }
 
-// A list of all metadata script types. Windows scripts should be listed
-// in the expected run order. Startup URL scripts are excluded because
-// they are used by the test runner and implicitly tested.
-var metadataScripts = []metadataScript{
-	{
-		description:    "Linux Startup",
-		metadataKey:    "startup-script",
-		scriptTemplate: bashScriptTemplate,
-		outputPath:     "/startup_out.txt",
-		outputContent:  startupContent,
-	},
-	{
-		description:    "Linux Shutdown",
-		metadataKey:    "shutdown-script",
-		scriptTemplate: bashScriptTemplate,
-		outputPath:     "/shutdown_out.txt",
-		outputContent:  shutdownContent,
-	},
-	{
-		description:    "Linux Shutdown URL",
-		url:            true,
-		metadataKey:    "shutdown-script-url",
-		scriptTemplate: bashScriptTemplate,
-		outputPath:     "/shutdown_url.txt",
-		outputContent:  shutdownContent,
-	},
-	{
+var windowsMetadataScripts = map[string]metadataScript{
+	"sysprep-specialize-script-ps1": {
 		description:    "Windows Sysprep Powershell",
-		windows:        true,
-		metadataKey:    "sysprep-specialize-script-ps1",
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\sysprep_ps1.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"sysprep-specialize-script-cmd": {
 		description:    "Windows Sysprep CMD",
-		windows:        true,
-		metadataKey:    "sysprep-specialize-script-cmd",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\sysprep_cmd.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"sysprep-specialize-script-bat": {
 		description:    "Windows Sysprep BAT",
-		windows:        true,
-		metadataKey:    "sysprep-specialize-script-bat",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\sysprep_bat.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"sysprep-specialize-script-url": {
 		description:    "Windows Sysprep URL",
 		url:            true,
-		windows:        true,
-		metadataKey:    "sysprep-specialize-script-url",
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\sysprep_url.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"windows-startup-script-ps1": {
 		description:    "Windows Startup Powershell",
-		windows:        true,
-		metadataKey:    "windows-startup-script-ps1",
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\startup_ps1.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"windows-startup-script-cmd": {
 		description:    "Windows Startup CMD",
-		windows:        true,
-		metadataKey:    "windows-startup-script-cmd",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\startup_cmd.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"windows-startup-script-bat": {
 		description:    "Windows Startup BAT",
-		windows:        true,
-		metadataKey:    "windows-startup-script-bat",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\startup_bat.txt",
 		outputContent:  startupContent,
 	},
-	{
+	"windows-shutdown-script-ps1": {
 		description:    "Windows shutdown Powershell",
-		windows:        true,
-		metadataKey:    "windows-shutdown-script-ps1",
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\shutdown_ps1.txt",
 		outputContent:  shutdownContent,
 	},
-	{
+	"windows-shutdown-script-cmd": {
 		description:    "Windows shutdown CMD",
-		windows:        true,
-		metadataKey:    "windows-shutdown-script-cmd",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\shutdown_cmd.txt",
 		outputContent:  shutdownContent,
 	},
-	{
+	"windows-shutdown-script-bat": {
 		description:    "Windows shutdown BAT",
-		windows:        true,
-		metadataKey:    "windows-shutdown-script-bat",
 		scriptTemplate: windowsScriptTemplate,
 		outputPath:     "C:\\shutdown_bat.txt",
 		outputContent:  shutdownContent,
 	},
-	{
+	"windows-shutdown-script-url": {
 		description:    "Windows shutdown URL",
 		url:            true,
-		windows:        true,
-		metadataKey:    "windows-shutdown-script-url",
 		scriptTemplate: powershellScriptTemplate,
 		outputPath:     "C:\\shutdown_url.txt",
 		outputContent:  shutdownContent,
 	},
+}
+
+var linuxMetadataScripts = map[string]metadataScript{
+	"startup-script": {
+		description:    "Linux Startup",
+		scriptTemplate: bashScriptTemplate,
+		outputPath:     "/startup_out.txt",
+		outputContent:  startupContent,
+	},
+	"shutdown-script": {
+		description:    "Linux Shutdown",
+		scriptTemplate: bashScriptTemplate,
+		outputPath:     "/shutdown_out.txt",
+		outputContent:  shutdownContent,
+	},
+	"shutdown-script-url": {
+		description:    "Linux Shutdown URL",
+		scriptTemplate: bashScriptTemplate,
+		outputPath:     "/shutdown_url.txt",
+		outputContent:  shutdownContent,
+	},
+}
+
+var windowsStartupScriptOrder = []string{
+	"sysprep-specialize-script-ps1",
+	"sysprep-specialize-script-cmd",
+	"sysprep-specialize-script-bat",
+	"sysprep-specialize-script-url",
+	"windows-startup-script-ps1",
+	"windows-startup-script-cmd",
+	"windows-startup-script-bat",
+}
+
+var windowsShutdownScriptOrder = []string{
+	"windows-shutdown-script-ps1",
+	"windows-shutdown-script-cmd",
+	"windows-shutdown-script-bat",
+	"windows-shutdown-script-url",
 }
 
 func (ms metadataScript) script() string {
@@ -185,9 +176,11 @@ func (ms metadataScript) script() string {
 func TestSetup(t *imagetest.TestWorkflow) error {
 	shutdownTimeScript := fmt.Sprintf(bashShutdownTimeScriptTemplate, shutdownTimeOutputPath)
 	shutdownTimeMetadataKey := "shutdown-script"
+	metadataScripts := linuxMetadataScripts
 	if strings.Contains(t.Image, "windows") {
 		shutdownTimeScript = fmt.Sprintf(windowsShutdownTimeScriptTemplate, windowsShutdownTimeOutputPath)
 		shutdownTimeMetadataKey = "windows-shutdown-script-ps1"
+		metadataScripts = windowsMetadataScripts
 	}
 
 	vm, err := t.CreateTestVM("vm")
@@ -200,11 +193,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	for _, ms := range metadataScripts {
-		if ms.url {
-			vm2.SetMetadataScriptURL(ms.metadataKey, ms.script())
+	for key, ms := range metadataScripts {
+		if strings.HasSuffix(key, "-url") {
+			vm2.SetMetadataScriptURL(key, ms.script())
 		} else {
-			vm2.AddMetadata(ms.metadataKey, ms.script())
+			vm2.AddMetadata(key, ms.script())
 		}
 	}
 	if err := vm2.Reboot(); err != nil {
@@ -216,8 +209,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	for _, ms := range metadataScripts {
-		vm3.AddMetadata(ms.metadataKey, strings.Repeat("a", metadataMaxLength))
+	for key := range metadataScripts {
+		vm3.AddMetadata(key, strings.Repeat("a", metadataMaxLength))
 	}
 	if err := vm3.Reboot(); err != nil {
 		return err
