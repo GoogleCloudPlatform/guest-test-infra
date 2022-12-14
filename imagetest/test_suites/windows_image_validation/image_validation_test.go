@@ -14,9 +14,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const googet = "C:\\ProgramData\\GooGet\\googet.exe"
-const stableRepo = "https://packages.cloud.google.com/yuck/repos/google-compute-engine-stable"
-
 type version struct {
 	major int
 	minor int
