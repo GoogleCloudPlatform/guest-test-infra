@@ -1089,7 +1089,7 @@ local buildpackageimagetask = {
       uploads: [
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"googet/googet.x86_64.((.:package-version)).0@0.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"googet/googet.x86_64.((.:package-version))@0.goo"}',
           universe: 'cloud-yuck',
           repo: 'googet',
         },
