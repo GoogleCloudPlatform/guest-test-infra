@@ -1082,6 +1082,29 @@ local buildpackageimagetask = {
         promotepackagestabletask { universe: 'cloud-yuck', repo: 'google-compute-engine-diagnostics' },
       ],
     },
+    buildpackagejob {
+      package: 'googet',
+      builds: ['goo'],
+      name: 'build-googet',
+      uploads: [
+        uploadpackagetask {
+          package_paths:
+            '{"bucket":"gcp-guest-package-uploads","object":"googet/googet.x86_64.((.:package-version)).0@0.goo"}',
+          universe: 'cloud-yuck',
+          repo: 'googet',
+        },
+      ],
+    },
+    promotepackagejob {
+      package: 'googet',
+      name: 'promote-googet-stable',
+      passed: 'build-googet',
+      dest: 'stable',
+      tag: false,
+      promotions: [
+        promotepackagestabletask { universe: 'cloud-yuck', repo: 'googet' },
+      ],
+    },
   ],
   resources: [
     {
@@ -1255,6 +1278,24 @@ local buildpackageimagetask = {
         access_token: '((github-token.token))',
       },
     },
+    {
+      name: 'googet',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/google/googet.git',
+        branch: 'master',
+        fetch_tags: true,
+      },
+    },
+    {
+      name: 'googet-tag',
+      type: 'github-release',
+      source: {
+        owner: 'google',
+        repository: 'googet',
+        access_token: '((github-token.token))',
+      },
+    },
   ],
   groups: [
     {
@@ -1320,6 +1361,13 @@ local buildpackageimagetask = {
       jobs: [
         'build-diagnostics',
         'promote-diagnostics-stable',
+      ],
+    },
+    {
+      name: 'googet',
+      jobs: [
+        'build-googet',
+        'promote-googet-stable',
       ],
     },
   ],
