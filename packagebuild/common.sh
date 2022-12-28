@@ -13,12 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+guest_attr_url=http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/daisy/DaisyResult
+
+function put_guest_attr() {
+  curl -H "Metadata-Flavor: Google" -X PUT --data "$1" "$guest_attr_url"
+}
+
 function build_success() {
+  put_guest_attr "Success"
   echo "Build succeeded: $@"
   exit 0
 }
 
 function build_fail() {
+  put_guest_attr "Failure"
   echo "Build failed: $@"
   exit 1
 }
