@@ -480,6 +480,14 @@ local imgpublishjob = {
     { get: 'guest-test-infra' },
     { get: 'compute-image-tools' },
     {
+      task: 'generate-timestamp',
+      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+    },
+    {
+      load_var: 'start-timestamp-ms',
+      file: 'timestamp/timestamp-ms',
+    },
+    {
       get: '%s-gcs' % job.image,
       params: { skip_download: 'true' },
       passed: [job.passed],
