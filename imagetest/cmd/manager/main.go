@@ -22,6 +22,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
 	windowscontainers "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_containers"
+	windowsimagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_image_validation"
 )
 
 var (
@@ -190,6 +191,10 @@ func main() {
 		{
 			windowscontainers.Name,
 			windowscontainers.TestSetup,
+		},
+		{
+			windowsimagevalidation.Name,
+			windowsimagevalidation.TestSetup,
 		},
 	}
 
