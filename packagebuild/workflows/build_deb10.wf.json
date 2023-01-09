@@ -1,5 +1,6 @@
 {
   "Name": "deb10",
+  "Timeout": "20m",
   "Vars": {
     "gcs_path": {
       "Required": true

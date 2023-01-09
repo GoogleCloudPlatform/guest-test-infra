@@ -1,5 +1,6 @@
 {
   "Name": "el9",
+  "Timeout": "20m",
   "Vars": {
     "gcs_path": {
       "Required": true
