@@ -14,6 +14,7 @@ run:
   args:
   - -project=gcp-guest
   - -zone=us-central1-a
+  - -DefaultTimeout=20m
   - -var:source_image=((source-image))
   - -var:gcs_package_path=((gcs-package-path))
   - -var:dest_image=((dest-image))
