@@ -69,7 +69,7 @@
       ]
     },
     "wait-for-build": {
-      "Timeout": "20m",
+      "Timeout": "30m",
       "WaitForInstancesSignal": [
         {
           "Name": "inst-build-pkg",
