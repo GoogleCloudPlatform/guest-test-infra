@@ -763,6 +763,6 @@ local imggroup = {
     imggroup { name: 'almalinux', images: almalinux_images },
     imggroup { name: 'rocky-linux', images: rocky_linux_images },
     imggroup { name: 'rhui', images: ['rhua', 'cds'] },
-    imggroup { name: 'almalinux-syft', images: 'almalinux-8-syft'},
+    imggroup { name: 'almalinux-syft', images: ['almalinux-8-syft'] },
   ],
 }
