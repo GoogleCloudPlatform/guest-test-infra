@@ -141,7 +141,8 @@ local elsyftimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux_syft',
   syft_secret_name: 'syft-secret',
-  isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
+  isopath:: std.strReplace(std.strReplace('almalinux-8', '-byos', ''), '-sap', ''),
+  name: 'build-almalinux-8-syft',
 
   // Add tasks to obtain ISO location and store it in .:iso-secret
   extra_tasks: [
@@ -576,7 +577,7 @@ local imggroup = {
 };
 
 {
-  local almalinux_images = ['almalinux-9'],
+  local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-10', 'debian-11', 'debian-11-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_sap_images = [
@@ -762,5 +763,6 @@ local imggroup = {
     imggroup { name: 'almalinux', images: almalinux_images },
     imggroup { name: 'rocky-linux', images: rocky_linux_images },
     imggroup { name: 'rhui', images: ['rhua', 'cds'] },
+    imggroup { name: 'almalinux-syft', images: 'almalinux-8-syft'},
   ],
 }
