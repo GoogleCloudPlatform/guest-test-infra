@@ -141,7 +141,8 @@ local elsyftimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux_syft',
   syft_secret_name: 'syft-secret',
-  isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
+  isopath:: std.strReplace(std.strReplace('almalinux-8', '-byos', ''), '-sap', ''),
+  name: 'build-almalinux-8-syft',
 
   // Add tasks to obtain ISO location and store it in .:iso-secret
   extra_tasks: [
@@ -657,8 +658,7 @@ local imggroup = {
         ] +
         [ 
           // Temporary syft testing job
-          elsyftimgbuildjob { image: image}
-          for image in almalinux_images
+          elsyftimgbuildjob { image: 'almalinux-8'}
         ] +
         [
           // RHUI build jobs.
