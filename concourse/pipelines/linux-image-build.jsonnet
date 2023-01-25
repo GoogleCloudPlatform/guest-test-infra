@@ -658,9 +658,9 @@ local imggroup = {
         ] +
         [
           // EL syft test build jobs
-          elimgbuildjob { image: image }
+          elsyftimgbuildjob { image: image }
           for image in almalinux_images
-        ]
+        ] + 
         [
           // RHUI build jobs.
           imgbuildjob {
