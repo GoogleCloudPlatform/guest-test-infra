@@ -657,7 +657,7 @@ local imggroup = {
         ] +
         [ 
           // Temporary syft testing job
-          elsyftimgbuildjob { image: 'image'}
+          elsyftimgbuildjob { image: image}
           for image in almalinux_images
         ] +
         [
