@@ -139,7 +139,7 @@ local imgbuildjob = {
 local elsyftimgbuildjob = imgbuildjob {
   local tl = self,
 
-  workflow_dir: 'enterprise_linux_syft',
+  workflow_dir: 'enterprise_linux',
   syft_secret_name: 'syft-secret',
   isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
 
