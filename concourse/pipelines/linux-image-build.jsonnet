@@ -150,12 +150,12 @@ local elsyftimgbuildjob = imgbuildjob {
       config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
     },
     {
-      task: 'get-secret-syft',
-      config: gcp_secret_manager.getsecrettask { secret_name: tl.syft_secret_name },
-    },
-    {
       load_var: 'iso-secret',
       file: 'gcp-secret-manager/' + tl.isopath,
+    },
+    {
+      task: 'get-secret-syft',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.syft_secret_name },
     },
     {
       load_var: 'syft-secret',
