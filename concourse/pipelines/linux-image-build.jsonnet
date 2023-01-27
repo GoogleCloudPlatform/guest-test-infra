@@ -140,7 +140,7 @@ local elsyftimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
-  syft_secret_name: 'syft-secret',
+  syft_secret_name:: 'syft-secret',
   isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
 
   // Add tasks to obtain ISO location and store it in .:iso-secret
