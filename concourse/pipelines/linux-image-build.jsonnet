@@ -136,14 +136,15 @@ local imgbuildjob = {
   },
 };
 
-local elsyftimgbuildjob = imgbuildjob {
+local elimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
   syft_secret_name:: 'syft-secret',
   isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
 
-  // Add tasks to obtain ISO location and store it in .:iso-secret
+  // Add tasks to obtain ISO location and syft source
+  // Store those in .:iso-secret and .:syft-secret
   extra_tasks: [
     {
       task: 'get-secret-iso',
@@ -165,29 +166,6 @@ local elsyftimgbuildjob = imgbuildjob {
 
   // Add EL and syft args to build task.
   build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'syft_source=((.:syft-secret))'] },
-};
-
-
-local elimgbuildjob = imgbuildjob {
-  local tl = self,
-
-  workflow_dir: 'enterprise_linux',
-  isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
-
-  // Add tasks to obtain ISO location and store it in .:iso-secret
-  extra_tasks: [
-    {
-      task: 'get-secret-iso',
-      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
-    },
-    {
-      load_var: 'iso-secret',
-      file: 'gcp-secret-manager/' + tl.isopath,
-    },
-  ],
-
-  // Add EL args to build task.
-  build_task+: { vars+: ['installer_iso=((.:iso-secret))'] },
 };
 
 local cdsimgbuildjob = imgbuildjob {
@@ -654,13 +632,8 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + rocky_linux_images
+          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
         ] +
-        [
-          // EL syft test build jobs
-          elsyftimgbuildjob { image: image }
-          for image in almalinux_images
-        ] + 
         [
           // RHUI build jobs.
           imgbuildjob {
