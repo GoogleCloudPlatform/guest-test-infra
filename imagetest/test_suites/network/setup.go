@@ -77,8 +77,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
-	if strings.Contains(t.Image, "debian-10") {
-		// GVNIC Guest OS Feature not set for debian-10
+	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
+		// GVNIC is not supported on some older distros.
 		vm2.RunTests("TestAlias")
 	} else {
 		vm2.UseGVNIC()
