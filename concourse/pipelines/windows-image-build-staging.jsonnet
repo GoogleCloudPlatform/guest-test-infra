@@ -439,14 +439,10 @@ local imgpublishjob = {
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
-  passed:: if job.env == 'testing' then
-    'build-' + job.image
-  else
-    'publish-to-testing-' + job.image,
+  passed:: 'build-' + job.image,
 
   // Builds are automatically pushed to testing.
-  trigger:: if job.env == 'testing' then true
-    else false,
+  trigger:: true,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
@@ -542,20 +538,17 @@ local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: 'testing',
   gcs_dir: gcs_dir,
-  // build -> testing -> prod/client -> internal
-  passed:: if env == 'testing' then
-             'build-' + image,
+  // build -> testing
+  passed:: 'build-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
 
-local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
+local MediaImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
-  env: env,
   gcs_dir: gcs_dir,
   // build -> testing
-  passed:: if env == 'testing' then
-             'build-' + image,
+  passed:: 'build-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
