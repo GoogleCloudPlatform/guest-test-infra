@@ -54,7 +54,11 @@
     ] + if self.build_date == '' then
       []
     else
-      ['build_date=' + task.build_date],
+      ['build_date=' + task.build_date]
+    + if self.sbom_destination == '' then
+      []
+    else
+      ['sbom_destination=' + task.sbom_destination],
   },
 
   daisywindowsinstallmediatask:: tl.daisytask {
