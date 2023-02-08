@@ -8,11 +8,9 @@ local lego = import '../templates/lego.libsonnet';
 // Common
 local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
-local sbomsuffix(input) = std.strReplace(input, '.tar.gz', '.sbom.json');
 
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
-  sbom_destination:: sbomsuffix(self.gcs_url),
 };
 
 local rhuiimgbuildtask = imgbuildtask {

@@ -1,6 +1,7 @@
 {
   local tl = self,
-
+  local sbomsuffix(input) = std.strReplace(input, '.tar.gz', '.sbom.json'),
+  
   daisytask:: {
     local task = self,
     local expanded_vars = [
@@ -52,7 +53,7 @@
       // enterprise_linux and then out of build-publish, ending in daisy_workflows
       'workflow_root=../../',
       'gcs_url=' + task.gcs_url,
-      'sbom_destination=' + task.sbom_destination,
+      'sbom_destination=' + sbomsuffix(task.gcs_url),
     ] + if self.build_date == '' then
       []
     else
