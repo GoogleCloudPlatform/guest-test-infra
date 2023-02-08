@@ -42,7 +42,8 @@
 
     // Add additional overrideable attrs.
     build_date:: '',
-    gcs_url:: error 'must set gcs_url in daisy image task'
+    gcs_url:: error 'must set gcs_url in daisy image task',
+    sbom_destination:: error 'must set sbom_destination in daisy image task',
 
     workflow_prefix+: 'build-publish/',
     vars+: [
@@ -51,7 +52,7 @@
       // enterprise_linux and then out of build-publish, ending in daisy_workflows
       'workflow_root=../../',
       'gcs_url=' + task.gcs_url,
-      'sbom_destination=' + std.strReplace(task.gcs_url, '.tar.gz', '.sbom.json'),
+      'sbom_destination=' + task.sbom_destination,
     ] + if self.build_date == '' then
       []
     else
