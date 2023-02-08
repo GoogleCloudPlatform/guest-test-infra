@@ -539,7 +539,7 @@ local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
   env: 'testing',
   gcs_dir: gcs_dir,
   // build -> testing
-  passed:: 'build-' + image + '-staging',
+  passed:: 'build-' + image + '-testing',
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
