@@ -15,11 +15,11 @@ local imgbuildjob = {
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-staging',
+  name: 'build-' + job.image + '-testing',
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -28,7 +28,7 @@ local imgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -136,11 +136,11 @@ local sqlimgbuildjob = {
   ssms_version:: error 'must set ssms_version in sqlbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-staging',
+  name: 'build-' + job.image + '-testing',
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -149,7 +149,7 @@ local sqlimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -169,7 +169,7 @@ local sqlimgbuildjob = {
     {
       get: '%s-gcs' % job.base_image,
       params: { skip_download: 'true' },
-      passed: ['publish-to-staging-' + job.base_image],
+      passed: ['publish-to-testing-' + job.base_image],
       trigger: true,
     },
     {
@@ -233,11 +233,11 @@ local containerimgbuildjob = {
   workflow:: error 'must set workflow in containerimgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-staging',
+  name: 'build-' + job.image + '-testing',
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -246,7 +246,7 @@ local containerimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -256,7 +256,7 @@ local containerimgbuildjob = {
     {
       get: '%s-gcs' % job.base_image,
       params: { skip_download: 'true' },
-      passed: ['publish-to-staging-' + job.base_image],
+      passed: ['publish-to-testing-' + job.base_image],
       trigger: true,
     },
     { get: 'compute-image-tools' },
@@ -302,11 +302,11 @@ local windowsinstallmediaimgbuildjob = {
   workflow:: error 'must set workflow in windowsinstallmediaimgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-staging',
+  name: 'build-' + job.image + '-testing',
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -315,7 +315,7 @@ local windowsinstallmediaimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -439,17 +439,17 @@ local imgpublishjob = {
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
-  passed:: 'build-' + job.image + '-staging',
+  passed:: 'build-' + job.image + '-testing',
 
   // Builds are automatically pushed to testing.
   trigger:: true,
 
   // Start of job.
-  name: 'publish-to-staging-%s' % [job.image],
+  name: 'publish-to-testing-%s' % [job.image],
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -458,7 +458,7 @@ local imgpublishjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-staging',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -548,7 +548,7 @@ local MediaImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   gcs_dir: gcs_dir,
   // build -> testing
-  passed:: 'build-' + image + '-staging',
+  passed:: 'build-' + image + '-testing',
 
   workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
@@ -557,10 +557,10 @@ local ImgGroup(name, images) = {
   name: name,
   env: 'testing',
   jobs: [
-    'build-' + image + '-staging',
+    'build-' + image + '-testing',
     for image in images
   ] + [
-    'publish-to-staging-%s' % [image]
+    'publish-to-testing-%s' % [image]
     for image in images
   ],
 };
@@ -868,19 +868,19 @@ local ImgGroup(name, images) = {
         ],
 
   groups: [
-    ImgGroup('windows-81-staging', windows_81_images),
-    ImgGroup('windows-10-staging', windows_10_images),
-    ImgGroup('windows-11-staging', windows_11_images),
-    ImgGroup('windows-2012-staging', windows_2012_images),
-    ImgGroup('windows-2016-staging', windows_2016_images),
-    ImgGroup('windows-2019-staging', windows_2019_images),
-    ImgGroup('windows-2022-staging', windows_2022_images),
-    ImgGroup('sql-2014-staging', sql_2014_images),
-    ImgGroup('sql-2016-staging', sql_2016_images),
-    ImgGroup('sql-2017-staging', sql_2017_images),
-    ImgGroup('sql-2019-staging', sql_2019_images),
-    ImgGroup('sql-2022-staging', sql_2022_images),
-    ImgGroup('container-2019-staging', container_images),
-    ImgGroup('windows-install-media-staging', windows_install_media_images),
+    ImgGroup('windows-81-testing', windows_81_images),
+    ImgGroup('windows-10-testing', windows_10_images),
+    ImgGroup('windows-11-testing', windows_11_images),
+    ImgGroup('windows-2012-testing', windows_2012_images),
+    ImgGroup('windows-2016-testing', windows_2016_images),
+    ImgGroup('windows-2019-testing', windows_2019_images),
+    ImgGroup('windows-2022-testing', windows_2022_images),
+    ImgGroup('sql-2014-testing', sql_2014_images),
+    ImgGroup('sql-2016-testing', sql_2016_images),
+    ImgGroup('sql-2017-testing', sql_2017_images),
+    ImgGroup('sql-2019-testing', sql_2019_images),
+    ImgGroup('sql-2022-testing', sql_2022_images),
+    ImgGroup('container-2019-testing', container_images),
+    ImgGroup('windows-install-media-testing', windows_install_media_images),
   ],
 }
