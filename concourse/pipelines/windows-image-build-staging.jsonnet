@@ -445,7 +445,7 @@ local imgpublishjob = {
   trigger:: true,
 
   // Start of job.
-  name: 'publish-to-%s-%s' % [job.env, job.image],
+  name: 'publish-to-testing-%s' % [job.image],
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
@@ -560,7 +560,7 @@ local ImgGroup(name, images) = {
     'build-' + image
     for image in images
   ] + [
-    'publish-to-%s-%s' % [env, image]
+    'publish-to-testing-%s' % [image]
     for image in images
   ],
 };
