@@ -42,8 +42,7 @@
 
     // Add additional overrideable attrs.
     build_date:: '',
-    gcs_url:: error 'must set gcs_url in daisy image task',
-    sbom_destination:: 'a',
+    gcs_url:: error 'must set gcs_url in daisy image task'
 
     workflow_prefix+: 'build-publish/',
     vars+: [
