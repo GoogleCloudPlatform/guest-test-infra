@@ -11,7 +11,6 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
-  sbom_destination: std.strReplace('((.:gcs-url))', '.tar.gz', '.sbom.json'),
 };
 
 local rhuiimgbuildtask = imgbuildtask {
