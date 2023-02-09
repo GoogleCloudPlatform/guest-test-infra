@@ -1,6 +1,5 @@
 {
   local tl = self,
-  local sbomsuffix(input) = std.strReplace(input, '.tar.gz', '.sbom.json'),
   
   daisytask:: {
     local task = self,
@@ -44,7 +43,7 @@
     // Add additional overrideable attrs.
     build_date:: '',
     gcs_url:: error 'must set gcs_url in daisy image task',
-    sbom_destination:: error 'must set sbom_destination in daisy image task',
+    sbom_destination:: '',
 
     workflow_prefix+: 'build-publish/',
     vars+: [
@@ -57,7 +56,11 @@
     ] + if self.build_date == '' then
       []
     else
-      ['build_date=' + task.build_date]
+      ['build_date=' + task.build_date
+    ] + if self.sbom_destination == '' then
+      []
+    else
+      ['sbom_destination=' + task.sbom_destination]
   },
 
   daisywindowsinstallmediatask:: tl.daisytask {
