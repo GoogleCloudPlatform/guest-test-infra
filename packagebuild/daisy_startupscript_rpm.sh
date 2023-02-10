@@ -62,7 +62,7 @@ if [[ ${VERSION_ID} = 9 ]]; then
   fi
 fi
 
-try_command yum install -y $GIT rpmdevtools yum-utils
+try_command yum install -y $GIT rpmdevtools yum-utils python3-devel
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
