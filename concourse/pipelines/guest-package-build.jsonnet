@@ -940,12 +940,12 @@ local buildpackageimagetask = {
           repo: 'yum-plugin-artifact-registry-el7',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.arm64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.aarch64.rpm"}',
           universe: 'cloud-yum',
           repo: 'dnf-plugin-artifact-registry-el8',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.arm64.deb"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.aarch64.rpm"}',
           universe: 'cloud-yum',
           repo: 'dnf-plugin-artifact-registry-el9',
         },
