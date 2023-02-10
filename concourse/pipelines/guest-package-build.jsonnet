@@ -932,22 +932,22 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'artifact-registry-yum-plugin',
-      builds: ['el7', 'el8', 'el9'],
+      builds: ['el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.noarch.rpm"}',
           universe: 'cloud-yum',
-          repo: 'yum-plugin-artifact-registry',
+          repo: 'yum-plugin-artifact-registry-el7',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.arm64.deb"}',
           universe: 'cloud-yum',
-          repo: 'dnf-plugin-artifact-registry',
+          repo: 'dnf-plugin-artifact-registry-el8',
         },
         uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm"}',
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.noarch.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.arm64.deb"}',
           universe: 'cloud-yum',
-          repo: 'dnf-plugin-artifact-registry',
+          repo: 'dnf-plugin-artifact-registry-el9',
         },
       ],
     },
@@ -955,8 +955,9 @@ local buildpackageimagetask = {
       package: 'artifact-registry-yum-plugin',
       dest: 'stable',
       promotions: [
-        promotepackagestabletask { universe: 'cloud-yum', repo: 'yum-plugin-artifact-registry' },
-        promotepackagestabletask { universe: 'cloud-yum', repo: 'dnf-plugin-artifact-registry' },
+        promotepackagestabletask { universe: 'cloud-yum', repo: 'yum-plugin-artifact-registry-el7' },
+        promotepackagestabletask { universe: 'cloud-yum', repo: 'dnf-plugin-artifact-registry-el8' },
+        promotepackagestabletask { universe: 'cloud-yum', repo: 'dnf-plugin-artifact-registry-el9' },
       ],
     },
     buildpackagejob {
