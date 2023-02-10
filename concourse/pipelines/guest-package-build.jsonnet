@@ -933,6 +933,7 @@ local buildpackageimagetask = {
     buildpackagejob {
       package: 'artifact-registry-yum-plugin',
       builds: ['el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      gcs_dir: 'yum-plugin-artifact-registry',
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.x86_64.rpm"}',
