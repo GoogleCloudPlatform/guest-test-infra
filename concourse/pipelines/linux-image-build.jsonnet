@@ -565,6 +565,7 @@ local imggroup = {
     'rhel-8-2-sap',
     'rhel-8-4-sap',
     'rhel-8-6-sap',
+    'rhel-9-0-sap',
   ],
   local rhel_images = rhel_sap_images + [
     'rhel-7',
