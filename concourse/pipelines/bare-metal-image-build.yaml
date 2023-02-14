@@ -47,10 +47,15 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-7-metal"
+      id: ((.:id))
   - put: rhel-7-metal-gcs
     params:
       file: build-id-dir/rhel-7-metal*
@@ -93,10 +98,15 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-7-metal-dev"
+      id: ((.:id))
   - put: rhel-7-metal-dev-gcs
     params:
       file: build-id-dir/rhel-7-metal-dev*
@@ -139,10 +149,15 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-8-metal"
+      id: ((.:id))
   - put: rhel-8-metal-gcs
     params:
       file: build-id-dir/rhel-8-metal*
@@ -185,10 +200,15 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-8-metal-dev"
+      id: ((.:id))
   - put: rhel-8-metal-dev-gcs
     params:
       file: build-id-dir/rhel-8-metal-dev*

@@ -7,10 +7,10 @@ image_resource:
     repository: bash
 
 outputs:
-- name: linux-date
+- name: id
 
 run:
   path: /usr/local/bin/bash
   args:
   - -c
-  - "linux-date=$(date '+%s'); echo $(linux-date) | tee linux-date/linux-date-seconds;
+  - "id=$(date '+%s'); echo $(id) | tee generate-id/id;
