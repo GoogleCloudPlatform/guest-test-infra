@@ -81,9 +81,17 @@ local imgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      task: 'generate-linux-date',
+      file: 'guest-test-infra/concourse/tasks/generate-linux-date.yaml',
+    },
+    {
+      load_var: 'linux-date',
+      file: 'linux-date/linux-date-seconds',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: tl.image_prefix },
+      vars: { prefix: tl.image_prefix, linux_date: '((.:linux-date))'},
     },
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
     // Concourse to treat this job as producing it. So we write an empty file now, and overwrite it later in
