@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: bash
+
+outputs:
+- name: linux-date
+
+run:
+  path: /usr/local/bin/bash
+  args:
+  - -c
+  - "linux-date=$(date '+%s'); echo $(linux-date) | tee linux-date/linux-date-seconds;

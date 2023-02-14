@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: busybox
+
+outputs:
+- name: build-id-dir
+
+run:
+  path: sh
+  args:
+  - -exc
+  - "buildid=((linux_date)); echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-v${buildid}.sbom.json"
