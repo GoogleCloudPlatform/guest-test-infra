@@ -114,7 +114,6 @@ local imgbuildjob = {
     {
       put: tl.image + '-sbom',
       params: {
-        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.sbom.json'
         file: 'build-id-dir/%s*' % tl.image_prefix,
       },
       get_params: {
@@ -630,10 +629,14 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
                common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
+               common.gcssbomresource { image: 'rhua', sbom_destination: 'rhui' },
                common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
+               common.gcssbomresource { image: 'cds', sbom_destination: 'rhui' },
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -641,8 +644,17 @@ local imggroup = {
                }
                for image in debian_images
              ] +
+             [
+               common.gcssbomresource {
+                 image: image,
+                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+               }
+               for image in debian_images
+             ] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images],
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // Debian build jobs
           imgbuildjob {
