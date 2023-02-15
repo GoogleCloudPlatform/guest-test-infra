@@ -7,7 +7,7 @@ image_resource:
     repository: bash
 
 outputs:
-- name: id
+- name: generate-id
 
 run:
   path: /usr/local/bin/bash
