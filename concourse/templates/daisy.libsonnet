@@ -43,7 +43,7 @@
     // Add additional overrideable attrs.
     build_date:: '',
     gcs_url:: error 'must set gcs_url in daisy image task',
-    sbom_destination:: '',
+    sbom_destination:: '.',
 
     workflow_prefix+: 'build-publish/',
     vars+: [
@@ -52,14 +52,11 @@
       // enterprise_linux and then out of build-publish, ending in daisy_workflows
       'workflow_root=../../',
       'gcs_url=' + task.gcs_url,
+      'sbom_destination=' + task.sbom_destination
     ] + if self.build_date == '' then
       []
     else
-      ['build_date=' + task.build_date
-    ] + if self.sbom_destination == '' then
-      []
-    else
-      ['sbom_destination=' + task.sbom_destination],
+      ['build_date=' + task.build_date],
   },
 
   daisywindowsinstallmediatask:: tl.daisytask {
