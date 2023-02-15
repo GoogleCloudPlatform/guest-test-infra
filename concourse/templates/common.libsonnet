@@ -66,7 +66,7 @@
     bucket:: tl.prod_bucket,
 
     name: self.image + '-sbom',
-    type: 'sbom',
+    type: 'gcs',
     source: {
       bucket: resource.bucket,
       regexp: resource.regexp,
