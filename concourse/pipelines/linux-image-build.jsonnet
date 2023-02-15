@@ -112,9 +112,14 @@ local imgbuildjob = {
       file: '%s-gcs/url' % tl.image,
     },
     {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: tl.image_prefix, id: '((.:id))'},
+    },
+    {
       put: tl.image + '-sbom',
       params: {
-        file: 'build-id-dir/%s*' % tl.image_prefix,
+        file: 'build-id-dir-sbom/%s*' % tl.image_prefix,
       },
       get_params: {
         skip_download: 'true',

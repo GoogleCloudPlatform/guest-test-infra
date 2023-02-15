@@ -7,10 +7,10 @@ image_resource:
     repository: busybox
 
 outputs:
-- name: build-id-dir
+- name: build-id-dir-sbom
 
 run:
   path: sh
   args:
   - -exc
-  - "buildid=((id)); echo $buildid | tee build-id-dir/build-id; touch build-id-dir/((prefix))-v${buildid}.sbom.json"
+  - "buildid=((id)); echo $buildid | tee build-id-dir-sbom/build-id-sbom; touch build-id-dir-sbom/((prefix))-v${buildid}.sbom.json"
