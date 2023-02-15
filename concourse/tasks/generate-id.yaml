@@ -13,4 +13,4 @@ run:
   path: /usr/local/bin/bash
   args:
   - -c
-  - "id=$(date '+%s'); echo $(id) | tee generate-id/id;
+  - "id=$(date '+%s'); echo $(id) | tee generate-id/id;"
