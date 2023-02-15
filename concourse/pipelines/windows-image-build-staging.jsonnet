@@ -46,9 +46,17 @@ local imgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image },
+      vars: { prefix: job.image , id: '((.:id))'},
     },
     {
       put: job.image + '-gcs',
