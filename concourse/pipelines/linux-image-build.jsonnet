@@ -82,6 +82,7 @@ local imgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      // generate the build id so the tarball and sbom have the same name
       task: 'generate-id',
       file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
     },
@@ -97,6 +98,7 @@ local imgbuildjob = {
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
     // Concourse to treat this job as producing it. So we write an empty file now, and overwrite it later in
     // the daisy workflow. This also generates the final URL for use in the daisy workflow.
+    // This is also done for the sbom file. 
     {
       put: tl.image + '-gcs',
       params: {
@@ -119,6 +121,7 @@ local imgbuildjob = {
     {
       put: tl.image + '-sbom',
       params: {
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.sbom.json'
         file: 'build-id-dir-sbom/%s*' % tl.image_prefix,
       },
       get_params: {
