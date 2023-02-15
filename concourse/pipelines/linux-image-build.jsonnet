@@ -11,6 +11,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
+  sbom_destination: '((.:sbom-destination))',
 };
 
 local rhuiimgbuildtask = imgbuildtask {
@@ -109,6 +110,20 @@ local imgbuildjob = {
     {
       load_var: 'gcs-url',
       file: '%s-gcs/url' % tl.image,
+    },
+    {
+      put: tl.image + '-sbom',
+      params: {
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.tar.gz'
+        file: 'build-id-dir/%s*' % tl.image_prefix,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % tl.image,
     },
     {
       task: 'generate-build-date',
