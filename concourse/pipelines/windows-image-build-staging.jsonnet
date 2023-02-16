@@ -439,7 +439,6 @@ local imgpublishjob = {
   local job = self,
 
   image:: error 'must set image in imgpublishjob',
-  env:: error 'must set publish env in imgpublishjob',
   workflow:: error 'must set workflow in imgpublishjob',
   gcs_dir:: error 'must set gcs_dir in imgpublishjob',
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
@@ -544,7 +543,6 @@ local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
 
 local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
-  env: 'testing',
   gcs_dir: gcs_dir,
   // build -> testing
   passed:: 'build-' + image + '-testing',
@@ -563,7 +561,6 @@ local MediaImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
 
 local ImgGroup(name, images) = {
   name: name,
-  env: 'testing',
   jobs: [
     'build-' + image + '-testing',
     for image in images
