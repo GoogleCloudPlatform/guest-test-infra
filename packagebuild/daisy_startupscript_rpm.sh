@@ -46,17 +46,28 @@ fi
 
 GIT="git"
 if [[ ${VERSION_ID} =~ 6|7 ]]; then
-    try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
-    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
-    GIT="git224"
+  try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
+  rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
+  GIT="git236"
 fi
 
-try_command yum install -y $GIT rpmdevtools yum-utils
+# Enable CRB repo on EL9.
+if [[ ${VERSION_ID} = 9 ]]; then
+  eval $(grep ID /etc/os-release)
+  # RHEL has a different CRB repo than Rocky/CentOS.
+  if [[ ${ID} == "rhel" ]]; then
+    dnf config-manager --set-enabled rhui-codeready-builder-for-rhel-9-$(uname -m)-rhui-rpms
+  else
+    dnf config-manager --set-enabled crb
+  fi
+fi
+
+try_command yum install -y $GIT rpmdevtools yum-utils python3-devel
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
 if [[ -n "$BUILD_DIR" ]]; then
-    cd "$BUILD_DIR"
+  cd "$BUILD_DIR"
 fi
 
 if grep -q '%{_go}' ./packaging/*.spec; then
@@ -113,6 +124,9 @@ for spec in $TOBUILD; do
 done
 
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
+for rpm in $rpms; do
+  rpm -qpilR $rpm
+done
 echo "copying ${rpms} to $GCS_PATH/"
 gsutil cp -n ${rpms} "$GCS_PATH/"
 build_success "Built $(echo ${rpms}|xargs)"

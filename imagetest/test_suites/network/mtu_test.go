@@ -3,52 +3,22 @@
 package network
 
 import (
-	"fmt"
-	"net"
-	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	gceMTU                      = 1460
-	defaultInterface            = "eth0"
-	defaultPredictableInterface = "ens4"
+	gceMTU = 1460
 )
 
 func TestDefaultMTU(t *testing.T) {
-	var networkInterface string
-
-	image, err := utils.GetMetadata("image")
+	iface, err := utils.GetInterface(0)
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		t.Fatalf("couldn't find primary NIC: %v", err)
 	}
 
-	switch {
-	case strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") || strings.Contains(image, "ubuntu"):
-		networkInterface = defaultPredictableInterface
-	default:
-		networkInterface = defaultInterface
+	if iface.MTU != gceMTU {
+		t.Fatalf("expected MTU %d on interface %s, got MTU %d", gceMTU, iface.Name, iface.MTU)
 	}
-
-	if err := isDefaultGCEMTU(networkInterface); err != nil {
-		t.Fatal(err.Error())
-	}
-}
-
-func isDefaultGCEMTU(interfaceName string) error {
-	ifs, err := net.Interfaces()
-	if err != nil {
-		return err
-	}
-	for _, i := range ifs {
-		if i.Name == interfaceName {
-			if i.MTU != gceMTU {
-				return fmt.Errorf("expected MTU %d on interface %s, got MTU %d", gceMTU, i.Name, i.MTU)
-			}
-			return nil
-		}
-	}
-	return fmt.Errorf("can't find network interface %s", interfaceName)
 }

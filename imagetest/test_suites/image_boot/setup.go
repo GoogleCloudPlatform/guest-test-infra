@@ -33,8 +33,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return nil
 	}
 
-	if strings.Contains(t.Image, "rocky-linux-8") {
-		// secure boot is not supported on Rocky Linux
+	if strings.Contains(t.Image, "arm64") {
+		// secure boot is not supported on ARM images
 		return nil
 	}
 
@@ -44,6 +44,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.EnableSecureBoot()
-	vm3.RunTests("TestGuestSecureBoot|TestBootTime")
+	vm3.RunTests("TestGuestSecureBoot|TestStartTime|TestBootTime")
 	return nil
 }

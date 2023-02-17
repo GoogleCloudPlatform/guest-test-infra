@@ -120,6 +120,20 @@ func TestAutomaticUpdates(t *testing.T) {
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "sles") {
+		// SLES ships with "PermitRootLogin yes" in SSHD config.
+		t.Skip("Not supported on SLES")
+	}
+	if strings.Contains(image, "ubuntu") {
+		// Ubuntu doesn't set this option, but Ubuntu sshd defaults to prohibit-password
+		// TODO: find a way to determine the default so we can support 'not set' generally.
+		return
+	}
+
 	if err := verifySSHConfig(); err != nil {
 		t.Fatal(err)
 	}
@@ -197,8 +211,9 @@ func verifySSHConfig() error {
 
 	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
 	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
-	if !noRootSSH && !noRootPasswordSSH {
-		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\" or \"without-password\"")
+	prohibitRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin prohibit-password")
+	if !noRootSSH && !noRootPasswordSSH && !prohibitRootPasswordSSH {
+		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\", \"without-password\", or \"prohibit-password\"")
 	}
 	return nil
 }
@@ -390,8 +405,31 @@ func TestSockets(t *testing.T) {
 		// SSH. If we didn't match any above, test logic is faulty.
 		t.Fatalf("No listening sockets")
 	}
-	if err := validateSockets(listenUDP, allowedUDP); err != nil {
-		t.Error(err)
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "-sap") {
+		// All SAP Images are permitted to have 'rpcbind' listening on
+		// port 111
+		allowedTCP = append(allowedTCP, "111")
+		allowedUDP = append(allowedUDP, "111")
+	}
+
+	if strings.Contains(image, "rhel-8") && strings.Contains(image, "-sap") {
+		// RHEL 8 SAP Images are permitted to have 'systemd-resolve'
+		// listening on port 5355
+		allowedTCP = append(allowedTCP, "5355")
+		allowedUDP = append(allowedUDP, "5355")
+	}
+
+	if !(strings.Contains(image, "rhel-7") && strings.Contains(image, "-sap")) {
+		// Skip UDP check on RHEL-7-SAP images which have old rpcbind
+		// which listens to random UDP ports.
+		if err := validateSockets(listenUDP, allowedUDP); err != nil {
+			t.Error(err)
+		}
 	}
 	if err := validateSockets(listenTCP, allowedTCP); err != nil {
 		t.Error(err)

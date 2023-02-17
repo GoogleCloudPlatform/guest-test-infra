@@ -17,6 +17,8 @@ package imagetest
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
@@ -31,6 +33,8 @@ const (
 	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
+	// DefaultSourceRange is the RFC-1918 range used in default rules.
+	DefaultSourceRange = "10.128.0.0/9"
 )
 
 // TestVM is a test VM.
@@ -117,22 +121,21 @@ func (t *TestVM) AddMetadata(key, value string) {
 		t.instance.Metadata = make(map[string]string)
 	}
 	t.instance.Metadata[key] = value
-
-	return
 }
 
 // RunTests runs only the named tests on the testVM.
 //
 // From go help test:
-//    -run regexp
-//     Run only those tests and examples matching the regular expression.
-//     For tests, the regular expression is split by unbracketed slash (/)
-//     characters into a sequence of regular expressions, and each part
-//     of a test's identifier must match the corresponding element in
-//     the sequence, if any. Note that possible parents of matches are
-//     run too, so that -run=X/Y matches and runs and reports the result
-//     of all tests matching X, even those without sub-tests matching Y,
-//     because it must run them to look for those sub-tests.
+//
+//	-run regexp
+//	 Run only those tests and examples matching the regular expression.
+//	 For tests, the regular expression is split by unbracketed slash (/)
+//	 characters into a sequence of regular expressions, and each part
+//	 of a test's identifier must match the corresponding element in
+//	 the sequence, if any. Note that possible parents of matches are
+//	 run too, so that -run=X/Y matches and runs and reports the result
+//	 of all tests matching X, even those without sub-tests matching Y,
+//	 because it must run them to look for those sub-tests.
 func (t *TestVM) RunTests(runtest string) {
 	t.AddMetadata("_test_run", runtest)
 }
@@ -145,7 +148,7 @@ func (t *TestVM) SetShutdownScript(script string) {
 // SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
 func (t *TestVM) SetShutdownScriptURL(script string) error {
 	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
-	if err := ioutil.WriteFile(fileName, []byte(script), 755); err != nil {
+	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
 		return err
 	}
 	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
@@ -238,6 +241,19 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
+// UseGVNIC sets the type of vNIC to be used to GVNIC
+func (t *TestVM) UseGVNIC() {
+	if t.instance.NetworkInterfaces == nil {
+		t.instance.NetworkInterfaces = []*compute.NetworkInterface{
+			&compute.NetworkInterface{
+				NicType: "GVNIC",
+			},
+		}
+	} else {
+		t.instance.NetworkInterfaces[0].NicType = "GVNIC"
+	}
+}
+
 // AddCustomNetwork add current test VMs in workflow using provided network and
 // subnetwork. If subnetwork is empty, not using subnetwork, in this case
 // network has to be in auto mode VPC.
@@ -275,7 +291,7 @@ func (t *TestVM) AddCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	// TODO: If we haven't set any NetworkInterface struct, does it make sense to support adding alias IPs?
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call AddCustomNetwork prior to AddAliasIPRanges")
+		return fmt.Errorf("must call AddCustomNetwork prior to AddAliasIPRanges")
 	}
 	t.instance.NetworkInterfaces[0].AliasIpRanges = append(t.instance.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
 		IpCidrRange:         aliasIPRange,
@@ -288,7 +304,7 @@ func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 // SetPrivateIP set IPv4 internal IP address for target network to the current test VMs.
 func (t *TestVM) SetPrivateIP(network *Network, networkIP string) error {
 	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("Must call AddCustomNetwork prior to AddPrivateIP")
+		return fmt.Errorf("must call AddCustomNetwork prior to AddPrivateIP")
 	}
 	for _, nic := range t.instance.NetworkInterfaces {
 		if nic.Network == network.name {
@@ -359,11 +375,15 @@ func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 	})
 }
 
-func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocol string, ports []string) (*daisy.Step, *daisy.FirewallRule, error) {
+func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, protocol string, ports, ranges []string) (*daisy.Step, *daisy.FirewallRule, error) {
+	if ranges == nil {
+		ranges = []string{DefaultSourceRange}
+	}
 	firewall := &daisy.FirewallRule{
 		Firewall: compute.Firewall{
-			Name:    firewallName,
-			Network: networkName,
+			Name:         firewallName,
+			Network:      networkName,
+			SourceRanges: ranges,
 			Allowed: []*compute.FirewallAllowed{
 				{
 					IPProtocol: protocol,
@@ -389,4 +409,52 @@ func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, proto
 	}
 
 	return createFirewallStep, firewall, nil
+}
+
+// AddSSHKey generate ssh key pair and return public key.
+func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
+	keyFileName := "/id_rsa_" + uuid.New().String()
+	if _, err := os.Stat(keyFileName); os.IsExist(err) {
+		os.Remove(keyFileName)
+	}
+	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
+	cmd := exec.Command("ssh-keygen", commandArgs...)
+	if out, err := cmd.Output(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("ssh-keygen failed: %s %s %v", out, exitErr.Stderr, err)
+		}
+		return "", fmt.Errorf("ssh-keygen failed: %v %v", out, err)
+	}
+
+	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
+	if err != nil {
+		return "", fmt.Errorf("failed to read public key: %v", err)
+	}
+	sourcePath := fmt.Sprintf("%s-ssh-key", user)
+	t.wf.Sources[sourcePath] = keyFileName
+
+	return string(publicKey), nil
+}
+
+// CreateFirewallRule create firewall rule.
+func (n *Network) CreateFirewallRule(firewallName, protocol string, ports, ranges []string) error {
+	createFirewallStep, _, err := n.testWorkflow.appendCreateFirewallStep(firewallName, n.name, protocol, ports, ranges)
+	if err != nil {
+		return err
+	}
+
+	createNetworkStep, ok := n.testWorkflow.wf.Steps[createNetworkStepName]
+	if ok {
+		if err := n.testWorkflow.wf.AddDependency(createFirewallStep, createNetworkStep); err != nil {
+			return err
+		}
+	}
+	createVMsStep, ok := n.testWorkflow.wf.Steps[createVMsStepName]
+	if ok {
+		if err := n.testWorkflow.wf.AddDependency(createVMsStep, createFirewallStep); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

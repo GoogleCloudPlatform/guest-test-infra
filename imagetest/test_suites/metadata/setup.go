@@ -34,7 +34,10 @@ echo "%s" > %s`
 	shutdownOutputPath = "/shutdown_out.txt"
 	shutdownContent    = "The shutdown script worked."
 	// max metadata value 256kb https://cloud.google.com/compute/docs/metadata/setting-custom-metadata#limitations
-	metadataMaxLength = 256 * 1024
+	// metadataMaxLength = 256 * 1024
+	// TODO(hopkiw): above is commented out until error handler is added to
+	// output scanner in the script runner. Use smaller size for now.
+	metadataMaxLength = 32768
 )
 
 var shutdownScript = fmt.Sprintf(shutdownScriptTemplate, shutdownContent, shutdownOutputPath)

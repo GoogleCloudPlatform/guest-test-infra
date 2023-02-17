@@ -31,7 +31,6 @@ fi
   -var:gcs_path="$GCS_PATH" integ-test-all.wf.json
 RET=$?
 
-gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 gsutil cp "$GCS_PATH"/go-test*.txt ./
 
 for f in go-test*.txt; do

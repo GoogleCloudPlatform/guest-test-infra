@@ -16,10 +16,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const (
-	testPackage = "image_test"
-)
-
 func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
@@ -59,6 +55,11 @@ func main() {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
+	testPackage, err := utils.GetMetadataAttribute("_test_package_name")
+	if err != nil {
+		log.Fatalf("failed to get metadata _test_package_name: %v", err)
+	}
+
 	workDir, err := ioutil.TempDir("", "image_test")
 	if err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
@@ -68,6 +69,9 @@ func main() {
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
+
+	log.Printf("sleep 30s to allow environment to stabilize")
+	time.Sleep(30 * time.Second)
 
 	out, err := executeCmd(workDir+testPackage, workDir, testArguments)
 	if err != nil {

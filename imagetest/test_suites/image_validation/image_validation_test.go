@@ -15,6 +15,8 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+const gcomment = "# Added by Google"
+
 func TestHostname(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
@@ -41,6 +43,20 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestCustomHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	if strings.Contains(image, "sles") {
+		// No dhclient and no dhclient exit hook.
+		t.Skip("Custom hostnames not supported on SLES")
+	}
+	if strings.Contains(image, "ubuntu") {
+		// No dhclient and no dhclient exit hook.
+		t.Skip("Custom hostnames not supported on Ubuntu")
+	}
+
 	TestFQDN(t)
 }
 
@@ -52,7 +68,7 @@ func TestFQDN(t *testing.T) {
 	}
 
 	if strings.Contains(image, "rhel-7-4-sap") {
-		t.Skip("hostname is not working well on RHEL 7-4-Sap")
+		t.Skip("hostname is not working well on RHEL 7.4 for SAP")
 	}
 
 	metadataHostname, err := utils.GetMetadata("hostname")
@@ -154,9 +170,44 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 	}
 
 	for i := 0; i < len(hashes); i++ {
-		if hashes[i].file.Name() != hashesAfter[i].file.Name() ||
-			hashes[i].hash != hashesAfter[i].hash {
+		if hashes[i].file.Name() != hashesAfter[i].file.Name() || hashes[i].hash != hashesAfter[i].hash {
 			t.Fatalf("Hashes changed after restarting guest agent")
 		}
+	}
+}
+
+func TestHostsFile(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "sles") {
+		// SLES does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on SLES")
+	}
+	if strings.Contains(image, "ubuntu") {
+		// Ubuntu does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on Ubuntu")
+	}
+
+	b, err := ioutil.ReadFile("/etc/hosts")
+	if err != nil {
+		t.Fatalf("Couldn't read /etc/hosts")
+	}
+	ip, err := utils.GetMetadata("network-interfaces/0/ip")
+	if err != nil {
+		t.Fatalf("Couldn't get ip from metadata")
+	}
+	hostname, err := utils.GetMetadata("hostname")
+	if err != nil {
+		t.Fatalf("Couldn't get hostname from metadata")
+	}
+	targetLineHost := fmt.Sprintf("%s %s %s  %s\n", ip, hostname, strings.Split(hostname, ".")[0], gcomment)
+	targetLineMetadata := fmt.Sprintf("%s %s  %s\n", "169.254.169.254", "metadata.google.internal", gcomment)
+	if !strings.Contains(string(b), targetLineHost) {
+		t.Fatalf("/etc/hosts does not contain host record.")
+	}
+	if !strings.Contains(string(b), targetLineMetadata) {
+		t.Fatalf("/etc/hosts does not contain metadata server record.")
 	}
 }

@@ -36,11 +36,12 @@ func TestStartupScriptFailed(t *testing.T) {
 func TestDaemonScript(t *testing.T) {
 	bytes, err := ioutil.ReadFile(daemonOutputPath)
 	if err != nil {
-		t.Fatalf("failed to read deamon script output %v", err)
+		t.Fatalf("failed to read daemon script PID file: %v", err)
 	}
-	pid := string(bytes)
+	pid := strings.TrimSpace(string(bytes))
 	cmd := exec.Command("ps", "-p", pid)
-	if err := cmd.Run(); err != nil {
-		t.Fatal("daemon script stop running")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Logf("command \"ps -p %s\" failed: %v, output was: %s", pid, err, out)
+		t.Fatalf("Daemon process not running")
 	}
 }

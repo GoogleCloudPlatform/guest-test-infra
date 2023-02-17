@@ -31,6 +31,14 @@
     },
     "build_dir": {
       "Required": true
+    },
+    "machine_type": {
+      "Value": "e2-standard-2",
+      "Description": "machine type"
+    },
+    "zone": {
+      "Value": "us-central1-a",
+      "Description": "zone"
     }
   },
   "Steps": {
@@ -52,7 +60,8 @@
             "build-dir": "${build_dir}",
             "version": "${version}"
           },
-          "machineType": "e2-standard-2",
+          "machineType": "${machine_type}",
+          "zone": "${zone}",
           "name": "inst-build-pkg",
           "StartupScript": "startup.sh",
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"]
@@ -60,7 +69,7 @@
       ]
     },
     "wait-for-build": {
-      "Timeout": "10m",
+      "Timeout": "30m",
       "WaitForInstancesSignal": [
         {
           "Name": "inst-build-pkg",

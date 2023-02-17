@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: google/cloud-sdk
+    tag: alpine
+
+# TYPE can be set to be "uploadToUnstable", "uploadToStaging", or "promoteToStaging"
+params:
+  TOPIC: "projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod"
+  TYPE: "uploadToUnstable"
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    gcloud pubsub topics publish $TOPIC --message "{\"type\": \"${TYPE}\", \"request\": {\"gcsfiles\": [((package_paths))], \"universe\": \"((universe))\", \"repo\": \"((repo))\"}}"

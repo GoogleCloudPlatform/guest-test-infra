@@ -1,5 +1,6 @@
 {
   "Name": "el8",
+  "Timeout": "20m",
   "Vars": {
     "gcs_path": {
       "Required": true
@@ -22,6 +23,7 @@
   },
   "Steps": {
     "build-package": {
+      "Timeout": "20m",
       "SubWorkflow": {
         "Path": "./build_package.wf.json",
         "Vars": {

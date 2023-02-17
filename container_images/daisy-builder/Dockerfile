@@ -13,27 +13,21 @@
 # limitations under the License.
 FROM gcr.io/compute-image-tools/daisy:latest
 
-FROM gcr.io/gcp-guest/autoversioner:latest
-
 #FROM alpine
 # Needed for gsutil.
 FROM google/cloud-sdk:alpine
 
 RUN apk add --no-cache bash
-# Should this be set by the prow config? Creds are provided by it.
-ENV GOOGLE_APPLICATION_CREDENTIALS /etc/daisy-service-account/creds.json
-ENV GITHUB_ACCESS_TOKEN /etc/github-access-token/token.txt
 
 WORKDIR /
 COPY --from=0 /daisy daisy
 # Daisy image copies this from gcr.io/distroless/base, we copy here.
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-COPY --from=1 /tagger tagger
-COPY --from=1 /versiongenerator versiongenerator
-
+# Must be built from root of repo, where packagebuild dir is.
+COPY packagebuild packagebuild
 # Copy this Dockerfile for debugging.
-COPY Dockerfile Dockerfile
-COPY main.sh main.sh
+COPY container_images/daisy-builder/Dockerfile Dockerfile
+COPY container_images/daisy-builder/main.sh main.sh
 
 ENTRYPOINT ["./main.sh"]

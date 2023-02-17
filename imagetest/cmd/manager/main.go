@@ -17,8 +17,12 @@ import (
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
+	windowscontainers "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_containers"
+	windowsimagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_image_validation"
 )
 
 var (
@@ -33,54 +37,67 @@ var (
 	timeout       = flag.String("timeout", "30m", "timeout for the test suite")
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
+	exclude       = flag.String("exclude", "", "skip tests matching filter")
+	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
 )
 
 var (
 	imageMap = map[string]string{
-		"centos-7":                "projects/centos-cloud/global/images/family/centos-7",
-		"centos-8":                "projects/centos-cloud/global/images/family/centos-8",
-		"centos-stream-8":         "projects/centos-cloud/global/images/family/centos-stream-8",
-		"cos-77-lts":              "projects/cos-cloud/global/images/family/cos-77-lts",
-		"cos-81-lts":              "projects/cos-cloud/global/images/family/cos-81-lts",
-		"cos-85-lts":              "projects/cos-cloud/global/images/family/cos-85-lts",
-		"cos-89-lts":              "projects/cos-cloud/global/images/family/cos-89-lts",
-		"cos-beta":                "projects/cos-cloud/global/images/family/cos-beta",
-		"cos-dev":                 "projects/cos-cloud/global/images/family/cos-dev",
-		"cos-stable":              "projects/cos-cloud/global/images/family/cos-stable",
-		"debian-10":               "projects/debian-cloud/global/images/family/debian-10",
-		"debian-9":                "projects/debian-cloud/global/images/family/debian-9",
-		"fedora-coreos-next":      "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-next",
-		"fedora-coreos-stable":    "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-stable",
-		"fedora-coreos-testing":   "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-testing",
-		"rhel-7":                  "projects/rhel-cloud/global/images/family/rhel-7",
-		"rhel-7-4-sap":            "projects/rhel-sap-cloud/global/images/family/rhel-7-4-sap",
-		"rhel-7-6-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-7-6-sap-ha",
-		"rhel-7-7-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-7-7-sap-ha",
-		"rhel-8":                  "projects/rhel-cloud/global/images/family/rhel-8",
-		"rhel-8-1-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-8-1-sap-ha",
-		"rhel-8-2-sap-ha":         "projects/rhel-sap-cloud/global/images/family/rhel-8-2-sap-ha",
-		"rocky-linux-8":           "projects/rocky-linux-cloud/global/images/family/rocky-linux-8",
-		"sles-12":                 "projects/suse-cloud/global/images/family/sles-12",
-		"sles-12-sp3-sap":         "projects/suse-sap-cloud/global/images/family/sles-12-sp3-sap",
-		"sles-12-sp4-sap":         "projects/suse-sap-cloud/global/images/family/sles-12-sp4-sap",
-		"sles-12-sp5-sap":         "projects/suse-sap-cloud/global/images/family/sles-12-sp5-sap",
-		"sles-15":                 "projects/suse-cloud/global/images/family/sles-15",
-		"sles-15-sap":             "projects/suse-sap-cloud/global/images/family/sles-15-sap",
-		"sles-15-sp1-sap":         "projects/suse-sap-cloud/global/images/family/sles-15-sp1-sap",
-		"sles-15-sp2-sap":         "projects/suse-sap-cloud/global/images/family/sles-15-sp2-sap",
-		"ubuntu-1604-lts":         "projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts",
-		"ubuntu-1804-lts":         "projects/ubuntu-os-cloud/global/images/family/ubuntu-1804-lts",
-		"ubuntu-2004-lts":         "projects/ubuntu-os-cloud/global/images/family/ubuntu-2004-lts",
-		"ubuntu-2010":             "projects/ubuntu-os-cloud/global/images/family/ubuntu-2010",
-		"ubuntu-2104":             "projects/ubuntu-os-cloud/global/images/family/ubuntu-2104",
-		"ubuntu-minimal-1604-lts": "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-1604-lts",
-		"ubuntu-minimal-1804-lts": "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-1804-lts",
-		"ubuntu-minimal-2004-lts": "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2004-lts",
-		"ubuntu-minimal-2010":     "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2010",
-		"ubuntu-minimal-2104":     "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2104",
-		"ubuntu-pro-1604-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts",
-		"ubuntu-pro-1804-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts",
-		"ubuntu-pro-2004-lts":     "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts",
+		"centos-7":                         "projects/centos-cloud/global/images/family/centos-7",
+		"centos-stream-8":                  "projects/centos-cloud/global/images/family/centos-stream-8",
+		"cos-81-lts":                       "projects/cos-cloud/global/images/family/cos-81-lts",
+		"cos-85-lts":                       "projects/cos-cloud/global/images/family/cos-85-lts",
+		"cos-89-lts":                       "projects/cos-cloud/global/images/family/cos-89-lts",
+		"cos-93-lts":                       "projects/cos-cloud/global/images/family/cos-93-lts",
+		"cos-beta":                         "projects/cos-cloud/global/images/family/cos-beta",
+		"cos-dev":                          "projects/cos-cloud/global/images/family/cos-dev",
+		"cos-stable":                       "projects/cos-cloud/global/images/family/cos-stable",
+		"debian-10":                        "projects/debian-cloud/global/images/family/debian-10",
+		"debian-11":                        "projects/debian-cloud/global/images/family/debian-11",
+		"debian-9":                         "projects/debian-cloud/global/images/family/debian-9",
+		"fedora-coreos-next":               "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-next",
+		"fedora-coreos-stable":             "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-stable",
+		"fedora-coreos-testing":            "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-testing",
+		"rhel-7":                           "projects/rhel-cloud/global/images/family/rhel-7",
+		"rhel-7-6-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-6-sap-ha",
+		"rhel-7-7-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-7-sap-ha",
+		"rhel-7-9-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-9-sap-ha",
+		"rhel-8":                           "projects/rhel-cloud/global/images/family/rhel-8",
+		"rhel-8-1-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-1-sap-ha",
+		"rhel-8-2-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-2-sap-ha",
+		"rhel-8-4-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-4-sap-ha",
+		"rocky-linux-8":                    "projects/rocky-linux-cloud/global/images/family/rocky-linux-8",
+		"sles-12":                          "projects/suse-cloud/global/images/family/sles-12",
+		"sles-12-sp3-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp3-sap",
+		"sles-12-sp4-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp4-sap",
+		"sles-12-sp5-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp5-sap",
+		"sles-15":                          "projects/suse-cloud/global/images/family/sles-15",
+		"sles-15-sap":                      "projects/suse-sap-cloud/global/images/family/sles-15-sap",
+		"sles-15-sp1-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp1-sap",
+		"sles-15-sp2-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp2-sap",
+		"sles-15-sp3-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp3-sap",
+		"ubuntu-1804-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-1804-lts",
+		"ubuntu-2004-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-2004-lts",
+		"ubuntu-2204-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts",
+		"ubuntu-2210":                      "projects/ubuntu-os-cloud/global/images/family/ubuntu-2210",
+		"ubuntu-minimal-1804-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-1804-lts",
+		"ubuntu-minimal-2004-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2004-lts",
+		"ubuntu-minimal-2204-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2204-lts",
+		"ubuntu-minimal-2210":              "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2210",
+		"ubuntu-pro-1604-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts",
+		"ubuntu-pro-1804-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts",
+		"ubuntu-pro-2004-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts",
+		"ubuntu-pro-2204-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2204-lts",
+		"windows-2012-r2":                  "projects/windows-cloud/global/images/family/windows-2012-r2",
+		"windows-2012-r2-core":             "projects/windows-cloud/global/images/family/windows-2012-r2-core",
+		"windows-2016":                     "projects/windows-cloud/global/images/family/windows-2016",
+		"windows-2016-core":                "projects/windows-cloud/global/images/family/windows-2016-core",
+		"windows-2019":                     "projects/windows-cloud/global/images/family/windows-2019",
+		"windows-2019-core":                "projects/windows-cloud/global/images/family/windows-2019-core",
+		"windows-2019-core-for-containers": "projects/windows-cloud/global/images/family/windows-2019-core-for-containers",
+		"windows-2019-for-containers":      "projects/windows-cloud/global/images/family/windows-2019-for-containers",
+		"windows-2022":                     "projects/windows-cloud/global/images/family/windows-2022",
+		"windows-2022-core":                "projects/windows-cloud/global/images/family/windows-2022-core",
 	}
 )
 
@@ -111,14 +128,24 @@ func main() {
 		log.Printf("gcs_path set to %s", *gcsPath)
 	}
 
-	var regex *regexp.Regexp
+	var filterRegex *regexp.Regexp
 	if *filter != "" {
 		var err error
-		regex, err = regexp.Compile(*filter)
+		filterRegex, err = regexp.Compile(*filter)
 		if err != nil {
 			log.Fatal("-filter flag not valid:", err)
 		}
 		log.Printf("using -filter %s", *filter)
+	}
+
+	var excludeRegex *regexp.Regexp
+	if *exclude != "" {
+		var err error
+		excludeRegex, err = regexp.Compile(*exclude)
+		if err != nil {
+			log.Fatal("-exclude flag not valid:", err)
+		}
+		log.Printf("using -exclude %s", *exclude)
 	}
 
 	// Setup tests.
@@ -154,11 +181,30 @@ func main() {
 			metadata.Name,
 			metadata.TestSetup,
 		},
+		{
+			oslogin.Name,
+			oslogin.TestSetup,
+		},
+		{
+			windows.Name,
+			windows.TestSetup,
+		},
+		{
+			windowscontainers.Name,
+			windowscontainers.TestSetup,
+		},
+		{
+			windowsimagevalidation.Name,
+			windowsimagevalidation.TestSetup,
+		},
 	}
 
 	var testWorkflows []*imagetest.TestWorkflow
 	for _, testPackage := range testPackages {
-		if regex != nil && !regex.MatchString(testPackage.name) {
+		if filterRegex != nil && !filterRegex.MatchString(testPackage.name) {
+			continue
+		}
+		if excludeRegex != nil && excludeRegex.MatchString(testPackage.name) {
 			continue
 		}
 		for _, image := range strings.Split(*images, ",") {
@@ -182,29 +228,32 @@ func main() {
 		}
 	}
 
-	log.Println("imagetest: Done with setup")
+	if len(testWorkflows) == 0 {
+		log.Fatalf("No workflows to run!")
+	}
+
+	log.Println("Done with setup")
 
 	ctx := context.Background()
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		log.Printf("failed to set up storage client: %v", err)
-		return
+		log.Fatalf("failed to set up storage client: %v", err)
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType, *parallelCount, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

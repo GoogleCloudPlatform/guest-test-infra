@@ -76,9 +76,9 @@ It is suggested to start by copying an existing test package.
 
 ## Building the container image ##
 
-From the root of this repository:
+From the `imagetest` directory of this repository:
 
-    $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
+    $ docker build -t cloud-image-tests -f Dockerfile .
 
 ## What is being tested ##
 

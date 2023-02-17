@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: gcr.io/gcp-guest/gotest
+    tag: latest
+
+inputs:
+- name: repo
+
+outputs:
+- name: gotest
+
+params:
+  # The job will cd into repo dir, so this is relative
+  ARTIFACTS: ../gotest/
+
+run:
+  path: /go/main.sh
+  args:
+  - repo

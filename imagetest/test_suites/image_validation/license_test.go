@@ -1,3 +1,4 @@
+//go:build cit
 // +build cit
 
 package imagevalidation
@@ -7,7 +8,10 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 var licenseNames = []string{
@@ -38,6 +42,7 @@ var licenseNames = []string{
 	"MIT",
 	"MIT license",
 	"MIT/X11 (BSD like)",
+	"MPL-2.0",
 	"no notice",
 	"noderivs",
 	"none",
@@ -123,10 +128,14 @@ var licenses = []string{
 	`Apache License`,
 	`The Artistic License 2.0`,
 	`FULLTEXT`,
+	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
+	`arping: GPL v2 or later`,      // iputils has a license summary file
+	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
+	`This is the Python license. In short, you can use this product in commercial and non-commercial applications`,
 }
 
 const (
-	licenseNameRegex = `(?i)(((License|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
+	licenseNameRegex = `(?i)(((Licen[sc]e|Copyright)\s*:\s*%[1]s)|((covered )?under (the )?%[1]s)|(under (the terms of )?the %[1]s))`
 )
 
 var licenseGlobs = []string{
@@ -165,6 +174,14 @@ func isValidLicenseText(licenseCheck string) bool {
 }
 
 func TestArePackagesLegal(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "ubuntu-pro-fips") {
+		// Ubuntu Pro FIPS images have some non-standard packages.
+		t.Skip("Not supported on Ubuntu Pro Fips")
+	}
 	for _, pathGlob := range licenseGlobs {
 		filenames, err := filepath.Glob(pathGlob)
 		if err != nil || len(filenames) == 0 {

@@ -95,6 +95,10 @@ dch --create -M -v 1:${VERSION}-${RELEASE} --package $PKGNAME -D stable \
   "Debian packaging for ${PKGNAME}"
 DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
+for deb in $BUILD_DIR/*.deb; do
+  dpkg-deb -I $deb
+  dpkg-deb -c $deb
+done
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
 gsutil cp -n $BUILD_DIR/*.deb "$GCS_PATH/"
 build_success Built $BUILD_DIR/*.deb

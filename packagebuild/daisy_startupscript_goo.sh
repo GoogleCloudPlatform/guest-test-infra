@@ -35,7 +35,7 @@ echo "Installing go"
 install_go
 
 # Install goopack.
-GO111MODULE=on $GO get -v github.com/google/googet/v2/goopack
+GO111MODULE=on $GO install -v github.com/google/googet/v2/goopack@latest
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 if [[ -n "$BUILD_DIR" ]]; then

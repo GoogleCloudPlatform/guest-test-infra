@@ -1,23 +1,20 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
-    repository: gcr.io/gcp-guest/cloud-image-tests
-    tag: latest
+    repository: gcr.io/compute-image-tools/cloud-image-tests
 
 inputs:
-- name: credentials
 - name: guest-test-infra
-
-
-params:
-  GOOGLE_APPLICATION_CREDENTIALS: "credentials/credentials.json"
 
 run:
   path: /manager
   args:
   - -project=gcp-guest
-  - -zone=us-west1-a
+  - -zone=us-central1-a
+  - -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
   - -images=((images))
+  - -exclude=oslogin
+  - -machine_type=((machine-type))
   - ((extra-args))

@@ -19,30 +19,22 @@ resources:
 - name: rhel-7-metal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
+    bucket: artifact-releaser-prod-rtp
     regexp: "rhel/rhel-7-metal-v([0-9]+).tar.gz"
 - name: rhel-8-metal-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
+    bucket: artifact-releaser-prod-rtp
     regexp: "rhel/rhel-8-metal-v([0-9]+).tar.gz"
 - name: rhel-7-metal-dev-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
+    bucket: artifact-releaser-prod-rtp
     regexp: "rhel/rhel-7-metal-dev-v([0-9]+).tar.gz"
 - name: rhel-8-metal-dev-gcs
   type: gcs
   source:
-    bucket: gce-image-archive
-    json_key: |
-      ((gcs-key.credential))
+    bucket: artifact-releaser-prod-rtp
     regexp: "rhel/rhel-8-metal-dev-v([0-9]+).tar.gz"
 
 jobs:
@@ -51,10 +43,19 @@ jobs:
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-7-metal"
+      id: ((.:id))
   - put: rhel-7-metal-gcs
     params:
       file: build-id-dir/rhel-7-metal*
@@ -66,8 +67,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -75,14 +74,39 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-7-metal-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-7-metal-dev"
+      id: ((.:id))
   - put: rhel-7-metal-dev-gcs
     params:
       file: build-id-dir/rhel-7-metal-dev*
@@ -94,8 +118,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-7-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -103,14 +125,39 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-7-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-8-metal
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-8-metal"
+      id: ((.:id))
   - put: rhel-8-metal-gcs
     params:
       file: build-id-dir/rhel-8-metal*
@@ -122,8 +169,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -131,14 +176,39 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: build-rhel-8-metal-dev
   plan:
   - get: compute-image-tools
   - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
       prefix: "rhel-8-metal-dev"
+      id: ((.:id))
   - put: rhel-8-metal-dev-gcs
     params:
       file: build-id-dir/rhel-8-metal-dev*
@@ -150,8 +220,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
     file: publish-version/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: daisy-build-rhel-8-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-build-derivative-images.yaml
     vars:
@@ -159,12 +227,32 @@ jobs:
       gcs_url: ((.:gcs-url))
       google_cloud_repo: "stable"
       build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "build-rhel-8-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to testing
 - name: publish-to-testing-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [build-rhel-7-metal]
     trigger: false
@@ -172,8 +260,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -181,15 +267,35 @@ jobs:
   - task: publish-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-testing-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [build-rhel-8-metal]
     trigger: false
@@ -197,8 +303,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -206,17 +310,37 @@ jobs:
   - task: publish-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-testing-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to staging
 - name: publish-to-staging-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [publish-to-testing-rhel-7-metal]
     trigger: false
@@ -224,8 +348,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -233,15 +355,35 @@ jobs:
   - task: publish-rhel-7-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-staging-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [publish-to-testing-rhel-8-metal]
     trigger: false
@@ -249,8 +391,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -258,17 +398,37 @@ jobs:
   - task: publish-rhel-8-metal
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish dev to staging
 - name: publish-to-staging-rhel-7-metal-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-dev-gcs
     passed: [build-rhel-7-metal-dev]
     trigger: false
@@ -276,8 +436,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -285,15 +443,35 @@ jobs:
   - task: publish-rhel-7-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal_dev.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-7-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-staging-rhel-8-metal-dev
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-dev-gcs
     passed: [build-rhel-8-metal-dev]
     trigger: false
@@ -301,8 +479,6 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-dev-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
@@ -310,17 +486,37 @@ jobs:
   - task: publish-rhel-8-metal-dev
     file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal_dev.publish.json"
       environment: "staging"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal-dev"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-staging-rhel-8-metal-dev"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 
 # Publish to prod
 - name: publish-to-prod-rhel-7-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-7-metal-gcs
     passed: [publish-to-staging-rhel-7-metal]
     trigger: false
@@ -328,24 +524,44 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-7-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version # produced from generate-version task
   - task: publish-rhel-7-metal
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_7_metal.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel-7-metal"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-7-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-7-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-prod-rhel-8-metal
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
   - get: rhel-8-metal-gcs
     passed: [publish-to-staging-rhel-8-metal]
     trigger: false
@@ -353,17 +569,33 @@ jobs:
       skip_download: "true"
   - load_var: source-version
     file: rhel-8-metal-gcs/version
-  - task: get-credential
-    file: guest-test-infra/concourse/tasks/get-credential.yaml
   - task: generate-version
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: publish-version
     file: publish-version/version  # produced from generate-version task
   - task: publish-rhel-8-metal
-    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
     vars:
-      source_gcs_path: "gs://gce-image-archive/rhel"
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/rhel"
       source_version: v((.:source-version))
       publish_version: ((.:publish-version))
       wf: "bare_metal/rhel_8_metal.publish.json"
-      environment: "prod"
+      release_notes: ""
+      image_name: "rhel-8-metal"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-8-metal"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "bare-metal-image-build"
+      job: "publish-to-prod-rhel-8-metal"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))

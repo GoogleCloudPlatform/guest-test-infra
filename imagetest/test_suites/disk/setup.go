@@ -1,6 +1,8 @@
 package disk
 
-import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+import (
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+)
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "disk"

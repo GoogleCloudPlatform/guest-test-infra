@@ -6,20 +6,47 @@ resources:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
 
+# Controller pipeline. Add pipelines here to have them kept up to date automatically.
+#
+# Note: there is a relationship between this pipeline and the ones it creates - if you delete an entry here,
+# the corresponding pipeline will be deleted. If you delete this pipeline, *all* these pipelines will be
+# deleted.
 jobs:
+- name: set-self
+  plan:
+  - get: guest-test-infra
+    trigger: true
+  - set_pipeline: self
+    file: guest-test-infra/concourse/pipelines/pipeline-set-pipeline.yaml
+
 - name: set-pipelines
   plan:
   - get: guest-test-infra
     trigger: true
+    passed: [set-self]
+  # Produce the rendered/ output with one json file for every jsonnet file in guest-test-infra/((config_dir))
+  # Either may be referenced below.
+  - task: render-templates
+    file: guest-test-infra/concourse/tasks/render-templates.yaml
+    vars:
+      config_dir: concourse/pipelines
   - set_pipeline: linux-image-build
-    file: guest-test-infra/concourse/pipelines/linux-image-build.yaml
+    file: rendered/linux-image-build.json
   - set_pipeline: guest-package-build
-    file: guest-test-infra/concourse/pipelines/guest-package-build.yaml
-  - set_pipeline: dev-image-build
-    file: guest-test-infra/concourse/pipelines/dev-image-build.yaml
+    file: rendered/guest-package-build.json
+  - set_pipeline: debian-worker-image-build
+    file: guest-test-infra/concourse/pipelines/debian-worker-image-build.yaml
   - set_pipeline: bare-metal-image-build
     file: guest-test-infra/concourse/pipelines/bare-metal-image-build.yaml
-  - set_pipeline: partner-image-export
-    file: guest-test-infra/concourse/pipelines/partner-image-export.yaml
   - set_pipeline: windows-image-build
-    file: guest-test-infra/concourse/pipelines/windows-image-build.yaml
+    file: rendered/windows-image-build.json
+  - set_pipeline: windows-image-build-staging
+    file: rendered/windows-image-build-staging.json
+  - set_pipeline: container-build
+    file: rendered/container-build.json
+  - set_pipeline: rhui-release
+    file: rendered/rhui-release.json
+  - set_pipeline: artifact-releaser-test
+    file: guest-test-infra/concourse/pipelines/artifact-releaser-test.yaml
+  - set_pipeline: partner-image-validations
+    file: rendered/partner-image-validations.json

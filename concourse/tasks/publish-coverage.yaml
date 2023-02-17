@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: gcr.io/gcp-guest/concourse-metrics
+
+run:
+  path: /publish-coverage
+  args:
+  - --metric-path=golang/coverage/percent
+  - --package-name=((package_name))
+  - --coverage=((coverage_percent))
+  - --project-id=gcp-guest

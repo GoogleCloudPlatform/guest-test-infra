@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -28,7 +26,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -38,7 +35,8 @@ var (
 )
 
 const (
-	testWrapperPath = "/wrapper"
+	testWrapperPath        = "/wrapper"
+	testWrapperPathWindows = "/wrapp"
 )
 
 // TestWorkflow defines a test workflow which creates at least one test VM.
@@ -59,17 +57,16 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-// SingleVMTest configures one VM running tests.
-func SingleVMTest(t *TestWorkflow) error {
-	_, err := t.CreateTestVM("vm")
-	return err
-}
-
 func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *daisy.Instance, error) {
 	attachedDisk := &compute.AttachedDisk{Source: name}
 
+	var suffix string
+	if strings.Contains(t.Image, "windows") {
+		suffix = ".exe"
+	}
+
 	instance := &daisy.Instance{}
-	instance.StartupScript = "wrapper"
+	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 	instance.Disks = append(instance.Disks, attachedDisk)
@@ -81,6 +78,7 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
+	instance.Metadata["_test_package_name"] = fmt.Sprintf("image_test%s", suffix)
 
 	createInstances := &daisy.CreateInstances{}
 	createInstances.Instances = append(createInstances.Instances, instance)
@@ -260,7 +258,7 @@ func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, g
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix, machineType string) error {
 	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 	for _, twf := range tests {
 		if twf.wf == nil {
@@ -275,8 +273,28 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		twf.wf.Sources["wrapper"] = testWrapperPath
-		twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.test", twf.Name)
+		arch := "amd64"
+		if machineType != "" {
+			createVMsStep := twf.wf.Steps[createVMsStepName]
+			for _, vm := range createVMsStep.CreateInstances.Instances {
+				vm.MachineType = machineType
+			}
+			if strings.HasPrefix(machineType, "t2a") {
+				arch = "arm64"
+			}
+		}
+
+		if strings.Contains(twf.Image, "windows") {
+			archBits := "64"
+			if strings.Contains(twf.Image, "x86") {
+				archBits = "32"
+			}
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, archBits)
+			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, archBits)
+		} else {
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
+		}
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
 		copyGCSObject := daisy.CopyGCSObject{}
@@ -347,13 +365,13 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		log.Printf("Error determining GCS prefix: %v", err)
 		gcsPrefix = ""
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType); err != nil {
 		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
@@ -366,12 +384,12 @@ func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflow
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string) error {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return err
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
@@ -406,13 +424,13 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, machineType string, parallelCount int, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return nil, err
 	}
 
-	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, machineType)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
@@ -478,7 +496,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	res.testWorkflow = test
 	if test.skipped {
 		res.skipped = true
-		res.err = fmt.Errorf("Test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
+		res.err = fmt.Errorf("test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
 	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
@@ -580,52 +598,4 @@ func (t *TestWorkflow) getLastStepForVM(vmname string) (*daisy.Step, error) {
 		step = deps[0]
 	}
 	return t.wf.Steps[step], nil
-}
-
-// AddSSHKey generate ssh key pair and return public key.
-func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
-	keyFileName := "/id_rsa_" + uuid.New().String()
-	if _, err := os.Stat(keyFileName); os.IsExist(err) {
-		os.Remove(keyFileName)
-	}
-	commandArgs := []string{"-t", "rsa", "-f", keyFileName, "-N", "", "-q"}
-	cmd := exec.Command("ssh-keygen", commandArgs...)
-	if out, err := cmd.Output(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return "", fmt.Errorf("ssh-keygen failed: %s %s %v", out, exitErr.Stderr, err)
-		}
-		return "", fmt.Errorf("ssh-keygen failed: %v %v", out, err)
-	}
-
-	publicKey, err := ioutil.ReadFile(keyFileName + ".pub")
-	if err != nil {
-		return "", fmt.Errorf("failed to read public key: %v", err)
-	}
-	sourcePath := fmt.Sprintf("%s-ssh-key", user)
-	t.wf.Sources[sourcePath] = keyFileName
-
-	return string(publicKey), nil
-}
-
-// CreateFirewallRule create firewall rule.
-func (t *TestWorkflow) CreateFirewallRule(firewallName, networkName, protocal string, ports []string) error {
-	createFirewallStep, _, err := t.appendCreateFirewallStep(firewallName, networkName, protocal, ports)
-	if err != nil {
-		return err
-	}
-
-	createNetworkStep, ok := t.wf.Steps[createNetworkStepName]
-	if ok {
-		if err := t.wf.AddDependency(createFirewallStep, createNetworkStep); err != nil {
-			return err
-		}
-	}
-	createVMsStep, ok := t.wf.Steps[createVMsStepName]
-	if ok {
-		if err := t.wf.AddDependency(createVMsStep, createFirewallStep); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

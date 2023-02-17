@@ -12,6 +12,7 @@ IMAGE=$(curl -f -H Metadata-Flavor:Google ${URL}/image)
 
 export CGO_ENABLED=0
 
+# SuSE images do not have the cloud SDK, needed for gsutil
 if [[ -e /etc/SUSEConnect ]]; then
   wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-311.0.0-linux-x86_64.tar.gz
   tar xf *.tar.gz
@@ -23,31 +24,11 @@ fi
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
-if [[ -e /etc/debian_version ]]; then
-  export DEBIAN_FRONTEND=noninteractive
-  try_command apt-get -y update
-  try_command apt-get install -y --no-install-{suggests,recommends} git-core
-elif [[ -e /etc/SUSEConnect ]]; then
-  zypper install -y git
-else
-  VERSION_ID=6
-  if [[ -f /etc/os-release ]]; then
-    eval $(grep VERSION_ID /etc/os-release)
-    VERSION_ID=${VERSION_ID:0:1}
-  fi
-
-  GIT="git"
-  if [[ ${VERSION_ID} =~ 6|7 ]]; then
-      try_command yum install -y "https://repo.ius.io/ius-release-el${VERSION_ID}.rpm"
-      rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-IUS-${VERSION_ID}
-      GIT="git224"
-  fi
-
-  try_command yum install -y $GIT
-fi
-
 install_go
-git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+curl -Ss -L -o git.tar.gz "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/tarball/${GIT_REF:-HEAD}"
+mkdir git && cd git
+tar --strip-components=1 -xvf ../git.tar.gz
 
 $GO get -d -t ./...
 $GO test -tags integration -v ./... > /go-test.txt || :

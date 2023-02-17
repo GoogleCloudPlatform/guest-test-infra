@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -29,7 +30,7 @@ func TestAliasAfterReboot(t *testing.T) {
 		if _, err := os.Create(markerFile); err != nil {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
-		t.Fatal("first boot")
+		t.Fatal("missing marker file, maybe first boot")
 	}
 	// second boot
 	if err := verifyIPAliases(); err != nil {
@@ -38,22 +39,14 @@ func TestAliasAfterReboot(t *testing.T) {
 }
 
 func verifyIPAliases() error {
-	var networkInterface string
-
-	image, err := utils.GetMetadata("image")
+	iface, err := utils.GetInterface(0)
 	if err != nil {
-		return fmt.Errorf("couldn't get image from metadata: %v", err)
-	}
-	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
-		networkInterface = defaultPredictableInterface
-	default:
-		networkInterface = defaultInterface
+		return fmt.Errorf("couldn't get interface: %v", err)
 	}
 
-	actualIPs, err := getGoogleRoutes(networkInterface)
+	actualIPs, err := getGoogleRoutes(iface.Name)
 	if err != nil {
-		return fmt.Errorf("failed get ip alises")
+		return err
 	}
 	if err := verifyIPExist(actualIPs); err != nil {
 		return err
@@ -62,14 +55,18 @@ func verifyIPAliases() error {
 }
 
 func getGoogleRoutes(networkInterface string) ([]string, error) {
+	// First, we probably need to wait so the guest agent can add the
+	// routes. If this is insufficient, we might need to add retries.
+	time.Sleep(30 * time.Second)
+
 	arguments := strings.Split(fmt.Sprintf("route list table local type local scope host dev %s proto 66", networkInterface), " ")
 	cmd := exec.Command("ip", arguments...)
-	b, err := cmd.Output()
+	b, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error listing Google routes: %s", b)
 	}
 	if len(b) == 0 {
-		return nil, fmt.Errorf("alias IPs not configured")
+		return nil, fmt.Errorf("No Google routes found")
 	}
 	var res []string
 	for _, line := range strings.Split(string(b), "\n") {
@@ -82,21 +79,12 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 }
 
 func TestAliasAgentRestart(t *testing.T) {
-	var networkInterface string
-
-	image, err := utils.GetMetadata("image")
+	iface, err := utils.GetInterface(0)
 	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
+		t.Fatalf("couldn't get interface: %v", err)
 	}
 
-	switch {
-	case strings.Contains(image, "debian-10"), strings.Contains(image, "ubuntu"):
-		networkInterface = defaultPredictableInterface
-	default:
-		networkInterface = defaultInterface
-	}
-
-	beforeRestart, err := getGoogleRoutes(networkInterface)
+	beforeRestart, err := getGoogleRoutes(iface.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +93,7 @@ func TestAliasAgentRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	afterRestart, err := getGoogleRoutes(networkInterface)
+	afterRestart, err := getGoogleRoutes(iface.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
