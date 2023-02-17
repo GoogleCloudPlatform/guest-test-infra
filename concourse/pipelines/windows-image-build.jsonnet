@@ -635,9 +635,6 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
-  local windows_81_images = [
-    'windows-81-ent-x64',
-  ],
   local windows_10_images = [
     'windows-10-21h2-ent-x64',
   ],
@@ -760,7 +757,7 @@ local ImgGroup(name, images, environments) = {
     'sql-2022-preview-windows-2022-dc',
   ],
 
-  local windows_client_images = windows_81_images + windows_10_images + windows_11_images,
+  local windows_client_images = windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                               + windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
@@ -801,7 +798,6 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
-          ImgBuildJob('windows-81-ent-x64', 'win81-64', 'windows_gcs_updates_client81-64'),
           ImgBuildJob('windows-10-21h2-ent-x64', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
           ImgBuildJob('windows-11-21h2-ent-x64', 'win11-21h2-64', 'windows_gcs_updates_client11-21h2-64'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
@@ -965,7 +961,6 @@ local ImgGroup(name, images, environments) = {
         ],
 
   groups: [
-    ImgGroup('windows-81', windows_81_images, client_envs),
     ImgGroup('windows-10', windows_10_images, client_envs),
     ImgGroup('windows-11', windows_11_images, client_envs),
     ImgGroup('windows-2012', windows_2012_images, server_envs),
