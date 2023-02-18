@@ -3,6 +3,9 @@ local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
+
+local server_envs = ['testing', 'internal', 'prod'];
+local sql_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
@@ -15,11 +18,11 @@ local imgbuildjob = {
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-testing',
+  name: 'build-' + job.image,
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -28,7 +31,7 @@ local imgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -56,7 +59,7 @@ local imgbuildjob = {
     {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image , id: '((.:id))'},
+      vars: { prefix: job.image, id: '((.:id))'},
     },
     {
       put: job.image + '-gcs',
@@ -127,7 +130,7 @@ local imgbuildjob = {
           'media=((.:windows-iso))',
           'pwsh=((.:windows-gcs-pwsh))',
           'updates=((.:windows-updates))',
-          'google_cloud_repo=staging',
+          'google_cloud_repo=stable',
         ],
       },
     },
@@ -144,11 +147,11 @@ local sqlimgbuildjob = {
   ssms_version:: error 'must set ssms_version in sqlbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-testing',
+  name: 'build-' + job.image,
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -157,7 +160,7 @@ local sqlimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -181,9 +184,17 @@ local sqlimgbuildjob = {
       trigger: true,
     },
     {
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image },
+      vars: { prefix: job.image, id: '((.:id))' },
     },
     {
       put: job.image + '-gcs',
@@ -241,11 +252,11 @@ local containerimgbuildjob = {
   workflow:: error 'must set workflow in containerimgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-testing',
+  name: 'build-' + job.image,
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -254,7 +265,7 @@ local containerimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -278,9 +289,17 @@ local containerimgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image },
+      vars: { prefix: job.image, id: '((.:id))' },
     },
     {
       put: '%s-gcs' % job.image,
@@ -310,11 +329,11 @@ local windowsinstallmediaimgbuildjob = {
   workflow:: error 'must set workflow in windowsinstallmediaimgbuildjob',
 
   // Start of job.
-  name: 'build-' + job.image + '-testing',
+  name: 'build-' + job.image,
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -323,7 +342,7 @@ local windowsinstallmediaimgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -341,9 +360,17 @@ local windowsinstallmediaimgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image },
+      vars: { prefix: job.image, id: '((.:id))' },
     },
     {
       put: '%s-gcs' % job.image,
@@ -439,6 +466,7 @@ local imgpublishjob = {
   local job = self,
 
   image:: error 'must set image in imgpublishjob',
+  env:: error 'must set publish env in imgpublishjob',
   workflow:: error 'must set workflow in imgpublishjob',
   gcs_dir:: error 'must set gcs_dir in imgpublishjob',
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
@@ -446,17 +474,23 @@ local imgpublishjob = {
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
-  passed:: 'build-' + job.image + '-testing',
+  passed:: if job.env == 'testing' then
+    'build-' + job.image
+  else
+    'publish-to-testing-' + job.image,
 
   // Builds are automatically pushed to testing.
-  trigger:: true,
+  trigger:: if job.env == 'testing' then true
+    else if job.env == 'internal' then true
+    else if job.env == 'client' then true
+    else false,
 
   // Start of job.
-  name: 'publish-to-testing-%s' % [job.image],
+  name: 'publish-to-%s-%s' % [job.env, job.image],
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -465,7 +499,7 @@ local imgpublishjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'windows-image-build-standard',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -500,16 +534,29 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-    {
-      task: 'gce-image-publish-' + job.image,
-      config: arle.gcepublishtask {
-        source_gcs_path: job.gcs,
-        source_version: 'v((.:source-version))',
-        publish_version: '((.:publish-version))',
-        wf: job.workflow,
-        environment: 'test',
+    // Different publish step in prod
+    if job.env == 'prod' then
+      {
+        task: 'arle-publish-' + job.image,
+        config: arle.arlepublishtask {
+          gcs_image_path: job.gcs,
+          source_version: 'v((.:source-version))',
+          publish_version: '((.:publish-version))',
+          wf: job.workflow,
+          image_name: job.image,
+        },
+      }
+    else
+      {
+        task: 'gce-image-publish-' + job.image,
+        config: arle.gcepublishtask {
+          source_gcs_path: job.gcs,
+          source_version: 'v((.:source-version))',
+          publish_version: '((.:publish-version))',
+          wf: job.workflow,
+          environment: if job.env == 'testing' then 'test' else job.env,
+        },
       },
-    },
   ],
 };
 
@@ -541,115 +588,118 @@ local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   workflow: 'windows/%s.wf.json' % image,
 };
 
-local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
+local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
+  env: env,
   gcs_dir: gcs_dir,
-  // build -> testing
-  passed:: 'build-' + image + '-testing',
+  // build -> testing -> prod/client -> internal
+  passed:: if env == 'testing' then
+             'build-' + image
+           else if env == 'prod' then
+             'publish-to-testing-' + image
+           else if env == 'internal' then
+             'publish-to-prod-' + image
+           else if env == 'client' then
+             'publish-to-testing-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '-uefi.publish.json'],
 };
 
-local MediaImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
+local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
+  env: env,
   gcs_dir: gcs_dir,
-  // build -> testing
-  passed:: 'build-' + image + '-testing',
+  // build -> testing -> prod
+  passed:: if env == 'testing' then
+             'build-' + image
+           else if env == 'prod' then
+             'publish-to-testing-' + image,
 
   workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
 
-local ImgGroup(name, images) = {
+local ImgGroup(name, images, environments) = {
   name: name,
   jobs: [
-    'build-' + image + '-testing',
+    'build-' + image
     for image in images
   ] + [
-    'publish-to-testing-%s' % [image]
+    'publish-to-%s-%s' % [env, image]
+    for env in environments
     for image in images
   ],
 };
 
 // Start of output.
 {
-  local windows_10_images = [
-    'windows-10-21h2-ent-x64',
-  ],
-  local windows_11_images = [
-    'windows-11-21h2-ent-x64',
-  ],
   local windows_2012_images = [
-    'windows-server-2012-r2-dc',
-    'windows-server-2012-r2-dc-core',
+    'windows-server-2012-r2',
+    'windows-server-2012-r2-core',
   ],
   local windows_2016_images = [
-    'windows-server-2016-dc',
-    'windows-server-2016-dc-core',
+    'windows-server-2016',
+    'windows-server-2016-core',
   ],
   local windows_2019_images = [
-    'windows-server-2019-dc',
-    'windows-server-2019-dc-core',
+    'windows-server-2019',
+    'windows-server-2019-core',
   ],
   local windows_2022_images = [
-    'windows-server-2022-dc',
-    'windows-server-2022-dc-core',
+    'windows-server-2022',
+    'windows-server-2022-core',
   ],
   local sql_2014_images = [
-    'sql-2014-enterprise-windows-2012-r2-dc',
-    'sql-2014-enterprise-windows-2016-dc',
-    'sql-2014-standard-windows-2012-r2-dc',
-    'sql-2014-web-windows-2012-r2-dc',
+    'sql-2014-enterprise-windows-2012-r2',
+    'sql-2014-enterprise-windows-2016',
+    'sql-2014-standard-windows-2012-r2',
+    'sql-2014-web-windows-2012-r2',
   ],
   local sql_2016_images = [
-    'sql-2016-enterprise-windows-2012-r2-dc',
-    'sql-2016-enterprise-windows-2016-dc',
-    'sql-2016-enterprise-windows-2019-dc',
-    'sql-2016-standard-windows-2012-r2-dc',
-    'sql-2016-standard-windows-2016-dc',
-    'sql-2016-standard-windows-2019-dc',
-    'sql-2016-web-windows-2012-r2-dc',
-    'sql-2016-web-windows-2016-dc',
-    'sql-2016-web-windows-2019-dc',
+    'sql-2016-enterprise-windows-2012-r2',
+    'sql-2016-enterprise-windows-2016',
+    'sql-2016-enterprise-windows-2019',
+    'sql-2016-standard-windows-2012-r2',
+    'sql-2016-standard-windows-2016',
+    'sql-2016-standard-windows-2019',
+    'sql-2016-web-windows-2012-r2',
+    'sql-2016-web-windows-2016',
+    'sql-2016-web-windows-2019',
   ],
   local sql_2017_images = [
-    'sql-2017-enterprise-windows-2016-dc',
-    'sql-2017-enterprise-windows-2019-dc',
-    'sql-2017-enterprise-windows-2022-dc',
-    'sql-2017-express-windows-2012-r2-dc',
-    'sql-2017-express-windows-2016-dc',
-    'sql-2017-express-windows-2019-dc',
-    'sql-2017-standard-windows-2016-dc',
-    'sql-2017-standard-windows-2019-dc',
-    'sql-2017-standard-windows-2022-dc',
-    'sql-2017-web-windows-2016-dc',
-    'sql-2017-web-windows-2019-dc',
-    'sql-2017-web-windows-2022-dc',
+    'sql-2017-enterprise-windows-2016',
+    'sql-2017-enterprise-windows-2019',
+    'sql-2017-enterprise-windows-2022',
+    'sql-2017-express-windows-2012-r2',
+    'sql-2017-express-windows-2016',
+    'sql-2017-express-windows-2019',
+    'sql-2017-standard-windows-2016',
+    'sql-2017-standard-windows-2019',
+    'sql-2017-standard-windows-2022',
+    'sql-2017-web-windows-2016',
+    'sql-2017-web-windows-2019',
+    'sql-2017-web-windows-2022',
   ],
   local sql_2019_images = [
-    'sql-2019-enterprise-windows-2019-dc',
-    'sql-2019-enterprise-windows-2022-dc',
-    'sql-2019-standard-windows-2019-dc',
-    'sql-2019-standard-windows-2022-dc',
-    'sql-2019-web-windows-2019-dc',
-    'sql-2019-web-windows-2022-dc',
+    'sql-2019-enterprise-windows-2019',
+    'sql-2019-enterprise-windows-2022',
+    'sql-2019-standard-windows-2019',
+    'sql-2019-standard-windows-2022',
+    'sql-2019-web-windows-2019',
+    'sql-2019-web-windows-2022',
   ],
   local sql_2022_images = [
-    'sql-2022-enterprise-windows-2019-dc',
-    'sql-2022-enterprise-windows-2022-dc',
-    'sql-2022-standard-windows-2019-dc',
-    'sql-2022-standard-windows-2022-dc',
-    'sql-2022-web-windows-2019-dc',
-    'sql-2022-web-windows-2022-dc',
+    'sql-2022-enterprise-windows-2019',
+    'sql-2022-enterprise-windows-2022',
+    'sql-2022-standard-windows-2019',
+    'sql-2022-standard-windows-2022',
+    'sql-2022-web-windows-2019',
+    'sql-2022-web-windows-2022',
   ],
   local container_images = [
-    'windows-server-2019-dc-for-containers',
-    'windows-server-2019-dc-core-for-containers',
-  ],
-  local windows_install_media_images = [
-    'windows-install-media',
+    'windows-server-2019-for-containers',
+    'windows-server-2019-core-for-containers',
   ],
 
-  local windows_client_images = windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                               + windows_2022_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
@@ -672,124 +722,105 @@ local ImgGroup(name, images) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_client_images + windows_server_images + container_images
+               for image in windows_server_images + container_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
-             ] +
-             [
-               common.GcsImgResource(image, 'windows-install-media')
-               for image in windows_install_media_images
              ],
   jobs: [
           // Windows builds
 
-          ImgBuildJob('windows-10-21h2-ent-x64', 'win10-21h2-64', 'windows_gcs_updates_client10-21h2-64'),
-          ImgBuildJob('windows-11-21h2-ent-x64', 'win11-21h2-64', 'windows_gcs_updates_client11-21h2-64'),
-          ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
-          ImgBuildJob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
-          ImgBuildJob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
-          ImgBuildJob('windows-server-2019-dc-core', 'win2019-64', 'windows_gcs_updates_server2019'),
-          ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2016-dc-core', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2012-r2-dc', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
-          ImgBuildJob('windows-server-2012-r2-dc-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2022', 'win2022-64', 'windows_gcs_updates_server2022'),
+          ImgBuildJob('windows-server-2022-core', 'win2022-64', 'windows_gcs_updates_server2022'),
+          ImgBuildJob('windows-server-2019', 'win2019-64', 'windows_gcs_updates_server2019'),
+          ImgBuildJob('windows-server-2019-core', 'win2019-64', 'windows_gcs_updates_server2019'),
+          ImgBuildJob('windows-server-2016', 'win2016-64', 'windows_gcs_updates_server2016'),
+          ImgBuildJob('windows-server-2016-core', 'win2016-64', 'windows_gcs_updates_server2016'),
+          ImgBuildJob('windows-server-2012-r2', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2012-r2-core', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
 
           // SQL derivative builds
 
-          SQLImgBuildJob('sql-2014-enterprise-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2014-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2014-standard-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2014-web-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2014-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2014-enterprise-windows-2012-r2', 'windows-server-2012-r2', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2014-enterprise-windows-2016', 'windows-server-2016', 'sql-2014-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2014-standard-windows-2012-r2', 'windows-server-2012-r2', 'sql-2014-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2014-web-windows-2012-r2', 'windows-server-2012-r2', 'sql-2014-web', 'windows_gcs_ssms_exe'),
 
-          SQLImgBuildJob('sql-2016-enterprise-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-standard-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-standard-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-web-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-web-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-enterprise-windows-2012-r2', 'windows-server-2012-r2', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-enterprise-windows-2016', 'windows-server-2016', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-enterprise-windows-2019', 'windows-server-2019', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-standard-windows-2012-r2', 'windows-server-2012-r2', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-standard-windows-2016', 'windows-server-2016', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-standard-windows-2019', 'windows-server-2019', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-web-windows-2012-r2', 'windows-server-2012-r2', 'sql-2016-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-web-windows-2016', 'windows-server-2016', 'sql-2016-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2016-web-windows-2019', 'windows-server-2019', 'sql-2016-web', 'windows_gcs_ssms_exe'),
 
-          SQLImgBuildJob('sql-2017-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-express-windows-2012-r2-dc', 'windows-server-2012-r2-dc', 'sql-2017-express', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-express-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-express', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-express-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-express', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-standard-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-web-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2017-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-enterprise-windows-2016', 'windows-server-2016', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-enterprise-windows-2019', 'windows-server-2019', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-enterprise-windows-2022', 'windows-server-2022', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-express-windows-2012-r2', 'windows-server-2012-r2', 'sql-2017-express', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-express-windows-2016', 'windows-server-2016', 'sql-2017-express', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-express-windows-2019', 'windows-server-2019', 'sql-2017-express', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-standard-windows-2016', 'windows-server-2016', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-standard-windows-2019', 'windows-server-2019', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-standard-windows-2022', 'windows-server-2022', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-web-windows-2016', 'windows-server-2016', 'sql-2017-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-web-windows-2019', 'windows-server-2019', 'sql-2017-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2017-web-windows-2022', 'windows-server-2022', 'sql-2017-web', 'windows_gcs_ssms_exe'),
+          
+          SQLImgBuildJob('sql-2019-enterprise-windows-2019', 'windows-server-2019', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-enterprise-windows-2022', 'windows-server-2022', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-standard-windows-2019', 'windows-server-2019', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-standard-windows-2022', 'windows-server-2022', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-web-windows-2019', 'windows-server-2019', 'sql-2019-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-web-windows-2022', 'windows-server-2022', 'sql-2019-web', 'windows_gcs_ssms_exe'),
 
-          SQLImgBuildJob('sql-2019-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-
-          SQLImgBuildJob('sql-2022-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-enterprise-windows-2019', 'windows-server-2019', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-enterprise-windows-2022', 'windows-server-2022', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-standard-windows-2019', 'windows-server-2019', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-standard-windows-2022', 'windows-server-2022', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-web-windows-2019', 'windows-server-2019', 'sql-2022-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-web-windows-2022', 'windows-server-2022', 'sql-2022-web', 'windows_gcs_ssms_exe'),
 
           // Container derivative builds
-
-          ContainerImgBuildJob('windows-server-2019-dc-for-containers',
-                               'windows-server-2019-dc',
-                               'windows_container/windows-2019-dc-for-containers-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
-                               'windows-server-2019-dc-core',
-                               'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
-
-          // Windows install media builds
-
-          WindowsInstallMediaImgBuildJob('windows-install-media'),
+                               
+          ContainerImgBuildJob('windows-server-2019-for-containers',
+                               'windows-server-2019',
+                               'windows_container/windows-2019-for-containers-uefi.wf.json'),
+          ContainerImgBuildJob('windows-server-2019-core-for-containers',
+                               'windows-server-2019-core',
+                               'windows_container/windows-2019-core-for-containers-uefi.wf.json'),
         ] +
 
         // Publish jobs
-
         [
-          ImgPublishJob(image, 'windows', 'windows-uefi')
-          for image in windows_client_images
-        ] +
-        [
-          ImgPublishJob(image, 'windows', 'windows-uefi')
+          ImgPublishJob(image, env, 'windows', 'windows-uefi')
           for image in windows_server_images
+          for env in server_envs
         ] +
         [
-          ImgPublishJob(image, 'sqlserver', 'sqlserver-uefi')
+          ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
           for image in sql_images
+          for env in sql_envs
         ] +
         [
-          ImgPublishJob(image, 'windows_container', 'windows-uefi')
+          ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
           for image in container_images
-        ] +
-        [
-          MediaImgPublishJob(image, 'windows', 'windows-install-media')
-          for image in windows_install_media_images
+          for env in server_envs
         ],
 
   groups: [
-    ImgGroup('windows-10-testing', windows_10_images),
-    ImgGroup('windows-11-testing', windows_11_images),
-    ImgGroup('windows-2012-testing', windows_2012_images),
-    ImgGroup('windows-2016-testing', windows_2016_images),
-    ImgGroup('windows-2019-testing', windows_2019_images),
-    ImgGroup('windows-2022-testing', windows_2022_images),
-    ImgGroup('sql-2014-testing', sql_2014_images),
-    ImgGroup('sql-2016-testing', sql_2016_images),
-    ImgGroup('sql-2017-testing', sql_2017_images),
-    ImgGroup('sql-2019-testing', sql_2019_images),
-    ImgGroup('sql-2022-testing', sql_2022_images),
-    ImgGroup('container-2019-testing', container_images),
-    ImgGroup('windows-install-media-testing', windows_install_media_images),
+    ImgGroup('windows-2012', windows_2012_images, server_envs),
+    ImgGroup('windows-2016', windows_2016_images, server_envs),
+    ImgGroup('windows-2019', windows_2019_images, server_envs),
+    ImgGroup('windows-2022', windows_2022_images, server_envs),
+    ImgGroup('sql-2014', sql_2014_images, sql_envs),
+    ImgGroup('sql-2016', sql_2016_images, sql_envs),
+    ImgGroup('sql-2017', sql_2017_images, sql_envs),
+    ImgGroup('sql-2019', sql_2019_images, sql_envs),
+    ImgGroup('sql-2022', sql_2022_images, sql_envs),
+    ImgGroup('container-2019', container_images, server_envs),
   ],
 }
