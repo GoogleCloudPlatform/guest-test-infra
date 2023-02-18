@@ -796,12 +796,12 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2017-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2017-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
 
-          SQLImgBuildJob('sql-2019-enterprise-windows-2019-dc', 'windows-server-2019', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-enterprise-windows-2022-dc', 'windows-server-2022', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-standard-windows-2019-dc', 'windows-server-2019', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-standard-windows-2022-dc', 'windows-server-2022', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-web-windows-2019-dc', 'windows-server-2019', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2019-web-windows-2022-dc', 'windows-server-2022', 'sql-2019-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2019-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
 
           SQLImgBuildJob('sql-2022-preview-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-preview', 'windows_gcs_ssms_preview_exe'),
           SQLImgBuildJob('sql-2022-preview-windows-2022', 'windows-server-2022', 'sql-2022-preview', 'windows_gcs_ssms_preview_exe'),
