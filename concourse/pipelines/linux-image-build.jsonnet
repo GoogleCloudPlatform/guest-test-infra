@@ -14,16 +14,6 @@ local imgbuildtask = daisy.daisyimagetask {
   sbom_destination: '((.:sbom-destination))',
 };
 
-local rhuiimgbuildtask = imgbuildtask {
-  project: 'google.com:rhel-infra',
-  vars+: ['instance_service_account=rhui-builder@rhel-infra.google.com.iam.gserviceaccount.com'],
-
-  run+: {
-    // Prepend, as the workflow must be the last arg. Daisy is picky.
-    args: ['-gcs_path=gs://rhel-infra-daisy-bkt/'] + super.args,
-  },
-};
-
 local imagetesttask = {
   local task = self,
 
@@ -196,109 +186,6 @@ local elimgbuildjob = imgbuildjob {
 
   // Add EL and syft args to build task.
   build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'syft_source=((.:syft-secret))'] },
-};
-
-local cdsimgbuildjob = imgbuildjob {
-  local tl = self,
-
-  local acme_server = 'dv.acme-v02.api.pki.goog',
-  local acme_email = 'bigcluster-guest-team@google.com',
-  local rhui_project = 'google.com:rhel-infra',
-
-  image: 'cds',
-  workflow_dir: 'rhui',
-  daily: false,
-
-  extra_tasks: [
-    {
-      task: 'get-acme-account-json',
-      config: gcp_secret_manager.getsecrettask {
-        secret_name: 'rhui_acme_account_json',
-        project: rhui_project,
-        output_path: 'accounts/%s/%s/account.json' % [acme_server, acme_email],
-      },
-    },
-    {
-      task: 'get-acme-account-key',
-      config: gcp_secret_manager.getsecrettask {
-        secret_name: 'rhui_acme_account_key',
-        project: rhui_project,
-        output_path: 'accounts/%s/%s/keys/%s.key' % [acme_server, acme_email, acme_email],
-
-        // Layer onto the same output as previous task
-        inputs+: gcp_secret_manager.getsecrettask.outputs,
-      },
-    },
-    {
-      task: 'get-rhui-tls-key',
-      config: gcp_secret_manager.getsecrettask {
-        secret_name: 'rhui_tls_key',
-        project: rhui_project,
-
-        // Layer onto the same output as previous task
-        inputs+: gcp_secret_manager.getsecrettask.outputs,
-      },
-    },
-    {
-      task: 'generate-csr',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'alpine/openssl' },
-        },
-        inputs: [{ name: 'gcp-secret-manager' }],
-        outputs: [{ name: 'rhui-csr' }],
-        run: {
-          path: 'openssl',
-          args: [
-            'req',
-            '-new',
-            '-key=./gcp-secret-manager/rhui_tls_key',
-            '-subj=/CN=rhui.googlecloud.com',
-            '-out=./rhui-csr/thecsr.pem',
-          ],
-        },
-      },
-    },
-    {
-      task: 'lego-provision-tls-crt',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'goacme/lego' },
-        },
-        params: { GCE_PROJECT: rhui_project },
-        inputs: [
-          { name: 'gcp-secret-manager' },
-          { name: 'rhui-csr' },
-        ],
-        outputs: [{ name: 'gcp-secret-manager' }],
-        run: {
-          path: 'lego',
-          args: [
-            '--csr=./rhui-csr/thecsr.pem',
-            '--email=' + acme_email,
-            '--server=https://%s/directory' % acme_server,
-            '--accept-tos',
-            '--eab',
-            '--dns.resolvers=ns-cloud-b2.googledomains.com:53',
-            '--dns=gcloud',
-            '--path=./gcp-secret-manager/',
-            'run',
-          ],
-        },
-      },
-    },
-  ],
-
-  // Append var to Daisy build task
-  build_task: rhuiimgbuildtask {
-    workflow: tl.workflow,
-    inputs+: [{ name: 'gcp-secret-manager' }],
-    vars+: ['tls_cert_path=../../../../gcp-secret-manager/certificates/rhui.googlecloud.com.crt'],
-  },
 };
 
 local imgpublishjob = {
@@ -636,10 +523,6 @@ local imggroup = {
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
-               common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
-               common.gcssbomresource { image: 'rhua', sbom_destination: 'rhui' },
-               common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
-               common.gcssbomresource { image: 'cds', sbom_destination: 'rhui' },
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
@@ -676,20 +559,6 @@ local imggroup = {
           // EL build jobs
           elimgbuildjob { image: image }
           for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
-        ] +
-        [
-          // RHUI build jobs.
-          imgbuildjob {
-            local tl = self,
-
-            image: 'rhua',
-            workflow_dir: 'rhui',
-            daily: false,
-
-            // Append var to Daisy image build task
-            build_task: rhuiimgbuildtask { workflow: tl.workflow },
-          },
-          cdsimgbuildjob,
         ] +
         [
           // Debian publish jobs
@@ -753,17 +622,6 @@ local imggroup = {
           }
           for env in envs
           for image in rocky_linux_images
-        ] +
-        [
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'rhui',
-            workflow_dir: 'rhui',
-            runtests: false,
-          }
-          for env in envs
-          for image in ['cds', 'rhua']
         ],
   groups: [
     imggroup { name: 'debian', images: debian_images },
@@ -779,6 +637,5 @@ local imggroup = {
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
     imggroup { name: 'rocky-linux', images: rocky_linux_images },
-    imggroup { name: 'rhui', images: ['rhua', 'cds'] },
   ],
 }
