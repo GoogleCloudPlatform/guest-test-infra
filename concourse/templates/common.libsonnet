@@ -53,6 +53,31 @@
     gcs_dir: gcs_dir,
   },
 
+  gcssbomresource:: {
+    local resource = self,
+
+    regexp:: if self.sbom_destination != '' then
+      '%s/%s-v([0-9]+).sbom.json' % [self.sbom_destination, self.image]
+    else
+      error 'must set regexp or sbom_destination in gcssbomresource',
+
+    sbom_destination:: '',
+    image:: error 'must set image in gcssbomresource template',
+    bucket:: tl.prod_bucket,
+
+    name: self.image + '-sbom',
+    type: 'gcs',
+    source: {
+      bucket: resource.bucket,
+      regexp: resource.regexp,
+    },
+  },
+
+  GcsSbomResource(image, sbom_destination):: self.gcssbomresource {
+    image: image,
+    sbom_destination: sbom_destination,
+  },
+
   publishresulttask:: {
     local task = self,
 

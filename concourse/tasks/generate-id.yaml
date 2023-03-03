@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: bash
+
+outputs:
+- name: generate-id
+
+run:
+  path: /usr/local/bin/bash
+  args:
+  - -c
+  - "id=$(date '+%s'); echo $id | tee generate-id/id;"

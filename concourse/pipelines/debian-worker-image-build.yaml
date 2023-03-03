@@ -42,6 +42,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -87,6 +91,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
@@ -132,6 +140,10 @@ jobs:
     file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
   - load_var: start-timestamp-ms
     file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:

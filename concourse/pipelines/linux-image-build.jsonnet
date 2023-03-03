@@ -11,6 +11,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
+  sbom_destination: '((.:sbom-destination))',
 };
 
 local rhuiimgbuildtask = imgbuildtask {
@@ -81,13 +82,23 @@ local imgbuildjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
+      // generate the build id so the tarball and sbom have the same name
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: tl.image_prefix },
+      vars: { prefix: tl.image_prefix, id: '((.:id))'},
     },
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
     // Concourse to treat this job as producing it. So we write an empty file now, and overwrite it later in
     // the daisy workflow. This also generates the final URL for use in the daisy workflow.
+    // This is also done for the sbom file. 
     {
       put: tl.image + '-gcs',
       params: {
@@ -101,6 +112,25 @@ local imgbuildjob = {
     {
       load_var: 'gcs-url',
       file: '%s-gcs/url' % tl.image,
+    },
+    {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: tl.image_prefix, id: '((.:id))'},
+    },
+    {
+      put: tl.image + '-sbom',
+      params: {
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.sbom.json'
+        file: 'build-id-dir-sbom/%s*' % tl.image_prefix,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % tl.image,
     },
     {
       task: 'generate-build-date',
@@ -608,10 +638,14 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
                common.gcsimgresource { image: 'rhua', gcs_dir: 'rhui' },
+               common.gcssbomresource { image: 'rhua', sbom_destination: 'rhui' },
                common.gcsimgresource { image: 'cds', gcs_dir: 'rhui' },
+               common.gcssbomresource { image: 'cds', sbom_destination: 'rhui' },
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -619,8 +653,17 @@ local imggroup = {
                }
                for image in debian_images
              ] +
+             [
+               common.gcssbomresource {
+                 image: image,
+                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+               }
+               for image in debian_images
+             ] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images],
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // Debian build jobs
           imgbuildjob {
