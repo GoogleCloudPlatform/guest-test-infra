@@ -132,6 +132,7 @@ var licenses = []string{
 	`arping: GPL v2 or later`,      // iputils has a license summary file
 	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
 	`This is the Python license. In short, you can use this product in commercial and non-commercial applications`,
+	`This software is licensed under the same terms as Perl5 itself`,
 }
 
 const (
