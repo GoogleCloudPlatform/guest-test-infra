@@ -49,7 +49,7 @@ jobs:
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
-      id: '((.:id))',
+      id: '((.:id))'
       prefix: "debian-10-worker"
   - put: debian-10-worker-gcs
     params:
@@ -99,7 +99,7 @@ jobs:
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
-      id: '((.:id))',
+      id: '((.:id))'
       prefix: "debian-11-worker"
   - put: debian-11-worker-gcs
     params:
@@ -149,7 +149,7 @@ jobs:
   - task: generate-build-id
     file: guest-test-infra/concourse/tasks/generate-build-id.yaml
     vars:
-      id: '((.:id))',
+      id: '((.:id))'
       prefix: "debian-11-worker-arm64"
   - put: debian-11-worker-arm64-gcs
     params:
