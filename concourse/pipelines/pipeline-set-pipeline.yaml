@@ -46,8 +46,6 @@ jobs:
     file: rendered/windows-image-build-standard.json
   - set_pipeline: container-build
     file: rendered/container-build.json
-  - set_pipeline: rhui-release
-    file: rendered/rhui-release.json
   - set_pipeline: artifact-releaser-test
     file: guest-test-infra/concourse/pipelines/artifact-releaser-test.yaml
   - set_pipeline: partner-image-validations
