@@ -539,7 +539,7 @@ local imggroup = {
              [
                common.gcssbomresource {
                  image: image,
-                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+                 regexp: 'debian/%s-v([0-9]+).sbom.json' % common.debian_image_prefixes[self.image],
                }
                for image in debian_images
              ] +
