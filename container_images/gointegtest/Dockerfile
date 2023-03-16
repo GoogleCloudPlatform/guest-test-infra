@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 FROM golang:1.19
-RUN go get -u github.com/jstemmer/go-junit-report
+RUN go install github.com/jstemmer/go-junit-report@latest
 
 FROM gcr.io/compute-image-tools/daisy:latest
 FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
