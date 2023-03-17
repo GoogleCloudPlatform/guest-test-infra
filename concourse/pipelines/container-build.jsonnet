@@ -40,6 +40,7 @@ local buildcontainerimgjob = {
   dockerfile:: 'Dockerfile',
   input:: 'guest-test-infra',
   passed:: '',
+  privileged:: false,
   extra_steps:: [],
   extra_resources:: [],
 
@@ -65,6 +66,7 @@ local buildcontainerimgjob = {
           },
           {
             task: 'build-image',
+	    privileged: job.privileged,
             config: buildcontainerimgtask {
               commit_sha: '((.:%s-commit-sha))' % job.image,
               destination: job.destination,
@@ -124,6 +126,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     BuildContainerImage('registry-image-forked') {
       dockerfile: 'dockerfiles/alpine/Dockerfile',
       repo: 'gcr.io/compute-image-tools',
+      privileged: true,
     },
 
     // These build from the root of the repo.
