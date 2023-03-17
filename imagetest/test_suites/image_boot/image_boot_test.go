@@ -1,4 +1,4 @@
-// +build cit
+// go:build cit
 
 package imageboot
 
@@ -77,9 +77,9 @@ func lookForSshdAndGuestAgentProcess() error {
 
 	if foundSshd && foundGuestAgent {
 		return nil
-	} else {
-		return fmt.Errorf("not found")
 	}
+
+	return fmt.Errorf("not found")
 }
 
 func TestGuestBoot(t *testing.T) {
@@ -162,12 +162,12 @@ func testWindowsGuestSecureBoot() error {
 
 	output, err := cmd.Output()
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to run SecureBoot command: %v", err))
+		return fmt.Errorf("failed to run SecureBoot command: %v", err)
 	}
 
 	// The output will return a string that is either 'True' or 'False'
 	// so we need to parse it and compare here.
-	if trimmed_output := strings.TrimSpace(string(output)); trimmed_output != "True" {
+	if trimmedOutput := strings.TrimSpace(string(output)); trimmedOutput != "True" {
 		return errors.New("Secure boot is not enabled as expected")
 	}
 

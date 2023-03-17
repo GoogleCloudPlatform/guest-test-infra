@@ -1,5 +1,5 @@
-// +build linux
-// +build cit
+//go:build linux || ignore || cit
+// +build linux ignore cit
 
 package disk
 

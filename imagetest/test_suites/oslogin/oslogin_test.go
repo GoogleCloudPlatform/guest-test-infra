@@ -1,5 +1,5 @@
-//go:build cit
-// +build cit
+// go:build cit
+// go:build cit
 
 package oslogin
 
@@ -11,10 +11,10 @@ import (
 	"testing"
 )
 
-const TEST_USERNAME = "sa_105020877179577573373"
-const TEST_UID = "3651018652"
+const testUsername = "sa_105020877179577573373"
+const testUUID = "3651018652"
 
-var TEST_USER_ENTRY = fmt.Sprintf("%s:*:%s:%s::/home/%s:", TEST_USERNAME, TEST_UID, TEST_UID, TEST_USERNAME)
+var testUserEntry = fmt.Sprintf("%s:*:%s:%s::/home/%s:", testUsername, testUUID, testUUID, testUsername)
 
 func TestOsLoginEnabled(t *testing.T) {
 	// Check OS Login enabled in /etc/nsswitch.conf
@@ -105,13 +105,13 @@ func TestOsLoginDisabled(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {
-	cmd := exec.Command("getent", "passwd", TEST_USERNAME)
+	cmd := exec.Command("getent", "passwd", testUsername)
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
 	}
-	if !strings.Contains(string(out), TEST_USER_ENTRY) {
-		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
+	if !strings.Contains(string(out), testUserEntry) {
+		t.Errorf("getent passwd output does not contain %s", testUserEntry)
 	}
 }
 
@@ -127,19 +127,19 @@ func TestGetentPasswdAllUsers(t *testing.T) {
 	if !strings.Contains(string(out), "nobody:x:") {
 		t.Errorf("getent passwd output does not contain user nobody")
 	}
-	if !strings.Contains(string(out), TEST_USER_ENTRY) {
-		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
+	if !strings.Contains(string(out), testUserEntry) {
+		t.Errorf("getent passwd output does not contain %s", testUserEntry)
 	}
 }
 
 func TestGetentPasswdOsloginUID(t *testing.T) {
-	cmd := exec.Command("getent", "passwd", TEST_UID)
+	cmd := exec.Command("getent", "passwd", testUUID)
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("getent command failed %v", err)
 	}
-	if !strings.Contains(string(out), TEST_USER_ENTRY) {
-		t.Errorf("getent passwd output does not contain %s", TEST_USER_ENTRY)
+	if !strings.Contains(string(out), testUserEntry) {
+		t.Errorf("getent passwd output does not contain %s", testUserEntry)
 	}
 }
 
