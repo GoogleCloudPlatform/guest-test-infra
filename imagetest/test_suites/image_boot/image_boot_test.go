@@ -1,4 +1,4 @@
-// +build cit
+// go:build cit
 
 package imageboot
 
