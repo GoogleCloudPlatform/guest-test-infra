@@ -16,14 +16,14 @@ const dockerVolumesDir = "C:\\ProgramData\\docker\\volumes"
 const baseContainerImageRepo = "mcr.microsoft.com/windows/servercore"
 const baseContainerImageTag = "ltsc2019"
 
-func _getDockerContainerId(containerName string) (string, error) {
+func _getDockerContainerID(containerName string) (string, error) {
 	command := fmt.Sprintf("docker ps | findstr -i %s", containerName)
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
 		return "", err
 	}
-	containerId := strings.Fields(output.Stdout)[0]
-	return containerId, nil
+	containerID := strings.Fields(output.Stdout)[0]
+	return containerID, nil
 }
 
 func TestDockerIsInstalled(t *testing.T) {
@@ -122,18 +122,18 @@ func TestRunAndKillBackgroundContainer(t *testing.T) {
 	containerName := "bg_container"
 	command := fmt.Sprintf("docker run --name %s -di %s:%s cmd.exe", containerName, baseContainerImageRepo, baseContainerImageTag)
 	utils.FailOnPowershellFail(command, "Error running container", t)
-	containerId, err := _getDockerContainerId(containerName)
+	containerID, err := _getDockerContainerID(containerName)
 	if err != nil {
 		t.Fatalf("Error getting container ID: %v", err)
 	}
 
-	command = fmt.Sprintf("docker exec %s cmd.exe /c 'dir C:\\'", containerId)
+	command = fmt.Sprintf("docker exec %s cmd.exe /c 'dir C:\\'", containerID)
 	utils.FailOnPowershellFail(command, "Error running exec on container", t)
 
-	command = fmt.Sprintf("docker kill %s", containerId)
+	command = fmt.Sprintf("docker kill %s", containerID)
 	utils.FailOnPowershellFail(command, "Error running kill on container", t)
 
-	command = fmt.Sprintf("docker rm %s", containerId)
+	command = fmt.Sprintf("docker rm %s", containerID)
 	utils.FailOnPowershellFail(command, "Error running rm on container", t)
 }
 
@@ -162,12 +162,12 @@ func testContainerCanMountStorageVolume(t *testing.T) {
 	command = fmt.Sprintf("docker run --name %s -v %s -di %s:%s cmd.exe", containerName, volumeMount, baseContainerImageRepo, baseContainerImageTag)
 	utils.FailOnPowershellFail(command, "Error running container", t)
 
-	containerId, err := _getDockerContainerId(containerName)
+	containerID, err := _getDockerContainerID(containerName)
 	if err != nil {
 		t.Fatalf("Could not get container ID: %v", err)
 	}
 
-	command = fmt.Sprintf("docker exec %s cmd.exe /c 'dir C:\\'", containerId)
+	command = fmt.Sprintf("docker exec %s cmd.exe /c 'dir C:\\'", containerID)
 	output, err = utils.RunPowershellCmd(command)
 	if err != nil {
 		t.Fatalf("Error running exec on container: %v", err)
