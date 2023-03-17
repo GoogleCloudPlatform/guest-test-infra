@@ -1,5 +1,5 @@
-// go:build cit
-// go:build cit
+//go:build cit
+// +build cit
 
 package windowscontainers
 
