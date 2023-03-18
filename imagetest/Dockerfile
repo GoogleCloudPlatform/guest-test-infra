@@ -48,7 +48,7 @@ RUN cd test_suites; for suite in *; do \
   cd ..; \
   done
 
-FROM alpine:edge
+FROM alpine:latest
 RUN apk add --no-cache openssh-keygen
 COPY --from=builder /out/* /
 
