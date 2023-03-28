@@ -707,6 +707,8 @@ local ImgGroup(name, images, environments) = {
   local container_images = [
     'windows-server-2019-dc-for-containers',
     'windows-server-2019-dc-core-for-containers',
+    'windows-server-2019-dc-for-containers-ce',
+    'windows-server-2019-dc-core-for-containers-ce',
   ],
   local windows_install_media_images = [
     'windows-install-media',
@@ -819,6 +821,12 @@ local ImgGroup(name, images, environments) = {
           ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
                                'windows-server-2019-dc-core',
                                'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
+          ContainerImgBuildJob('windows-server-2019-dc-for-containers-ce',
+                               'windows-server-2019-dc',
+                               'windows_container/windows-2019-dc-for-containers-uefi-ce.wf.json'),
+          ContainerImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
+                               'windows-server-2019-dc-core',
+                               'windows_container/windows-2019-dc-core-for-containers-uefi-ce.wf.json'),
 
           // Windows install media builds
 
