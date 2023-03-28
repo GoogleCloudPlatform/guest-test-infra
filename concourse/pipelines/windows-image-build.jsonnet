@@ -823,10 +823,10 @@ local ImgGroup(name, images, environments) = {
                                'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
           ContainerImgBuildJob('windows-server-2019-dc-for-containers-ce',
                                'windows-server-2019-dc',
-                               'windows_container/windows-2019-dc-for-containers-uefi-ce.wf.json'),
+                               'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
           ContainerImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
                                'windows-server-2019-dc-core',
-                               'windows_container/windows-2019-dc-core-for-containers-uefi-ce.wf.json'),
+                               'windows_container/windows-2019-dc-core-for-containers-ce-uefi.wf.json'),
 
           // Windows install media builds
 
