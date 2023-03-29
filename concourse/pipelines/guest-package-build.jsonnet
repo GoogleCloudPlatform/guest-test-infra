@@ -140,6 +140,7 @@ local buildpackagejob = {
                   '-var:git_ref=((.:commit-sha))',
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
+                  '-var:sbom_util_gcs_root=gs://gce-image-sbom-util/linux',
                   '-var:build_dir=' + tl.build_dir,
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
