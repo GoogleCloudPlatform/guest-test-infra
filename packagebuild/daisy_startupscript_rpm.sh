@@ -40,13 +40,13 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 
 # Determine the latest sbomutil gcs path if available
 if [ -n "${SBOM_UTIL_GCS_ROOT}" ]; then
-  SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT 2> /dev/null | tail -1)
+  SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT | tail -1)
 fi
 
 # Fetch sbomutil from gcs if available
 if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
   echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-  gsutil cp "${SBOM_UTIL_GCS_PATH}/sbomutil" ./
+  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" ./
 fi
 
 # Install git2 as this is not available in centos 6/7
