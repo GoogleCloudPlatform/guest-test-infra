@@ -13,4 +13,4 @@ run:
   path: sh
   args:
   - -exc
-  - "buildid=((id)); echo $buildid | tee build-id-dir-sbom/build-id-sbom; touch build-id-dir-sbom/((prefix))-v${buildid}.sbom.json"
+  - "buildid=((id)); uuid=$(date '+%s'); echo $buildid | tee build-id-dir-sbom/build-id-sbom; touch build-id-dir-sbom/((prefix))-v${buildid}-${uuid}.sbom.json"

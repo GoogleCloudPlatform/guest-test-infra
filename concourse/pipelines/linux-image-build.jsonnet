@@ -111,7 +111,7 @@ local imgbuildjob = {
     {
       put: tl.image + '-sbom',
       params: {
-        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.sbom.json'
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107-1681318938.sbom.json'
         file: 'build-id-dir-sbom/%s*' % tl.image_prefix,
       },
       get_params: {
