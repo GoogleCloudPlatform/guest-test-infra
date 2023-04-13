@@ -58,7 +58,7 @@
     local resource = self,
 
     regexp:: if self.sbom_destination != '' then
-      'sboms/%s/%s-v([0-9]+)-([0-9]+).sbom.json' % [self.sbom_destination, self.image_prefix]
+      'sboms/%s/%s/%s-v([0-9]+)-([0-9]+).sbom.json' % [self.sbom_destination, self.image_prefix, self.image_prefix]
     else
       error 'must set regexp or sbom_destination in gcssbomresource',
 
