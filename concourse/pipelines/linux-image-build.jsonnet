@@ -536,13 +536,8 @@ local imggroup = {
                }
                for image in debian_images
              ] +
-             [
-               common.gcssbomresource {
-                 image: image,
-                 regexp: 'debian/%s-v([0-9]+).sbom.json' % common.debian_image_prefixes[self.image],
-               }
-               for image in debian_images
-             ] +
+             [common.gcssbomresource { image: image, image_prefix: common.debian_image_prefixes[image],
+                                       sbom_destination: 'debian' } for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
