@@ -9,6 +9,7 @@ local common = import '../templates/common.libsonnet';
     source_gcs_path:: error 'must set source_gcs_path in gcepublishtask',
     source_version:: error 'must set source_version in gcepublishtask',
     wf:: error 'must set wf in gcepublishtask',
+    sbom_gcs_path:: '',
 
     platform: 'linux',
     image_resource: {
