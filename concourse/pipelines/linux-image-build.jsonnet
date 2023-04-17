@@ -234,6 +234,15 @@ local imgpublishjob = {
             params: { skip_download: 'true' },
           },
           {
+            get: tl.image + '-sbom',
+            passed: [tl.passed],
+            params: { skip_download: 'true' },
+          },
+          {
+            load_var: 'sbom-destination',
+            file: '%s-sbom/url' % tl.image,
+          },
+          {
             load_var: 'source-version',
             file: tl.image + '-gcs/version',
           },
@@ -251,6 +260,7 @@ local imgpublishjob = {
               task: 'publish-' + tl.image,
               config: arle.arlepublishtask {
                 gcs_image_path: tl.gcs,
+                sbom_gcs_path: '((.:sbom-destination))',
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
                 wf: tl.workflow,
