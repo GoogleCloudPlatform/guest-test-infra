@@ -276,6 +276,7 @@ local imgpublishjob = {
                 'publish-%s-%s' % [tl.env, tl.image],
               config: arle.gcepublishtask {
                 source_gcs_path: tl.gcs,
+                sbom_gcs_path: '((.:sbom-destination))',
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
                 wf: tl.workflow,

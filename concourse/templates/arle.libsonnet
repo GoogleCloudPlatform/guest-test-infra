@@ -45,6 +45,7 @@ local common = import '../templates/common.libsonnet';
       wf:: error 'must set wf in arlepublishtask',
       source_version:: error 'must set source_version in arlepublishtask',
       publish_version:: error 'must set publish_version in arlepublishtask',
+      sbom_gcs_path:: '',
 
       platform: 'linux',
       image_resource: {
