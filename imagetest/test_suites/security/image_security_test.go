@@ -366,6 +366,7 @@ var (
 	allowedUDP = []string{
 		"68",  // bootpc aka DHCP client port
 		"123", // ntp
+		"546", // dhcp v6 client port
 	}
 )
 
