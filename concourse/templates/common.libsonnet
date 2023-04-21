@@ -9,6 +9,8 @@
     'debian-10': 'debian-10-buster',
     'debian-11': 'debian-11-bullseye',
     'debian-11-arm64': 'debian-11-bullseye-arm64',
+    'debian-12': 'debian-12-bookworm',
+    'debian-12-arm64': 'debian-12-bookworm-arm64',
   },
 
   gitresource:: {
