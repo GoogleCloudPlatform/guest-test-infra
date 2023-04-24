@@ -19,6 +19,16 @@ import (
 const gcomment = "# Added by Google"
 
 func TestHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
+	// CentOS Stream 9 is currently broken.
+	if strings.Contains(image, "centos-stream-9") {
+		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
+	}
+
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
@@ -49,6 +59,11 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
+	// CentOS Stream 9 is currently broken.
+	if strings.Contains(image, "centos-stream-9") {
+		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
+	}
+
 	if strings.Contains(image, "sles") {
 		// No dhclient and no dhclient exit hook.
 		t.Skip("Custom hostnames not supported on SLES")
@@ -68,8 +83,9 @@ func TestFQDN(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	if strings.Contains(image, "rhel-7-4-sap") {
-		t.Skip("hostname is not working well on RHEL 7.4 for SAP")
+	// CentOS Stream 9 is currently broken.
+	if strings.Contains(image, "centos-stream-9") {
+		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
 	}
 
 	metadataHostname, err := utils.GetMetadata("hostname")
