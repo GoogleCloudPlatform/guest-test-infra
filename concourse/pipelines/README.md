@@ -28,11 +28,6 @@ try to maximize the amount that is templated).
 Used to perform testing of an internal artifact releasing system. It principally
 involves gcloud commands to publish PubSub messages.
 
-### bare-metal-image-build.yaml
-
-Creates 'derivative' RHEL 7 & 8 image builds using Daisy for use on bare metal
-instances.
-
 ### container-build.jsonnet
 
 Builds container images using [Kaniko], and publishes them to private & public
