@@ -267,60 +267,20 @@ local imagevalidationjob = {
   ],
 };
 
+// Ubuntu amd64 daily images
 local ubuntudevelimages = [
-  'ubuntu-1604-lts',
   'ubuntu-1804-lts',
   'ubuntu-2004-lts',
   'ubuntu-2204-lts',
-  'ubuntu-2210-amd64',
-  'ubuntu-minimal-1604-lts',
-  'ubuntu-minimal-1804-lts',
-  'ubuntu-minimal-2004-lts',
-  'ubuntu-minimal-2204-lts',
-  'ubuntu-minimal-2210-amd64',
+  'ubuntu-2304-amd64',
 ];
 
+// Ubuntu arm64 daily images
 local ubuntuarm64develimages = [
   'ubuntu-1804-lts-arm64',
   'ubuntu-2004-lts-arm64',
   'ubuntu-2204-lts-arm64',
-  'ubuntu-2210-arm64',
-  'ubuntu-minimal-1804-lts-arm64',
-  'ubuntu-minimal-2004-lts-arm64',
-  'ubuntu-minimal-2204-lts-arm64',
-  'ubuntu-minimal-2210-arm64',
-];
-
-local ubuntuproposedimages = [
-  //'ubuntu-1804-arm64-lts',
-  'ubuntu-1804-lts',
-  //'ubuntu-2004-arm64-lts',
-  'ubuntu-2004-lts',
-  'ubuntu-2110',
-  'ubuntu-guest-1804-lts',
-  'ubuntu-guest-2004-lts',
-  'ubuntu-guest-2204-lts',
-  //'ubuntu-2110-arm64',
-  //'ubuntu-2204-arm64-lts',
-  //'ubuntu-2204-lts',
-  //'ubuntu-2210-amd64',
-  //'ubuntu-2210-arm64',
-  //'ubuntu-minimal-1804-arm64-lts',
-  //'ubuntu-minimal-1804-lts',
-  //'ubuntu-minimal-2004-arm64-lts',
-  //'ubuntu-minimal-2004-lts',
-  //'ubuntu-minimal-2110',
-  //'ubuntu-minimal-2110-arm64',
-  //'ubuntu-minimal-2204-arm64-lts',
-  //'ubuntu-minimal-2204-lts',
-  //'ubuntu-minimal-2210-amd64',
-  //'ubuntu-minimal-2210-arm64',
-  'ubuntu-pro-1604-lts',
-  'ubuntu-pro-1804-lts',
-  'ubuntu-pro-2004-lts',
-  'ubuntu-pro-2204-lts',
-  'ubuntu-pro-fips-1804-lts',
-  'ubuntu-pro-fips-2004-lts',
+  'ubuntu-2304-arm64',
 ];
 
 
@@ -353,16 +313,6 @@ local ubuntuproposedimages = [
     for family in ubuntudevelimages + ubuntuarm64develimages
   ] + [
     {
-      name: family + '-proposed',
-      type: 'gce-image',
-      source: {
-        project: 'ubuntu-os-cloud-image-proposed',
-        family: family,
-      },
-    }
-    for family in ubuntuproposedimages
-  ] + [
-    {
       name: 'sles-15',
       type: 'gce-image',
       source: {
@@ -388,12 +338,6 @@ local ubuntuproposedimages = [
     for family in ubuntuarm64develimages
   ] + [
     imagevalidationjob {
-      image: family + '-proposed',
-      bucket: 'ubuntu-gce-validation-results',
-    }
-    for family in ubuntuproposedimages
-  ] + [
-    imagevalidationjob {
       image: 'sles-15',
       bucket: 'sles-gce-validation-results',
     },
@@ -404,13 +348,6 @@ local ubuntuproposedimages = [
       jobs: [
         family + '-devel'
         for family in ubuntudevelimages + ubuntuarm64develimages
-      ],
-    },
-    {
-      name: 'ubuntu-proposed',
-      jobs: [
-        family + '-proposed'
-        for family in ubuntuproposedimages
       ],
     },
     {
