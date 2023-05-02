@@ -19,6 +19,11 @@ import (
 const gcomment = "# Added by Google"
 
 func TestHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("couldn't get image from metadata")
+	}
+
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
@@ -49,15 +54,6 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	if strings.Contains(image, "sles") {
-		// No dhclient and no dhclient exit hook.
-		t.Skip("Custom hostnames not supported on SLES")
-	}
-	if strings.Contains(image, "ubuntu") {
-		// No dhclient and no dhclient exit hook.
-		t.Skip("Custom hostnames not supported on Ubuntu")
-	}
-
 	TestFQDN(t)
 }
 
@@ -67,11 +63,6 @@ func TestFQDN(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-
-	if strings.Contains(image, "rhel-7-4-sap") {
-		t.Skip("hostname is not working well on RHEL 7.4 for SAP")
-	}
-
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")

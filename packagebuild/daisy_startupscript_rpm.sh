@@ -30,12 +30,24 @@ GIT_REF=$(get_md git-ref)
 BUILD_DIR=$(get_md build-dir)
 VERSION=$(get_md version)
 VERSION=${VERSION:-"dummy"}
+SBOM_UTIL_GCS_ROOT=$(get_md sbom-util-gcs-root)
 
 echo "Started build..."
 
 # common.sh contains functions common to all builds.
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
+
+# Determine the latest sbomutil gcs path if available
+if [ -n "${SBOM_UTIL_GCS_ROOT}" ]; then
+  SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT | tail -1)
+fi
+
+# Fetch sbomutil from gcs if available
+if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
+  echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
+  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" ./
+fi
 
 # Install git2 as this is not available in centos 6/7
 VERSION_ID=6

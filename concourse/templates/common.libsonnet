@@ -3,11 +3,14 @@
 
   prod_topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod',
   prod_bucket:: 'artifact-releaser-prod-rtp',
+  sbom_bucket:: 'gce-image-sboms',
   debian_image_prefixes:: {
     'debian-9': 'debian-9-stretch',
     'debian-10': 'debian-10-buster',
     'debian-11': 'debian-11-bullseye',
     'debian-11-arm64': 'debian-11-bullseye-arm64',
+    'debian-12': 'debian-12-bookworm',
+    'debian-12-arm64': 'debian-12-bookworm-arm64',
   },
 
   gitresource:: {
@@ -57,13 +60,14 @@
     local resource = self,
 
     regexp:: if self.sbom_destination != '' then
-      '%s/%s-v([0-9]+).sbom.json' % [self.sbom_destination, self.image]
+      'sboms/%s/%s/%s-v([0-9]+)-([0-9]+).sbom.json' % [self.sbom_destination, self.image_prefix, self.image_prefix]
     else
       error 'must set regexp or sbom_destination in gcssbomresource',
 
     sbom_destination:: '',
+    image_prefix:: self.image,
     image:: error 'must set image in gcssbomresource template',
-    bucket:: tl.prod_bucket,
+    bucket:: tl.sbom_bucket,
 
     name: self.image + '-sbom',
     type: 'gcs',

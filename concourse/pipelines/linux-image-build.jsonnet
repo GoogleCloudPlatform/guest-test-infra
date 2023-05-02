@@ -111,7 +111,7 @@ local imgbuildjob = {
     {
       put: tl.image + '-sbom',
       params: {
-        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107.sbom.json'
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107-1681318938.sbom.json'
         file: 'build-id-dir-sbom/%s*' % tl.image_prefix,
       },
       get_params: {
@@ -234,6 +234,15 @@ local imgpublishjob = {
             params: { skip_download: 'true' },
           },
           {
+            get: tl.image + '-sbom',
+            passed: [tl.passed],
+            params: { skip_download: 'true' },
+          },
+          {
+            load_var: 'sbom-destination',
+            file: '%s-sbom/url' % tl.image,
+          },
+          {
             load_var: 'source-version',
             file: tl.image + '-gcs/version',
           },
@@ -251,6 +260,7 @@ local imgpublishjob = {
               task: 'publish-' + tl.image,
               config: arle.arlepublishtask {
                 gcs_image_path: tl.gcs,
+                gcs_sbom_path: '((.:sbom-destination))',
                 source_version: 'v((.:source-version))',
                 publish_version: '((.:publish-version))',
                 wf: tl.workflow,
@@ -473,7 +483,7 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-8', 'almalinux-9'],
-  local debian_images = ['debian-10', 'debian-11', 'debian-11-arm64'],
+  local debian_images = ['debian-10', 'debian-11', 'debian-11-arm64', 'debian-12', 'debian-12-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_sap_images = [
     'rhel-7-7-sap',
@@ -536,13 +546,8 @@ local imggroup = {
                }
                for image in debian_images
              ] +
-             [
-               common.gcssbomresource {
-                 image: image,
-                 regexp: 'debian/%s-v([0-9]+).sbom.json' % common.debian_image_prefixes[self.image],
-               }
-               for image in debian_images
-             ] +
+             [common.gcssbomresource { image: image, image_prefix: common.debian_image_prefixes[image],
+                                       sbom_destination: 'debian' } for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +

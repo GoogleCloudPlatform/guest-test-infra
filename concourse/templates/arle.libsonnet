@@ -44,6 +44,7 @@ local common = import '../templates/common.libsonnet';
       wf:: error 'must set wf in arlepublishtask',
       source_version:: error 'must set source_version in arlepublishtask',
       publish_version:: error 'must set publish_version in arlepublishtask',
+      gcs_sbom_path:: '',
 
       platform: 'linux',
       image_resource: {
@@ -56,8 +57,8 @@ local common = import '../templates/common.libsonnet';
         args: [
           '-exc',
           "wf=$(sed 's/\\\"/\\\\\"/g' ./compute-image-tools/daisy_workflows/build-publish/%s | tr -d '\\n')\n" % task.wf +
-          'gcloud pubsub topics publish "%s" --message "{\\"type\\": \\"insertImage\\", \\"request\\":\n{\\"image_name\\": \\"%s\\", \\"gcs_image_path\\": \\"%s\\", \\"image_publish_template\\": \\"${wf}\\",\n      \\"source_version\\": \\"%s\\", \\"publish_version\\": \\"%s\\", \\"release_notes\\": \\"\\"}}"\n' %
-          [task.topic, task.image_name, task.gcs_image_path, task.source_version, task.publish_version],
+          'gcloud pubsub topics publish "%s" --message "{\\"type\\": \\"insertImage\\", \\"request\\":\n{\\"image_name\\": \\"%s\\", \\"gcs_image_path\\": \\"%s\\", \\"image_publish_template\\": \\"${wf}\\",\n      \\"source_version\\": \\"%s\\", \\"publish_version\\": \\"%s\\", \\"release_notes\\": \\"\\", \\"gcs_sbom_path\\:: \\"%s\\"}}"\n' %
+          [task.topic, task.image_name, task.gcs_image_path, task.source_version, task.publish_version, task.gcs_sbom_path],
         ],
       },
     },
