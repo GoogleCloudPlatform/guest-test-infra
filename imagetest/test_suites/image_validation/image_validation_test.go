@@ -24,11 +24,6 @@ func TestHostname(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	// CentOS Stream 9 is currently broken.
-	if strings.Contains(image, "centos-stream-9") {
-		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
-	}
-
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
@@ -59,20 +54,6 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	// CentOS Stream 9 is currently broken.
-	if strings.Contains(image, "centos-stream-9") {
-		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
-	}
-
-	if strings.Contains(image, "sles") {
-		// No dhclient and no dhclient exit hook.
-		t.Skip("Custom hostnames not supported on SLES")
-	}
-	if strings.Contains(image, "ubuntu") {
-		// No dhclient and no dhclient exit hook.
-		t.Skip("Custom hostnames not supported on Ubuntu")
-	}
-
 	TestFQDN(t)
 }
 
@@ -82,12 +63,6 @@ func TestFQDN(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-
-	// CentOS Stream 9 is currently broken.
-	if strings.Contains(image, "centos-stream-9") {
-		t.Skip("CentOS Stream 9 is currently not working with hostname configuration.")
-	}
-
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
