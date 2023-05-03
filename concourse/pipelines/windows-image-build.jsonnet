@@ -290,6 +290,12 @@ local containerimgbuildjob = {
       file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
     },
     {
+      get: '%s-gcs' % job.base_image,
+      params: { skip_download: 'true' },
+      passed: ['publish-to-testing-' + job.base_image],
+      trigger: true,
+    },
+    {
       load_var: 'start-timestamp-ms',
       file: 'timestamp/timestamp-ms',
     },
