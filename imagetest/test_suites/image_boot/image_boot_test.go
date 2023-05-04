@@ -21,7 +21,7 @@ import (
 // The values have been decided based on running spot tests for different images.
 var imageFamilyBootTimeThresholdMap = map[string]int{
 	"almalinux":   60,
-	"centos":      160, // CentOS Stream 8 currently has a bug that causes slow boots.
+	"centos":      60,
 	"debian":      50,
 	"rhel":        60,
 	"rocky-linux": 60,
