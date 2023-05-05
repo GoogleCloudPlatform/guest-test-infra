@@ -19,11 +19,6 @@ import (
 const gcomment = "# Added by Google"
 
 func TestHostname(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
-
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
@@ -49,20 +44,11 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestCustomHostname(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
-
 	TestFQDN(t)
 }
 
 // TestFQDN tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestFQDN(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
@@ -180,6 +166,18 @@ func TestHostsFile(t *testing.T) {
 	if strings.Contains(image, "ubuntu") {
 		// Ubuntu does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on Ubuntu")
+	}
+	if strings.Contains(image, "centos-stream-9") {
+		// Ubuntu does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on EL9")
+	}
+	if strings.Contains(image, "rhel-9") {
+		// Ubuntu does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on EL9")
+	}
+	if strings.Contains(image, "rocky-linux-9") {
+		// Ubuntu does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on EL9")
 	}
 
 	b, err := ioutil.ReadFile("/etc/hosts")
