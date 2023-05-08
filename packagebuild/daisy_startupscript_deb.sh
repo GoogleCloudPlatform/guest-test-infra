@@ -58,6 +58,8 @@ if grep -q '+deb' packaging/debian/changelog; then
   # Currently Debian 11 doesn't use a numerical version number in its release.
   if [[ "${DEB}" =~ "bullseye" ]]; then
     DEB="11"
+  elif [[ "${DEB}" =~ "bookworm" ]]; then
+    DEB="12"
   fi
   DEB="+deb${DEB/.*}"
 fi

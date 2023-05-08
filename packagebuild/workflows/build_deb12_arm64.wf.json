@@ -1,5 +1,5 @@
 {
-  "Name": "deb9",
+  "Name": "deb12",
   "Timeout": "20m",
   "Vars": {
     "gcs_path": {
@@ -31,12 +31,14 @@
         "Path": "./build_package.wf.json",
         "Vars": {
           "type": "deb",
-          "sourceImage": "projects/debian-cloud/global/images/family/debian-9",
+          "sourceImage": "projects/bct-prod-images/global/images/family/debian-12-arm64",
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
           "build_dir": "${build_dir}",
+          "machine_type": "t2a-standard-2",
+          "zone": "us-central1-a",
           "version": "${version}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}"
         }
