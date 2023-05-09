@@ -54,6 +54,11 @@ func TestCustomHostname(t *testing.T) {
 		t.Skip("CentOS Stream 9 is currently not working with custom hostanmes.")
 	}
 
+	// RHEL 9 is currently broken.
+	if strings.Contains(image, "rhel-9") {
+		t.Skip("RHEL 9 is currently not working with custom hostanmes.")
+	}
+
 	TestFQDN(t)
 }
 
