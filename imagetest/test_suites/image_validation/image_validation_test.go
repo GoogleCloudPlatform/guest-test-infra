@@ -44,6 +44,16 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
 func TestCustomHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata")
+	}
+
+	// CentOS Stream 9 is currently broken.
+	if strings.Contains(image, "centos-stream-9") {
+		t.Skip("CentOS Stream 9 is currently not working with custom hostanmes.")
+	}
+
 	TestFQDN(t)
 }
 
