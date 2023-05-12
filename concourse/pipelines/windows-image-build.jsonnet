@@ -249,12 +249,12 @@ local sqlimgbuildjob = {
   ],
 };
 
-local containerimgbuildjob = {
+local dockerceimgbuildjob = {
   local job = self,
 
-  image:: error 'must set image in containerimgbuildjob',
-  base_image:: error 'must set base_image in containerimgbuildjob',
-  workflow:: error 'must set workflow in containerimgbuildjob',
+  image:: error 'must set image in dockerceimgbuildjob',
+  base_image:: error 'must set base_image in dockerceimgbuildjob',
+  workflow:: error 'must set workflow in dockerceimgbuildjob',
 
   // Start of job.
   name: 'build-' + job.image,
@@ -321,6 +321,93 @@ local containerimgbuildjob = {
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
+        ],
+      },
+    },
+  ],
+};
+
+local containerimgbuildjob = {
+  local job = self,
+
+  image:: error 'must set image in containerimgbuildjob',
+  base_image:: error 'must set base_image in containerimgbuildjob',
+  workflow:: error 'must set workflow in containerimgbuildjob',
+
+  // Start of job.
+  name: 'build-' + job.image,
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  plan: [
+    {
+      get: '%s-gcs' % job.base_image,
+      params: { skip_download: 'true' },
+      passed: ['publish-to-testing-' + job.base_image],
+      trigger: true,
+    },
+    { get: 'compute-image-tools' },
+    { get: 'guest-test-infra' },
+    {
+      task: 'generate-timestamp',
+      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
+    },
+    {
+      load_var: 'start-timestamp-ms',
+      file: 'timestamp/timestamp-ms',
+    },
+    {
+      task: 'generate-id',
+      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
+    },
+    {
+      load_var: 'id',
+      file: 'generate-id/id',
+    },
+    {
+      task: 'generate-build-id',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
+      vars: { prefix: job.image, id: '((.:id))' },
+    },
+    {
+      put: '%s-gcs' % job.image,
+      params: { file: 'build-id-dir/%s*' % job.image },
+    },
+    {
+      load_var: 'gcs-url',
+      file: '%s-gcs/url' % job.image,
+    },
+    {
+      task: 'get-secret-license',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'mirantis-license' },
+    },
+    {
+      load_var: 'mirantis-license',
+      file: 'gcp-secret-manager/mirantis-license',
+    },
+    {
+      task: 'daisy-build',
+      config: daisy.daisyimagetask {
+        gcs_url: '((.:gcs-url))',
+        workflow: job.workflow,
+        vars+: [
+          'source_image_project=bct-prod-images',
+          'docker_license_file=((.:mirantis-license))',
         ],
       },
     },
@@ -588,6 +675,12 @@ local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
   workflow: workflow,
 };
 
+local DockerCEImgBuildJob(image, base_image, workflow) = dockerceimgbuildjob {
+  image: image,
+  base_image: base_image,
+  workflow: workflow,
+};
+
 local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
   workflow: 'windows/%s.wf.json' % image,
@@ -825,12 +918,12 @@ local ImgGroup(name, images, environments) = {
           ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
                                'windows-server-2019-dc-core',
                                'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-dc-for-containers-ce',
-                               'windows-server-2019-dc',
-                               'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
-                               'windows-server-2019-dc-core',
-                               'windows_container/windows-2019-dc-core-for-containers-ce-uefi.wf.json'),
+          DockerCEImgBuildJob('windows-server-2019-dc-for-containers-ce',
+                              'windows-server-2019-dc',
+                              'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
+          DockerCEImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
+                              'windows-server-2019-dc-core',
+                              'windows_container/windows-2019-dc-core-for-containers-ce-uefi.wf.json'),
 
           // Windows install media builds
 
