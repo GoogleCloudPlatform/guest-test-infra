@@ -63,6 +63,12 @@ if [[ ${VERSION_ID} =~ 6|7 ]]; then
   GIT="git236"
 fi
 
+# Install DevToolSet with gcc 10 for EL7.
+# Centos 7 has only gcc 4.8.5 available.
+if (( ${VERSION_ID} == 7 )); then
+  try_command yum install -y centos-release-scl devtoolset-10-gcc-c++.x86_64
+fi
+
 # Enable CRB repo on EL9.
 if [[ ${VERSION_ID} = 9 ]]; then
   eval $(grep ID /etc/os-release)
@@ -116,6 +122,12 @@ done
 COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
 
 echo "Building package(s)"
+
+# Enable gcc 10 for EL7 only and before rpmbuild
+if (( ${VERSION_ID} == 7 )); then
+  source /opt/rh/devtoolset-10/enable
+fi
+
 for spec in $TOBUILD; do
   PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
