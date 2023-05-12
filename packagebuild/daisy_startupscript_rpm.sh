@@ -66,7 +66,8 @@ fi
 # Install DevToolSet with gcc 10 for EL7.
 # Centos 7 has only gcc 4.8.5 available.
 if (( ${VERSION_ID} == 7 )); then
-  try_command yum install -y centos-release-scl devtoolset-10-gcc-c++.x86_64
+  try_command yum install -y centos-release-scl
+  try_command yum install -y devtoolset-10-gcc-c++.x86_64
 fi
 
 # Enable CRB repo on EL9.
