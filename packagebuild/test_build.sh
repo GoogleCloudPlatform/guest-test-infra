@@ -20,7 +20,7 @@
 #        GCS_PATH=gs://vorakl-dev-builds/packages \
 #        VERSION=0.01 \
 #        BUILD_DIR=. \
-#    ./test_build_ver.sh 
+#    ./test_build.sh 
 
 DEFAULT_TYPE='deb11'
 DEFAULT_PROJECT='gcp-guest'
