@@ -28,6 +28,9 @@ DEBIAN_FRONTEND=noninteractive
 
 echo "Started build..."
 
+SBOM_UTIL="${PWD}/sbomutil"
+SBOM_DIR="${PWD}"
+
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
@@ -39,7 +42,7 @@ fi
 # Fetch sbomutil from gcs if available
 if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
   echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" ./
+  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" $(dirname $SBOM_UTIL)
 fi
 
 try_command apt-get -y update
@@ -105,10 +108,22 @@ dch --create -M -v 1:${VERSION}-${RELEASE} --package $PKGNAME -D stable \
   "Debian packaging for ${PKGNAME}"
 DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
+SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
+
 for deb in $BUILD_DIR/*.deb; do
   dpkg-deb -I $deb
   dpkg-deb -c $deb
+  # We need only a single sbom, if we have multiple binary files for the same package
+  # we ignore the second one.
+  if [ ! -e "${SBOM_FILE}" ]; then
+    ${SBOM_UTIL} -archetype=source -comp_name="${PKGNAME}" -pkg_source="${BUILD_DIR}" \
+      -pkg_binary="${deb}" -output="${SBOM_FILE}"
+
+    echo "copying ${SBOM_FILE} to $GCS_PATH/"
+    gsutil cp -n ${SBOM_FILE} "$GCS_PATH/"
+  fi
 done
+
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
 gsutil cp -n $BUILD_DIR/*.deb "$GCS_PATH/"
 build_success Built $BUILD_DIR/*.deb
