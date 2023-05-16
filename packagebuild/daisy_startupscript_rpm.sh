@@ -34,6 +34,9 @@ SBOM_UTIL_GCS_ROOT=$(get_md sbom-util-gcs-root)
 
 echo "Started build..."
 
+SBOM_UTIL="${PWD}/sbomutil"
+SBOM_DIR="${PWD}"
+
 # common.sh contains functions common to all builds.
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
@@ -46,7 +49,7 @@ fi
 # Fetch sbomutil from gcs if available
 if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
   echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" ./
+  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" $(dirname $SBOM_UTIL)
 fi
 
 # Install git2 as this is not available in centos 6/7
@@ -146,6 +149,19 @@ for spec in $TOBUILD; do
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
     --define "_go ${GO:-"UNSET"}" --define "_gopath ${GOPATH:-"UNSET"}" \
     -ba "${RPMDIR}/SPECS/${spec}"
+
+  SRPM_FILE=$(find ${RPMDIR}/SRPM -iname "${PKGNAME}*.rpm")
+  SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
+
+  # We need only a single sbom, if we have multiple specs for the same package
+  # we ignore the second one.
+  if [ ! -e "${SBOM_FILE}" ]; then
+    ${SBOM_UTIL} -archetype=source -comp_name="${PKGNAME}" -pkg_source="${BUILD_DIR}" \
+      -pkg_binary="${SRPM_FILE}" -output="${SBOM_FILE}"
+
+    echo "copying ${SBOM_FILE} to $GCS_PATH/"
+    gsutil cp -n ${SBOM_FILE} "$GCS_PATH/"
+  fi
 done
 
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
