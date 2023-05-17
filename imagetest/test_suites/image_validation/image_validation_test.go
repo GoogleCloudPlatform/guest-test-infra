@@ -177,16 +177,20 @@ func TestHostsFile(t *testing.T) {
 		// Ubuntu does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on Ubuntu")
 	}
+	if strings.Contains(image, "almalinux-9") {
+		// Does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on EL9")
+	}
 	if strings.Contains(image, "centos-stream-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 	if strings.Contains(image, "rhel-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 	if strings.Contains(image, "rocky-linux-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 
