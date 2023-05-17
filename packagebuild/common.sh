@@ -89,7 +89,7 @@ function deploy_sbomutil() {
     return
   fi
 
-  export SBOM_UTIL="${PWD}/sbomutil"
+  export SBOM_UTIL=$(realpath "${PWD}/sbomutil")
   export SBOM_DIR="${PWD}"
 
   # Determine the latest sbomutil gcs path if available
@@ -126,7 +126,7 @@ function generate_and_push_sbom() {
   local PKGNAME=$3
   local VERSION=$4
 
-  SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
+  SBOM_FILE=$(realpath "${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json")
   if [ -e "${SBOM_FILE}" ]; then
     echo "SBOM was already generated for this package, skipping..."
     return
