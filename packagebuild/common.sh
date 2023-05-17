@@ -100,7 +100,7 @@ function deploy_sbomutil() {
   # Fetch sbomutil from gcs if available
   if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
     echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-    gsutil cp -L "${SBOM_UTIL_GCS_PATH%/}/sbomutil" "${SBOM_UTIL}"
+    gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" "${SBOM_UTIL}"
 
     if [ -e "${SBOM_UTIL}" ]; then
       chmod +x "${SBOM_UTIL}"
@@ -136,5 +136,5 @@ function generate_and_push_sbom() {
     -pkg_binary="${BINARY_FILE}" -output="${SBOM_FILE}"
 
   echo "copying ${SBOM_FILE} to $GCS_PATH/"
-  gsutil cp -n -L ${SBOM_FILE} "$GCS_PATH/"
+  gsutil cp -n ${SBOM_FILE} "$GCS_PATH/"
 }
