@@ -42,45 +42,30 @@ func TestHostname(t *testing.T) {
 	}
 }
 
-// TestCustomHostname tests the 'fully qualified domain name', using the logic in the `hostname` utility.
+// TestCustomHostname tests the 'fully qualified domain name'.
 func TestCustomHostname(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
 
-	// AlmaLinux 9 is currently broken.
-	if strings.Contains(image, "almalinux-9") {
-		t.Skip("AlmaLinux 9 is currently not working with custom hostanmes.")
-	}
-
-	// CentOS Stream 9 is currently broken.
-	if strings.Contains(image, "centos-stream-9") {
-		t.Skip("CentOS Stream 9 is currently not working with custom hostanmes.")
-	}
-
-	// RHEL 9 is currently broken.
-	if strings.Contains(image, "rhel-9") {
-		t.Skip("RHEL 9 is currently not working with custom hostanmes.")
-	}
-
-	// Rocky Linux 9 is currently broken.
-	if strings.Contains(image, "rocky-linux-9") {
-		t.Skip("Rocky Linux 9 is currently not working with custom hostanmes.")
+	// SLES doesn't support custom hostnames.
+	if strings.Contains(image, "sles") {
+		t.Skip("SLES doesn't support custom hostnames.")
 	}
 
 	TestFQDN(t)
 }
 
-// TestFQDN tests the 'fully qualified domain name', using the logic in the `hostname` utility.
+// TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
 
-	// This command is not safe on multi-NIC VMs. See HOSTNAME(1), section 'THE FQDN'.
-	cmd := exec.Command("/bin/hostname", "-A")
+	// Get the hostname with FQDN.
+	cmd := exec.Command("/bin/hostname", "-f")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("hostname command failed")
@@ -192,16 +177,20 @@ func TestHostsFile(t *testing.T) {
 		// Ubuntu does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on Ubuntu")
 	}
+	if strings.Contains(image, "almalinux-9") {
+		// Does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on EL9")
+	}
 	if strings.Contains(image, "centos-stream-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 	if strings.Contains(image, "rhel-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 	if strings.Contains(image, "rocky-linux-9") {
-		// Ubuntu does not have dhclient or the dhclient exit hook.
+		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
 
