@@ -139,7 +139,7 @@ for spec in $TOBUILD; do
     -ba "${RPMDIR}/SPECS/${spec}"
 
   SRPM_FILE=$(find ${RPMDIR}/SRPMS -iname "${PKGNAME}*.src.rpm")
-  generate_and_push_sbom "${BUILD_DIR}" "{$SRPM_FILE}" "${PKGNAME}" "${VERSION}"
+  generate_and_push_sbom "${BUILD_DIR}" "${SRPM_FILE}" "${PKGNAME}" "${VERSION}"
 done
 
 rpms=$(find ${RPMDIR}/{S,}RPMS -iname "${PKGNAME}*.rpm")
