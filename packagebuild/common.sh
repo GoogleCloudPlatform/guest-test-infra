@@ -82,3 +82,59 @@ function try_command() {
     sleep 5
   done
 }
+
+function deploy_sbomutil() {
+  if [ -z "${SBOM_UTIL_GCS_ROOT}" ]; then
+    echo "SBOM_UTIL_GCS_ROOT is not defined, skipping sbomutil deployment..."
+    return
+  fi
+
+  export SBOM_UTIL="${PWD}/sbomutil"
+  export SBOM_DIR="${PWD}"
+
+  # Determine the latest sbomutil gcs path if available
+  if [ -n "${SBOM_UTIL_GCS_ROOT}" ]; then
+    SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT | tail -1)
+  fi
+
+  # Fetch sbomutil from gcs if available
+  if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
+    echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
+    gsutil cp -L "${SBOM_UTIL_GCS_PATH%/}/sbomutil" "${SBOM_UTIL}"
+
+    if [ -e "${SBOM_UTIL}" ]; then
+      chmod +x "${SBOM_UTIL}"
+    else
+      echo "Failed to fetch sbomutil, file not copied locally"
+    fi
+  fi
+}
+
+function generate_and_push_sbom() {
+  if [ -z "${SBOM_UTIL}" ]; then
+    echo "deploy_sbomutil() was never attempted, skipping..."
+    return
+  fi
+
+  if [ ! -e "${SBOM_UTIL}" ]; then
+    echo "The sbomutil tool was not found, skipping sbom generation"
+    return
+  fi
+
+  local BUILD_DIR=$1
+  local BINARY_FILE=$2
+  local PKGNAME=$3
+  local VERSION=$4
+
+  SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
+  if [ ! -e "${SBOM_FILE}" ]; then
+    echo "SBOM was already generated for this package, skipping..."
+    return
+  fi
+
+  ${SBOM_UTIL} -archetype=source -comp_name="${PKGNAME}" -pkg_source="${BUILD_DIR}" \
+    -pkg_binary="${BINARY_FILE}" -output="${SBOM_FILE}"
+
+  echo "copying ${SBOM_FILE} to $GCS_PATH/"
+  gsutil cp -n -L ${SBOM_FILE} "$GCS_PATH/"
+}
