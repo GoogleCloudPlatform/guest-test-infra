@@ -44,10 +44,20 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name'.
 func TestCustomHostname(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata")
+	}
+
+	// SLES doesn't support custom hostnames.
+	if strings.Contains(image, "sles") {
+		t.Skip("SLES doesn't support custom hostnames.")
+	}
+
 	TestFQDN(t)
 }
 
-// TestFQDN tests the 'fully qualified domain name', which is the transient hostname.
+// TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
