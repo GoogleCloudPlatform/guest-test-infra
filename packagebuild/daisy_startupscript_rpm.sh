@@ -50,6 +50,7 @@ fi
 if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
   echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
   gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" $(dirname $SBOM_UTIL)
+  chmod +x "${SBOM_UTIL}"
 fi
 
 # Install git2 as this is not available in centos 6/7
