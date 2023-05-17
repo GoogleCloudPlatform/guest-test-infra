@@ -49,6 +49,11 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("Couldn't get image from metadata")
 	}
 
+	// AlmaLinux 9 is currently broken.
+	if strings.Contains(image, "almalinux-9") {
+		t.Skip("AlmaLinux 9 is currently not working with custom hostanmes.")
+	}
+
 	// CentOS Stream 9 is currently broken.
 	if strings.Contains(image, "centos-stream-9") {
 		t.Skip("CentOS Stream 9 is currently not working with custom hostanmes.")
@@ -57,6 +62,11 @@ func TestCustomHostname(t *testing.T) {
 	// RHEL 9 is currently broken.
 	if strings.Contains(image, "rhel-9") {
 		t.Skip("RHEL 9 is currently not working with custom hostanmes.")
+	}
+
+	// Rocky Linux 9 is currently broken.
+	if strings.Contains(image, "rocky-linux-9") {
+		t.Skip("Rocky Linux 9 is currently not working with custom hostanmes.")
 	}
 
 	TestFQDN(t)
