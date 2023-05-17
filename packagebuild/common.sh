@@ -127,7 +127,7 @@ function generate_and_push_sbom() {
   local VERSION=$4
 
   SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
-  if [ ! -e "${SBOM_FILE}" ]; then
+  if [ -e "${SBOM_FILE}" ]; then
     echo "SBOM was already generated for this package, skipping..."
     return
   fi
