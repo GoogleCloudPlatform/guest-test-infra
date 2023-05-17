@@ -54,8 +54,8 @@ func TestFQDN(t *testing.T) {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
 
-	// Get the transient hostname.
-	cmd := exec.Command("/bin/hostnamectl", "--transient")
+	// Get the hostname with FQDN.
+	cmd := exec.Command("/bin/hostname", "-f")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("hostname command failed")
