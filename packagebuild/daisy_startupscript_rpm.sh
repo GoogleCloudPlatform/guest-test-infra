@@ -150,7 +150,7 @@ for spec in $TOBUILD; do
     --define "_go ${GO:-"UNSET"}" --define "_gopath ${GOPATH:-"UNSET"}" \
     -ba "${RPMDIR}/SPECS/${spec}"
 
-  SRPM_FILE=$(find ${RPMDIR}/SRPM -iname "${PKGNAME}*.rpm")
+  SRPM_FILE=$(find ${RPMDIR}/{S,}RPM -iname "${PKGNAME}*.src.rpm")
   SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
 
   # We need only a single sbom, if we have multiple specs for the same package
