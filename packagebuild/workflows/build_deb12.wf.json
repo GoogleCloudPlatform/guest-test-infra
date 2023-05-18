@@ -1,5 +1,5 @@
 {
-  "Name": "deb11",
+  "Name": "deb12",
   "Timeout": "20m",
   "Vars": {
     "gcs_path": {
@@ -31,7 +31,7 @@
         "Path": "./build_package.wf.json",
         "Vars": {
           "type": "deb",
-          "sourceImage": "projects/debian-cloud/global/images/family/debian-11",
+          "sourceImage": "projects/bct-prod-images/global/images/family/debian-12",
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",

@@ -434,6 +434,20 @@ local buildpackageimagetask = {
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
               buildpackageimagetask {
+                image_name: 'debian-12',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+                dest_image: 'debian-12-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
+              },
+              buildpackageimagetask {
+                image_name: 'debian-12-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
+                dest_image: 'debian-12-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+              },
+              buildpackageimagetask {
                 image_name: 'centos-7',
                 source_image: 'projects/centos-cloud/global/images/family/centos-7',
                 dest_image: 'centos-7-((.:build-id))',
@@ -494,7 +508,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-exclude=(image)|(disk)|(security)|(oslogin)',
                     ],
                   },
@@ -515,7 +529,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-machine_type=t2a-standard-2',
                       '-exclude=(image)|(disk)|(security)|(oslogin)',
                     ],
@@ -535,6 +549,11 @@ local buildpackageimagetask = {
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
           repo: 'google-guest-agent-bullseye',
+          universe: 'cloud-apt',
+        },
+        uploadpackagetask {
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
+          repo: 'google-guest-agent-bookworm',
           universe: 'cloud-apt',
         },
         uploadpackagetask {
@@ -575,6 +594,7 @@ local buildpackageimagetask = {
       promotions: [
         promotepackagestabletask { repo: 'google-guest-agent-buster', universe: 'cloud-apt' },
         promotepackagestabletask { repo: 'google-guest-agent-bullseye', universe: 'cloud-apt' },
+        promotepackagestabletask { repo: 'google-guest-agent-bookworm', universe: 'cloud-apt' },
         promotepackagestabletask { repo: 'google-guest-agent-el7', universe: 'cloud-yum' },
         promotepackagestabletask { repo: 'google-guest-agent-el8', universe: 'cloud-yum' },
         promotepackagestabletask { repo: 'google-guest-agent-el9', universe: 'cloud-yum' },
@@ -600,7 +620,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb10', 'deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       extra_tasks: [
         {
@@ -644,6 +664,20 @@ local buildpackageimagetask = {
                 source_image: 'projects/debian-cloud/global/images/family/debian-11-arm64',
                 dest_image: 'debian-11-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+              },
+              buildpackageimagetask {
+                image_name: 'debian-12',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+                dest_image: 'debian-12-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb',
+              },
+              buildpackageimagetask {
+                image_name: 'debian-12-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
+                dest_image: 'debian-12-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -708,7 +742,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-testing-project',
-                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id))projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-filter=oslogin',
                     ],
                   },
@@ -729,7 +763,7 @@ local buildpackageimagetask = {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-testing-project',
-                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-machine_type=t2a-standard-2',
                       '-filter=oslogin',
                     ],
@@ -749,6 +783,11 @@ local buildpackageimagetask = {
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"}',
           repo: 'gce-google-compute-engine-oslogin-bullseye',
+          universe: 'cloud-apt',
+        },
+        uploadpackagetask {
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb"}',
+          repo: 'gce-google-compute-engine-oslogin-bookworm',
           universe: 'cloud-apt',
         },
         uploadpackagetask {
@@ -774,6 +813,7 @@ local buildpackageimagetask = {
       promotions: [
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-bullseye' },
+        promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-oslogin-bookworm' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-oslogin-el7' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-oslogin-el8' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-oslogin-el9' },
@@ -792,6 +832,12 @@ local buildpackageimagetask = {
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
           repo: 'google-osconfig-agent-bullseye',
+          universe: 'cloud-apt',
+          type: 'uploadToUnstable',
+        },
+        uploadpackagetask {
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
+          repo: 'google-osconfig-agent-bookworm',
           universe: 'cloud-apt',
           type: 'uploadToUnstable',
         },
@@ -827,6 +873,7 @@ local buildpackageimagetask = {
       promotions: [
         promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
         promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
+        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bookworm' },
         promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
         promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el8' },
         promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el9' },
@@ -840,6 +887,7 @@ local buildpackageimagetask = {
       promotions: [
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
+        promotepackagestabletask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bookworm' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el8' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el9' },
@@ -904,6 +952,11 @@ local buildpackageimagetask = {
           repo: 'gce-google-compute-engine-bullseye',
         },
         uploadpackagetask {
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
+          universe: 'cloud-apt',
+          repo: 'gce-google-compute-engine-bookworm',
+        },
+        uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm"}',
           universe: 'cloud-yum',
           repo: 'gce-google-compute-engine-el7',
@@ -926,6 +979,7 @@ local buildpackageimagetask = {
       promotions: [
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-buster' },
         promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-bullseye' },
+        promotepackagestabletask { universe: 'cloud-apt', repo: 'gce-google-compute-engine-bookworm' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-el7' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-el8' },
         promotepackagestabletask { universe: 'cloud-yum', repo: 'gce-google-compute-engine-el9' },
