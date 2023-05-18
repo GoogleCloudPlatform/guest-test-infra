@@ -620,7 +620,7 @@ local buildpackageimagetask = {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb10', 'deb11', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb10', 'deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       extra_tasks: [
         {
@@ -671,13 +671,13 @@ local buildpackageimagetask = {
                 image_name: 'debian-12',
                 source_image: 'projects/bct-prod-images/global/images/family/debian-12',
                 dest_image: 'debian-12-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb',
               },
               buildpackageimagetask {
                 image_name: 'debian-12-arm64',
                 source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
                 dest_image: 'debian-12-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -787,7 +787,7 @@ local buildpackageimagetask = {
         },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb"}',
-          repo: 'gce-google-compute-engine-oslogin-bookwarm',
+          repo: 'gce-google-compute-engine-oslogin-bookworm',
           universe: 'cloud-apt',
         },
         uploadpackagetask {
@@ -832,6 +832,12 @@ local buildpackageimagetask = {
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
           repo: 'google-osconfig-agent-bullseye',
+          universe: 'cloud-apt',
+          type: 'uploadToUnstable',
+        },
+        uploadpackagetask {
+          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
+          repo: 'google-osconfig-agent-bookworm',
           universe: 'cloud-apt',
           type: 'uploadToUnstable',
         },
