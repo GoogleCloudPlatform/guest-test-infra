@@ -89,6 +89,13 @@ function deploy_sbomutil() {
     return
   fi
 
+  SBOM_UTIL_GCS_ROOT="${SBOM_UTIL_GCS_ROOT}/linux"
+
+  # suffix the gcs path with arm64 if that's the case
+  if [ "$(uname -m)" == "aarch64" ]; then
+    SBOM_UTIL_GCS_ROOT="${SBOM_UTIL_GCS_ROOT}_arm64"
+  fi
+
   export SBOM_UTIL=$(realpath "${PWD}/sbomutil")
   export SBOM_DIR="${PWD}"
 
