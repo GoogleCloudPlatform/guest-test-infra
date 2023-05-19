@@ -28,9 +28,6 @@ DEBIAN_FRONTEND=noninteractive
 
 echo "Started build..."
 
-SBOM_UTIL="${PWD}/sbomutil"
-SBOM_DIR="${PWD}"
-
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 

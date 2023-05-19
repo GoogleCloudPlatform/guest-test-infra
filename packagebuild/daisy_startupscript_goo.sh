@@ -28,16 +28,7 @@ echo "Started build..."
 gsutil cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
-# Determine the latest sbomutil gcs path if available
-if [ -n "${SBOM_UTIL_GCS_ROOT}" ]; then
-  SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT | tail -1)
-fi
-
-# Fetch sbomutil from gcs if available
-if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
-  echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-  gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" ./
-fi
+deploy_sbomutil
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
