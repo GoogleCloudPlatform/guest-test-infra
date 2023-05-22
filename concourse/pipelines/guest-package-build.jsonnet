@@ -119,7 +119,6 @@ local buildpackagejob = {
     // Invoke daisy build workflows for all specified builds.
     {
       in_parallel: {
-        fail_fast: true,
         steps: [
           {
             task: 'guest-package-build-%s-%s' % [tl.package, build],
@@ -411,7 +410,6 @@ local buildpackageimagetask = {
         { get: 'compute-image-tools' },
         {
           in_parallel: {
-            fail_fast: true,
             steps: [
               buildpackageimagetask {
                 image_name: 'debian-10',
