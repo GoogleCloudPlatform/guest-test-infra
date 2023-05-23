@@ -31,7 +31,7 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 deploy_sbomutil
 
 try_command apt-get -y update
-try_command apt-get install -y --no-install-{suggests,recommends} git-core
+try_command apt-get install -y --no-install-{suggests,recommends} git-core jq
 
 # We always install go, needed for goopack.
 echo "Installing go"
@@ -53,6 +53,8 @@ fi
 echo "Building package(s)"
 for spec in packaging/googet/*.goospec; do
   goopack -var:version="$VERSION" "$spec"
+  PKGNAME=$(jq -r '.name' < $spec)
+  generate_and_push_sbom ./ "${spec}" "${PKGNAME}" "${VERSION}"
 done
 
 gsutil cp -n *.goo "$GCS_PATH/"
