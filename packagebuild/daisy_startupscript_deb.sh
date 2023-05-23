@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-URL="http://metadata/computeMetadata/v1/instance/attributes"
+URL="http://169.254.169.254/computeMetadata/v1/instance/attributes"
 GCS_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-outs-path)
 SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
