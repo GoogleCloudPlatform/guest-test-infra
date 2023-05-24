@@ -185,7 +185,7 @@ local elimgbuildjob = imgbuildjob {
   ],
 
   // Add EL and sbom util args to build task.
-  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_path=((.:sbom-util-secret))'] },
+  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))'] },
 };
 
 local imgpublishjob = {
