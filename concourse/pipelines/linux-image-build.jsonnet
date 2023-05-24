@@ -160,11 +160,11 @@ local elimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
-  syft_secret_name:: 'syft-secret',
+  sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''),
 
-  // Add tasks to obtain ISO location and syft source
-  // Store those in .:iso-secret and .:syft-secret
+  // Add tasks to obtain ISO location and sbom util source
+  // Store those in .:iso-secret and .:sbom-util-secret
   extra_tasks: [
     {
       task: 'get-secret-iso',
@@ -175,17 +175,17 @@ local elimgbuildjob = imgbuildjob {
       file: 'gcp-secret-manager/' + tl.isopath,
     },
     {
-      task: 'get-secret-syft',
-      config: gcp_secret_manager.getsecrettask { secret_name: tl.syft_secret_name },
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.sbom_util_secret_name },
     },
     {
-      load_var: 'syft-secret',
-      file: 'gcp-secret-manager/' + tl.syft_secret_name,
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/' + tl.sbom_util_secret_name,
     },
   ],
 
-  // Add EL and syft args to build task.
-  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'syft_source=((.:syft-secret))'] },
+  // Add EL and sbom util args to build task.
+  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_path=((.:sbom-util-secret))'] },
 };
 
 local imgpublishjob = {
