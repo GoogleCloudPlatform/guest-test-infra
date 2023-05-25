@@ -193,6 +193,10 @@ func TestHostsFile(t *testing.T) {
 		// Does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on EL9")
 	}
+	if strings.Contains(image, "debian-12") {
+		// Does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on Debian 12")
+	}
 
 	b, err := ioutil.ReadFile("/etc/hosts")
 	if err != nil {
