@@ -361,12 +361,14 @@ func runCommand(name string, arg ...string) (string, string, error) {
 
 var (
 	allowedTCP = []string{
-		"22", // ssh
+		"22",   // ssh
+		"5355", // systemd-resolve
 	}
 	allowedUDP = []string{
-		"68",  // bootpc aka DHCP client port
-		"123", // ntp
-		"546", // dhcp v6 client port
+		"68",   // bootpc aka DHCP client port
+		"123",  // ntp
+		"546",  // dhcp v6 client port
+		"5355", // systemd-resolve
 	}
 )
 
@@ -417,13 +419,6 @@ func TestSockets(t *testing.T) {
 		// port 111
 		allowedTCP = append(allowedTCP, "111")
 		allowedUDP = append(allowedUDP, "111")
-	}
-
-	if strings.Contains(image, "rhel-8") && strings.Contains(image, "-sap") {
-		// RHEL 8 SAP Images are permitted to have 'systemd-resolve'
-		// listening on port 5355
-		allowedTCP = append(allowedTCP, "5355")
-		allowedUDP = append(allowedUDP, "5355")
 	}
 
 	if !(strings.Contains(image, "rhel-7") && strings.Contains(image, "-sap")) {
