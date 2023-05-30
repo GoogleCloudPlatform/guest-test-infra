@@ -581,7 +581,6 @@ local imggroup = {
           // Debian build jobs
           debianimgbuildjob {
             image: image,
-            workflow_dir: 'debian',
             image_prefix: common.debian_image_prefixes[image],
           }
           for image in debian_images
