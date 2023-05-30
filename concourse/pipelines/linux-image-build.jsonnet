@@ -195,7 +195,7 @@ local debianimgbuildjob = imgbuildjob {
   sbom_util_secret_name:: 'sbom-util-secret',
 
   // Add tasks to obtain sbom util source
-  // Store those in .:iso-secret and .:sbom-util-secret
+  // Store in .:sbom-util-secret
   extra_tasks: [
     {
       task: 'get-secret-sbom-util',
