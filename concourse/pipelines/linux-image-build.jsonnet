@@ -188,6 +188,29 @@ local elimgbuildjob = imgbuildjob {
   build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))'] },
 };
 
+local debianimgbuildjob = imgbuildjob {
+  local tl = self,
+
+  workflow_dir: 'debian',
+  sbom_util_secret_name:: 'sbom-util-secret',
+
+  // Add tasks to obtain sbom util source
+  // Store those in .:iso-secret and .:sbom-util-secret
+  extra_tasks: [
+    {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.sbom_util_secret_name },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/' + tl.sbom_util_secret_name,
+    },
+  ],
+
+  // Add sbom util args to build task.
+  build_task+: { vars+: ['sbom_util_gcs_root=((.:sbom-util-secret))'] },
+};
+
 local imgpublishjob = {
   local tl = self,
 
@@ -556,7 +579,7 @@ local imggroup = {
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // Debian build jobs
-          imgbuildjob {
+          debianimgbuildjob {
             image: image,
             workflow_dir: 'debian',
             image_prefix: common.debian_image_prefixes[image],
