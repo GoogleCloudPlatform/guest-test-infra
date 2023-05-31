@@ -893,6 +893,10 @@ local ImgGroup(name, images, environments) = {
                for image in windows_server_images
              ] +
              [
+               common.GcsSbomResource(image, 'sql')
+               for image in sql_images
+             ] +
+             [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
              ] +
