@@ -905,6 +905,9 @@ local ImgGroup(name, images, environments) = {
                common.GcsImgResource('sql-2022-preview-windows-2022-dc', 'sqlserver-uefi'),
              ] +
              [
+               common.GcsSbomResource('sql-2022-preview-windows-2022-dc', 'sql'),
+             ] +
+             [
                common.GcsImgResource(image, 'windows-install-media')
                for image in windows_install_media_images
              ],
