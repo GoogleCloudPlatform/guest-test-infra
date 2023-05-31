@@ -125,6 +125,14 @@ local imgbuildjob = {
       file: 'gcp-secret-manager/windows_gcs_dotnet48',
     },
     {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'sbom-util-secret' },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/sbom-util-secret',
+    },
+    {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
@@ -136,6 +144,7 @@ local imgbuildjob = {
           'pwsh=((.:windows-gcs-pwsh))',
           'updates=((.:windows-updates))',
           'google_cloud_repo=stable',
+          'sbom_util_gcs_root=((.:sbom-util-secret))',
         ],
       },
     },
@@ -838,6 +847,14 @@ local ImgGroup(name, images, environments) = {
              [
                common.GcsImgResource(image, 'windows-uefi')
                for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'windows-client')
+               for image in windows_client_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'windows-server')
+               for image in windows_server_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
