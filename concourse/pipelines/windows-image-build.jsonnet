@@ -154,6 +154,7 @@ local imgbuildjob = {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
+        sbom_destination: '((.:sbom-destination))',
         workflow: job.workflow,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
@@ -163,7 +164,6 @@ local imgbuildjob = {
           'updates=((.:windows-updates))',
           'google_cloud_repo=stable',
           'sbom_util_gcs_root=((.:sbom-util-secret))',
-          'sbom_destination=((.:sbom-destination))',
         ],
       },
     },
@@ -291,6 +291,7 @@ local sqlimgbuildjob = {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
+        sbom_destination: '((.:sbom-destination))',
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
@@ -298,7 +299,6 @@ local sqlimgbuildjob = {
           'ssms_exe=((.:ssms-version))',
           'timeout=4h',
           'sbom_util_gcs_root=((.:sbom-util-secret))',
-          'sbom_destination=((.:sbom-destination))',
         ],
       },
     },
