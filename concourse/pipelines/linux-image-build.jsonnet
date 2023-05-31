@@ -9,7 +9,7 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
-local imgbuildtask = daisy.daisyimagetask {
+local imgbuildtask = daisy.daisyimagesbomtask {
   gcs_url: '((.:gcs-url))',
   sbom_destination: '((.:sbom-destination))',
 };
