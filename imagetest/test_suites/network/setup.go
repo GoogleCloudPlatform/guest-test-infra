@@ -77,12 +77,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	if strings.Contains(t.Image, "debian-12") {
-		// Debian 12 doesn't have dhclient.
-		vm1.RunTests("TestDefaultMTU")
-	} else {
-		vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
-	}
+	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// GVNIC is not supported on some older distros.
