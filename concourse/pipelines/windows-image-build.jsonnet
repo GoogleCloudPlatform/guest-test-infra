@@ -163,6 +163,7 @@ local imgbuildjob = {
           'updates=((.:windows-updates))',
           'google_cloud_repo=stable',
           'sbom_util_gcs_root=((.:sbom-util-secret))',
+          'sbom_destination=((.:sbom-destination))',
         ],
       },
     },
@@ -279,6 +280,14 @@ local sqlimgbuildjob = {
       file: 'gcp-secret-manager/' + job.ssms_version,
     },
     {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'sbom-util-secret' },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/sbom-util-secret',
+    },
+    {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
@@ -288,6 +297,8 @@ local sqlimgbuildjob = {
           'sql_server_media=((.:sql-server-media))',
           'ssms_exe=((.:ssms-version))',
           'timeout=4h',
+          'sbom_util_gcs_root=((.:sbom-util-secret))',
+          'sbom_destination=((.:sbom-destination))',
         ],
       },
     },
