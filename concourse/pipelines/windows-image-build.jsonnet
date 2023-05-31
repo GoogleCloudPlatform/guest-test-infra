@@ -76,6 +76,24 @@ local imgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-sbom',
+      params: {
+        file: 'build-id-dir-sbom/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -125,6 +143,14 @@ local imgbuildjob = {
       file: 'gcp-secret-manager/windows_gcs_dotnet48',
     },
     {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'sbom-util-secret' },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/sbom-util-secret',
+    },
+    {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
@@ -136,6 +162,7 @@ local imgbuildjob = {
           'pwsh=((.:windows-gcs-pwsh))',
           'updates=((.:windows-updates))',
           'google_cloud_repo=stable',
+          'sbom_util_gcs_root=((.:sbom-util-secret))',
         ],
       },
     },
@@ -208,6 +235,24 @@ local sqlimgbuildjob = {
     {
       load_var: 'gcs-url',
       file: '%s-gcs/url' % job.image,
+    },
+    {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-sbom',
+      params: {
+        file: 'build-id-dir-sbom/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % job.image,
     },
     {
       task: 'generate-build-date',
@@ -840,12 +885,27 @@ local ImgGroup(name, images, environments) = {
                for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images
              ] +
              [
+               common.GcsSbomResource(image, 'windows-client')
+               for image in windows_client_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'windows-server')
+               for image in windows_server_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'sql')
+               for image in sql_images
+             ] +
+             [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
              ] +
              //ImgResource for SQL Preview build. Will be rolled into sql_images on formal release.
              [
                common.GcsImgResource('sql-2022-preview-windows-2022-dc', 'sqlserver-uefi'),
+             ] +
+             [
+               common.GcsSbomResource('sql-2022-preview-windows-2022-dc', 'sql'),
              ] +
              [
                common.GcsImgResource(image, 'windows-install-media')
