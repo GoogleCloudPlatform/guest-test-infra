@@ -78,12 +78,12 @@ local imgbuildjob = {
     {
       task: 'generate-build-id-sbom',
       file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
-      vars: { prefix: job.image_prefix, id: '((.:id))'},
+      vars: { prefix: job.image, id: '((.:id))'},
     },
     {
       put: job.image + '-sbom',
       params: {
-        file: 'build-id-dir-sbom/%s*' % job.image_prefix,
+        file: 'build-id-dir-sbom/%s*' % job.image,
       },
       get_params: {
         skip_download: 'true',
@@ -239,12 +239,12 @@ local sqlimgbuildjob = {
     {
       task: 'generate-build-id-sbom',
       file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
-      vars: { prefix: job.image_prefix, id: '((.:id))'},
+      vars: { prefix: job.image, id: '((.:id))'},
     },
     {
       put: job.image + '-sbom',
       params: {
-        file: 'build-id-dir-sbom/%s*' % job.image_prefix,
+        file: 'build-id-dir-sbom/%s*' % job.image,
       },
       get_params: {
         skip_download: 'true',
