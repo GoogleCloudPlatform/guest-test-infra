@@ -34,7 +34,7 @@ var (
 	outPath       = flag.String("out_path", "junit.xml", "junit xml path")
 	gcsPath       = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
 	images        = flag.String("images", "", "comma separated list of images to test")
-	timeout       = flag.String("timeout", "30m", "timeout for the test suite")
+	timeout       = flag.String("timeout", "45m", "timeout for the test suite")
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
