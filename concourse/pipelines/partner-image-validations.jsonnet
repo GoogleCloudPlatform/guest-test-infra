@@ -273,16 +273,27 @@ local ubuntudevelimages = [
   'ubuntu-2004-lts',
   'ubuntu-2204-lts',
   'ubuntu-2304-amd64',
+  'ubuntu-2310-amd64',
 ];
 
 // Ubuntu arm64 daily images
 local ubuntuarm64develimages = [
-  'ubuntu-1804-lts-arm64',
   'ubuntu-2004-lts-arm64',
   'ubuntu-2204-lts-arm64',
   'ubuntu-2304-arm64',
+  'ubuntu-2310-arm64',
 ];
 
+// SLES amd64 prod images
+local slesamd64images = [
+  'sles-12',
+  'sles-15',
+];
+
+// SLES arm64 prod images
+local slesarm64images = [
+  'sles-15-arm64',
+];
 
 // Start of output.
 {
@@ -313,13 +324,14 @@ local ubuntuarm64develimages = [
     for family in ubuntudevelimages + ubuntuarm64develimages
   ] + [
     {
-      name: 'sles-15',
+      name: family,
       type: 'gce-image',
       source: {
-        project: 'suse-cloud-testing',
-        family: 'sles-15',
+        project: 'suse-cloud',
+        family: family,
       },
-    },
+    }
+    for family in slesamd64images + slesarm64images
   ],
   jobs: [
     imagevalidationjob {
@@ -338,9 +350,19 @@ local ubuntuarm64develimages = [
     for family in ubuntuarm64develimages
   ] + [
     imagevalidationjob {
-      image: 'sles-15',
+      image: family,
       bucket: 'sles-gce-validation-results',
-    },
+    }
+    for family in slesamd64images
+  ] + [
+    imagevalidationjob {
+      image: family,
+      bucket: 'sles-gce-validation-results',
+      extra_args: [
+        '-machine_type=t2a-standard-2'
+      ],
+    }
+    for family in slesarm64images
   ],
   groups: [
     {
@@ -351,9 +373,10 @@ local ubuntuarm64develimages = [
       ],
     },
     {
-      name: 'suse-cloud-testing',
+      name: 'suse-cloud',
       jobs: [
-        'sles-15',
+        family
+        for family in slesamd64images + slesarm64images
       ],
     },
   ],
