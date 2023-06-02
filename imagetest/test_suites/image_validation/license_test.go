@@ -133,6 +133,7 @@ var licenses = []string{
 	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
 	`This is the Python license. In short, you can use this product in commercial and non-commercial applications`,
 	`This software is licensed under the same terms as Perl5 itself`,
+	`Mozilla Public License`,
 }
 
 const (
