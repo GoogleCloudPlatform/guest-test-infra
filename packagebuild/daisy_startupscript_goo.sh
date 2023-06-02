@@ -53,7 +53,9 @@ fi
 echo "Building package(s)"
 for spec in packaging/googet/*.goospec; do
   goopack -var:version="$VERSION" "$spec"
-  generate_and_push_sbom ./ "${spec}" "${spec}" "${VERSION}"
+  name=$(basename "${spec}")
+  pref=${name%.*}
+  generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
 done
 
 gsutil cp -n *.goo "$GCS_PATH/"
