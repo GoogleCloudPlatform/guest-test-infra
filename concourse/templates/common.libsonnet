@@ -3,6 +3,7 @@
 
   prod_topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod',
   prod_bucket:: 'artifact-releaser-prod-rtp',
+  prod_package_bucket:: 'gcp-guest-package-uploads',
   sbom_bucket:: 'gce-image-sboms',
   debian_image_prefixes:: {
     'debian-9': 'debian-9-stretch',
@@ -81,6 +82,23 @@
     image: image,
     sbom_destination: sbom_destination,
   },
+
+  gcspkgresource:: {
+    local resource = self,
+    
+    regexp:: error 'must set regexp in gcspkgresource',
+    package:: error 'must set package in gcspkgresource',
+    build:: error 'must set build in gcspkgresource',
+    bucket:: tl.prod_package_bucket,
+
+    name: if build != '' then '%s-%s-gcs' % [resource.package, resource.build]
+      else '%s-gcs' % resource.package,
+    type: 'gcs',
+    source: {
+      bucket: resource.bucket,
+      regexp: resource.regexp,
+    }
+  }
 
   publishresulttask:: {
     local task = self,
