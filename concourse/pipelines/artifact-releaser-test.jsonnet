@@ -11,7 +11,7 @@ local get_universe(build) = if std.startsWith(build, 'deb') then 'cloud-apt'
   else if std.startsWith(build, 'el') then 'cloud-yum'
   else 'cloud-yuck';
 
-local upload-arle-autopush-staging-task {
+local upload-arle-autopush-staging-task = {
   local tl = self,
   
   package:: error 'must set package in upload-arle-autopush-staging-task',
@@ -37,7 +37,7 @@ local upload-arle-autopush-staging-task {
   },
 };
 
-local upload-arle-autopush-staging {
+local upload-arle-autopush-staging = {
   local tl = self
 
   package:: error 'must set package in upload-arle-autopush-staging',
@@ -90,7 +90,7 @@ local upload-arle-autopush-staging {
   },
 };
 
-local promote-arle-autopush-stable {
+local promote-arle-autopush-stable = {
   local tl = self,
   
   package:: error 'must set package in promote-arle-autopush-stable',
@@ -145,7 +145,7 @@ local promote-arle-autopush-stable {
   ],
 };
 
-local arle-publish-images-autopush {
+local arle-publish-images-autopush = {
   local tl = self,
   image:: error 'must set image in arle-publish-images-autopush',
   gcs_path:: error 'must set gcs_path in arle-publish-images-autopush',
