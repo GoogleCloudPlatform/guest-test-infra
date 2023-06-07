@@ -16,7 +16,7 @@ local upload-arle-autopush-staging-task {
   
   package:: error 'must set package in upload-arle-autopush-staging-task',
   build:: error 'must set build in upload-arle-autopush-staging-task',
-  gcs_dir:: error 'must set gcs_dir in upload-arle-autopush-staging-task',
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload-arle-autopush-staging-task',
   file_ending:: error 'must set file_ending in upload-arle-autopush-staging-task',
 
   task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
@@ -28,8 +28,8 @@ local upload-arle-autopush-staging-task {
   vars: {
     package_paths: '{"bucket": "%s", "object": "%s/%s_((.:package-version))%s"}' % [
         common.prod_package_bucket,
-        tl.gcs_dir,
         tl.package,
+        tl.gcs_pkg_name,
         tl.file_ending, 
       ],
     repo: get-repo(tl.build),
@@ -42,7 +42,7 @@ local upload-arle-autopush-staging {
 
   package:: error 'must set package in upload-arle-autopush-staging',
   builds:: error 'must set build in upload-arle-autopush-staging',
-  gcs_dir:: error 'must set gcs_dir in upload-arle-autopush-staging',
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload-arle-autopush-staging',
   file_endings:: error 'must set file_endings in upload-arle-autopush-staging',
 
   if std.length(builds) != std.length(file_endings) 
@@ -68,7 +68,7 @@ local upload-arle-autopush-staging {
           upload-arle-autopush-staging-task {
             package: tl.package,
             build: tl.builds[i],
-            gcs_dir: tl.gcs_dir,
+            gcs_dir: tl.gcs_pkg_name,
             file_ending: tl.file_endings[i],
           }
           for i in std.range(0, std.length(builds) - 1)
@@ -283,4 +283,23 @@ local arle-publish-images-autopush {
                             } for image in debian_images ] +
   [ common.gcsimageresource { image: image, gcs_dir: 'centos' } for image in centos ] +
   [ common.gcsimageresource { image: image, gcs_dir: 'rhel' } for image in rhel ],
+  
+  // Run jobs.
+  jobs: [
+    upload-arle-autopush-staging {
+      package: 'guest-agent',
+      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+      gcs_pkg_name: 'guest-agent',
+      file_endings: [
+        '.00-g1_amd64.deb',
+        '.00-g1_arm64.deb',
+        '.00-g1.el7.x86_64.rpm',
+        '.00-g1.el8.x86_64.rpm',
+        '.00-g1.el8.aarch64.rpm',
+        '.00-g1.el9.x86_64.rpm',
+        '.00-g1.el9.aarch64.rpm',
+        '.00.0@1.goo',
+      ],
+    },
+  ],
 }
