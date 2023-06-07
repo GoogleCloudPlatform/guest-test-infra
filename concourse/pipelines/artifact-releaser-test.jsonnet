@@ -11,13 +11,13 @@ local get_universe(build) = if std.startsWith(build, 'deb') then 'cloud-apt'
   else if std.startsWith(build, 'el') then 'cloud-yum'
   else 'cloud-yuck';
 
-local upload-arle-autopush-staging-task = {
+local upload_arle_autopush_staging_task = {
   local tl = self,
   
-  package:: error 'must set package in upload-arle-autopush-staging-task',
-  build:: error 'must set build in upload-arle-autopush-staging-task',
-  gcs_pkg_name:: error 'must set gcs_pkg_name in upload-arle-autopush-staging-task',
-  file_ending:: error 'must set file_ending in upload-arle-autopush-staging-task',
+  package:: error 'must set package in upload_arle_autopush_staging_task',
+  build:: error 'must set build in upload_arle_autopush_staging_task',
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging_task',
+  file_ending:: error 'must set file_ending in upload_arle_autopush_staging_task',
 
   task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
   params: {
@@ -37,13 +37,13 @@ local upload-arle-autopush-staging-task = {
   },
 };
 
-local upload-arle-autopush-staging = {
+local upload_arle_autopush_staging = {
   local tl = self
 
-  package:: error 'must set package in upload-arle-autopush-staging',
-  builds:: error 'must set build in upload-arle-autopush-staging',
-  gcs_pkg_name:: error 'must set gcs_pkg_name in upload-arle-autopush-staging',
-  file_endings:: error 'must set file_endings in upload-arle-autopush-staging',
+  package:: error 'must set package in upload_arle_autopush_staging',
+  builds:: error 'must set build in upload_arle_autopush_staging',
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
+  file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
 
   if std.length(builds) != std.length(file_endings) 
     then error 'file_endings and builds must be of same length',
@@ -90,11 +90,11 @@ local upload-arle-autopush-staging = {
   },
 };
 
-local promote-arle-autopush-stable = {
+local promote_arle_autopush_stable = {
   local tl = self,
   
-  package:: error 'must set package in promote-arle-autopush-stable',
-  build:: error 'muset set build in promote-arle-autopush-stable',
+  package:: error 'must set package in promote_arle_autopush_stable',
+  build:: error 'muset set build in promote_arle_autopush_stable',
   passed:: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
   repo:: get_repo(tl.build),
   universe:: get_universe(tl.build),
@@ -145,11 +145,11 @@ local promote-arle-autopush-stable = {
   ],
 };
 
-local arle-publish-images-autopush = {
+local arle_publish_images_autopush = {
   local tl = self,
-  image:: error 'must set image in arle-publish-images-autopush',
-  gcs_path:: error 'must set gcs_path in arle-publish-images-autopush',
-  wf:: error 'must set wf in arle-publish-images-autopush',
+  image:: error 'must set image in arle_publish_images_autopush',
+  gcs_path:: error 'must set gcs_path in arle_publish_images_autopush',
+  wf:: error 'must set wf in arle_publish_images_autopush',
   
   plan: [
     { get: 'guest-test-infra' },
@@ -286,7 +286,7 @@ local arle-publish-images-autopush = {
   
   // Run jobs.
   jobs: [
-    upload-arle-autopush-staging {
+    upload_arle_autopush_staging {
       package: 'guest-agent',
       builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       gcs_pkg_name: 'guest-agent',
