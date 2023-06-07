@@ -97,8 +97,8 @@
     source: {
       bucket: resource.bucket,
       regexp: resource.regexp,
-    }
-  }
+    },
+  },
 
   publishresulttask:: {
     local task = self,
