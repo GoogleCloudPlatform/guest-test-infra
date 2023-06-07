@@ -91,7 +91,7 @@
     build:: error 'must set build in gcspkgresource',
     bucket:: tl.prod_package_bucket,
 
-    name: if build != '' then '%s-%s-gcs' % [resource.package, resource.build]
+    name: if resource.build != '' then '%s-%s-gcs' % [resource.package, resource.build]
       else '%s-gcs' % resource.package,
     type: 'gcs',
     source: {
