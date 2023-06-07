@@ -2,14 +2,14 @@
 local common = import '../templates/common.libsonnet';
 
 // Get the repository given the build.
-local get-repo(build) = if std.startsWith(build, 'deb') then 'guest-arle-autopush-trusty'
+local get_repo(build) = if std.startsWith(build, 'deb') then 'guest-arle-autopush-trusty'
   else if std.startsWith(build, 'el') then 'guest-arle-autopush-el7-x86_64'
   else 'guest-arle-autopush';
 
 // Get the universe given the build.
-local get-universe(build) = if std.startsWith(build, 'deb') then 'cloud-apt'
+local get_universe(build) = if std.startsWith(build, 'deb') then 'cloud-apt'
   else if std.startsWith(build, 'el') then 'cloud-yum'
-  else 'cloud-yuck'
+  else 'cloud-yuck';
 
 local upload-arle-autopush-staging-task {
   local tl = self,
@@ -32,8 +32,8 @@ local upload-arle-autopush-staging-task {
         tl.gcs_pkg_name,
         tl.file_ending, 
       ],
-    repo: get-repo(tl.build),
-    universe: get-universe(tl.build),
+    repo: get_repo(tl.build),
+    universe: get_universe(tl.build),
   },
 };
 
@@ -96,8 +96,8 @@ local promote-arle-autopush-stable {
   package:: error 'must set package in promote-arle-autopush-stable',
   build:: error 'muset set build in promote-arle-autopush-stable',
   passed:: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
-  repo:: get-repo(tl.build),
-  universe:: get-universe(tl.build),
+  repo:: get_repo(tl.build),
+  universe:: get_universe(tl.build),
 
   plan: [
     { get: 'guest-test-infra' },
@@ -135,8 +135,8 @@ local promote-arle-autopush-stable {
             },
             vars: {
               environment: 'stable',
-              repo: get-repo(tl.build),
-              universe: get-universe(tl.build),
+              repo: get_repo(tl.build),
+              universe: get_universe(tl.build),
             },
           },
         }
