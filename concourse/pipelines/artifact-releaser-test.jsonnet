@@ -19,38 +19,7 @@ local upload_arle_autopush_staging_task = {
   gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging_task',
   file_ending:: error 'must set file_ending in upload_arle_autopush_staging_task',
 
-  task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
-  params: {
-    TOPIC: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
-    TYPE: 'uploadToStaging',
-  },
-  file: 'guest-test-infra/concourse/tasks/gcloud-package-operation.yaml',
-  vars: {
-    package_paths: '{"bucket": "%s", "object": "%s/%s_((.:package-version))%s"}' % [
-        common.prod_package_bucket,
-        tl.package,
-        tl.gcs_pkg_name,
-        tl.file_ending, 
-      ],
-    repo: get_repo(tl.build),
-    universe: get_universe(tl.build),
-  },
-};
-
-local upload_arle_autopush_staging = {
-  local tl = self
-
-  package:: error 'must set package in upload_arle_autopush_staging',
-  builds:: error 'must set build in upload_arle_autopush_staging',
-  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
-  file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
-
-  if std.length(builds) != std.length(file_endings) 
-    then error 'file_endings and builds must be of same length',
-
   plan: [
-    { get: 'guest-test-infra' },
-    { get: 'compute-image-tools' },
     { 
       get: '%s-%s-gcs' % [tl.package, tl.build],
       trigger: true,
@@ -63,19 +32,25 @@ local upload_arle_autopush_staging = {
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     { load_var: 'package-version', file: '%s-%s-gcs/version' % [tl.package, tl.build] },
     {
-      in_parallel: {
-        steps: [
-          upload-arle-autopush-staging-task {
-            package: tl.package,
-            build: tl.builds[i],
-            gcs_dir: tl.gcs_pkg_name,
-            file_ending: tl.file_endings[i],
-          }
-          for i in std.range(0, std.length(builds) - 1)
-        ],
+      task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
+      params: {
+        TOPIC: 'projects/artifact-releaser-autopush/topics/gcs-guest-package-upload-autopush',
+        TYPE: 'uploadToStaging',
+       },
+      file: 'guest-test-infra/concourse/tasks/gcloud-package-operation.yaml',
+      vars: {
+        package_paths: '{"bucket": "%s", "object": "%s/%s_((.:package-version))%s"}' % [
+            common.prod_package_bucket,
+            tl.package,
+            tl.gcs_pkg_name,
+            tl.file_ending, 
+          ],
+        repo: get_repo(tl.build),
+        universe: get_universe(tl.build),
       },
     },
   ],
+
   on_success: common.publishresulttask {
     pipeline: 'artifact-releaser-test',
     job: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
@@ -90,15 +65,60 @@ local upload_arle_autopush_staging = {
   },
 };
 
+local upload_arle_autopush_staging = {
+  local tl = self,
+
+  package:: error 'must set package in upload_arle_autopush_staging',
+  builds:: error 'must set build in upload_arle_autopush_staging',
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
+  file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
+
+  plan: [
+    { get: 'guest-test-infra' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        steps: [
+          upload_arle_autopush_staging_task {
+            package: tl.package,
+            build: tl.builds[i],
+            gcs_pkg_name: tl.gcs_pkg_name,
+            file_ending: tl.file_endings[i],
+          }
+          for i in std.range(0, std.length(tl.builds) - 1)
+        ],
+      },
+    },
+  ],
+};
+
 local promote_arle_autopush_stable = {
   local tl = self,
   
   package:: error 'must set package in promote_arle_autopush_stable',
-  build:: error 'muset set build in promote_arle_autopush_stable',
+  builds:: error 'must set builds in promote_arle_autopush_stable',
   passed:: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.build],
   repo:: get_repo(tl.build),
   universe:: get_universe(tl.build),
 
+  on_success: {
+    task: 'publish-success-metric',
+    config: common.publishresulttask {
+      pipeline: 'artifact-releaser-test',
+      job: 'promote-arle-autopush-stable-%s' % tl.package,
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: common.publishresulttask {
+      pipeline: 'artifact-releaser-test',
+      job: 'promote-arle-autopush-stable-%s' % tl.package,
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
   plan: [
     { get: 'guest-test-infra' },
     { get: 'compute-image-tools' },
@@ -108,39 +128,15 @@ local promote_arle_autopush_stable = {
     },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     {
-      in_parallel: {
-        steps: [
-          on_success: {
-            task: 'publish-success-metric',
-            config: common.publishresulttask {
-              pipeline: 'artifact-releaser-test',
-              job: 'promote-arle-autopush-stable-%s' % tl.package,
-              result_state: 'success',
-              start_timestamp: '((.:start-timestamp-ms))',
-            },
-          },
-          on_failure: {
-            task: 'publish-failure-metric',
-            config: common.publishresulttask {
-              pipeline: 'artifact-releaser-test',
-              job: 'promote-arle-autopush-stable-%s' % tl.package,
-              result_state: 'failure',
-              start_timestamp: '((.:start-timestamp-ms))',
-            },
-          },
-          {
-            file: 'guest-test-infra/concourse/tasks/gcloud-promote-package.yaml',
-            params: {
-              TOPIC: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush',
-            },
-            vars: {
-              environment: 'stable',
-              repo: get_repo(tl.build),
-              universe: get_universe(tl.build),
-            },
-          },
-        }
-      ]
+      file: 'guest-test-infra/concourse/tasks/gcloud-promote-package.yaml',
+      params: {
+        TOPIC: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-promote-autopush',
+      },
+      vars: {
+        environment: 'stable',
+        repo: get_repo(tl.build),
+        universe: get_universe(tl.build),
+      },
     },
   ],
 };
@@ -275,21 +271,21 @@ local arle_publish_images_autopush = {
     common.gcspkgresource { package: 'diagnostics', regexp: 'compute-image-tools/google-compute-engine-diagnostics.x86_64.([0-9]+).00.0@0.goo' },
   ] +
   // Image resources
-  [ common.gcsimageresource { image: image, gcs_dir: 'almalinux' } for image in almalinux ] +
-  [ common.gcsimageresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux ] +
-  [ common.gcsimageresource { 
+  [ common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux ] +
+  [ common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux ] +
+  [ common.gcsimgresource { 
                               image: image,
                               regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image]
-                            } for image in debian_images ] +
-  [ common.gcsimageresource { image: image, gcs_dir: 'centos' } for image in centos ] +
-  [ common.gcsimageresource { image: image, gcs_dir: 'rhel' } for image in rhel ],
+                            } for image in debian ] +
+  [ common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos ] +
+  [ common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel ],
   
   // Run jobs.
   jobs: [
     upload_arle_autopush_staging {
       package: 'guest-agent',
       builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
-      gcs_pkg_name: 'guest-agent',
+      gcs_pkg_name: 'google-guest-agent',
       file_endings: [
         '.00-g1_amd64.deb',
         '.00-g1_arm64.deb',
