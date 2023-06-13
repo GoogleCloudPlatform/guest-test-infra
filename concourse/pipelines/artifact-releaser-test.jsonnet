@@ -43,7 +43,7 @@ local upload_arle_autopush_task = {
   config: {
     platform: 'linux',
     image_resource: {
-      type: 'image-registry',
+      type: 'registry-image',
       source: { repository: 'google/cloud-sdk', tag: 'alpine' },
     },
     run: {
@@ -54,7 +54,7 @@ local upload_arle_autopush_task = {
         'publish',
         tl.topic,
         '--message',
-        '{"type:" "%s", "request": {"gcsfiles": ["%s"], "universe": "%s", "repo": "%s"}}' % [
+        '{"type": "%s", "request": {"gcsfiles": ["%s"], "universe": "%s", "repo": "%s"}}' % [
           tl.type,
           tl.package_paths,
           tl.universe,
@@ -64,6 +64,7 @@ local upload_arle_autopush_task = {
     },
   },
 };
+
 
 local upload_arle_autopush_staging = {
   local tl = self,
@@ -122,7 +123,6 @@ local upload_arle_autopush_staging = {
       },
     },
   ],
-
   on_success: common.publishresulttask {
     pipeline: 'artifact-releaser-test',
     job: 'upload-arle-autopush-staging-%s' % tl.package,
@@ -137,6 +137,7 @@ local upload_arle_autopush_staging = {
   },
 };
 
+/**
 local promote_arle_autopush_stable = {
   local tl = self,
 
@@ -218,7 +219,7 @@ local arle_publish_images_autopush = {
     },
   ],
 };
-
+*/
 {
   // Image names.
   local almalinux = ['almalinux-8', 'almalinux-9'],
@@ -418,6 +419,48 @@ local arle_publish_images_autopush = {
       builds: guest_agent_builds,
       gcs_pkg_name: 'google-guest-agent',
       file_endings: guest_agent_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'oslogin',
+      builds: oslogin_builds,
+      gcs_pkg_name: 'google-compute-engine-oslogin',
+      file_endings: oslogin_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'osconfig',
+      builds: osconfig_builds,
+      gcs_pkg_name: 'google-osconfig-agent',
+      file_endings: osconfig_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'gce-disk-expand',
+      builds: guest_diskexpand_builds,
+      gcs_pkg_name: 'gcs-disk-expand',
+      file_endings: guest_diskexpand_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'google-compute-engine',
+      builds: guest_config_builds,
+      gcs_pkg_name: 'google-compute-engine',
+      file_endings: guest_config_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'yum-plugin-artifact-registry',
+      builds: yum_plugin_builds,
+      gcs_pkg_name: 'yum-plugin-artifact-registry',
+      file_endings: yum_plugin_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'yum-plugin-artifact-registry',
+      builds: yum_plugin_dnf_builds,
+      gcs_pkg_name: 'dnf-plugin-artifact-registry',
+      file_endings: yum_plugin_dnf_file_endings,
+    },
+    upload_arle_autopush_staging {
+      package: 'apt-transport-artifact-registry',
+      builds: apt_transport_builds,
+      gcs_pkg_name: 'apt-transport-artifact-registry',
+      file_endings: apt_transport_file_endings,
     },
   ],
 }
