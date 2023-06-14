@@ -85,14 +85,13 @@
 
   gcspkgresource:: {
     local resource = self,
-    
+
     regexp:: error 'must set regexp in gcspkgresource',
     package:: error 'must set package in gcspkgresource',
-    build:: '',
+    build:: error 'must set build in gcspkgresource',
     bucket:: tl.prod_package_bucket,
 
-    name: if resource.build != '' then '%s-%s-gcs' % [resource.package, resource.build]
-      else '%s-gcs' % resource.package,
+    name: '%s-%s-gcs' % [resource.package, resource.build],
     type: 'gcs',
     source: {
       bucket: resource.bucket,
