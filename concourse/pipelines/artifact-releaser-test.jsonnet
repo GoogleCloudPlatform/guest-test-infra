@@ -15,50 +15,17 @@ else 'cloud-yuck';
 // Change '-' to '_', mainly used for images
 local underscore(input) = std.strReplace(input, '-', '_');
 
-local upload_arle_autopush_task = {
-  local tl = self,
-
-  package_paths:: error 'must set package_paths in upload_arle_autopush_task',
-  topic:: 'projects/artifact-releaser-autopush/topics/gcs-guest-package-upload-autopush',
-  type:: error 'must set type in upload_arle_autopush_task',
-  universe:: error 'must set universe in upload_arle_autopush_task',
-  repo:: error 'must set repo in upload_arle_autopush_task',
-
-  task: 'upload-arle-autopush-task',
-  config: {
-    platform: 'linux',
-    image_resource: {
-      type: 'registry-image',
-      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
-    },
-    run: {
-      path: 'gcloud',
-      args: [
-        'pubsub',
-        'topics',
-        'publish',
-        tl.topic,
-        '--message',
-        '{"type": "%s", "request": {"gcsfiles": ["%s"], "universe": "%s", "repo": "%s"}}' % [
-          tl.type,
-          tl.package_paths,
-          tl.universe,
-          tl.repo,
-        ],
-      ],
-    },
-  },
-};
-
 
 local upload_arle_autopush_staging = {
   local tl = self,
 
   package:: error 'must set package in upload_arle_autopush_staging',
-  gcs_dir:: tl.package + '_',
-  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
   builds:: error 'must set builds in upload_arle_autopush_staging',
   file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
+
+  gcs_dir:: tl.package,
+  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
+  gcs_filename:: if std.endsWith(tl.gcs_pkg_name, '.') then tl.gcs_pkg_name else tl.gcs_pkg_name + '_',
 
   name: 'upload-arle-autopush-staging-%s' % tl.package,
   plan: [
@@ -94,16 +61,16 @@ local upload_arle_autopush_staging = {
     {
       in_parallel: {
         steps: [
-          upload_arle_autopush_task {
+          arle.packagepublishtask {
             task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.builds[i]],
+            topic: 'projects/artifact-releaser-autopush/topics/gcs-guest-package-upload-autopush',
             package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version-%s)).00%s"}' % [
               common.prod_package_bucket,
               tl.gcs_dir,
-              tl.gcs_pkg_name,
+              tl.gcs_filename,
               tl.builds[i],
               tl.file_endings[i],
             ],
-            type: 'uploadToStaging',
             repo: get_repo(tl.builds[i]),
             universe: get_universe(tl.builds[i]),
           }
