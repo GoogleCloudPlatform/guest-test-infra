@@ -34,6 +34,7 @@ local upload_arle_autopush_staging = {
         steps: [
                  { get: 'guest-test-infra' },
                  { get: 'compute-image-tools' },
+                 { get: 'every-week', trigger: true },
                ] +
                [
                  {
@@ -111,6 +112,7 @@ local promote_arle_autopush_stable = {
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
+          { get: 'every-week', trigger: true },
           {
             task: 'generate-timestamp',
             file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
@@ -181,15 +183,20 @@ local arle_publish_images_autopush = {
   gcs_bucket:: common.prod_bucket,
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
 
-  passed:: 'build-' + tl.image,
-
   name: 'arle-publish-images-autopush-%s' % tl.image,
   plan: [
-    { get: 'guest-test-infra' },
     {
-      get: '%s-gcs' % tl.image,
-      trigger: true,
-      params: { skip_download: true },
+      in_parallel: {
+        steps: [
+          { get: 'guest-test-infra' },
+          { get: 'every-week', trigger: true },
+          {
+            get: '%s-gcs' % tl.image,
+            trigger: true,
+            params: { skip_download: true },
+          },
+        ],
+      },
     },
     { task: 'generate-timestamp', file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml' },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
@@ -244,8 +251,7 @@ local imggroup = {
 local pkggroup = {
   local tl = self,
 
-  packages:: error 'must set packages in pkggroup',
-  builds:: error 'must set builds in pkggroup',
+  packages:: [tl.name],
 
   name: error 'must set name in pkggroup',
   jobs: [
@@ -359,6 +365,15 @@ local pkggroup = {
   resources: [
                common.GitResource('guest-test-infra'),
                common.GitResource('compute-image-tools'),
+
+               // Time resource.
+               {
+                 name: 'every-week',
+                 type: 'time',
+                 source: {
+                   interval: '24h*7',
+                 },
+               },
              ] +
              [
                // Guest Agent resources.
@@ -372,7 +387,7 @@ local pkggroup = {
              [
                // OSLogin resources.
                common.gcspkgresource {
-                 package: 'oslogin',
+                 package: 'guest-oslogin',
                  build: oslogin_builds[i],
                  regexp: 'oslogin/google-compute-engine-oslogin_([0-9]+).00' + oslogin_file_endings[i],
                }
@@ -390,7 +405,7 @@ local pkggroup = {
              [
                // Guest Diskexpand resources.
                common.gcspkgresource {
-                 package: 'gce-disk-expand',
+                 package: 'guest-diskexpand',
                  build: guest_diskexpand_builds[i],
                  regexp: 'gce-disk-expand/gce-disk-expand-([0-9]+).00' + guest_diskexpand_file_endings[i],
                }
@@ -399,7 +414,7 @@ local pkggroup = {
              [
                // Guest Config resources.
                common.gcspkgresource {
-                 package: 'google-compute-engine',
+                 package: 'guest-configs',
                  build: guest_config_builds[i],
                  regexp: 'google-compute-engine/google-compute-engine_([0-9]+).00' + guest_config_file_endings[i],
                }
@@ -408,7 +423,7 @@ local pkggroup = {
              [
                // Artifact Registry Yum Plugin resources (dnf).
                common.gcspkgresource {
-                 package: 'yum-plugin-artifact-registry',
+                 package: 'artifact-registry-yum-plugin',
                  build: yum_plugin_dnf_builds[i],
                  regexp: 'yum-plugin-artifact-registry/dnf-plugin-artifact-registry_([0-9]+).00' + yum_plugin_dnf_file_endings[i],
                }
@@ -417,7 +432,7 @@ local pkggroup = {
              [
                // Artifact Registry Apt Transport resources.
                common.gcspkgresource {
-                 package: 'apt-transport-artifact-registry',
+                 package: 'artifact-registry-apt-transport',
                  build: apt_transport_builds[i],
                  regexp: 'apt-transport-artifact-registry/apt-transport-artifact-registry_([0-9]+).00' + apt_transport_file_endings[i],
                }
@@ -459,7 +474,8 @@ local pkggroup = {
             file_endings: guest_agent_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'oslogin',
+            package: 'guest-oslogin',
+            gcs_dir: 'oslogin',
             builds: oslogin_builds,
             gcs_pkg_name: 'google-compute-engine-oslogin',
             file_endings: oslogin_file_endings,
@@ -471,25 +487,29 @@ local pkggroup = {
             file_endings: osconfig_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'gce-disk-expand',
+            package: 'guest-diskexpand',
+            gcs_dir: 'gce-disk-expand',
             builds: guest_diskexpand_builds,
-            gcs_pkg_name: 'gcs-disk-expand',
+            gcs_pkg_name: 'gce-disk-expand',
             file_endings: guest_diskexpand_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'google-compute-engine',
+            package: 'guest-configs',
+            gcs_dir: 'google-compute-engine',
             builds: guest_config_builds,
             gcs_pkg_name: 'google-compute-engine',
             file_endings: guest_config_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'yum-plugin-artifact-registry',
+            package: 'artifact-registry-yum-plugin',
+            gcs_dir: 'yum-plugin-artifact-registry',
             builds: yum_plugin_dnf_builds,
             gcs_pkg_name: 'dnf-plugin-artifact-registry',
             file_endings: yum_plugin_dnf_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'apt-transport-artifact-registry',
+            package: 'artifact-registry-apt-transport',
+            gcs_dir: 'apt-transport-artifact-registry',
             builds: apt_transport_builds,
             gcs_pkg_name: 'apt-transport-artifact-registry',
             file_endings: apt_transport_file_endings,
@@ -566,15 +586,15 @@ local pkggroup = {
     imggroup { name: 'rocky-linux', images: rocky_linux },
 
     // Package groups
-    pkggroup { name: 'guest-agent', packages: ['guest-agent'], builds: guest_agent_builds },
-    pkggroup { name: 'oslogin', packages: ['oslogin'], builds: oslogin_builds },
-    pkggroup { name: 'osconfig', packages: ['osconfig'], builds: osconfig_builds },
-    pkggroup { name: 'guest-diskexpand', packages: ['gce-disk-expand'], builds: guest_diskexpand_builds },
-    pkggroup { name: 'guest-configs', packages: ['google-compute-engine'], builds: guest_config_builds },
-    pkggroup { name: 'yum-plugin-artifact-registry', packages: ['yum-plugin-artifact-registry'], builds: yum_plugin_dnf_builds },
-    pkggroup { name: 'apt-transport-artifact-registry', packages: ['apt-transport-artifact-registry'], builds: apt_transport_builds },
-    pkggroup { name: 'diagnostics', packages: ['diagnostics'], builds: ['goo'] },
-    pkggroup { name: 'compute-image-windows', packages: compute_image_windows_packages, builds: ['goo'] },
+    pkggroup { name: 'guest-agent' },
+    pkggroup { name: 'guest-oslogin' },
+    pkggroup { name: 'osconfig' },
+    pkggroup { name: 'guest-diskexpand' },
+    pkggroup { name: 'guest-configs' },
+    pkggroup { name: 'artifact-registry-yum-plugin' },
+    pkggroup { name: 'artifact-registry-apt-transport' },
+    pkggroup { name: 'diagnostics' },
+    pkggroup { name: 'compute-image-windows', packages: compute_image_windows_packages },
     {
       name: 'promote-autopush-stable',
       jobs: ['promote-arle-autopush-stable'],
