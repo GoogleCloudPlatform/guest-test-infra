@@ -176,8 +176,8 @@ local arle_publish_images_autopush = {
   // project the running project, in this case 'artifact-releaser-autopush'.
   env:: 'autopush',
 
-  wf_dir:: error 'must set wf_dir in arle_publish_images_autopush',
-  workflow:: '%s/%s.publish.json' % [self.wf_dir, underscore(self.image)],
+  workflow_dir:: error 'must set wf_dir in arle_publish_images_autopush',
+  workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(self.image)],
 
   gcs_dir:: error 'must set gcs_dir in arle-publish-images-autopush',
   gcs_bucket:: common.prod_bucket,
