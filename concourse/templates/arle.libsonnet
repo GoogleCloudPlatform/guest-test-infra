@@ -62,4 +62,43 @@ local common = import '../templates/common.libsonnet';
         ],
       },
     },
+
+  packagepublishtask::
+    {
+      local task = self,
+
+      package_paths:: error 'must set package_paths in packagepublishtask',
+      sbom_file:: '',
+      repo:: error 'must set repo in packagepublishtask',
+      universe:: error 'must set universe in packagepublishtask',
+
+      topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
+      type:: 'uploadToStaging',
+
+      task: 'publish-' + task.repo,
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+        },
+        run: {
+          path: 'gcloud',
+          args: [
+            'pubsub',
+            'topics',
+            'publish',
+            task.topic,
+            '--message',
+            '{"type": "%s", "request": {"gcsfiles": [%s], %s "universe": "%s", "repo": "%s"}}' % [
+              task.type,
+              task.package_paths,
+              if task.sbom_file == '' then '' else '"sbomfile": %s,' % task.sbom_file,
+              task.universe,
+              task.repo,
+            ],
+          ],
+        },
+      },
+    },
 }

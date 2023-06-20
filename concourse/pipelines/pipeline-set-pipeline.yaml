@@ -45,6 +45,6 @@ jobs:
   - set_pipeline: container-build
     file: rendered/container-build.json
   - set_pipeline: artifact-releaser-test
-    file: guest-test-infra/concourse/pipelines/artifact-releaser-test.yaml
+    file: rendered/artifact-releaser-test.json
   - set_pipeline: partner-image-validations
     file: rendered/partner-image-validations.json
