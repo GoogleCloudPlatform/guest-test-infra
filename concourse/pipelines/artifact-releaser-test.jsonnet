@@ -12,6 +12,11 @@ local get_universe(build) = if std.startsWith(build, 'deb') then 'cloud-apt'
 else if std.startsWith(build, 'el') then 'cloud-yum'
 else 'cloud-yuck';
 
+// Package versions are preceded by '_' in debian builds, '-' in EL builds, and '.' in Windows builds.
+local get_filename(filename, build) = if build == 'goo' then filename + '.'
+else if std.startsWith(build, 'deb') then filename + '_'
+else filename + '-';
+
 // Change '-' to '_', mainly used for images
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -20,62 +25,45 @@ local upload_arle_autopush_staging = {
   local tl = self,
 
   package:: error 'must set package in upload_arle_autopush_staging',
+
   builds:: error 'must set builds in upload_arle_autopush_staging',
   file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
 
   gcs_dir:: tl.package,
-  gcs_pkg_name:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
-  gcs_filename:: if std.endsWith(tl.gcs_pkg_name, '.') then tl.gcs_pkg_name else tl.gcs_pkg_name + '_',
+  gcs_pkg_names:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
 
   name: 'upload-arle-autopush-staging-%s' % tl.package,
   plan: [
     {
       in_parallel: {
         steps: [
-                 { get: 'guest-test-infra' },
-                 { get: 'compute-image-tools' },
-                 { get: 'every-week', trigger: true },
-               ] +
-               [
-                 {
-                   get: '%s-%s-gcs' % [tl.package, build],
-                   trigger: true,
-                   params: { skip_download: true },
-                 }
-                 for build in tl.builds
-               ],
+          { get: 'guest-test-infra' },
+          { get: 'compute-image-tools' },
+          { get: 'every-week', trigger: true },
+          { get: '%s-tag' % tl.package, trigger: true },
+        ],
       },
     },
     { task: 'generate-timestamp', file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml' },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    {
-      in_parallel: {
-        steps: [
-          {
-            load_var: 'package-version-%s' % build,
-            file: '%s-%s-gcs/version' % [tl.package, build],
-          }
-          for build in tl.builds
-        ],
-      },
-    },
+    { load_var: 'package-version', file: '%s-tag/tag' },
     {
       in_parallel: {
         steps: [
           arle.packagepublishtask {
             task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.builds[i]],
             topic: 'projects/artifact-releaser-autopush/topics/gcs-guest-package-upload-autopush',
-            package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version-%s)).00%s"}' % [
+            package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version))%s"}' % [
               common.prod_package_bucket,
               tl.gcs_dir,
-              tl.gcs_filename,
-              tl.builds[i],
+              get_filename(filename, tl.builds[i]),
               tl.file_endings[i],
             ],
             repo: get_repo(tl.builds[i]),
             universe: get_universe(tl.builds[i]),
           }
           for i in std.range(0, std.length(tl.builds) - 1)
+          for filename in tl.gcs_pkg_names
         ],
       },
     },
@@ -346,11 +334,22 @@ local pkggroup = {
   ],
   local compute_image_windows_packages = ['certgen', 'auto-updater', 'powershell', 'sysprep', 'ssh'],
   local compute_image_windows_gcs_names = [
-    'certgen.x86_64.x86_64.',
-    'google-compute-engine-auto-updater.noarch.',
-    'google-compute-engine-powershell.noarch.',
-    'google-compute-engine-sysprep.noarch.',
-    'google-compute-engine-ssh.x86_64.',
+    'certgen.x86_64.x86_64',
+    'google-compute-engine-auto-updater.noarch',
+    'google-compute-engine-powershell.noarch',
+    'google-compute-engine-sysprep.noarch',
+    'google-compute-engine-ssh.x86_64',
+  ],
+  local packages = [
+    'guest-agent',
+    'guest-oslogin',
+    'osconfig',
+    'guest-diskexpand',
+    'guest-configs',
+    'artifact-registry-yum-plugin',
+    'artifact-registry-apt-transport',
+    'compute-image-windows',
+    'compute-image-tools',
   ],
 
   // Start of output.
@@ -371,90 +370,104 @@ local pkggroup = {
                  name: 'every-week',
                  type: 'time',
                  source: {
-                   interval: '24h*7',
+                   days: ['Monday'],
                  },
                },
              ] +
              [
-               // Guest Agent resources.
-               common.gcspkgresource {
-                 package: 'guest-agent',
-                 build: guest_agent_builds[i],
-                 regexp: 'guest-agent/google-guest-agent_([0-9]+).00' + guest_agent_file_endings[i],
+               {
+                 name: '%s-tag' % package,
+                 type: 'github-release',
+                 source: {
+                   owner: 'GoogleCloudPlatform',
+                   repository: package,
+                   access_token: '((github-token.token))',
+                 },
                }
-               for i in std.range(0, std.length(guest_agent_builds) - 1)
+               for package in packages
              ] +
-             [
-               // OSLogin resources.
-               common.gcspkgresource {
-                 package: 'guest-oslogin',
-                 build: oslogin_builds[i],
-                 regexp: 'oslogin/google-compute-engine-oslogin_([0-9]+).00' + oslogin_file_endings[i],
-               }
-               for i in std.range(0, std.length(oslogin_builds) - 1)
-             ] +
-             [
-               // OSConfig resources.
-               common.gcspkgresource {
-                 package: 'osconfig',
-                 build: osconfig_builds[i],
-                 regexp: 'osconfig/google-osconfig-agent-([0-9]+).00' + osconfig_file_endings[i],
-               }
-               for i in std.range(0, std.length(osconfig_builds) - 1)
-             ] +
-             [
-               // Guest Diskexpand resources.
-               common.gcspkgresource {
-                 package: 'guest-diskexpand',
-                 build: guest_diskexpand_builds[i],
-                 regexp: 'gce-disk-expand/gce-disk-expand-([0-9]+).00' + guest_diskexpand_file_endings[i],
-               }
-               for i in std.range(0, std.length(guest_diskexpand_builds) - 1)
-             ] +
-             [
-               // Guest Config resources.
-               common.gcspkgresource {
-                 package: 'guest-configs',
-                 build: guest_config_builds[i],
-                 regexp: 'google-compute-engine/google-compute-engine_([0-9]+).00' + guest_config_file_endings[i],
-               }
-               for i in std.range(0, std.length(guest_config_builds) - 1)
-             ] +
-             [
-               // Artifact Registry Yum Plugin resources (dnf).
-               common.gcspkgresource {
-                 package: 'artifact-registry-yum-plugin',
-                 build: yum_plugin_dnf_builds[i],
-                 regexp: 'yum-plugin-artifact-registry/dnf-plugin-artifact-registry_([0-9]+).00' + yum_plugin_dnf_file_endings[i],
-               }
-               for i in std.range(0, std.length(yum_plugin_dnf_builds) - 1)
-             ] +
-             [
-               // Artifact Registry Apt Transport resources.
-               common.gcspkgresource {
-                 package: 'artifact-registry-apt-transport',
-                 build: apt_transport_builds[i],
-                 regexp: 'apt-transport-artifact-registry/apt-transport-artifact-registry_([0-9]+).00' + apt_transport_file_endings[i],
-               }
-               for i in std.range(0, std.length(apt_transport_builds) - 1)
-             ] +
-             [
-               // Compute Image Windows resources.
-               common.gcspkgresource {
-                 package: compute_image_windows_packages[i],
-                 build: 'goo',
-                 regexp: 'compute-image-windows/%s([0-9]+).00.0@1.goo' % compute_image_windows_gcs_names[i],
-               }
-               for i in std.range(0, std.length(compute_image_windows_packages) - 1)
-             ] +
-             [
-               // Diagnostics
-               common.gcspkgresource {
-                 package: 'diagnostics',
-                 build: 'goo',
-                 regexp: 'compute-image-tools/google-compute-engine-diagnostics.x86_64.([0-9]+).00.0@0.goo',
-               },
-             ] +
+             /**
+                          [
+                            // Guest Agent resources.
+                            common.gcspkgresource {
+                              package: 'guest-agent',
+                              build: guest_agent_builds[i],
+                              regexp: 'guest-agent/google-guest-agent_([0-9]+).00' + guest_agent_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(guest_agent_builds) - 1)
+                          ] +
+                          [
+                            // OSLogin resources.
+                            common.gcspkgresource {
+                              package: 'guest-oslogin',
+                              build: oslogin_builds[i],
+                              regexp: 'oslogin/google-compute-engine-oslogin_([0-9]+).00' + oslogin_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(oslogin_builds) - 1)
+                          ] +
+                          [
+                            // OSConfig resources.
+                            common.gcspkgresource {
+                              package: 'osconfig',
+                              build: osconfig_builds[i],
+                              regexp: 'osconfig/google-osconfig-agent-([0-9]+).00' + osconfig_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(osconfig_builds) - 1)
+                          ] +
+                          [
+                            // Guest Diskexpand resources.
+                            common.gcspkgresource {
+                              package: 'guest-diskexpand',
+                              build: guest_diskexpand_builds[i],
+                              regexp: 'gce-disk-expand/gce-disk-expand-([0-9]+).00' + guest_diskexpand_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(guest_diskexpand_builds) - 1)
+                          ] +
+                          [
+                            // Guest Config resources.
+                            common.gcspkgresource {
+                              package: 'guest-configs',
+                              build: guest_config_builds[i],
+                              regexp: 'google-compute-engine/google-compute-engine_([0-9]+).00' + guest_config_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(guest_config_builds) - 1)
+                          ] +
+                          [
+                            // Artifact Registry Yum Plugin resources (dnf).
+                            common.gcspkgresource {
+                              package: 'artifact-registry-yum-plugin',
+                              build: yum_plugin_dnf_builds[i],
+                              regexp: 'yum-plugin-artifact-registry/dnf-plugin-artifact-registry_([0-9]+).00' + yum_plugin_dnf_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(yum_plugin_dnf_builds) - 1)
+                          ] +
+                          [
+                            // Artifact Registry Apt Transport resources.
+                            common.gcspkgresource {
+                              package: 'artifact-registry-apt-transport',
+                              build: apt_transport_builds[i],
+                              regexp: 'apt-transport-artifact-registry/apt-transport-artifact-registry_([0-9]+).00' + apt_transport_file_endings[i],
+                            }
+                            for i in std.range(0, std.length(apt_transport_builds) - 1)
+                          ] +
+                          [
+                            // Compute Image Windows resources.
+                            common.gcspkgresource {
+                              package: compute_image_windows_packages[i],
+                              build: 'goo',
+                              regexp: 'compute-image-windows/%s([0-9]+).00.0@1.goo' % compute_image_windows_gcs_names[i],
+                            }
+                            for i in std.range(0, std.length(compute_image_windows_packages) - 1)
+                          ] +
+                          [
+                            // Diagnostics
+                            common.gcspkgresource {
+                              package: 'diagnostics',
+                              build: 'goo',
+                              regexp: 'compute-image-tools/google-compute-engine-diagnostics.x86_64.([0-9]+).00.0@0.goo',
+                            },
+                          ] +
+             */
              // Image resources
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux] +
@@ -470,68 +483,63 @@ local pkggroup = {
           upload_arle_autopush_staging {
             package: 'guest-agent',
             builds: guest_agent_builds,
-            gcs_pkg_name: 'google-guest-agent',
+            gcs_pkg_names: ['google-guest-agent'],
             file_endings: guest_agent_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'guest-oslogin',
             gcs_dir: 'oslogin',
             builds: oslogin_builds,
-            gcs_pkg_name: 'google-compute-engine-oslogin',
+            gcs_pkg_names: ['google-compute-engine-oslogin'],
             file_endings: oslogin_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'osconfig',
             builds: osconfig_builds,
-            gcs_pkg_name: 'google-osconfig-agent',
+            gcs_pkg_names: ['google-osconfig-agent'],
             file_endings: osconfig_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'guest-diskexpand',
             gcs_dir: 'gce-disk-expand',
             builds: guest_diskexpand_builds,
-            gcs_pkg_name: 'gce-disk-expand',
+            gcs_pkg_names: ['gce-disk-expand'],
             file_endings: guest_diskexpand_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'guest-configs',
             gcs_dir: 'google-compute-engine',
             builds: guest_config_builds,
-            gcs_pkg_name: 'google-compute-engine',
+            gcs_pkg_names: ['google-compute-engine'],
             file_endings: guest_config_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'artifact-registry-yum-plugin',
             gcs_dir: 'yum-plugin-artifact-registry',
             builds: yum_plugin_dnf_builds,
-            gcs_pkg_name: 'dnf-plugin-artifact-registry',
+            gcs_pkg_names: ['dnf-plugin-artifact-registry'],
             file_endings: yum_plugin_dnf_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'artifact-registry-apt-transport',
             gcs_dir: 'apt-transport-artifact-registry',
             builds: apt_transport_builds,
-            gcs_pkg_name: 'apt-transport-artifact-registry',
+            gcs_pkg_names: ['apt-transport-artifact-registry'],
             file_endings: apt_transport_file_endings,
           },
           upload_arle_autopush_staging {
-            package: 'diagnostics',
-            gcs_dir: 'compute-image-tools',
-            gcs_pkg_name: 'google-compute-engine-diagnostics.x86_64.',
+            package: 'compute-image-tools',
+            gcs_pkg_names: ['google-compute-engine-diagnostics.x86_64'],
             builds: ['goo'],
-            file_endings: ['.00.0@1.goo'],
+            file_endings: ['.0@1.goo'],
           },
-        ] +
-        [
           // Compute Image Windows packages are set up differently, so need to create the jobs differently.
           upload_arle_autopush_staging {
-            package: compute_image_windows_packages[i],
-            gcs_dir: 'compute-image-windows',
-            gcs_pkg_name: compute_image_windows_gcs_names[i],
+            package: 'compute-image-windows',
+            gcs_pkg_names: compute_image_windows_gcs_names,
             builds: ['goo'],
-            file_endings: ['.00.0@1.goo'],
-          }
-          for i in std.range(0, std.length(compute_image_windows_packages) - 1)
+            file_endings: ['.0@1.goo'],
+          },
         ] +
         [
           // Promote all packages in every repo.
