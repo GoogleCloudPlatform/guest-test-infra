@@ -17,7 +17,7 @@ local get_filename(filename, build) = if build == 'goo' then filename + '.'
 else if std.startsWith(build, 'deb') then filename + '_'
 else filename + '-';
 
-// Change '-' to '_', mainly used for images
+// Change '-' to '_', mainly used for images.
 local underscore(input) = std.strReplace(input, '-', '_');
 
 
@@ -30,7 +30,7 @@ local upload_arle_autopush_staging = {
   file_endings:: error 'must set file_endings in upload_arle_autopush_staging',
 
   gcs_dir:: tl.package,
-  gcs_pkg_names:: error 'must set gcs_pkg_name in upload_arle_autopush_staging',
+  gcs_pkg_names:: error 'must set gcs_pkg_names in upload_arle_autopush_staging',
 
   name: 'upload-arle-autopush-staging-%s' % tl.package,
   plan: [
@@ -235,7 +235,7 @@ local imggroup = {
   ],
 };
 
-// Package group definition
+// Package group definition.
 local pkggroup = {
   local tl = self,
 
@@ -340,6 +340,8 @@ local pkggroup = {
     'google-compute-engine-sysprep.noarch',
     'google-compute-engine-ssh.x86_64',
   ],
+
+  // List of all packages.
   local packages = [
     'guest-agent',
     'guest-oslogin',
@@ -359,8 +361,12 @@ local pkggroup = {
       type: 'registry-image',
       source: { repository: 'frodenas/gcs-resource' },
     },
+    {
+      name: 'cron-resource',
+      type: 'docker-image',
+      source: { repository: 'cftoolsmiths/cron-resource' },
+    },
   ],
-  // All resources.
   resources: [
                common.GitResource('guest-test-infra'),
                common.GitResource('compute-image-tools'),
@@ -368,13 +374,15 @@ local pkggroup = {
                // Time resource.
                {
                  name: 'every-week',
-                 type: 'time',
+                 type: 'cron-resource',
                  source: {
-                   days: ['Monday'],
+                   // Trigger at midnight UTC every Monday
+                   expression: '0 0 * * 1',
                  },
                },
              ] +
              [
+               // Package resources.
                {
                  name: '%s-tag' % package,
                  type: 'github-release',
@@ -397,7 +405,6 @@ local pkggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel],
 
-  // Run jobs.
   jobs: [
           upload_arle_autopush_staging {
             package: 'guest-agent',
@@ -452,7 +459,6 @@ local pkggroup = {
             builds: ['goo'],
             file_endings: ['.0@1.goo'],
           },
-          // Compute Image Windows packages are set up differently, so need to create the jobs differently.
           upload_arle_autopush_staging {
             package: 'compute-image-windows',
             gcs_pkg_names: compute_image_windows_gcs_names,
@@ -465,7 +471,6 @@ local pkggroup = {
           promote_arle_autopush_stable,
         ] +
         [
-          // Debian publish jobs.
           arle_publish_images_autopush {
             image: image,
             gcs_dir: 'debian',
@@ -522,6 +527,8 @@ local pkggroup = {
     pkggroup { name: 'artifact-registry-apt-transport' },
     pkggroup { name: 'diagnostics' },
     pkggroup { name: 'compute-image-windows', packages: compute_image_windows_packages },
+
+    // Other groups.
     {
       name: 'promote-autopush-stable',
       jobs: ['promote-arle-autopush-stable'],
