@@ -525,8 +525,8 @@ local pkggroup = {
     pkggroup { name: 'guest-configs' },
     pkggroup { name: 'artifact-registry-yum-plugin' },
     pkggroup { name: 'artifact-registry-apt-transport' },
-    pkggroup { name: 'diagnostics' },
-    pkggroup { name: 'compute-image-windows', packages: compute_image_windows_packages },
+    pkggroup { name: 'compute-image-tools' },
+    pkggroup { name: 'compute-image-windows' },
 
     // Other groups.
     {
