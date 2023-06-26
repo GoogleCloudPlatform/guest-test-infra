@@ -46,7 +46,7 @@ local upload_arle_autopush_staging = {
     },
     { task: 'generate-timestamp', file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml' },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    { load_var: 'package-version', file: '%s-tag/tag' },
+    { load_var: 'package-version', file: '%s-tag/tag' % tl.package },
     {
       in_parallel: {
         steps: [
@@ -181,7 +181,7 @@ local arle_publish_images_autopush = {
           {
             get: '%s-gcs' % tl.image,
             trigger: true,
-            params: { skip_download: true },
+            params: { skip_download: 'true' },
           },
         ],
       },
