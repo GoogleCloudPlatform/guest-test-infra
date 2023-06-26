@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM python:slim
+FROM python:3-slim-bullseye
 
-RUN pip install flake8 flake8-import-order
+RUN pip3 install flake8 flake8-import-order
 
 # Copy this Dockerfile for debugging.
 WORKDIR /
