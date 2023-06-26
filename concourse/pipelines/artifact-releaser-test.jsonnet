@@ -39,7 +39,7 @@ local upload_arle_autopush_staging = {
         steps: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-week', trigger: true },
+          { get: 'every-3h', trigger: true },
           { get: '%s-tag' % tl.package, trigger: true },
         ],
       },
@@ -100,7 +100,7 @@ local promote_arle_autopush_stable = {
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-week', trigger: true },
+          { get: 'every-3h', trigger: true },
           {
             task: 'generate-timestamp',
             file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
@@ -177,7 +177,7 @@ local arle_publish_images_autopush = {
       in_parallel: {
         steps: [
           { get: 'guest-test-infra' },
-          { get: 'every-week', trigger: true },
+          { get: 'every-3h', trigger: true },
           {
             get: '%s-gcs' % tl.image,
             trigger: true,
@@ -373,11 +373,12 @@ local pkggroup = {
 
                // Time resource.
                {
-                 name: 'every-week',
+                 name: 'every-3h',
                  type: 'cron-resource',
                  source: {
-                   // Trigger at midnight UTC every Monday
-                   expression: '0 0 * * 1',
+                   // Every 3h at XX:00.
+                   expression: '0 */3 * * *',
+                   fire_immediately: true,
                  },
                },
              ] +
