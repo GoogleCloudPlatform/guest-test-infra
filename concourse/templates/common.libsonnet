@@ -83,22 +83,6 @@
     sbom_destination: sbom_destination,
   },
 
-  gcspkgresource:: {
-    local resource = self,
-
-    regexp:: error 'must set regexp in gcspkgresource',
-    package:: error 'must set package in gcspkgresource',
-    build:: error 'must set build in gcspkgresource',
-    bucket:: tl.prod_package_bucket,
-
-    name: '%s-%s-gcs' % [resource.package, resource.build],
-    type: 'gcs',
-    source: {
-      bucket: resource.bucket,
-      regexp: resource.regexp,
-    },
-  },
-
   publishresulttask:: {
     local task = self,
 
