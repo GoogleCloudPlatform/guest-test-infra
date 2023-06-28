@@ -548,7 +548,7 @@ local buildpackageimagetask = {
         },
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-sbom.json"}',
+          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
           repo: 'google-guest-agent-bullseye',
           universe: 'cloud-apt',
         },
