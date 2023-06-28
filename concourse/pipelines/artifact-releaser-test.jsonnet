@@ -20,6 +20,35 @@ else filename + '-';
 // Change '-' to '_', mainly used for images.
 local underscore(input) = std.strReplace(input, '-', '_');
 
+// Publish results of tasks. Used for jobs.
+local publishresulttask = {
+  local tl = self,
+
+  result:: error 'must set result in publishresulttask',
+  job:: error 'must set job in publishresulttask',
+
+  task: tl.result,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+    },
+    run: {
+      path: '/publish-job-result',
+      args: [
+        '--project-id=gcp-guest',
+        '--zone=us-west1-a',
+        '--pipeline=artifact-releaser-test',
+        '--job=' + tl.job,
+        '--task=publish-job-result',
+        '--result-state=' + tl.result,
+        '--start-timestamp=((.:start-timestamp-ms))',
+        '--metric-path=concourse/job/duration',
+      ],
+    },
+  },
+};
 
 local upload_arle_autopush_staging = {
   local tl = self,
@@ -68,23 +97,13 @@ local upload_arle_autopush_staging = {
       },
     },
   ],
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'upload-arle-autopush-staging-%s' % tl.package,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+  on_success: publishresulttask {
+    result: 'success',
+    job: tl.name,
   },
-  on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'upload-arle-autopush-staging-%s' % tl.package,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+  on_failure: publishresulttask {
+    result: 'failure',
+    job: tl.name,
   },
 };
 
@@ -135,23 +154,13 @@ local promote_arle_autopush_stable = {
           }
           for i in std.range(0, std.length(tl.repos) - 1)
         ],
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'promote-arle-autopush-stable',
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+  on_success: publishresulttask {
+    result: 'success',
+    job: tl.name,
   },
-  on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'promote-arle-autopush-stable',
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+  on_failure: publishresulttask {
+    result: 'failure',
+    job: tl.name,
   },
 };
 
