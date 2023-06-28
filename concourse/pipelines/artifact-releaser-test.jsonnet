@@ -52,7 +52,7 @@ local upload_arle_autopush_staging = {
         steps: [
           arle.packagepublishtask {
             task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.builds[i]],
-            topic: 'projects/artifact-releaser-autopush/topics/gcs-guest-package-upload-autopush',
+            topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
             package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version))%s"}' % [
               common.prod_package_bucket,
               tl.gcs_dir,
@@ -177,6 +177,7 @@ local arle_publish_images_autopush = {
       in_parallel: {
         steps: [
           { get: 'guest-test-infra' },
+          { get: 'compute-image-tools' },
           { get: 'every-3h', trigger: true },
           {
             get: '%s-gcs' % tl.image,
