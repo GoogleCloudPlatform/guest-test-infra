@@ -159,11 +159,6 @@ local arle_publish_images_autopush = {
   local tl = self,
   image:: error 'must set image in arle_publish_images_autopush',
 
-  // Even though 'autopush' is not a specifically defined environment, given the current definitions
-  // of the publish workflows, any environment that is not 'testing' or 'prod' will make the publish
-  // project the running project, in this case 'artifact-releaser-autopush'.
-  env:: 'autopush',
-
   workflow_dir:: error 'must set workflow_dir in arle_publish_images_autopush',
   workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(self.image)],
 
@@ -194,12 +189,13 @@ local arle_publish_images_autopush = {
     { load_var: 'publish-version', file: 'publish-version/version' },
     {
       task: 'publish-autopush-%s' % tl.image,
-      config: arle.gcepublishtask {
-        source_gcs_path: tl.gcs,
+      config: arle.arlepublishtask {
+        topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush',
+        image_name: tl.image,
+        gcs_image_path: tl.gcs,
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
         wf: tl.workflow,
-        environment: tl.env,
       },
     },
   ],
