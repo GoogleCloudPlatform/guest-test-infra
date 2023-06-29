@@ -216,7 +216,7 @@ local arle_publish_images_autopush = {
     result: 'success',
     job: tl.name,
   },
-  on_failure: {
+  on_failure: publishresulttask {
     result: 'failure',
     job: tl.name,
   },
