@@ -25,7 +25,7 @@ local publishresulttask = {
   local tl = self,
 
   result:: error 'must set result in publishresulttask',
-  package:: error 'must set package in publishresulttask',
+  job:: error 'must set job in publishresulttask',
 
   task: tl.result,
   config: {
@@ -40,7 +40,7 @@ local publishresulttask = {
         '--project-id=gcp-guest',
         '--zone=us-west1-a',
         '--pipeline=artifact-releaser-test',
-        '--job=build-' + tl.package,
+        '--job=' + tl.job,
         '--task=publish-job-result',
         '--result-state=' + tl.result,
         '--start-timestamp=((.:start-timestamp-ms))',
