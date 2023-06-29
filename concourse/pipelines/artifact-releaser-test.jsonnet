@@ -20,7 +20,7 @@ else filename + '-';
 // Change '-' to '_', mainly used for images.
 local underscore(input) = std.strReplace(input, '-', '_');
 
-// Publish results of tasks. Used for jobs.
+// Publish results of tasks.
 local publishresulttask = {
   local tl = self,
 
@@ -212,23 +212,13 @@ local arle_publish_images_autopush = {
       },
     },
   ],
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'arle-publish-image-autopush-%s' % tl.image,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+  on_success: publishresulttask {
+    result: 'success',
+    job: tl.name,
   },
   on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'artifact-releaser-test',
-      job: 'arle-publish-image-autopush-%s' % tl.image,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+    result: 'failure',
+    job: tl.name,
   },
 };
 
