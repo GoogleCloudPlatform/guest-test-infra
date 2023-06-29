@@ -80,7 +80,7 @@ local upload_arle_autopush_staging = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'artifact-releaser-test',
       job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -147,7 +147,7 @@ local promote_arle_autopush_stable = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'artifact-releaser-test',
       job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -215,7 +215,7 @@ local arle_publish_images_autopush = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build-staging',
+      pipeline: 'artifact-releaser-test',
       job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
