@@ -72,7 +72,7 @@ local upload_arle_autopush_staging = {
     task: 'publish-success-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'upload-arle-autopush-staging-%s' % tl.package,
+      job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -81,7 +81,7 @@ local upload_arle_autopush_staging = {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'upload-arle-autopush-staging-%s' % tl.package,
+      job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -139,7 +139,7 @@ local promote_arle_autopush_stable = {
     task: 'publish-success-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'promote-arle-autopush-stable',
+      job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -148,7 +148,7 @@ local promote_arle_autopush_stable = {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'promote-arle-autopush-stable',
+      job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -207,7 +207,7 @@ local arle_publish_images_autopush = {
     task: 'publish-success-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'arle-publish-image-autopush-%s' % tl.image,
+      job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -216,7 +216,7 @@ local arle_publish_images_autopush = {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
       pipeline: 'artifact-releaser-test',
-      job: 'arle-publish-image-autopush-%s' % tl.image,
+      job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -366,6 +366,11 @@ local pkggroup = {
       name: 'cron-resource',
       type: 'docker-image',
       source: { repository: 'cftoolsmiths/cron-resource' },
+    },
+    {
+      name: 'registry-image-forked',
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
     },
   ],
   resources: [
