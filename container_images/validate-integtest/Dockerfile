@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.19-bullseye
+FROM golang:bullseye
 
 RUN go get -u github.com/jstemmer/go-junit-report
 
 FROM node
 RUN npm install -g junit-merge
 
-FROM python:3.7.8-slim-buster
+FROM python:3.11-slim-bullseye
 RUN pip3 install junit2html
 
 FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
@@ -28,10 +28,10 @@ COPY --from=1 /usr/local/bin/node /usr/local/bin/node
 COPY --from=1 /usr/local/lib/node_modules/ /usr/local/lib/node_modules/
 COPY --from=2 /usr/local/bin/junit2html /junit2html
 COPY --from=2 /usr/local/bin/python /usr/local/bin/python
-COPY --from=2 /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
-COPY --from=2 /usr/local/lib/lib*3.7* /usr/local/lib/
-COPY --from=2 /usr/local/bin/python3.7 /usr/local/bin/
-COPY --from=2 /usr/local/include/python3.7m/ /usr/local/include/python3.7m/
+COPY --from=2 /usr/local/lib/python3.11/ /usr/local/lib/python3.11/
+COPY --from=2 /usr/local/lib/lib*3.11* /usr/local/lib/
+COPY --from=2 /usr/local/bin/python3.11 /usr/local/bin/
+COPY --from=2 /usr/local/include/python3.11m/ /usr/local/include/python3.11m/
 
 
 RUN apt-get update && apt-get -y install ca-certificates && \
