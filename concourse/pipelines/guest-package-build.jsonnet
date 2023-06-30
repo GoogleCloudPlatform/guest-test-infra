@@ -1081,7 +1081,7 @@ local buildpackageimagetask = {
       uploads: [
         uploadpackagetask {
           package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.x86_64.((.:package-version)).0@1.goo"}',
+            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"}',
           sbom_file:
             '{"bucket":"gcp-guest-package-uploads","object":""}',
           universe: 'cloud-yuck',
