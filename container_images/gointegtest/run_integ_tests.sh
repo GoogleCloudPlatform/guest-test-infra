@@ -14,7 +14,7 @@ export CGO_ENABLED=0
 
 # SuSE images do not have the cloud SDK, needed for gsutil
 if [[ -e /etc/SUSEConnect ]]; then
-  wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-311.0.0-linux-x86_64.tar.gz
+  wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-437.0.1-linux-x86_64.tar.gz
   tar xf *.tar.gz
   export PATH=$PATH:${PWD}/google-cloud-sdk/bin
   zypper install -y python36
