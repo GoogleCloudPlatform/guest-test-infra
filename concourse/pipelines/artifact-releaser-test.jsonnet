@@ -217,9 +217,10 @@ local promote_arle_autopush_stable = {
 local arle_publish_images_autopush = {
   local tl = self,
   image:: error 'must set image in arle_publish_images_autopush',
+  is_windows:: false,
 
   workflow_dir:: error 'must set workflow_dir in arle_publish_images_autopush',
-  workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(self.image)],
+  workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(tl.image) + if tl.is_windows then '-uefi' else ''],
 
   gcs_dir:: error 'must set gcs_dir in arle-publish-images-autopush',
   gcs_bucket:: common.prod_bucket,
@@ -295,7 +296,7 @@ local pkggroup = {
 };
 
 {
-  // Image names.
+  // Linux images.
   local almalinux = ['almalinux-8', 'almalinux-9'],
   local debian = ['debian-10', 'debian-11', 'debian-11-arm64', 'debian-12', 'debian-12-arm64'],
   local centos = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
@@ -317,6 +318,95 @@ local pkggroup = {
     'rocky-linux-9-optimized-gcp',
     'rocky-linux-9-optimized-gcp-arm64',
   ],
+
+  // Windows images
+  local windows_10_images = [
+    'windows-10-21h2-ent-x64',
+  ],
+  local windows_11_images = [
+    'windows-11-21h2-ent-x64',
+  ],
+  local windows_2012_images = [
+    'windows-server-2012-r2-dc',
+    'windows-server-2012-r2-dc-core',
+  ],
+  local windows_2016_images = [
+    'windows-server-2016-dc',
+    'windows-server-2016-dc-core',
+  ],
+  local windows_2019_images = [
+    'windows-server-2019-dc',
+    'windows-server-2019-dc-core',
+  ],
+  local windows_2022_images = [
+    'windows-server-2022-dc',
+    'windows-server-2022-dc-core',
+  ],
+  local sql_2014_images = [
+    'sql-2014-enterprise-windows-2012-r2-dc',
+    'sql-2014-enterprise-windows-2016-dc',
+    'sql-2014-standard-windows-2012-r2-dc',
+    'sql-2014-web-windows-2012-r2-dc',
+  ],
+  local sql_2016_images = [
+    'sql-2016-enterprise-windows-2012-r2-dc',
+    'sql-2016-enterprise-windows-2016-dc',
+    'sql-2016-enterprise-windows-2019-dc',
+    'sql-2016-standard-windows-2012-r2-dc',
+    'sql-2016-standard-windows-2016-dc',
+    'sql-2016-standard-windows-2019-dc',
+    'sql-2016-web-windows-2012-r2-dc',
+    'sql-2016-web-windows-2016-dc',
+    'sql-2016-web-windows-2019-dc',
+  ],
+  local sql_2017_images = [
+    'sql-2017-enterprise-windows-2016-dc',
+    'sql-2017-enterprise-windows-2019-dc',
+    'sql-2017-enterprise-windows-2022-dc',
+    'sql-2017-express-windows-2012-r2-dc',
+    'sql-2017-express-windows-2016-dc',
+    'sql-2017-express-windows-2019-dc',
+    'sql-2017-standard-windows-2016-dc',
+    'sql-2017-standard-windows-2019-dc',
+    'sql-2017-standard-windows-2022-dc',
+    'sql-2017-web-windows-2016-dc',
+    'sql-2017-web-windows-2019-dc',
+    'sql-2017-web-windows-2022-dc',
+  ],
+  local sql_2019_images = [
+    'sql-2019-enterprise-windows-2019-dc',
+    'sql-2019-enterprise-windows-2022-dc',
+    'sql-2019-standard-windows-2019-dc',
+    'sql-2019-standard-windows-2022-dc',
+    'sql-2019-web-windows-2019-dc',
+    'sql-2019-web-windows-2022-dc',
+  ],
+  local sql_2022_images = [
+    'sql-2022-enterprise-windows-2019-dc',
+    'sql-2022-enterprise-windows-2022-dc',
+    'sql-2022-standard-windows-2019-dc',
+    'sql-2022-standard-windows-2022-dc',
+    'sql-2022-web-windows-2019-dc',
+    'sql-2022-web-windows-2022-dc',
+  ],
+  local mirantis_images = [
+    'windows-server-2019-dc-for-containers',
+    'windows-server-2019-dc-core-for-containers',
+  ],
+  local docker_ce_images = [
+    'windows-server-2019-dc-for-containers-ce',
+    'windows-server-2019-dc-core-for-containers-ce',
+  ],
+  local windows_install_media_images = [
+    'windows-install-media',
+  ],
+  local prerelease_images = [
+    'sql-2022-preview-windows-2022-dc',
+  ],
+  local windows_client_images = windows_10_images + windows_11_images,
+  local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
+                                + windows_2022_images,
+  local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
 
   // Package builds and file endings.
   local guest_agent_builds = ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
@@ -459,7 +549,15 @@ local pkggroup = {
                regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
              } for image in debian] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel],
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel] +
+
+             // Windows resources.
+             [common.gcsimgresource {
+               image: image,
+               gcs_dir: 'windows-uefi',
+             } for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'sqlserver-uefi' } for image in sql_images + prerelease_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'windows-install-media' } for image in windows_install_media_images],
 
   jobs: [
           upload_arle_autopush_staging {
@@ -564,6 +662,68 @@ local pkggroup = {
             workflow_dir: 'enterprise_linux',
           }
           for image in rocky_linux
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            gcs_dir: 'windows-uefi',
+            workflow_dir: 'windows',
+          }
+          for image in windows_client_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'windows-uefi',
+            workflow_dir: 'windows',
+          }
+          for image in windows_server_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'sqlserver-uefi',
+            workflow_dir: 'sqlserver',
+          }
+          for image in sql_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'sqlserver-uefi',
+            workflow_dir: 'sqlserver',
+          }
+          for image in prerelease_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'windows-uefi',
+            workflow_dir: 'windows_container',
+          }
+          for image in docker_ce_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'windows-uefi',
+            workflow_dir: 'windows_container',
+          }
+          for image in mirantis_images
+        ] +
+        [
+          arle_publish_images_autopush {
+            image: image,
+            is_windows: true,
+            gcs_dir: 'windows-install-media',
+            workflow_dir: 'windows',
+          }
+          for image in windows_install_media_images
         ],
   groups: [
     // Image groups
@@ -572,6 +732,12 @@ local pkggroup = {
     imggroup { name: 'centos', images: centos },
     imggroup { name: 'almalinux', images: almalinux },
     imggroup { name: 'rocky-linux', images: rocky_linux },
+    imggroup { name: 'windows-client', images: windows_client_images },
+    imggroup { name: 'windows-server', images: windows_server_images },
+    imggroup { name: 'windows-sql', images: sql_images },
+    imggroup { name: 'windows-container', images: docker_ce_images + mirantis_images },
+    imggroup { name: 'windows-prerelease', images: prerelease_images },
+    imggroup { name: 'windows-install-media', images: windows_install_media_images },
 
     // Package groups
     pkggroup { name: 'guest-agent' },
