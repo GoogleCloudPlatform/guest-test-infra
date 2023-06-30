@@ -49,6 +49,12 @@
           "Type": "pd-ssd"
         },
         {
+          "Name": "disk-rhel-9",
+          "SourceImage": "projects/rhel-cloud/global/images/family/rhel-9",
+          "SizeGb": "20",
+          "Type": "pd-ssd"
+        },
+        {
           "Name": "disk-sles-12",
           "SourceImage": "projects/suse-cloud/global/images/family/sles-12",
           "SizeGb": "20",
@@ -61,14 +67,8 @@
           "Type": "pd-ssd"
         },
         {
-          "Name": "disk-ubuntu-1804-lts",
-          "SourceImage": "projects/ubuntu-os-cloud/global/images/family/ubuntu-1804-lts",
-          "SizeGb": "20",
-          "Type": "pd-ssd"
-        },
-        {
-          "Name": "disk-ubuntu-2004-lts",
-          "SourceImage": "projects/ubuntu-os-cloud/global/images/family/ubuntu-2004-lts",
+          "Name": "disk-ubuntu-2204-lts",
+          "SourceImage": "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts",
           "SizeGb": "20",
           "Type": "pd-ssd"
         },
@@ -81,6 +81,12 @@
         {
           "Name": "disk-debian-11",
           "SourceImage": "projects/debian-cloud/global/images/family/debian-11",
+          "SizeGb": "20",
+          "Type": "pd-ssd"
+        },
+        {
+          "Name": "disk-debian-12",
+          "SourceImage": "projects/debian-cloud/global/images/family/debian-12",
           "SizeGb": "20",
           "Type": "pd-ssd"
         }
@@ -145,6 +151,20 @@
           "MachineType": "e2-standard-2"
         },
         {
+          "Name": "rhel-9",
+          "Disks": [
+            {"Source": "disk-rhel-9"}
+          ],
+          "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
+          "StartupScript": "run_integ_tests",
+          "Metadata": {
+            "repo-owner": "${repo_owner}",
+            "repo-name": "${repo_name}",
+            "git-ref": "${git_ref}"
+          },
+          "MachineType": "e2-standard-2"
+        },
+        {
           "Name": "sles-12",
           "Disks": [
             {"Source": "disk-sles-12"}
@@ -173,23 +193,9 @@
           "MachineType": "e2-standard-2"
         },
         {
-          "Name": "ubuntu-1804-lts",
+          "Name": "ubuntu-2204-lts",
           "Disks": [
-            {"Source": "disk-ubuntu-1804-lts"}
-          ],
-          "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
-          "StartupScript": "run_integ_tests",
-          "Metadata": {
-            "repo-owner": "${repo_owner}",
-            "repo-name": "${repo_name}",
-            "git-ref": "${git_ref}"
-          },
-          "MachineType": "e2-standard-2"
-        },
-        {
-          "Name": "ubuntu-2004-lts",
-          "Disks": [
-            {"Source": "disk-ubuntu-2004-lts"}
+            {"Source": "disk-ubuntu-2204-lts"}
           ],
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
           "StartupScript": "run_integ_tests",
@@ -218,6 +224,20 @@
           "Name": "debian-11",
           "Disks": [
             {"Source": "disk-debian-11"}
+          ],
+          "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
+          "StartupScript": "run_integ_tests",
+          "Metadata": {
+            "repo-owner": "${repo_owner}",
+            "repo-name": "${repo_name}",
+            "git-ref": "${git_ref}"
+          },
+          "MachineType": "e2-standard-2"
+        },
+        {
+          "Name": "debian-12",
+          "Disks": [
+            {"Source": "disk-debian-12"}
           ],
           "Scopes": ["https://www.googleapis.com/auth/devstorage.read_write"],
           "StartupScript": "run_integ_tests",
@@ -265,6 +285,14 @@
           }
         },
         {
+          "Name": "rhel-9",
+          "SerialOutput": {
+            "Port": 1,
+            "FailureMatch": "Build failed",
+            "SuccessMatch": "Build succeeded"
+          }
+        },
+        {
           "Name": "sles-12",
           "SerialOutput": {
             "Port": 1,
@@ -281,15 +309,7 @@
           }
         },
         {
-          "Name": "ubuntu-1804-lts",
-          "SerialOutput": {
-            "Port": 1,
-            "FailureMatch": "Build failed",
-            "SuccessMatch": "Build succeeded"
-          }
-        },
-        {
-          "Name": "ubuntu-2004-lts",
+          "Name": "ubuntu-2204-lts",
           "SerialOutput": {
             "Port": 1,
             "FailureMatch": "Build failed",
@@ -306,6 +326,14 @@
         },
         {
           "Name": "debian-11",
+          "SerialOutput": {
+            "Port": 1,
+            "FailureMatch": "Build failed",
+            "SuccessMatch": "Build succeeded"
+          }
+        },
+        {
+          "Name": "debian-12",
           "SerialOutput": {
             "Port": 1,
             "FailureMatch": "Build failed",

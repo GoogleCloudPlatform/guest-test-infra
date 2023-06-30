@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.19-bullseye
+FROM golang:bullseye
 RUN go install github.com/jstemmer/go-junit-report@latest
 
 FROM gcr.io/compute-image-tools/daisy:latest
