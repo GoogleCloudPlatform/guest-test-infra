@@ -68,7 +68,7 @@ local upload_arle_autopush_staging = {
         steps: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           { get: '%s-tag' % tl.package, trigger: true },
         ],
       },
@@ -119,7 +119,7 @@ local promote_arle_autopush_stable = {
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           {
             task: 'generate-timestamp',
             file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
@@ -182,7 +182,7 @@ local arle_publish_images_autopush = {
         steps: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           {
             get: '%s-gcs' % tl.image,
             trigger: true,
@@ -369,11 +369,12 @@ local pkggroup = {
 
                // Time resource.
                {
-                 name: 'every-3h',
+                 name: 'time-interval',
                  type: 'cron-resource',
+                 icon: 'clock-outline',
                  source: {
-                   // Every 3h at XX:00.
-                   expression: '0 */3 * * *',
+                   // Every day at midnight.
+                   expression: '0 0 * * *',
                    fire_immediately: true,
                  },
                },
