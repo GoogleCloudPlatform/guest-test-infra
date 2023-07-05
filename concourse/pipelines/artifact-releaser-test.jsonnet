@@ -75,7 +75,7 @@ local upload_arle_autopush_staging = {
     },
     { task: 'generate-timestamp', file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml' },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    { load_var: 'package-version', file: '%s-tag/tag' % tl.package },
+    { load_var: 'package-version', file: '%s-tag/version' % tl.package },
     {
       in_parallel: {
         steps: [
@@ -375,6 +375,7 @@ local pkggroup = {
                  source: {
                    // Every day at midnight.
                    expression: '0 0 * * *',
+                   tag_filter: '([0-9]+.*)',
                    fire_immediately: true,
                  },
                },
