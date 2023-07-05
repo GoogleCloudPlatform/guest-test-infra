@@ -375,7 +375,6 @@ local pkggroup = {
                  source: {
                    // Every day at midnight.
                    expression: '0 0 * * *',
-                   tag_filter: '([0-9]+.*)',
                    fire_immediately: true,
                  },
                },
@@ -389,6 +388,7 @@ local pkggroup = {
                    owner: 'GoogleCloudPlatform',
                    repository: package,
                    access_token: '((github-token.token))',
+                   tag_filter: '([0-9]+.*)',
                  },
                }
                for package in packages
