@@ -68,14 +68,14 @@ local upload_arle_autopush_staging = {
         steps: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           { get: '%s-tag' % tl.package, trigger: true },
         ],
       },
     },
     { task: 'generate-timestamp', file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml' },
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    { load_var: 'package-version', file: '%s-tag/tag' % tl.package },
+    { load_var: 'package-version', file: '%s-tag/version' % tl.package },
     {
       in_parallel: {
         steps: [
@@ -119,7 +119,7 @@ local promote_arle_autopush_stable = {
   plan: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           {
             task: 'generate-timestamp',
             file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
@@ -182,7 +182,7 @@ local arle_publish_images_autopush = {
         steps: [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
-          { get: 'every-3h', trigger: true },
+          { get: 'time-interval', trigger: true },
           {
             get: '%s-gcs' % tl.image,
             trigger: true,
@@ -369,11 +369,12 @@ local pkggroup = {
 
                // Time resource.
                {
-                 name: 'every-3h',
+                 name: 'time-interval',
                  type: 'cron-resource',
+                 icon: 'clock-outline',
                  source: {
-                   // Every 3h at XX:00.
-                   expression: '0 */3 * * *',
+                   // Every day at midnight.
+                   expression: '0 0 * * *',
                    fire_immediately: true,
                  },
                },
@@ -387,6 +388,7 @@ local pkggroup = {
                    owner: 'GoogleCloudPlatform',
                    repository: package,
                    access_token: '((github-token.token))',
+                   tag_filter: '([0-9]+.*)',
                  },
                }
                for package in packages
