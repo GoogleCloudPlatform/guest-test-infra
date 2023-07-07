@@ -456,7 +456,7 @@ local pkggroup = {
             package: 'compute-image-tools',
             gcs_pkg_names: ['google-compute-engine-diagnostics.x86_64'],
             builds: ['goo'],
-            file_endings: ['.0@1.goo'],
+            file_endings: ['@1.goo'],
           },
           upload_arle_autopush_staging {
             package: 'compute-image-windows',
