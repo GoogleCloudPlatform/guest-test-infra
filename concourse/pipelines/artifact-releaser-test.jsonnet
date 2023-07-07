@@ -17,6 +17,9 @@ local get_filename(filename, build) = if build == 'goo' then filename + '.'
 else if std.startsWith(build, 'deb') then filename + '_'
 else filename + '-';
 
+// Get builds given the index, or index 0 if there is only one build.
+local get_build(builds, index) = if std.length(builds) > 1 then builds[index] else builds[0];
+
 // Change '-' to '_', mainly used for images.
 local underscore(input) = std.strReplace(input, '-', '_');
 
@@ -80,19 +83,22 @@ local upload_arle_autopush_staging = {
       in_parallel: {
         steps: [
           arle.packagepublishtask {
-            task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, tl.builds[i]],
+            task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, get_build(tl.builds, i)],
             topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
             package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version))%s"}' % [
               common.prod_package_bucket,
               tl.gcs_dir,
-              get_filename(filename, tl.builds[i]),
+              get_filename(
+                if std.length(tl.gcs_pkg_names) > 1 then tl.gcs_pkg_names[i] else tl.gcs_pkg_names[0],
+                get_build(tl.builds, i)
+              ),
               tl.file_endings[i],
             ],
-            repo: get_repo(tl.builds[i]),
-            universe: get_universe(tl.builds[i]),
+            repo: get_repo(get_build(tl.builds, i)),
+            universe: get_universe(get_build(tl.builds, i)),
           }
-          for i in std.range(0, std.length(tl.builds) - 1)
-          for filename in tl.gcs_pkg_names
+          // file_endings is the common denominator, so we loop through that instead.
+          for i in std.range(0, std.length(tl.file_endings) - 1)
         ],
       },
     },
@@ -273,11 +279,11 @@ local pkggroup = {
   local guest_agent_file_endings = [
     '-g1_amd64.deb',
     '-g1_arm64.deb',
-    '-el7.x86_64.rpm',
-    '-el8.x86_64.rpm',
-    '-el8.aarch64.rpm',
-    '-el9.x86_64.rpm',
-    '-el9.aarch64.rpm',
+    '-g1.el7.x86_64.rpm',
+    '-g1.el8.x86_64.rpm',
+    '-g1.el8.aarch64.rpm',
+    '-g1.el9.x86_64.rpm',
+    '-g1.el9.aarch64.rpm',
   ],
   local oslogin_builds = ['deb10', 'deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
   local oslogin_file_endings = [
@@ -296,11 +302,11 @@ local pkggroup = {
   local osconfig_file_endings = [
     '-g1_amd64.deb',
     '-g1_arm64.deb',
-    '-el7.x86_64.rpm',
-    '-el8.x86_64.rpm',
-    '-el8.aarch64.rpm',
-    '-el9.x86_64.rpm',
-    '-el9.aarch64.rpm',
+    '-g1.el7.x86_64.rpm',
+    '-g1.el8.x86_64.rpm',
+    '-g1.el8.aarch64.rpm',
+    '-g1.el9.x86_64.rpm',
+    '-g1.el9.aarch64.rpm',
   ],
   local guest_diskexpand_builds = ['deb10', 'el7', 'el8', 'el9'],
   local guest_diskexpand_file_endings = [
@@ -316,12 +322,13 @@ local pkggroup = {
     '-g1.el8.noarch.rpm',
     '-g1.el9.noarch.rpm',
   ],
-  local yum_plugin_dnf_builds = ['el8', 'el8-arch64', 'el9', 'el9-arch64'],
+  local yum_plugin_dnf_builds = ['el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
   local yum_plugin_dnf_file_endings = [
-    '.el8.x86_64.rpm',
-    '.el8.aarch64.rpm',
-    '.el9.x86_64.rpm',
-    '.el9.aarch64.rpm',
+    '-g1.el7.x86_64.rpm',
+    '-g1.el8.x86_64.rpm',
+    '-g1.el8.aarch64.rpm',
+    '-g1.el9.x86_64.rpm',
+    '-g1.el9.aarch64.rpm',
   ],
   local apt_transport_builds = ['deb10', 'deb11-arm64'],
   local apt_transport_file_endings = [
@@ -335,6 +342,13 @@ local pkggroup = {
     'google-compute-engine-powershell.noarch',
     'google-compute-engine-sysprep.noarch',
     'google-compute-engine-ssh.x86_64',
+  ],
+  local compute_image_windows_file_endings = [
+    '.0@1.goo',
+    '@1.goo',
+    '@1.goo',
+    '.0@1.goo',
+    '@1.goo',
   ],
 
   // List of all packages.
@@ -456,13 +470,13 @@ local pkggroup = {
             package: 'compute-image-tools',
             gcs_pkg_names: ['google-compute-engine-diagnostics.x86_64'],
             builds: ['goo'],
-            file_endings: ['.0@1.goo'],
+            file_endings: ['.0@0.goo'],
           },
           upload_arle_autopush_staging {
             package: 'compute-image-windows',
             gcs_pkg_names: compute_image_windows_gcs_names,
             builds: ['goo'],
-            file_endings: ['.0@1.goo'],
+            file_endings: compute_image_windows_file_endings,
           },
         ] +
         [
