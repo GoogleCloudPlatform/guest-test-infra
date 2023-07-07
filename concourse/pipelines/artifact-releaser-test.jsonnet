@@ -462,7 +462,7 @@ local pkggroup = {
             package: 'compute-image-windows',
             gcs_pkg_names: compute_image_windows_gcs_names,
             builds: ['goo'],
-            file_endings: ['.0@1.goo'],
+            file_endings: ['@1.goo'],
           },
         ] +
         [
