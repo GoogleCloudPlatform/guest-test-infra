@@ -4,6 +4,7 @@
   prod_topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod',
   prod_bucket:: 'artifact-releaser-prod-rtp',
   prod_package_bucket:: 'gcp-guest-package-uploads',
+  autopush_package_bucket:: 'artifact-releaser-autopush-rtp',
   sbom_bucket:: 'gce-image-sboms',
   debian_image_prefixes:: {
     'debian-9': 'debian-9-stretch',

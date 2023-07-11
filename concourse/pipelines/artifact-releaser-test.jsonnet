@@ -80,13 +80,56 @@ local upload_arle_autopush_staging = {
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     { load_var: 'package-version', file: '%s-tag/version' % tl.package },
     {
+      // Copy all the relevant packages from prod to autopush.
+      in_parallel: {
+        steps: [
+          {
+            task: 'upload-to-autopush-%s-%s' % [tl.package, get_build(tl.builds, i)],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+              },
+              run: {
+                path: 'gcloud',
+                args: [
+                  'storage',
+                  'cp',
+                  'gs://%s/%s/%s((.:package-version))%s' % [
+                    common.prod_package_bucket,
+                    tl.gcs_dir,
+                    get_filename(
+                      if std.length(tl.gcs_pkg_names) > 1 then tl.gcs_pkg_names[i] else tl.gcs_pkg_names[0],
+                      get_build(tl.builds, i)
+                    ),
+                    tl.file_endings[i],
+                  ],
+                  'gs://%s/%s/%s((.:package-version))%s' % [
+                    common.autopush_package_bucket,
+                    tl.gcs_dir,
+                    get_filename(
+                      if std.length(tl.gcs_pkg_names) > 1 then tl.gcs_pkg_names[i] else tl.gcs_pkg_names[0],
+                      get_build(tl.builds, i)
+                    ),
+                    tl.file_endings[i],
+                  ],
+                ],
+              },
+            },
+          }
+          for i in std.range(0, std.length(tl.file_endings) - 1)
+        ],
+      },
+    },
+    {
       in_parallel: {
         steps: [
           arle.packagepublishtask {
             task: 'upload-arle-autopush-staging-%s-%s' % [tl.package, get_build(tl.builds, i)],
             topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
             package_paths: '{"bucket":"%s","object":"%s/%s((.:package-version))%s"}' % [
-              common.prod_package_bucket,
+              common.autopush_package_bucket,
               tl.gcs_dir,
               get_filename(
                 if std.length(tl.gcs_pkg_names) > 1 then tl.gcs_pkg_names[i] else tl.gcs_pkg_names[0],
