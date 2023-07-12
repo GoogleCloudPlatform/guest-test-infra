@@ -14,10 +14,10 @@ import (
 
 const (
 	chronyService = "chronyd"
-	ntpService = "ntp"
-	ntpdService = "ntpd"
-	chronycCmd = "chronyc"
-	ntpqCmd = "ntpq"
+	ntpService    = "ntp"
+	ntpdService   = "ntpd"
+	chronycCmd    = "chronyc"
+	ntpqCmd       = "ntpq"
 )
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
@@ -31,12 +31,12 @@ func TestNTPService(t *testing.T) {
 	}
 	var servicename string
 	switch {
-		case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-pro-1604"):
-			servicename = ntpService
-		case strings.Contains(image, "sles-12"):
-			servicename = ntpdService
-		default:
-			servicename = chronyService
+	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-pro-1604"):
+		servicename = ntpService
+	case strings.Contains(image, "sles-12"):
+		servicename = ntpdService
+	default:
+		servicename = chronyService
 	}
 	var cmd *exec.Cmd
 	if checkCmdExists(chronycCmd) {

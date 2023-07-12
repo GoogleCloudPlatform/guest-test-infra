@@ -245,7 +245,7 @@ func (t *TestVM) EnableSecureBoot() {
 func (t *TestVM) UseGVNIC() {
 	if t.instance.NetworkInterfaces == nil {
 		t.instance.NetworkInterfaces = []*compute.NetworkInterface{
-			&compute.NetworkInterface{
+			{
 				NicType: "GVNIC",
 			},
 		}
