@@ -7,6 +7,8 @@ type Source struct {
 	Family string `json:"family"`
 	// Regexp defines a regular expression to find versions embedded in image names. Optional.
 	Regexp string `json:"regexp"` // TODO: Not yet implemented.
+	// ReadyOnly filters images which are in READY status. Optional.
+	ReadyOnly bool `json:"readyOnly"`
 }
 
 // Version represents a single image version.

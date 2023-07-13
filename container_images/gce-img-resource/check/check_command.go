@@ -39,9 +39,18 @@ func Run(request Request) (Response, error) {
 	}
 
 	call := computeService.Images.List(request.Source.Project)
-	if request.Source.Family != "" {
-		call = call.Filter(fmt.Sprintf("family = %s", request.Source.Family))
+	
+	var filter string
+	
+	if request.Source.ReadyOnly {
+		filter = "(status = READY) "
 	}
+
+	if request.Source.Family != "" {
+		filter = filter + fmt.Sprintf("(family = %s)", request.Source.Family)
+	}
+
+	call = call.Filter(filter)
 
 	var images []*compute.Image
 	var token string
