@@ -39,9 +39,9 @@ func Run(request Request) (Response, error) {
 	}
 
 	call := computeService.Images.List(request.Source.Project)
-	
+
 	var filter string
-	
+
 	if request.Source.ReadyOnly {
 		filter = "(status = READY) "
 	}
