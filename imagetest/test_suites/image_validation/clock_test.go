@@ -4,7 +4,7 @@
 package imagevalidation
 
 import (
-	"io/ioutil"
+	"errors"
 	"os/exec"
 	"strings"
 	"testing"
@@ -16,10 +16,9 @@ const (
 	chronyService = "chronyd"
 	ntpService    = "ntp"
 	ntpdService   = "ntpd"
+	chronycCmd    = "chronyc"
+	ntpqCmd       = "ntpq"
 )
-
-var ntpConfig = []string{"/etc/ntp.conf"}
-var chronyConfig = []string{"/etc/chrony.conf", "/etc/chrony/chrony.conf", "/etc/chrony.d/gce.conf"}
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
 // debian 9, ubuntu 16.04 ntp
@@ -31,56 +30,52 @@ func TestNTPService(t *testing.T) {
 		t.Fatalf("Couldn't get image from metadata")
 	}
 	var servicename string
-	var configPaths []string
 	switch {
-	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-1604"), strings.Contains(image, "ubuntu-minimal-1604"):
+	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-pro-1604"):
 		servicename = ntpService
-		configPaths = ntpConfig
 	case strings.Contains(image, "sles-12"):
 		servicename = ntpdService
-		configPaths = ntpConfig
 	default:
 		servicename = chronyService
-		configPaths = chronyConfig
+	}
+	var cmd *exec.Cmd
+	if checkCmdExists(chronycCmd) {
+		cmd = exec.Command(chronycCmd, "-c", "sources")
+	} else if checkCmdExists(ntpqCmd) {
+		cmd = exec.Command(ntpqCmd, "-np")
+	} else {
+		t.Fatalf("failed to find chronyc or ntpq cmd")
 	}
 
-	ntpConfigs, err := readNTPConfig(configPaths)
+	out, err := cmd.Output()
 	if err != nil {
-		t.Fatalf("failed reading ntp config file %s", err)
+		t.Fatalf("ntp command failed %v", err)
 	}
-
-	// The logic here expects at least one 'server' line in /etc/ntp.conf or
-	// /etc/chrony.conf where the first 'server' line points to our metadata
-	// server, but without caring where any subsequent server lines point.
-	// For example, Ubuntu uses metadata.google.internal in the first server line
-	// and ntp.ubuntu.com on the second.
-	for _, config := range ntpConfigs {
-		if strings.HasPrefix(config, "server") {
-			// Usually the line is like "server serverName url"
-			serverName := strings.Split(config, " ")[1]
-			if !(serverName == "metadata.google.internal" || serverName == "metadata" || serverName == "169.254.169.254") {
-				t.Fatalf("ntp config contains wrong server information %s'", config)
-			}
+	serverNames := []string{"metadata.google.internal", "metadata", "169.254.169.254"}
+	foundNtpServer := false
+	outputString := string(out)
+	for _, serverName := range serverNames {
+		if strings.Contains(outputString, serverName) {
+			foundNtpServer = true
 			break
 		}
 	}
+	if !foundNtpServer {
+		t.Fatalf("could not find ntp server")
+	}
 
 	// Make sure that ntp service is running.
-	cmd := exec.Command("systemctl", "is-active", servicename)
-	if err := cmd.Run(); err != nil {
+	systemctlCmd := exec.Command("systemctl", "is-active", servicename)
+	if err := systemctlCmd.Run(); err != nil {
 		t.Fatalf("%s service is not running", servicename)
 	}
 }
 
-func readNTPConfig(configPaths []string) ([]string, error) {
-	var totalBytes []byte
-	for _, path := range configPaths {
-		bytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			continue
-		}
-		totalBytes = append(totalBytes, bytes...)
+func checkCmdExists(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	// returns nil prior to go 1.19, exec.ErrDot after
+	if errors.Is(err, exec.ErrDot) || err == nil {
+		return true
 	}
-
-	return strings.Split(string(totalBytes), "\n"), nil
+	return false
 }
