@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	gceimgresource "github.com/GoogleCloudPlatform/guest-test-infra/container_images/gce-img-resource"
@@ -16,6 +17,7 @@ import (
 		"project": "some-project",
 		"family": "some-family",
 		"regexp": "rhel-8-v([0-9]+).*",
+		"readyOnly": true,
   },
   "version": { "name": "rhel-8-v20220322" }
 }
@@ -40,17 +42,19 @@ func Run(request Request) (Response, error) {
 
 	call := computeService.Images.List(request.Source.Project)
 
-	var filter string
+	var filter []string
 
 	if request.Source.ReadyOnly {
-		filter = "(status = READY) "
+		filter = append(filter, "(status = READY)")
 	}
 
 	if request.Source.Family != "" {
-		filter = filter + fmt.Sprintf("(family = %s)", request.Source.Family)
+		filter = append(filter, fmt.Sprintf("(family = %s)", request.Source.Family))
 	}
 
-	call = call.Filter(filter)
+	if len(filter) > 0 {
+		call = call.Filter(strings.Join(filter, " "))
+	}
 
 	var images []*compute.Image
 	var token string
