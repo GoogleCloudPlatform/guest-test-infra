@@ -319,6 +319,7 @@ local slesarm64images = [
       source: {
         project: 'ubuntu-os-cloud-devel',
         family: family,
+        readyOnly: true,
       },
     }
     for family in ubuntudevelimages + ubuntuarm64develimages
@@ -344,7 +345,7 @@ local slesarm64images = [
       image: family + '-devel',
       bucket: 'ubuntu-gce-validation-results',
       extra_args: [
-        '-machine_type=t2a-standard-2'
+        '-machine_type=t2a-standard-2',
       ],
     }
     for family in ubuntuarm64develimages
@@ -359,7 +360,7 @@ local slesarm64images = [
       image: family,
       bucket: 'sles-gce-validation-results',
       extra_args: [
-        '-machine_type=t2a-standard-2'
+        '-machine_type=t2a-standard-2',
       ],
     }
     for family in slesarm64images
