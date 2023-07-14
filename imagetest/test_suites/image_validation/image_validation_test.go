@@ -55,9 +55,9 @@ func TestCustomHostname(t *testing.T) {
 	}
 
 	// Ubuntu doesn't support custom hostnames yet.
-        if strings.Contains(image, "ubuntu") {
-                t.Skip("Ubuntu doesn't support custom hostnames.")
-        }
+	if strings.Contains(image, "ubuntu") {
+		t.Skip("Ubuntu doesn't support custom hostnames.")
+	}
 
 	TestFQDN(t)
 }
