@@ -49,10 +49,15 @@ func TestCustomHostname(t *testing.T) {
 		t.Fatalf("Couldn't get image from metadata")
 	}
 
-	// SLES doesn't support custom hostnames.
+	// SLES doesn't support custom hostnames yet.
 	if strings.Contains(image, "sles") {
 		t.Skip("SLES doesn't support custom hostnames.")
 	}
+
+	// Ubuntu doesn't support custom hostnames yet.
+        if strings.Contains(image, "ubuntu") {
+                t.Skip("Ubuntu doesn't support custom hostnames.")
+        }
 
 	TestFQDN(t)
 }
