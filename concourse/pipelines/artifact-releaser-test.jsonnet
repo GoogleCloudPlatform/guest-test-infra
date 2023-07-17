@@ -366,9 +366,8 @@ local pkggroup = {
     '-g1.el8.noarch.rpm',
     '-g1.el9.noarch.rpm',
   ],
-  local yum_plugin_dnf_builds = ['el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
+  local yum_plugin_dnf_builds = ['el8', 'el8-arch64', 'el9', 'el9-arch64'],
   local yum_plugin_dnf_file_endings = [
-    '-g1.el7.x86_64.rpm',
     '-g1.el8.x86_64.rpm',
     '-g1.el8.aarch64.rpm',
     '-g1.el9.x86_64.rpm',
