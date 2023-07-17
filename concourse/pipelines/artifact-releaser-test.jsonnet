@@ -380,7 +380,7 @@ local pkggroup = {
   ],
   local compute_image_windows_packages = ['certgen', 'auto-updater', 'powershell', 'sysprep', 'ssh'],
   local compute_image_windows_gcs_names = [
-    'certgen.x86_64.x86_64',
+    'certgen.x86_64',
     'google-compute-engine-auto-updater.noarch',
     'google-compute-engine-powershell.noarch',
     'google-compute-engine-sysprep.noarch',
@@ -390,8 +390,8 @@ local pkggroup = {
     '.0@1.goo',
     '@1.goo',
     '@1.goo',
-    '.0@1.goo',
     '@1.goo',
+    '.0@1.goo',
   ],
 
   // List of all packages.
@@ -445,7 +445,7 @@ local pkggroup = {
                    owner: 'GoogleCloudPlatform',
                    repository: package,
                    access_token: '((github-token.token))',
-                   tag_filter: '([0-9]+.*)',
+                   tag_filter: '([0-9]+\\.[0-9]+)',
                  },
                }
                for package in packages
