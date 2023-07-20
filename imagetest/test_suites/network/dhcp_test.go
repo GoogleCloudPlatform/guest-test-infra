@@ -142,7 +142,6 @@ func checkDHCPProcess() error {
 
 // accepts IP addresses in the form of a.b.c.d or a.b.c.d/IPNET
 func validIPOrCIDR(token string) bool {
-	fmt.Printf("token is %s", token)
 	if IPAddress := net.ParseIP(token); IPAddress != nil {
 		return true
 	}
