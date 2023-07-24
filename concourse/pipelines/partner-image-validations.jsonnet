@@ -269,7 +269,6 @@ local imagevalidationjob = {
 
 // Ubuntu amd64 daily images
 local ubuntudevelimages = [
-  'ubuntu-1804-lts',
   'ubuntu-2004-lts',
   'ubuntu-2204-lts',
   'ubuntu-2304-amd64',
@@ -282,6 +281,21 @@ local ubuntuarm64develimages = [
   'ubuntu-2204-lts-arm64',
   'ubuntu-2304-arm64',
   'ubuntu-2310-arm64',
+];
+
+// Ubuntu Pro amd64 prod images
+local ubuntuproimages = [
+  'ubuntu-pro-1604-lts',
+  'ubuntu-pro-1804-lts',
+  'ubuntu-pro-2004-lts',
+  'ubuntu-pro-2204-lts',
+];
+
+// Ubuntu Pro arm64 prod images
+local ubuntuproarm64images = [
+  'ubuntu-pro-1804-lts-arm64',
+  'ubuntu-pro-2004-lts-arm64',
+  'ubuntu-pro-2204-lts-arm64',
 ];
 
 // SLES amd64 prod images
@@ -328,6 +342,16 @@ local slesarm64images = [
       name: family,
       type: 'gce-image',
       source: {
+        project: 'ubuntu-os-pro-cloud',
+        family: family,
+      },
+    }
+    for family in ubuntuproimages + ubuntuproarm64images
+  ] + [
+    {
+      name: family,
+      type: 'gce-image',
+      source: {
         project: 'suse-cloud',
         family: family,
       },
@@ -352,6 +376,21 @@ local slesarm64images = [
   ] + [
     imagevalidationjob {
       image: family,
+      bucket: 'ubuntu-gce-validation-results',
+    }
+    for family in ubuntuproimages
+  ] + [
+    imagevalidationjob {
+      image: family,
+      bucket: 'ubuntu-gce-validation-results',
+      extra_args: [
+        '-machine_type=t2a-standard-2',
+      ],
+    }
+    for family in ubuntuproarm64images
+  ] + [
+    imagevalidationjob {
+      image: family,
       bucket: 'sles-gce-validation-results',
     }
     for family in slesamd64images
@@ -371,6 +410,13 @@ local slesarm64images = [
       jobs: [
         family + '-devel'
         for family in ubuntudevelimages + ubuntuarm64develimages
+      ],
+    },
+    {
+      name: 'ubuntu-pro',
+      jobs: [
+        family
+        for family in ubuntuproimages + ubuntuproarm64images
       ],
     },
     {
