@@ -255,7 +255,7 @@ func CheckLinuxCmdExists(cmd string) bool {
 	cmdPath, err := exec.LookPath(cmd)
 	// returns nil prior to go 1.19, exec.ErrDot after
 	if errors.Is(err, exec.ErrDot) || err == nil {
-		cmdFileMode, err :=  os.Stat(cmdPath)
+		cmdFileMode, err := os.Stat(cmdPath)
 		// check the bitmask if the owner, group, or others can execute the file.
 		if err == nil {
 			return mode&0111 != 0
