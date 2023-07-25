@@ -33,7 +33,7 @@ function install_go() {
   # Installs a specific version of go for compilation, since availability varies
   # across linux distributions. Needs curl and tar to be installed.
 
-  local GOLANG="go1.19.10.linux-amd64.tar.gz"
+  local GOLANG="go1.20.6.linux-amd64.tar.gz"
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
 

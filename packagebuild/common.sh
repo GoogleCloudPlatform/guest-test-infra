@@ -37,7 +37,7 @@ function install_go() {
     arch="arm64"
   fi
 
-  local GOLANG="go1.19.6.linux-${arch}.tar.gz"
+  local GOLANG="go1.20.6.linux-${arch}.tar.gz"
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
 

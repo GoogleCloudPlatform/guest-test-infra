@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:bullseye
+FROM golang:1.20.6-bullseye
 
 RUN go install github.com/google/go-jsonnet/cmd/jsonnet@latest
 
