@@ -4,7 +4,6 @@
 package imagevalidation
 
 import (
-	"errors"
 	"os/exec"
 	"strings"
 	"testing"
