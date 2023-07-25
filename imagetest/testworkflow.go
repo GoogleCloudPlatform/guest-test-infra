@@ -491,6 +491,11 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 	return &suites, nil
 }
 
+func formatTimeDelta(format string, t time.Duration) string {
+	z := time.Unix(0, 0).UTC()
+	return z.Add(time.Duration(t)).Format(format)
+}
+
 func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	var res testResult
 	res.testWorkflow = test
@@ -499,12 +504,16 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		res.err = fmt.Errorf("test suite was skipped with message: %q", res.testWorkflow.SkippedMessage())
 		return res
 	}
+
+	start := time.Now()
 	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
 	if err := test.wf.Run(ctx); err != nil {
 		res.err = err
 		return res
 	}
-	log.Printf("finished test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
+
+	delta := formatTimeDelta("04m 05s", time.Now().Sub(start))
+	log.Printf("finished test %s/%s (ID %s) in project %s, time spent: %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project, delta)
 	results, err := getTestResults(ctx, test)
 	if err != nil {
 		res.err = err
