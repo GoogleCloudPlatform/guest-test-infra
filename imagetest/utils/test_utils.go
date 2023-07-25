@@ -250,7 +250,7 @@ func GetInterface(index int) (net.Interface, error) {
 	return GetInterfaceByMAC(mac)
 }
 
-// CheckLinxCmdExists checks that a command exists on the linux image, and is executable.
+// CheckLinuxCmdExists checks that a command exists on the linux image, and is executable.
 func CheckLinuxCmdExists(cmd string) bool {
 	cmdPath, err := exec.LookPath(cmd)
 	// returns nil prior to go 1.19, exec.ErrDot after
