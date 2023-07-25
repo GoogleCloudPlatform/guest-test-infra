@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.20.6-bullseye
+FROM golang:bullseye
 
 RUN go get -u github.com/jstemmer/go-junit-report
 
