@@ -256,9 +256,10 @@ func CheckLinuxCmdExists(cmd string) bool {
 	// returns nil prior to go 1.19, exec.ErrDot after
 	if errors.Is(err, exec.ErrDot) || err == nil {
 		cmdFileInfo, err := os.Stat(cmdPath)
+		cmdFileMode := cmdFileInfo.Mode()
 		// check the the file has executable permissions.
 		if err == nil {
-		  return cmdFileInfo.Mode()&0111 != 0
+			return cmdFileMode&0111 != 0
 		}
 	}
 	return false
