@@ -26,21 +26,21 @@ func TestDHCP(t *testing.T) {
 	var err error
 
 	// Run every case: if one command or check succeeds, the test passes.
-	if checkCmdExists(networkctlCmd) {
+	if utils.CheckLinuxCmdExists(networkctlCmd) {
 		cmd = exec.Command(networkctlCmd, "status")
 		if err = parseNetworkctlOutput(cmd); err == nil {
 			return
 		}
 	}
 
-	if checkCmdExists(nmcliCmd) {
+	if utils.CheckLinuxCmdExists(nmcliCmd) {
 		cmd = exec.Command(nmcliCmd, "device", "show")
 		if err = parseNmcliOutput(cmd); err == nil {
 			return
 		}
 	}
 
-	if checkCmdExists(wickedCmd) {
+	if utils.CheckLinuxCmdExists(wickedCmd) {
 		cmd = exec.Command(wickedCmd, "show", "all")
 		if err = parseWickedOutput(cmd); err == nil {
 			return
@@ -151,14 +151,5 @@ func validIPOrCIDR(token string) bool {
 		return true
 	}
 
-	return false
-}
-
-func checkCmdExists(cmd string) bool {
-	_, err := exec.LookPath(cmd)
-	// returns nil prior to go 1.19, exec.ErrDot after
-	if errors.Is(err, exec.ErrDot) || err == nil {
-		return true
-	}
 	return false
 }

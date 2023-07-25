@@ -39,9 +39,9 @@ func TestNTPService(t *testing.T) {
 		servicename = chronyService
 	}
 	var cmd *exec.Cmd
-	if checkCmdExists(chronycCmd) {
+	if utils.CheckLinuxCmdExists(chronycCmd) {
 		cmd = exec.Command(chronycCmd, "-c", "sources")
-	} else if checkCmdExists(ntpqCmd) {
+	} else if utils.CheckLinuxCmdExists(ntpqCmd) {
 		cmd = exec.Command(ntpqCmd, "-np")
 	} else {
 		t.Fatalf("failed to find chronyc or ntpq cmd")
@@ -69,13 +69,4 @@ func TestNTPService(t *testing.T) {
 	if err := systemctlCmd.Run(); err != nil {
 		t.Fatalf("%s service is not running", servicename)
 	}
-}
-
-func checkCmdExists(cmd string) bool {
-	_, err := exec.LookPath(cmd)
-	// returns nil prior to go 1.19, exec.ErrDot after
-	if errors.Is(err, exec.ErrDot) || err == nil {
-		return true
-	}
-	return false
 }
