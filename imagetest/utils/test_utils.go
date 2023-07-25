@@ -258,7 +258,7 @@ func CheckLinuxCmdExists(cmd string) bool {
 		cmdFileMode, err := os.Stat(cmdPath)
 		// check the bitmask if the owner, group, or others can execute the file.
 		if err == nil {
-			return mode&0111 != 0
+			return cmdFileMode&0111 != 0
 		}
 	}
 	return false
