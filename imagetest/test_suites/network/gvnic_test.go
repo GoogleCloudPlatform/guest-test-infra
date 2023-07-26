@@ -19,7 +19,7 @@ const (
 	driverPath = "/sys/class/net/%s/device/driver"
 
 	// Perf constants.
-	maxRetries = 10
+	maxRetries    = 10
 	sleepDuration = 60 * time.Second
 )
 
@@ -56,7 +56,7 @@ func CheckGVNICPerformance() (string, error) {
 		results, err := utils.GetMetadata("status")
 		if err != nil {
 			// As long as the test results do not exist, the test is not finished.
-			if i == maxRetries - 1 {
+			if i == maxRetries-1 {
 				return "", errors.New(fmt.Sprintf("Client VM not terminated after %v attempts", maxRetries))
 			}
 			time.Sleep(sleepDuration)
@@ -84,7 +84,7 @@ func TestGVNIC(t *testing.T) {
 		t.Fatalf("Error : %v", errMsg.Error())
 	}
 
-	// Check performance of the driver. 
+	// Check performance of the driver.
 	results, err := CheckGVNICPerformance()
 	if err != nil {
 		t.Fatalf("Error : %v", err)
