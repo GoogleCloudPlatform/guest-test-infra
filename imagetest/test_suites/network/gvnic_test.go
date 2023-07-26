@@ -91,4 +91,3 @@ func TestGVNIC(t *testing.T) {
 	}
 	t.Logf(results)
 }
-

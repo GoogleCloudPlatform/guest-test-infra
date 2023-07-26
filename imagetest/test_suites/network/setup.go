@@ -11,11 +11,9 @@ var Name = "network"
 
 const (
 	vm1Name    = "vm1"
-	vm2Name    = "vm2"
 	serverName = "server-vm"
 	clientName = "client-vm"
 	vm1IP      = "192.168.0.2"
-	vm2IP      = "192.168.0.3"
 	serverIP   = "192.168.0.4"
 	clientIP   = "192.168.0.5"
 
