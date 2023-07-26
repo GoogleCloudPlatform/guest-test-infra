@@ -250,6 +250,21 @@ func GetInterface(index int) (net.Interface, error) {
 	return GetInterfaceByMAC(mac)
 }
 
+// CheckLinuxCmdExists checks that a command exists on the linux image, and is executable.
+func CheckLinuxCmdExists(cmd string) bool {
+	cmdPath, err := exec.LookPath(cmd)
+	// returns nil prior to go 1.19, exec.ErrDot after
+	if errors.Is(err, exec.ErrDot) || err == nil {
+		cmdFileInfo, err := os.Stat(cmdPath)
+		cmdFileMode := cmdFileInfo.Mode()
+		// check the the file has executable permissions.
+		if err == nil {
+			return cmdFileMode&0111 != 0
+		}
+	}
+	return false
+}
+
 // WindowsOnly skips tests not on Windows.
 func WindowsOnly(t *testing.T) {
 	if runtime.GOOS != "windows" {
