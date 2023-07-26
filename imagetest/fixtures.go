@@ -21,7 +21,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
 )
