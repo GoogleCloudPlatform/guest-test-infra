@@ -67,48 +67,48 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
   // Create two VMs for GVNIC performance testing.
-  serverVm, err := t.CreateTestVM(serverName)
+  serverVM, err := t.CreateTestVM(serverName)
   if err != nil {
           return err
   }
-  if err := serverVm.AddCustomNetwork(network1, subnetwork1); err != nil {
+  if err := serverVM.AddCustomNetwork(network1, subnetwork1); err != nil {
 		return err
 	}
-	if err := serverVm.AddCustomNetwork(network2, subnetwork2); err != nil {
+	if err := serverVM.AddCustomNetwork(network2, subnetwork2); err != nil {
 		return err
 	}
-	if err := serverVm.SetPrivateIP(network2, serverIP); err != nil {
+	if err := serverVM.SetPrivateIP(network2, serverIP); err != nil {
 		return err
 	}
-	if err := serverVm.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+	if err := serverVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
 		return err
 	}
-  serverVm.AddMetadata("enable-guest-attributes", "TRUE")
-  serverVm.SetStartupScript(serverStartupScript)
-	if err := serverVm.Reboot(); err != nil {
+  serverVM.AddMetadata("enable-guest-attributes", "TRUE")
+  serverVM.SetStartupScript(serverStartupScript)
+	if err := serverVM.Reboot(); err != nil {
 		return err
 	}
 
-  clientVm, err := t.CreateTestVM(clientName)
+  clientVM, err := t.CreateTestVM(clientName)
   if err != nil {
           return err
   }
-  if err := clientVm.AddCustomNetwork(network1, subnetwork1); err != nil {
+  if err := clientVM.AddCustomNetwork(network1, subnetwork1); err != nil {
           return err
   }
-  if err := clientVm.AddCustomNetwork(network2, subnetwork2); err != nil {
+  if err := clientVM.AddCustomNetwork(network2, subnetwork2); err != nil {
           return err
   }
-  if err := clientVm.SetPrivateIP(network2, clientIP); err != nil {
+  if err := clientVM.SetPrivateIP(network2, clientIP); err != nil {
           return err
   }
-  if err := clientVm.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+  if err := clientVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
           return err
   }
-  clientVm.AddMetadata("enable-guest-attributes", "TRUE")
-  clientVm.AddMetadata("iperftarget", serverIP)
-  clientVm.SetStartupScript(clientStartupScript)
-  if err := clientVm.Reboot(); err != nil {
+  clientVM.AddMetadata("enable-guest-attributes", "TRUE")
+  clientVM.AddMetadata("iperftarget", serverIP)
+  clientVM.SetStartupScript(clientStartupScript)
+  if err := clientVM.Reboot(); err != nil {
           return err
   }
 
