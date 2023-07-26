@@ -57,8 +57,12 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *daisy.Instance, error) {
-	attachedDisk := &compute.AttachedDisk{Source: name}
+func (t *TestWorkflow) appendCreateVMStep(disknames []string, hostname string) (*daisy.Step, *daisy.Instance, error) {
+	if len(disknames) == 0 {
+		return nil, nil, fmt.Errorf("Create VM Step requires at least one boot disk")
+	}
+
+	name := disknames[0]
 
 	var suffix string
 	if strings.Contains(t.Image, "windows") {
@@ -69,7 +73,12 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
-	instance.Disks = append(instance.Disks, attachedDisk)
+
+	for _, diskname := range disknames {
+		attachedDisk := &compute.AttachedDisk{Source: diskname}
+		instance.Disks = append(instance.Disks, attachedDisk)
+	}
+
 	if hostname != "" && name != hostname {
 		instance.Hostname = hostname
 	}
