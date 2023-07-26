@@ -12,15 +12,15 @@ var Name = "network"
 const (
 	vm1Name    = "vm1"
 	vm2Name    = "vm2"
-  serverName = "server-vm"
-  clientName = "client-vm"
+	serverName = "server-vm"
+	clientName = "client-vm"
 	vm1IP      = "192.168.0.2"
 	vm2IP      = "192.168.0.3"
-  serverIP   = "192.168.0.4"
-  clientIP   = "192.168.0.5"
+	serverIP   = "192.168.0.4"
+	clientIP   = "192.168.0.5"
 
-  serverStartupScript = "gs://machine_family_testing_startup_scripts/netserver_startup.sh"
-  clientStartupScript = "gs://machine_family_testing_startup_scripts/netclient_startup.sh"
+	serverStartupScript = "gs://machine_family_testing_startup_scripts/netserver_startup.sh"
+	clientStartupScript = "gs://machine_family_testing_startup_scripts/netclient_startup.sh"
 )
 
 var vm *imagetest.TestVM
@@ -66,12 +66,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-  // Create two VMs for GVNIC performance testing.
-  serverVM, err := t.CreateTestVM(serverName)
-  if err != nil {
-          return err
-  }
-  if err := serverVM.AddCustomNetwork(network1, subnetwork1); err != nil {
+	// Create two VMs for GVNIC performance testing.
+	serverVM, err := t.CreateTestVM(serverName)
+	if err != nil {
+		return err
+	}
+	if err := serverVM.AddCustomNetwork(network1, subnetwork1); err != nil {
 		return err
 	}
 	if err := serverVM.AddCustomNetwork(network2, subnetwork2); err != nil {
@@ -83,34 +83,34 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := serverVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
 		return err
 	}
-  serverVM.AddMetadata("enable-guest-attributes", "TRUE")
-  serverVM.SetStartupScript(serverStartupScript)
+	serverVM.AddMetadata("enable-guest-attributes", "TRUE")
+	serverVM.SetStartupScript(serverStartupScript)
 	if err := serverVM.Reboot(); err != nil {
 		return err
 	}
 
-  clientVM, err := t.CreateTestVM(clientName)
-  if err != nil {
-          return err
-  }
-  if err := clientVM.AddCustomNetwork(network1, subnetwork1); err != nil {
-          return err
-  }
-  if err := clientVM.AddCustomNetwork(network2, subnetwork2); err != nil {
-          return err
-  }
-  if err := clientVM.SetPrivateIP(network2, clientIP); err != nil {
-          return err
-  }
-  if err := clientVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
-          return err
-  }
-  clientVM.AddMetadata("enable-guest-attributes", "TRUE")
-  clientVM.AddMetadata("iperftarget", serverIP)
-  clientVM.SetStartupScript(clientStartupScript)
-  if err := clientVM.Reboot(); err != nil {
-          return err
-  }
+	clientVM, err := t.CreateTestVM(clientName)
+	if err != nil {
+		return err
+	}
+	if err := clientVM.AddCustomNetwork(network1, subnetwork1); err != nil {
+		return err
+	}
+	if err := clientVM.AddCustomNetwork(network2, subnetwork2); err != nil {
+		return err
+	}
+	if err := clientVM.SetPrivateIP(network2, clientIP); err != nil {
+		return err
+	}
+	if err := clientVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+		return err
+	}
+	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
+	clientVM.AddMetadata("iperftarget", serverIP)
+	clientVM.SetStartupScript(clientStartupScript)
+	if err := clientVM.Reboot(); err != nil {
+		return err
+	}
 
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
@@ -119,7 +119,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		clientVm.RunTests("TestAlias")
 	} else {
 		clientVm.UseGVNIC()
-    serverVm.UseGVNIC()
+		serverVm.UseGVNIC()
 		clientVm.RunTests("TestAlias|TestGVNIC")
 	}
 	return nil
