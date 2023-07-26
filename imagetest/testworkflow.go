@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"

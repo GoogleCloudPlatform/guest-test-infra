@@ -17,7 +17,7 @@ package imagetest
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/compute-image-tools/daisy"
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 )
 
 func TestAddStartStep(t *testing.T) {
