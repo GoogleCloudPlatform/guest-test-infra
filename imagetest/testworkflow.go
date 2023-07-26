@@ -39,6 +39,13 @@ const (
 	testWrapperPathWindows = "/wrapp"
 )
 
+// DiskInfo defines setting for the disk
+type DiskInfo struct {
+	Name string
+	// See https://pkg.go.dev/google.golang.org/api/compute/v1#Disk, defaults to pd-standard if not set
+	Type string
+}
+
 // TestWorkflow defines a test workflow which creates at least one test VM.
 type TestWorkflow struct {
 	Name string
@@ -57,12 +64,12 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disknames []string, hostname string) (*daisy.Step, *daisy.Instance, error) {
-	if len(disknames) == 0 {
+func (t *TestWorkflow) appendCreateVMStep(disks []DiskInfo, hostname string) (*daisy.Step, *daisy.Instance, error) {
+	if len(disks) == 0 {
 		return nil, nil, fmt.Errorf("Create VM Step requires at least one boot disk")
 	}
 
-	name := disknames[0]
+	name := disks[0].Name
 
 	var suffix string
 	if strings.Contains(t.Image, "windows") {
@@ -74,8 +81,9 @@ func (t *TestWorkflow) appendCreateVMStep(disknames []string, hostname string) (
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 
-	for _, diskname := range disknames {
-		attachedDisk := &compute.AttachedDisk{Source: diskname}
+	for _, disk := range disks {
+		diskname, disktype := disk.Name, disk.Type
+		attachedDisk := &compute.AttachedDisk{Source: diskname, Type: disktype}
 		instance.Disks = append(instance.Disks, attachedDisk)
 	}
 
