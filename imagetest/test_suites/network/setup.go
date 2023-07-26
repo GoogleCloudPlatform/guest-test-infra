@@ -10,11 +10,20 @@ import (
 var Name = "network"
 
 const (
-	vm1Name = "vm1"
-	vm2Name = "vm2"
-	vm1IP   = "192.168.0.2"
-	vm2IP   = "192.168.0.3"
+	vm1Name    = "vm1"
+	vm2Name    = "vm2"
+  serverName = "server-vm"
+  clientName = "client-vm"
+	vm1IP      = "192.168.0.2"
+	vm2IP      = "192.168.0.3"
+  serverIP   = "192.168.0.4"
+  clientIP   = "192.168.0.5"
+
+  serverStartupScript = "gs://machine_family_testing_startup_scripts/netserver_startup.sh"
+  clientStartupScript = "gs://machine_family_testing_startup_scripts/netclient_startup.sh"
 )
+
+var vm *imagetest.TestVM
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -57,34 +66,61 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm2, err := t.CreateTestVM(vm2Name)
-	if err != nil {
+  // Create two VMs for GVNIC performance testing.
+  serverVm, err := t.CreateTestVM(serverName)
+  if err != nil {
+          return err
+  }
+  if err := serverVm.AddCustomNetwork(network1, subnetwork1); err != nil {
 		return err
 	}
-	if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
+	if err := serverVm.AddCustomNetwork(network2, subnetwork2); err != nil {
 		return err
 	}
-	if err := vm2.AddCustomNetwork(network2, subnetwork2); err != nil {
+	if err := serverVm.SetPrivateIP(network2, serverIP); err != nil {
 		return err
 	}
-	if err := vm2.SetPrivateIP(network2, vm2IP); err != nil {
+	if err := serverVm.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
 		return err
 	}
-	if err := vm2.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+  serverVm.AddMetadata("enable-guest-attributes", "TRUE")
+  serverVm.SetStartupScript(serverStartupScript)
+	if err := serverVm.Reboot(); err != nil {
 		return err
 	}
-	if err := vm2.Reboot(); err != nil {
-		return err
-	}
+
+  clientVm, err := t.CreateTestVM(clientName)
+  if err != nil {
+          return err
+  }
+  if err := clientVm.AddCustomNetwork(network1, subnetwork1); err != nil {
+          return err
+  }
+  if err := clientVm.AddCustomNetwork(network2, subnetwork2); err != nil {
+          return err
+  }
+  if err := clientVm.SetPrivateIP(network2, clientIP); err != nil {
+          return err
+  }
+  if err := clientVm.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+          return err
+  }
+  clientVm.AddMetadata("enable-guest-attributes", "TRUE")
+  clientVm.AddMetadata("iperftarget", serverIP)
+  clientVm.SetStartupScript(clientStartupScript)
+  if err := clientVm.Reboot(); err != nil {
+          return err
+  }
 
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// GVNIC is not supported on some older distros.
-		vm2.RunTests("TestAlias")
+		clientVm.RunTests("TestAlias")
 	} else {
-		vm2.UseGVNIC()
-		vm2.RunTests("TestAlias|TestGVNIC")
+		clientVm.UseGVNIC()
+    serverVm.UseGVNIC()
+		clientVm.RunTests("TestAlias|TestGVNIC")
 	}
 	return nil
 }
