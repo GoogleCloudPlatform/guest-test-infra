@@ -35,15 +35,15 @@ var (
 )
 
 const (
-	// Names of disk types
-	pd_standard          = "pd-standard"
-	pd_ssd               = "pd-ssd"
-	pd_balanced          = "pd-balanced"
-	pd_extreme           = "pd-extreme"
-	hyperdisk_extreme    = "hyperdisk-extreme"
-	hyperdisk_throughput = "hyperdisk-throughput"
-	hyperdisk_balanced   = "hyperdisk-balanced"
-
+  // Names of disk types
+  pdStandard = "pd-standard"
+  pdSsd = "pd-ssd"
+  pdBalanced = "pd-balanced"
+  pdExtreme = "pd-extreme"
+  hyperdiskExtreme = "hyperdisk-extreme"
+  hyperdiskThroughput = "hyperdisk-throughput"
+  hyperdiskBalanced = "hyperdisk-balanced"
+  
 	testWrapperPath        = "/wrapper"
 	testWrapperPathWindows = "/wrapp"
 )
@@ -109,9 +109,9 @@ func (t *TestWorkflow) appendCreateVMStep(name, hostname string) (*daisy.Step, *
 }
 
 func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
-	if diskParams == nil || diskParams.Name == "" {
-		return nil, fmt.Errorf("failed to create disk with empty parameters")
-	}
+  if diskParams == nil || diskParams.Name == "" {
+    return nil, fmt.Errorf("failed to create disk with empty parameters")
+  }
 	bootdisk := &daisy.Disk{}
 	bootdisk.Name = diskParams.Name
 	bootdisk.SourceImage = t.Image
