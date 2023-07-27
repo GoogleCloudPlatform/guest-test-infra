@@ -11,11 +11,11 @@ var Name = "network"
 
 const (
 	vm1Name    = "vm1"
-  vm2Name    = "vm2"
+	vm2Name    = "vm2"
 	serverName = "server-vm"
 	clientName = "client-vm"
 	vm1IP      = "192.168.0.2"
-  vm2IP      = "192.168.0.3"
+	vm2IP      = "192.168.0.3"
 	serverIP   = "192.168.0.4"
 	clientIP   = "192.168.0.5"
 
@@ -64,8 +64,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-  // VM2 for multiNIC
-  vm2, err := t.CreateTestVM(vm2Name)
+	// VM2 for multiNIC
+	vm2, err := t.CreateTestVM(vm2Name)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-
 
 	// Create two VMs for GVNIC performance testing.
 	serverVM, err := t.CreateTestVM(serverName)
