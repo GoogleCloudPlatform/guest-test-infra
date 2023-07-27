@@ -96,7 +96,7 @@ local upload_arle_autopush_staging = {
                 args: [
                   'storage',
                   'cp',
-		  '-n',
+                  '-n',
                   'gs://%s/%s/%s((.:package-version))%s' % [
                     common.prod_package_bucket,
                     tl.gcs_dir,
@@ -602,7 +602,6 @@ local pkggroup = {
           },
           upload_arle_autopush_staging {
             package: 'artifact-registry-apt-transport',
-            gcs_dir: 'apt-transport-artifact-registry',
             builds: apt_transport_builds,
             gcs_pkg_names: ['apt-transport-artifact-registry'],
             file_endings: apt_transport_file_endings,
