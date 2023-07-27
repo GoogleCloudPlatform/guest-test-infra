@@ -239,8 +239,10 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
+
+	mountedDiskType := "pd-extreme"
 	firstDiskInfo := DiskInfo{Name: "vmname"}
-	secondDiskInfo := DiskInfo{Name: "pdname", Type: "pd-extreme"}
+	secondDiskInfo := DiskInfo{Name: "pdname", Type: mountedDiskType}
 	step, firstInstance, err := twf.appendCreateVMStep([]DiskInfo{firstDiskInfo, secondDiskInfo}, "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
@@ -251,6 +253,11 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 	if len(firstInstance.Disks) != 2 {
 		t.Fatal("Create VM step did not create two disks")
 	}
+	secondDiskType := firstInstance.Disks[1].InitializeParams.DiskType
+	if secondDiskType != mountedDiskType {
+		t.Fatal("DiskType for second disk not properly set")
+	}
+
 	instances := step.CreateInstances.Instances
 	if len(instances) != 1 {
 		t.Error("CreateInstances step is malformed")

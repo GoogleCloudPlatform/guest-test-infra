@@ -83,7 +83,12 @@ func (t *TestWorkflow) appendCreateVMStep(disks []DiskInfo, hostname string) (*d
 
 	for _, disk := range disks {
 		diskname, disktype := disk.Name, disk.Type
-		attachedDisk := &compute.AttachedDisk{Source: diskname, Type: disktype}
+		diskInitParams := &compute.AttachedDiskInitializeParams{}
+		// set the disk type for the api, default is pd-standard if not set.
+		if disktype != "" {
+			diskInitParams.DiskType = disktype
+		}
+		attachedDisk := &compute.AttachedDisk{InitializeParams: diskInitParams, Source: diskname}
 		instance.Disks = append(instance.Disks, attachedDisk)
 	}
 
