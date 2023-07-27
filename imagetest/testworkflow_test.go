@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"google.golang.org/api/compute/v1"
 )
 
 func TestAddStartStep(t *testing.T) {
@@ -194,7 +195,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]DiskInfo{{Name: "vmname"}}, "")
+	step, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname"}}, "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +214,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, _, err := twf.appendCreateVMStep([]DiskInfo{{Name: "vmname2"}}, "")
+	step2, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname2"}}, "")
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -241,9 +244,10 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 	}
 
 	mountedDiskType := "pd-extreme"
-	firstDiskInfo := DiskInfo{Name: "vmname"}
-	secondDiskInfo := DiskInfo{Name: "pdname", Type: mountedDiskType}
-	step, firstInstance, err := twf.appendCreateVMStep([]DiskInfo{firstDiskInfo, secondDiskInfo}, "")
+	firstDiskParams := &compute.AttachedDiskInitializeParams{DiskName: "vmname"}
+	secondDiskParams := &compute.AttachedDiskInitializeParams{DiskName: "vmname", DiskType: mountedDiskType}
+	step, firstInstance, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		firstDiskParams, secondDiskParams}, "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -278,7 +282,8 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]DiskInfo{{Name: "vmname"}}, "vmname.example.com")
+	step, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname"}}, "vmname.example.com")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
