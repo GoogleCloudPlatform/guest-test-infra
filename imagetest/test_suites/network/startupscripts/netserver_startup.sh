@@ -5,7 +5,7 @@
 
 vmname=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1)
 outfile=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1).txt
-sleepduraiton=600
+sleepduration=600
 
 if [[ -f /usr/bin/apt ]]; then
   echo "$(date +"%Y-%m-%d %T"): apt found Installing iperf." | tee -a "${outfile}"

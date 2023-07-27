@@ -11,11 +11,13 @@ var Name = "network"
 
 const (
 	vm1Name    = "vm1"
+  vm2Name    = "vm2"
 	serverName = "server-vm"
 	clientName = "client-vm"
 	vm1IP      = "192.168.0.2"
-	serverIP   = "192.168.0.3"
-	clientIP   = "192.168.0.4"
+  vm2IP      = "192.168.0.3"
+	serverIP   = "192.168.0.4"
+	clientIP   = "192.168.0.5"
 
 	serverStartupScript = "startupscripts/netserver_startup.sh"
 	clientStartupScript = "startupscripts/netclient_startup.sh"
@@ -61,6 +63,28 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm1.SetPrivateIP(network2, vm1IP); err != nil {
 		return err
 	}
+
+  // VM2 for multiNIC
+  vm2, err := t.CreateTestVM(vm2Name)
+	if err != nil {
+		return err
+	}
+	if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
+		return err
+	}
+	if err := vm2.AddCustomNetwork(network2, subnetwork2); err != nil {
+		return err
+	}
+	if err := vm2.SetPrivateIP(network2, vm2IP); err != nil {
+		return err
+	}
+	if err := vm2.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+		return err
+	}
+	if err := vm2.Reboot(); err != nil {
+		return err
+	}
+
 
 	// Create two VMs for GVNIC performance testing.
 	serverVM, err := t.CreateTestVM(serverName)
