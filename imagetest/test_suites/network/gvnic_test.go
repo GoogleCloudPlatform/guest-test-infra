@@ -52,8 +52,8 @@ func CheckGVNICPresentWindows(interfaceName string) error {
 
 func CheckGVNICPerformance() (string, error) {
 	// Wait for iperf to finish.
-	for i := 0; i < maxRetries; i++ {
-		results, err := utils.GetMetadata("status")
+	for i := 0; i <= maxRetries; i++ {
+		results, err := utils.GetMetadataGuestAttribute("testing/results")
 		if err != nil {
 			// As long as the test results do not exist, the test is not finished.
 			if i == maxRetries-1 {

@@ -20,15 +20,15 @@ func TestPingVMToVM(t *testing.T) {
 		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
 	}
 
-	name, err := utils.GetRealVMName(vm2Name)
+	name, err := utils.GetRealVMName(serverName)
 	if err != nil {
 		t.Fatalf("failed to determine target vm name: %v", err)
 	}
 	if err := pingTargetRetries(primaryIP, name); err != nil {
 		t.Fatalf("failed to ping remote %s via %s (primary network): %v", name, primaryIP, err)
 	}
-	if err := pingTargetRetries(secondaryIP, vm2IP); err != nil {
-		t.Fatalf("failed to ping remote %s via %s (secondary network): %v", vm2IP, secondaryIP, err)
+	if err := pingTargetRetries(secondaryIP, serverIP); err != nil {
+		t.Fatalf("failed to ping remote %s via %s (secondary network): %v", serverIP, secondaryIP, err)
 	}
 }
 

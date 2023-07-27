@@ -14,11 +14,11 @@ const (
 	serverName = "server-vm"
 	clientName = "client-vm"
 	vm1IP      = "192.168.0.2"
-	serverIP   = "192.168.0.4"
-	clientIP   = "192.168.0.5"
+	serverIP   = "192.168.0.3"
+	clientIP   = "192.168.0.4"
 
-	serverStartupScript = "gs://machine_family_testing_startup_scripts/netserver_startup.sh"
-	clientStartupScript = "gs://machine_family_testing_startup_scripts/netclient_startup.sh"
+	serverStartupScript = "startupscripts/netserver_startup.sh"
+	clientStartupScript = "startupscripts/netclient_startup.sh"
 )
 
 // TestSetup sets up the test workflow.
@@ -112,11 +112,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// GVNIC is not supported on some older distros.
-		clientVm.RunTests("TestAlias")
+		clientVM.RunTests("TestAlias")
 	} else {
-		clientVm.UseGVNIC()
-		serverVm.UseGVNIC()
-		clientVm.RunTests("TestAlias|TestGVNIC")
+		clientVM.UseGVNIC()
+		serverVM.UseGVNIC()
+		clientVM.RunTests("TestAlias|TestGVNIC")
 	}
 	return nil
 }
