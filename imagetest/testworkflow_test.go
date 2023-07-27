@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"google.golang.org/api/compute/v1"
 )
 
 func TestAddStartStep(t *testing.T) {
@@ -194,7 +195,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep("vmname", "")
+	step, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname"}}, "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -212,7 +214,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, _, err := twf.appendCreateVMStep("vmname2", "")
+	step2, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname2"}}, "")
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -228,6 +231,46 @@ func TestAppendCreateVMStep(t *testing.T) {
 	}
 }
 
+func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	if _, ok := twf.wf.Steps["create-disks"]; ok {
+		t.Fatal("create-disks step already exists")
+	}
+
+	mountedDiskType := "pd-extreme"
+	firstDiskParams := &compute.AttachedDiskInitializeParams{DiskName: "vmname"}
+	secondDiskParams := &compute.AttachedDiskInitializeParams{DiskName: "vmname", DiskType: mountedDiskType}
+	step, firstInstance, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		firstDiskParams, secondDiskParams}, "")
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.CreateInstances == nil {
+		t.Fatal("CreateDisks step is missing")
+	}
+	if len(firstInstance.Disks) != 2 {
+		t.Fatal("Create VM step did not create two disks")
+	}
+	secondDiskType := firstInstance.Disks[1].InitializeParams.DiskType
+	if secondDiskType != mountedDiskType {
+		t.Fatal("DiskType for second disk not properly set")
+	}
+
+	instances := step.CreateInstances.Instances
+	if len(instances) != 1 {
+		t.Error("CreateInstances step is malformed")
+	}
+	if instances[0].Name != "vmname" {
+		t.Error("CreateInstances step is malformed")
+	}
+}
+
 func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	twf, err := NewTestWorkflow("name", "image", "30m")
 	if err != nil {
@@ -239,7 +282,8 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep("vmname", "vmname.example.com")
+	step, _, err := twf.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
+		{DiskName: "vmname"}}, "vmname.example.com")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
