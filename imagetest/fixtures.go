@@ -76,7 +76,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	parts := strings.Split(name, ".")
 	vmname := strings.ReplaceAll(parts[0], "_", "-")
 
-	createDisksStep, err := t.appendCreateDisksStep(vmname)
+	createDisksStep, err := t.appendCreateDisksStep(&compute.Disk{Name: vmname})
 	if err != nil {
 		return nil, err
 	}
