@@ -21,8 +21,6 @@ const (
 	clientStartupScript = "gs://machine_family_testing_startup_scripts/netclient_startup.sh"
 )
 
-var vm *imagetest.TestVM
-
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	network1, err := t.CreateNetwork("network-1", false)
