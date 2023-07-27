@@ -83,7 +83,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 
 	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep([]*compute.AttachedDiskInitializeParams{
-		{DiskName: "vmname"}}, name)
+		{DiskName: vmname}}, name)
 	if err != nil {
 		return nil, err
 	}
