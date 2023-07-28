@@ -67,11 +67,11 @@ type TestWorkflow struct {
 }
 
 func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string) (*daisy.Step, *daisy.Instance, error) {
-  if len(disks) == 0 || disks[0].Name == "" {
-    return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
-  }
-  // The boot disk is the first disk, and the VM name comes from that
-  name := disks[0].Name
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
+	}
+	// The boot disk is the first disk, and the VM name comes from that
+	name := disks[0].Name
 
 	var suffix string
 	if strings.Contains(t.Image, "windows") {
@@ -87,11 +87,10 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string
 	}
 
 	for _, disk := range disks {
-	  currentDiskName := disk.Name
-	currentAttachedDisk := &compute.AttachedDisk{Source: currentDiskName}
-	instance.Disks = append(instance.Disks, currentAttachedDisk)
+		currentDiskName := disk.Name
+		currentAttachedDisk := &compute.AttachedDisk{Source: currentDiskName}
+		instance.Disks = append(instance.Disks, currentAttachedDisk)
 	}
-
 
 	instance.Metadata = make(map[string]string)
 	instance.Metadata["_test_vmname"] = name
