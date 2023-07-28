@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"google.golang.org/api/compute/v1"
 )
 
 func TestAddStartStep(t *testing.T) {
@@ -146,7 +147,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
-	step, err := twf.appendCreateDisksStep("diskname")
+	step, err := twf.appendCreateDisksStep(&compute.Disk{Name: "diskname"})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -167,7 +168,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateDisksStep("diskname2")
+	step2, err := twf.appendCreateDisksStep(&compute.Disk{Name: "diskname2", Type: hyperdiskExtreme})
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
