@@ -12,11 +12,11 @@ var Name = "network"
 // InstanceConfig for setting up test VMs.
 type InstanceConfig struct {
 	name string
-  ip   string
+	ip   string
 }
 
-var vm1Config    = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
-var vm2Config    = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
+var vm1Config = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
+var vm2Config = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
 var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4"}
 var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
 
