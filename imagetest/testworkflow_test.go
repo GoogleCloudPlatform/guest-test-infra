@@ -168,7 +168,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateDisksStep(&compute.Disk{Name: "diskname2", Type: hyperdisk_extreme})
+	step2, err := twf.appendCreateDisksStep(&compute.Disk{Name: "diskname2", Type: hyperdiskExtreme})
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
