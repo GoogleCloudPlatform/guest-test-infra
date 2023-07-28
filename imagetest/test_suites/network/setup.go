@@ -9,6 +9,7 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "network"
 
+// Basic instance config for setting up test VMs.
 type InstanceConfig struct {
 	name string
   ip   string
