@@ -87,9 +87,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string
 	}
 
 	for _, disk := range disks {
-		currentDiskName := disk.Name
-		currentAttachedDisk := &compute.AttachedDisk{Source: currentDiskName}
-		instance.Disks = append(instance.Disks, currentAttachedDisk)
+		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
 	}
 
 	instance.Metadata = make(map[string]string)
