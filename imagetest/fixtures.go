@@ -76,13 +76,14 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	parts := strings.Split(name, ".")
 	vmname := strings.ReplaceAll(parts[0], "_", "-")
 
-	createDisksStep, err := t.appendCreateDisksStep(&compute.Disk{Name: vmname})
+	bootDisk := &compute.Disk{Name: vmname}
+	createDisksStep, err := t.appendCreateDisksStep(bootDisk)
 	if err != nil {
 		return nil, err
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep(vmname, name)
+	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, name)
 	if err != nil {
 		return nil, err
 	}
