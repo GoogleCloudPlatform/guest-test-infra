@@ -119,22 +119,22 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 // CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
 // name to the workflow.
 func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM, error) {
-  if len(disks) == 0 || disks[0].Name == "" {
-    return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
-  }
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
+	}
 
-  name := disks[0].Name
+	name := disks[0].Name
 	parts := strings.Split(name, ".")
 	vmname := strings.ReplaceAll(parts[0], "_", "-")
 
-  createDisksSteps := make([]*daisy.Step, len(disks))
-  for i, disk := range disks {
-    createDisksStep, err := t.appendCreateDisksStep(disk)
-    if err != nil {
-      return nil, err
-    }
-    createDisksSteps[i] = createDisksStep
-  }
+	createDisksSteps := make([]*daisy.Step, len(disks))
+	for i, disk := range disks {
+		createDisksStep, err := t.appendCreateDisksStep(disk)
+		if err != nil {
+			return nil, err
+		}
+		createDisksSteps[i] = createDisksStep
+	}
 
 	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep(disks, name)
@@ -142,12 +142,11 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM
 		return nil, err
 	}
 
-  for _, createDisksStep := range createDisksSteps {
-    if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
-		  return nil, err
-	  }
-  }
-
+	for _, createDisksStep := range createDisksSteps {
+		if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+			return nil, err
+		}
+	}
 
 	waitStep, err := t.addWaitStep(vmname, vmname, false)
 	if err != nil {
