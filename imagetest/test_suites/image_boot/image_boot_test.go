@@ -95,7 +95,7 @@ func TestGuestReboot(t *testing.T) {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
 	} else if err != nil {
-		t.Fatal("failed to stat marker file: %+v", err)
+		t.Fatalf("failed to stat marker file: %+v", err)
 	}
 	// second boot
 	t.Log("marker file exist signal the guest reboot successful")
