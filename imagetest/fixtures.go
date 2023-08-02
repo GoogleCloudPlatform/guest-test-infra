@@ -136,7 +136,7 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM
     createDisksSteps[i] = createDisksStep
   }
 
-	// createDisksStep doesn't depend on any other steps
+	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep(disks, name)
 	if err != nil {
 		return nil, err
