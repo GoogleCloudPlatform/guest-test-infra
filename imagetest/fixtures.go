@@ -116,8 +116,8 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
 }
 
-// CreateTestVM adds the necessary steps to create a VM with the specified
-// name to the workflow.
+// CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
+// name to the workflow. The VM can have mounted disks.
 func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
