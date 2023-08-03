@@ -13,6 +13,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/gveperf"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
@@ -154,6 +155,10 @@ func main() {
 		name      string
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
+		{
+			gveperf.Name,
+			gveperf.TestSetup,
+		},
 		{
 			imagevalidation.Name,
 			imagevalidation.TestSetup,
