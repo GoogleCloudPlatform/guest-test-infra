@@ -93,11 +93,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// GVNIC is not supported on some older distros.
-		return errors.New(fmt.Sprintf("GVNIC is not supported on %v", t.Image))
-	} else {
-		clientVM.UseGVNIC()
-		serverVM.UseGVNIC()
-		clientVM.RunTests("TestGVNIC")
+		return fmt.Errorf("GVNIC is not supported on %v", t.Image)
 	}
+	clientVM.UseGVNIC()
+	serverVM.UseGVNIC()
+	clientVM.RunTests("TestGVNIC")
 	return nil
 }
