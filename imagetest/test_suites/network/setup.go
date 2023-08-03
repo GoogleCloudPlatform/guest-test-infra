@@ -25,8 +25,8 @@ var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.1.5"}
 var scripts embed.FS
 
 const (
-	serverStartupScriptUrl = "startupscripts/netserver_startup.sh"
-	clientStartupScriptUrl = "startupscripts/netclient_startup.sh"
+	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
+	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
 )
 
 // TestSetup sets up the test workflow.
@@ -105,11 +105,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
 	// Get the startup scripts as strings.
-	serverStartup, err := scripts.ReadFile(serverStartupScriptUrl)
+	serverStartup, err := scripts.ReadFile(serverStartupScriptURL)
 	if err != nil {
 		return err
 	}
-	clientStartup, err := scripts.ReadFile(clientStartupScriptUrl)
+	clientStartup, err := scripts.ReadFile(clientStartupScriptURL)
 	if err != nil {
 		return err
 	}
