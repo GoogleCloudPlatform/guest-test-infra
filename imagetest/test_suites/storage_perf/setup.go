@@ -5,7 +5,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "storageperf"
+var Name = "storage_perf"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
