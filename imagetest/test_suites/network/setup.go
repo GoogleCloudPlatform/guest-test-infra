@@ -1,6 +1,7 @@
 package network
 
 import (
+	"embed"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -17,12 +18,15 @@ type InstanceConfig struct {
 
 var vm1Config = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
 var vm2Config = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
-var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4"}
-var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
+var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.1.4"}
+var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.1.5"}
+
+//go:embed startupscripts/*
+var scripts embed.FS
 
 const (
-	serverStartupScript = "startupscripts/netserver_startup.sh"
-	clientStartupScript = "startupscripts/netclient_startup.sh"
+	serverStartupScriptUrl = "startupscripts/netserver_startup.sh"
+	clientStartupScriptUrl = "startupscripts/netclient_startup.sh"
 )
 
 // TestSetup sets up the test workflow.
@@ -49,6 +53,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	if err := network2.CreateFirewallRule("allow-icmp-net2", "icmp", nil, []string{"192.168.0.0/16"}); err != nil {
+		return err
+	}
+
+	clientServerNetwork, err := t.CreateNetwork("client-server-network", false)
+	if err != nil {
+		return err
+	}
+	clientServerSubnetwork, err := clientServerNetwork.CreateSubnetwork("client-server-subnetwork", "192.168.1.0/24")
+	if err != nil {
+		return err
+	}
+	clientServerSubnetwork.AddSecondaryRange("client-server-secondary-range", "10.14.0.0/16")
+	if err := clientServerNetwork.CreateFirewallRule("allow-icmp-net-client", "icmp", nil, []string{"192.168.1.0/24"}); err != nil {
 		return err
 	}
 
@@ -87,25 +104,29 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
+	// Get the startup scripts as strings.
+	serverStartup, err := scripts.ReadFile(serverStartupScriptUrl)
+	if err != nil {
+		return err
+	}
+	clientStartup, err := scripts.ReadFile(clientStartupScriptUrl)
+	if err != nil {
+		return err
+	}
+
 	// Create two VMs for GVNIC performance testing.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
 		return err
 	}
-	if err := serverVM.AddCustomNetwork(network1, subnetwork1); err != nil {
+	if err := serverVM.AddCustomNetwork(clientServerNetwork, clientServerSubnetwork); err != nil {
 		return err
 	}
-	if err := serverVM.AddCustomNetwork(network2, subnetwork2); err != nil {
-		return err
-	}
-	if err := serverVM.SetPrivateIP(network2, serverConfig.ip); err != nil {
-		return err
-	}
-	if err := serverVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+	if err := serverVM.SetPrivateIP(clientServerNetwork, serverConfig.ip); err != nil {
 		return err
 	}
 	serverVM.AddMetadata("enable-guest-attributes", "TRUE")
-	serverVM.SetStartupScript(serverStartupScript)
+	serverVM.SetStartupScript(string(serverStartup))
 	if err := serverVM.Reboot(); err != nil {
 		return err
 	}
@@ -114,21 +135,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := clientVM.AddCustomNetwork(network1, subnetwork1); err != nil {
+	if err := clientVM.AddCustomNetwork(clientServerNetwork, clientServerSubnetwork); err != nil {
 		return err
 	}
-	if err := clientVM.AddCustomNetwork(network2, subnetwork2); err != nil {
+	if err := clientVM.SetPrivateIP(clientServerNetwork, clientConfig.ip); err != nil {
 		return err
 	}
-	if err := clientVM.SetPrivateIP(network2, clientConfig.ip); err != nil {
-		return err
-	}
-	if err := clientVM.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+	if err := clientVM.AddAliasIPRanges("10.14.8.0/24", "client-server-secondary-range"); err != nil {
 		return err
 	}
 	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
-	clientVM.SetStartupScript(clientStartupScript)
+	clientVM.SetStartupScript(string(clientStartup))
 	if err := clientVM.Reboot(); err != nil {
 		return err
 	}

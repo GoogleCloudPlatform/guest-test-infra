@@ -57,7 +57,7 @@ func CheckGVNICPerformance() (string, error) {
 		if err != nil {
 			// As long as the test results do not exist, the test is not finished.
 			if i == maxRetries-1 {
-				return "", errors.New(fmt.Sprintf("Client VM not terminated after %v attempts", maxRetries))
+				return "", errors.New(fmt.Sprintf("No iperf results after %v attempts", maxRetries))
 			}
 			time.Sleep(sleepDuration)
 		} else {
@@ -85,9 +85,11 @@ func TestGVNIC(t *testing.T) {
 	}
 
 	// Check performance of the driver.
-	results, err := CheckGVNICPerformance()
-	if err != nil {
-		t.Fatalf("Error : %v", err)
-	}
-	t.Logf(results)
+  if runtime.GOOS != "windows" {
+	  results, err := CheckGVNICPerformance()
+	  if err != nil {
+		  t.Fatalf("Error : %v", err)
+	  }
+	  t.Logf(results)
+  }
 }
