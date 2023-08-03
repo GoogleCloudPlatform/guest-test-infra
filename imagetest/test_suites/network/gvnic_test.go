@@ -85,11 +85,11 @@ func TestGVNIC(t *testing.T) {
 	}
 
 	// Check performance of the driver.
-  if runtime.GOOS != "windows" {
-	  results, err := CheckGVNICPerformance()
-	  if err != nil {
-		  t.Fatalf("Error : %v", err)
-	  }
-	  t.Logf(results)
-  }
+	if runtime.GOOS != "windows" {
+		results, err := CheckGVNICPerformance()
+		if err != nil {
+			t.Fatalf("Error : %v", err)
+		}
+		t.Logf(results)
+	}
 }
