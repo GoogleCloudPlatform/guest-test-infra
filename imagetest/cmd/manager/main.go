@@ -13,6 +13,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/fioperf"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
@@ -38,6 +39,7 @@ var (
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
+	extraTests    = flag.String("extra_tests", "", "run extra tests which would normally not be run and do not block releases")
 	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
 )
 
@@ -147,6 +149,16 @@ func main() {
 		}
 		log.Printf("using -exclude %s", *exclude)
 	}
+	
+	var extraTestsRegex *regexp.Regexp
+	if *extraTests != "" {
+		var err error
+		extraTestsRegex, err = regexp.Compile(*extraTests)
+		if err != nil {
+			log.Fatal("-extra_tests flag not valid:", err)
+		}
+		log.Printf("using -extra_tests %s", *extraTests)
+	}
 
 	// Setup tests.
 	testPackages := []struct {
@@ -174,6 +186,10 @@ func main() {
 			disk.TestSetup,
 		},
 		{
+			fioperf.Name,
+			fioperf.TestSetup,
+		},
+		{
 			ssh.Name,
 			ssh.TestSetup,
 		},
@@ -199,12 +215,22 @@ func main() {
 		},
 	}
 
+	// These tests are excluded by default so they do not block releases.
+	skippedNonblockingTests := make(map[string]bool)
+	for _, skippedNonblockingTestName := range []string{fioperf.Name} {
+		skippedNonblockingTests[skippedNonblockingTestName] = true
+	}
+
 	var testWorkflows []*imagetest.TestWorkflow
 	for _, testPackage := range testPackages {
 		if filterRegex != nil && !filterRegex.MatchString(testPackage.name) {
 			continue
 		}
 		if excludeRegex != nil && excludeRegex.MatchString(testPackage.name) {
+			continue
+		}
+		_, testPkgExcluded := skippedNonblockingTests[testPackage.Name]
+		if testPkgExcluded && !extraTestsRegex.MatchString(testPackage.Name) {
 			continue
 		}
 		for _, image := range strings.Split(*images, ",") {
