@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package fioperf
+package storageperf
 
 import (
 	"testing"

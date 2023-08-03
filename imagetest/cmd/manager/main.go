@@ -13,7 +13,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/fioperf"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
@@ -21,6 +20,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
+	storageperf "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storage_perf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
 	windowscontainers "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_containers"
 	windowsimagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows_image_validation"
@@ -150,16 +150,6 @@ func main() {
 		log.Printf("using -exclude %s", *exclude)
 	}
 
-	var extraTestsRegex *regexp.Regexp
-	if *extraTests != "" {
-		var err error
-		extraTestsRegex, err = regexp.Compile(*extraTests)
-		if err != nil {
-			log.Fatal("-extra_tests flag not valid:", err)
-		}
-		log.Printf("using -extra_tests %s", *extraTests)
-	}
-
 	// Setup tests.
 	testPackages := []struct {
 		name      string
@@ -186,8 +176,8 @@ func main() {
 			disk.TestSetup,
 		},
 		{
-			fioperf.Name,
-			fioperf.TestSetup,
+			storageperf.Name,
+			storageperf.TestSetup,
 		},
 		{
 			ssh.Name,
@@ -215,22 +205,12 @@ func main() {
 		},
 	}
 
-	// These tests are excluded by default so they do not block releases.
-	skippedNonblockingTests := make(map[string]bool)
-	for _, skippedNonblockingTestName := range []string{fioperf.Name} {
-		skippedNonblockingTests[skippedNonblockingTestName] = true
-	}
-
 	var testWorkflows []*imagetest.TestWorkflow
 	for _, testPackage := range testPackages {
 		if filterRegex != nil && !filterRegex.MatchString(testPackage.name) {
 			continue
 		}
 		if excludeRegex != nil && excludeRegex.MatchString(testPackage.name) {
-			continue
-		}
-		_, testPkgExcluded := skippedNonblockingTests[testPackage.name]
-		if testPkgExcluded && !extraTestsRegex.MatchString(testPackage.name) {
 			continue
 		}
 		for _, image := range strings.Split(*images, ",") {
