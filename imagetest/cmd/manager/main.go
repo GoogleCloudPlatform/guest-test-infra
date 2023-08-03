@@ -149,7 +149,7 @@ func main() {
 		}
 		log.Printf("using -exclude %s", *exclude)
 	}
-	
+
 	var extraTestsRegex *regexp.Regexp
 	if *extraTests != "" {
 		var err error
@@ -229,8 +229,8 @@ func main() {
 		if excludeRegex != nil && excludeRegex.MatchString(testPackage.name) {
 			continue
 		}
-		_, testPkgExcluded := skippedNonblockingTests[testPackage.Name]
-		if testPkgExcluded && !extraTestsRegex.MatchString(testPackage.Name) {
+		_, testPkgExcluded := skippedNonblockingTests[testPackage.name]
+		if testPkgExcluded && !extraTestsRegex.MatchString(testPackage.name) {
 			continue
 		}
 		for _, image := range strings.Split(*images, ",") {

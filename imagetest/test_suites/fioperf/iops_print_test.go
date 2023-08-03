@@ -4,7 +4,6 @@
 package fioperf
 
 import (
-	"fmt"
 	"testing"
 )
 
