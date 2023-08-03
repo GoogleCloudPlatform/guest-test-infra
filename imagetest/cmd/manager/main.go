@@ -39,7 +39,6 @@ var (
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
-	extraTests    = flag.String("extra_tests", "", "run extra tests which would normally not be run and do not block releases")
 	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
 )
 
