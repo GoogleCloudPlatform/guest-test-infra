@@ -39,10 +39,15 @@ const (
 	PdStandard          = "pd-standard"
 	// PdSsd disktype string
 	PdSsd               = "pd-ssd"
+	// PdBalanced disktype string
 	PdBalanced          = "pd-balanced"
+	// PdExtreme disktype string
 	PdExtreme           = "pd-extreme"
+	// HyperdiskExtreme disktype string
 	HyperdiskExtreme    = "hyperdisk-extreme"
+	// HyperdiskThroughput disktype string
 	HyperdiskThroughput = "hyperdisk-throughput"
+	// HyperdiskBalanced disktype string
 	HyperdiskBalanced   = "hyperdisk-balanced"
 
 	testWrapperPath        = "/wrapper"
