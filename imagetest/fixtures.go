@@ -116,6 +116,70 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
 }
 
+// CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
+// name to the workflow.
+func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM, error) {
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
+	}
+
+	name := disks[0].Name
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	createDisksSteps := make([]*daisy.Step, len(disks))
+	for i, disk := range disks {
+		// the disk creation steps are slightly different for the boot disk and mount disks
+		var createDisksStep *daisy.Step
+		var err error
+		if i == 0 {
+			createDisksStep, err = t.appendCreateDisksStep(disk)
+		} else {
+			createDisksStep, err = t.appendCreateMountDisksStep(disk)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		createDisksSteps[i] = createDisksStep
+	}
+
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, i, err := t.appendCreateVMStep(disks, name)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, createDisksStep := range createDisksSteps {
+		if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+			return nil, err
+		}
+	}
+
+	waitStep, err := t.addWaitStep(vmname, vmname, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
+}
+
 // AddMetadata adds the specified key:value pair to metadata during VM creation.
 func (t *TestVM) AddMetadata(key, value string) {
 	if t.instance.Metadata == nil {

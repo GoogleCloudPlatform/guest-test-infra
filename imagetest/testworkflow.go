@@ -36,13 +36,13 @@ var (
 
 const (
 	// Names of disk types
-	pdStandard          = "pd-standard"
-	pdSsd               = "pd-ssd"
-	pdBalanced          = "pd-balanced"
-	pdExtreme           = "pd-extreme"
-	hyperdiskExtreme    = "hyperdisk-extreme"
-	hyperdiskThroughput = "hyperdisk-throughput"
-	hyperdiskBalanced   = "hyperdisk-balanced"
+	PdStandard          = "pd-standard"
+	PdSsd               = "pd-ssd"
+	PdBalanced          = "pd-balanced"
+	PdExtreme           = "pd-extreme"
+	HyperdiskExtreme    = "hyperdisk-extreme"
+	HyperdiskThroughput = "hyperdisk-throughput"
+	HyperdiskBalanced   = "hyperdisk-balanced"
 
 	testWrapperPath        = "/wrapper"
 	testWrapperPathWindows = "/wrapp"
@@ -115,6 +115,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string
 	return createVMStep, instance, nil
 }
 
+// appendCreateDisksStep should be called for creating the boot disk, or first disk in a VM.
 func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
 	if diskParams == nil || diskParams.Name == "" {
 		return nil, fmt.Errorf("failed to create disk with empty parameters")
@@ -130,6 +131,34 @@ func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.S
 	if ok {
 		// append to existing step.
 		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, bootdisk)
+	} else {
+		var err error
+		createDisksStep, err = t.wf.NewStep(createDisksStepName)
+		if err != nil {
+			return nil, err
+		}
+		createDisksStep.CreateDisks = createDisks
+	}
+
+	return createDisksStep, nil
+}
+
+// appendCreateMountDisksStep should be called for any disk which is not the vm boot disk.
+func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
+	if diskParams == nil || diskParams.Name == "" {
+		return nil, fmt.Errorf("failed to create disk with empty parameters")
+	}
+	mountdisk := &daisy.Disk{}
+	mountdisk.Name = diskParams.Name
+	mountdisk.SizeGb = "100"
+	mountdisk.Type = diskParams.Type
+
+	createDisks := &daisy.CreateDisks{mountdisk}
+
+	createDisksStep, ok := t.wf.Steps[createDisksStepName]
+	if ok {
+		// append to existing step.
+		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, mountdisk)
 	} else {
 		var err error
 		createDisksStep, err = t.wf.NewStep(createDisksStepName)
