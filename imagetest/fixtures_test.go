@@ -73,7 +73,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
-	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd}}
+	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	tvm, err := twf.CreateTestVMMultipleDisks(disks)
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -145,7 +145,7 @@ func TestRebootMultipleDisks(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
-	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced}}
+	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced, SizeGb: 100}}
 	tvm, err := twf.CreateTestVMMultipleDisks(disks)
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)

@@ -149,7 +149,7 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM
 	if err != nil {
 		return nil, err
 	}
-
+	// can modify the daisy instance here to set the machinetype
 	for _, createDisksStep := range createDisksSteps {
 		if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
 			return nil, err
