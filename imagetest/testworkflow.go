@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -156,8 +157,11 @@ func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*da
 	}
 	mountdisk := &daisy.Disk{}
 	mountdisk.Name = diskParams.Name
-	mountdisk.SizeGb = "100"
 	mountdisk.Type = diskParams.Type
+	if diskParams.SizeGb == 0 {
+		return nil, fmt.Errorf("failed to create mount disk with no SizeGb parameter")
+	}
+	mountdisk.SizeGb = strconv.FormatInt(diskParams.SizeGb, 10)
 
 	createDisks := &daisy.CreateDisks{mountdisk}
 
