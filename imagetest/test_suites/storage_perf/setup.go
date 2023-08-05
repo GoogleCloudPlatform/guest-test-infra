@@ -14,7 +14,6 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	// mount the hyperdisk as a startup script
 	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName},
 		{Name: "pdextreme", Type: imagetest.PdExtreme, SizeGb: 100}})
 	if err != nil {
