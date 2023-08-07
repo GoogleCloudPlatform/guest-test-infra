@@ -54,10 +54,8 @@ func CheckGVNICPerformance() (string, error) {
 	return results, nil
 }
 
-func TestGVNIC(t *testing.T) {
+func TestGVNICExists(t *testing.T) {
 	iface, err := utils.GetInterface(0)
-
-	// Check whether the driver exists.
 	if err != nil {
 		t.Fatalf("couldn't find primary NIC: %v", err)
 	}
@@ -68,9 +66,11 @@ func TestGVNIC(t *testing.T) {
 		errMsg = CheckGVNICPresent(iface.Name)
 	}
 	if errMsg != nil {
-		t.Fatalf("Error : %v", errMsg.Error())
+		t.Fatalf("Error: %v", errMsg.Error())
 	}
+}
 
+func TestGVNICPerformance(t *testing.T) {
 	// Check performance of the driver.
 	if runtime.GOOS != "windows" {
 		results, err := CheckGVNICPerformance()

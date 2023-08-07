@@ -38,8 +38,8 @@ elif [[ -f /usr/bin/zypper ]]; then
   sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm | tee -a "$outfile"
 fi
 
-# Wait 30 seconds for the server VM to start up iperf server.
-sleep 30
+# Wait 60 seconds for the server VM to start up iperf server.
+sleep 60
 
 echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget. iperf version: $(iperf -v)" | tee -a "$outfile"
 iperf -t 30 -c "$iperftarget" -P 16 | tee -a "$outfile"

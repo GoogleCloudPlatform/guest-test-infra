@@ -32,7 +32,7 @@ local imagetesttask = {
       '-project=gcp-guest',
       '-zone=us-central1-a',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storage_perf)',
+      '-exclude=(oslogin)|(storage_perf)|(gveperf)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
@@ -83,12 +83,12 @@ local imgbuildjob = {
     {
       task: 'generate-build-id',
       file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: tl.image_prefix, id: '((.:id))'},
+      vars: { prefix: tl.image_prefix, id: '((.:id))' },
     },
     // This is the 'put trick'. We don't have the real image tarball to write to GCS here, but we want
     // Concourse to treat this job as producing it. So we write an empty file now, and overwrite it later in
     // the daisy workflow. This also generates the final URL for use in the daisy workflow.
-    // This is also done for the sbom file. 
+    // This is also done for the sbom file.
     {
       put: tl.image + '-gcs',
       params: {
@@ -106,7 +106,7 @@ local imgbuildjob = {
     {
       task: 'generate-build-id-sbom',
       file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
-      vars: { prefix: tl.image_prefix, id: '((.:id))'},
+      vars: { prefix: tl.image_prefix, id: '((.:id))' },
     },
     {
       put: tl.image + '-sbom',
@@ -571,8 +571,11 @@ local imggroup = {
                }
                for image in debian_images
              ] +
-             [common.gcssbomresource { image: image, image_prefix: common.debian_image_prefixes[image],
-                                       sbom_destination: 'debian' } for image in debian_images] +
+             [common.gcssbomresource {
+               image: image,
+               image_prefix: common.debian_image_prefixes[image],
+               sbom_destination: 'debian',
+             } for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
