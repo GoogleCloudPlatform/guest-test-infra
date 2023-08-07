@@ -14,7 +14,7 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: 100},
+	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: 10},
 		{Name: "pdextreme", Type: imagetest.HyperdiskExtreme, SizeGb: 100}})
 	if err != nil {
 		return err
