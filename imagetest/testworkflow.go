@@ -62,8 +62,6 @@ type TestWorkflow struct {
 	Image string
 	// ShortImage will be only the final component of Image, used for naming.
 	ShortImage string
-	// MachineType can be used to set the machine shape, currently unused.
-	MachineType string
 	// destination for workflow outputs in GCS.
 	gcsPath        string
 	skipped        bool
