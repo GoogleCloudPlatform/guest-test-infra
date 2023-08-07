@@ -168,7 +168,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, err := twf.appendCreateDisksStep(&compute.Disk{Name: "diskname2", Type: hyperdiskExtreme})
+	step2, err := twf.appendCreateMountDisksStep(&compute.Disk{Name: "diskname2", Type: HyperdiskExtreme, SizeGb: 100})
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -241,7 +241,7 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 		t.Fatal("create-disks step already exists")
 	}
 	step, instanceFromStep, err := twf.appendCreateVMStep([]*compute.Disk{
-		{Name: "vmname"}, {Name: "mountdiskname", Type: pdBalanced}}, "")
+		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}}, "")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}

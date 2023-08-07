@@ -2,6 +2,7 @@ package storageperf
 
 import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -13,7 +14,8 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM(vmName)
+	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName},
+		{Name: "pdextreme", Type: imagetest.PdExtreme, SizeGb: 100}})
 	if err != nil {
 		return err
 	}

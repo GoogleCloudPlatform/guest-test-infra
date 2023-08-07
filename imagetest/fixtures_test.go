@@ -2,6 +2,9 @@ package imagetest
 
 import (
 	"testing"
+
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"google.golang.org/api/compute/v1"
 )
 
 // TestAddMetadata tests that *TestVM.AddMetadata succeeds and that it
@@ -36,6 +39,114 @@ func TestReboot(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if twf.counter != 0 {
+		t.Errorf("step counter not starting at 0")
+	}
+	if err := tvm.Reboot(); err != nil {
+		t.Errorf("failed to reboot: %v", err)
+	}
+	if twf.counter != 1 {
+		t.Errorf("step counter not incremented")
+	}
+	if _, ok := twf.wf.Steps["stop-vm-1"]; !ok {
+		t.Errorf("wait-vm-1 step missing")
+	}
+	lastStep, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if lastStep.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if step, ok := twf.wf.Steps["wait-started-vm-1"]; !ok || step != lastStep {
+		t.Error("not wait-started-vm-1 step")
+	}
+}
+
+// TestCreateVMMultipleDisks tests that after creating a VM with multiple disks,
+// the correct step dependencies are in place.
+func TestCreateVMMultipleDisks(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
+	tvm, err := twf.CreateTestVMMultipleDisks(disks)
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	// once found, expect createInstancesStep.CreateInstances != nil
+	// once found, expect createDisksStep.CreateDisks != nil
+	var createInstancesStep, createDisksStep *daisy.Step
+	for _, step := range twf.wf.Steps {
+		// there should only be one create instance step
+		if step.CreateInstances != nil {
+			if createInstancesStep == nil {
+				createInstancesStep = step
+			} else {
+				t.Errorf("workflow has multiple create instance steps when it should not")
+			}
+		}
+
+		if step.CreateDisks != nil {
+			if createDisksStep == nil {
+				createDisksStep = step
+			} else {
+				t.Errorf("workflow has multiple create disk steps when it should not")
+			}
+		}
+	}
+
+	if createInstancesStep == nil || createInstancesStep.CreateInstances == nil {
+		t.Errorf("failed to find create instances step when creating multiple disks")
+	}
+
+	if createDisksStep == nil || createDisksStep.CreateDisks == nil {
+		t.Errorf("failed to find create disks step when creating multiple disks")
+	}
+
+	daisyStepDisksSlice := *(createDisksStep.CreateDisks)
+	if len(disks) != len(daisyStepDisksSlice) {
+		t.Errorf("found incorrect number of disks in create disk step: expected %d, got %d",
+			len(disks), len(daisyStepDisksSlice))
+	}
+
+	if twf.counter != 0 {
+		t.Errorf("step counter not starting at 0")
+	}
+	if err := tvm.Reboot(); err != nil {
+		t.Errorf("failed to reboot: %v", err)
+	}
+	if twf.counter != 1 {
+		t.Errorf("step counter not incremented")
+	}
+	if _, ok := twf.wf.Steps["stop-vm-1"]; !ok {
+		t.Errorf("wait-vm-1 step missing")
+	}
+	lastStep, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if lastStep.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	if step, ok := twf.wf.Steps["wait-started-vm-1"]; !ok || step != lastStep {
+		t.Error("not wait-started-vm-1 step")
+	}
+}
+
+// TestRebootMultipleDisks creates a VM using multiple disks, and then runs
+// the same tests as TestReboot.
+func TestRebootMultipleDisks(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced, SizeGb: 100}}
+	tvm, err := twf.CreateTestVMMultipleDisks(disks)
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}

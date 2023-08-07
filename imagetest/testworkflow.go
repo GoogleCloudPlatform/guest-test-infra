@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -35,14 +36,20 @@ var (
 )
 
 const (
-	// Names of disk types
-	pdStandard          = "pd-standard"
-	pdSsd               = "pd-ssd"
-	pdBalanced          = "pd-balanced"
-	pdExtreme           = "pd-extreme"
-	hyperdiskExtreme    = "hyperdisk-extreme"
-	hyperdiskThroughput = "hyperdisk-throughput"
-	hyperdiskBalanced   = "hyperdisk-balanced"
+	// PdStandard disktype string
+	PdStandard = "pd-standard"
+	// PdSsd disktype string
+	PdSsd = "pd-ssd"
+	// PdBalanced disktype string
+	PdBalanced = "pd-balanced"
+	// PdExtreme disktype string
+	PdExtreme = "pd-extreme"
+	// HyperdiskExtreme disktype string
+	HyperdiskExtreme = "hyperdisk-extreme"
+	// HyperdiskThroughput disktype string
+	HyperdiskThroughput = "hyperdisk-throughput"
+	// HyperdiskBalanced disktype string
+	HyperdiskBalanced = "hyperdisk-balanced"
 
 	testWrapperPath        = "/wrapper"
 	testWrapperPathWindows = "/wrapp"
@@ -55,6 +62,8 @@ type TestWorkflow struct {
 	Image string
 	// ShortImage will be only the final component of Image, used for naming.
 	ShortImage string
+	// MachineType can be used to set the machine shape, currently unused.
+	MachineType string
 	// destination for workflow outputs in GCS.
 	gcsPath        string
 	skipped        bool
@@ -115,6 +124,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string
 	return createVMStep, instance, nil
 }
 
+// appendCreateDisksStep should be called for creating the boot disk, or first disk in a VM.
 func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
 	if diskParams == nil || diskParams.Name == "" {
 		return nil, fmt.Errorf("failed to create disk with empty parameters")
@@ -130,6 +140,37 @@ func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.S
 	if ok {
 		// append to existing step.
 		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, bootdisk)
+	} else {
+		var err error
+		createDisksStep, err = t.wf.NewStep(createDisksStepName)
+		if err != nil {
+			return nil, err
+		}
+		createDisksStep.CreateDisks = createDisks
+	}
+
+	return createDisksStep, nil
+}
+
+// appendCreateMountDisksStep should be called for any disk which is not the vm boot disk.
+func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
+	if diskParams == nil || diskParams.Name == "" {
+		return nil, fmt.Errorf("failed to create disk with empty parameters")
+	}
+	mountdisk := &daisy.Disk{}
+	mountdisk.Name = diskParams.Name
+	mountdisk.Type = diskParams.Type
+	if diskParams.SizeGb == 0 {
+		return nil, fmt.Errorf("failed to create mount disk with no SizeGb parameter")
+	}
+	mountdisk.SizeGb = strconv.FormatInt(diskParams.SizeGb, 10)
+
+	createDisks := &daisy.CreateDisks{mountdisk}
+
+	createDisksStep, ok := t.wf.Steps[createDisksStepName]
+	if ok {
+		// append to existing step.
+		*createDisksStep.CreateDisks = append(*createDisksStep.CreateDisks, mountdisk)
 	} else {
 		var err error
 		createDisksStep, err = t.wf.NewStep(createDisksStepName)
