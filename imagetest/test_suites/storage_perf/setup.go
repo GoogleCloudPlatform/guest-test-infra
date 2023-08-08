@@ -10,12 +10,14 @@ var Name = "storage_perf"
 
 const (
 	vmName = "vm"
+	// MountDiskName is used to determine the realpath/symlink for the hyperdisk.
+	mountDiskName = "hyperdisk"
 )
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: 10},
-		{Name: "pdextreme", Type: imagetest.HyperdiskExtreme, SizeGb: 100}})
+		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: 100}})
 	if err != nil {
 		return err
 	}
