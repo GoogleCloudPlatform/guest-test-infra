@@ -13,9 +13,6 @@ echo "MTU: "
 if [[ -f /usr/bin/apt ]]; then
   echo "$(date +"%Y-%m-%d %T"): apt found Installing iperf." | tee -a "$outfile"
   sudo apt update && sudo apt install iperf | tee -a "$outfile"
-elif [[ -f /bin/apt-get ]]; then
-  echo "$(date +"%Y-%m-%d %T"): apt found Installing iperf." | tee -a "$outfile"
-  sudo apt-get update && sudo apt-get install iperf | tee -a "$outfile"
 elif [[ -f /bin/dnf ]]; then
   echo "$(date +"%Y-%m-%d %T"): dnf found Installing iperf." | tee -a "$outfile"
   os=$(cat /etc/redhat-release)
