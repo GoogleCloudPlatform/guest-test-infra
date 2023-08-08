@@ -4,16 +4,16 @@
 package storageperf
 
 import (
-	"path/filepath"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	mkfsCmd = "mkfs.ext4"
+	mkfsCmd           = "mkfs.ext4"
 	testreadOutputDir = "/mnt/disks/mount_dir"
 )
 
@@ -33,7 +33,7 @@ func TestIOPSPrint(t *testing.T) {
 		t.Fatalf("mkfs cmd failed to complete: %v", err)
 	}
 
-	if err :=  os.MkdirAll(testreadOutputDir, 0777); err != nil {
+	if err := os.MkdirAll(testreadOutputDir, 0777); err != nil {
 		t.Fatalf("could not make test read output dir: %v", err)
 	}
 
