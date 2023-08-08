@@ -13,11 +13,11 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/gveperf"
 	imageboot "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_boot"
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	networkperf "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network_perf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
@@ -156,8 +156,8 @@ func main() {
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
 		{
-			gveperf.Name,
-			gveperf.TestSetup,
+			networkperf.Name,
+			networkperf.TestSetup,
 		},
 		{
 			imagevalidation.Name,
