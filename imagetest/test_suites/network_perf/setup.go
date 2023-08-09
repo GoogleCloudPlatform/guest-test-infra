@@ -30,6 +30,11 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
+		// GVNIC is not supported on some older distros.
+		return fmt.Errorf("GVNIC is not supported on %v", t.Image)
+	}
+
 	clientServerNetwork, err := t.CreateNetwork("client-server-network", false)
 	if err != nil {
 		return err
@@ -38,7 +43,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := clientServerNetwork.CreateFirewallRule("allow-icmp-net", "icmp", nil, []string{"192.168.0.0/24"}); err != nil {
+	if err := clientServerNetwork.CreateFirewallRule("allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.0.0/24"}); err != nil {
 		return err
 	}
 
@@ -80,10 +85,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
 	clientVM.SetStartupScript(string(clientStartup))
 
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// GVNIC is not supported on some older distros.
-		return fmt.Errorf("GVNIC is not supported on %v", t.Image)
-	}
+	// Run tests.
 	clientVM.UseGVNIC()
 	serverVM.UseGVNIC()
 	serverVM.RunTests("TestGVNICExists")
