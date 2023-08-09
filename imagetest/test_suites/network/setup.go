@@ -9,12 +9,14 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "network"
 
-const (
-	vm1Name = "vm1"
-	vm2Name = "vm2"
-	vm1IP   = "192.168.0.2"
-	vm2IP   = "192.168.0.3"
-)
+// InstanceConfig for setting up test VMs.
+type InstanceConfig struct {
+	name string
+	ip   string
+}
+
+var vm1Config = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
+var vm2Config = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -43,7 +45,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm1, err := t.CreateTestVM(vm1Name)
+	vm1, err := t.CreateTestVM(vm1Config.name)
 	if err != nil {
 		return err
 	}
@@ -53,11 +55,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm1.AddCustomNetwork(network2, subnetwork2); err != nil {
 		return err
 	}
-	if err := vm1.SetPrivateIP(network2, vm1IP); err != nil {
+	if err := vm1.SetPrivateIP(network2, vm1Config.ip); err != nil {
 		return err
 	}
 
-	vm2, err := t.CreateTestVM(vm2Name)
+	// VM2 for multiNIC
+	vm2, err := t.CreateTestVM(vm2Config.name)
 	if err != nil {
 		return err
 	}
@@ -67,7 +70,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.AddCustomNetwork(network2, subnetwork2); err != nil {
 		return err
 	}
-	if err := vm2.SetPrivateIP(network2, vm2IP); err != nil {
+	if err := vm2.SetPrivateIP(network2, vm2Config.ip); err != nil {
 		return err
 	}
 	if err := vm2.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {

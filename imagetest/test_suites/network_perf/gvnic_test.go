@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package network
+package gveperf
 
 import (
 	"errors"
@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -46,10 +45,17 @@ func CheckGVNICPresentWindows(interfaceName string) error {
 	return errors.New("GVNIC not present")
 }
 
-func TestGVNIC(t *testing.T) {
-	iface, err := utils.GetInterface(0)
+func CheckGVNICPerformance() (string, error) {
+	// By the time the test runs, the startupscripts have already finished.
+	results, err := utils.GetMetadataGuestAttribute("testing/results")
+	if err != nil {
+		return "", err
+	}
+	return results, nil
+}
 
-	// Check whether the driver exists.
+func TestGVNICExists(t *testing.T) {
+	iface, err := utils.GetInterface(0)
 	if err != nil {
 		t.Fatalf("couldn't find primary NIC: %v", err)
 	}
@@ -60,6 +66,17 @@ func TestGVNIC(t *testing.T) {
 		errMsg = CheckGVNICPresent(iface.Name)
 	}
 	if errMsg != nil {
-		t.Fatalf("Error : %v", errMsg.Error())
+		t.Fatalf("Error: %v", errMsg.Error())
+	}
+}
+
+func TestGVNICPerformance(t *testing.T) {
+	// Check performance of the driver.
+	if runtime.GOOS != "windows" {
+		results, err := CheckGVNICPerformance()
+		if err != nil {
+			t.Fatalf("Error : %v", err)
+		}
+		t.Logf(results)
 	}
 }

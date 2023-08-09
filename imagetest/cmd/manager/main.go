@@ -17,6 +17,7 @@ import (
 	imagevalidation "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/image_validation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
+	networkperf "github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network_perf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
@@ -154,6 +155,10 @@ func main() {
 		name      string
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
+		{
+			networkperf.Name,
+			networkperf.TestSetup,
+		},
 		{
 			imagevalidation.Name,
 			imagevalidation.TestSetup,
