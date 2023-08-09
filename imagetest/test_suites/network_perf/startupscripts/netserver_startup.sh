@@ -16,9 +16,6 @@ elif [[ -f /bin/dnf ]]; then
       sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
     else
       sudo dnf config-manager --set-enabled crb
-      if [[ "$os" == *"CentOS"* ]]; then
-        sudo dnf -y install epel-next-release
-      fi
       sudo dnf -y install epel-release
     fi
   fi

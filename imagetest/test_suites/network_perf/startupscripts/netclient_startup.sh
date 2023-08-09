@@ -24,9 +24,6 @@ elif [[ -f /bin/dnf ]]; then
       sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm | tee -a "$outfile"
     else
       sudo dnf -y config-manager --set-enabled crb | tee -a "$outfile"
-      if [[ "$os" == *"CentOS"* ]]; then
-        sudo dnf -y install  epel-next-release | tee -a "$outfile"
-      fi
       sudo dnf -y install epel-release | tee -a "$outfile"
     fi
   fi
@@ -36,9 +33,6 @@ elif [[ -f /bin/dnf ]]; then
       sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm | tee -a "$outfile"
     else
       sudo dnf -y config-manager --set-enabled powertools | tee -a "$outfile"
-      if [[ "$os" == *"CentOS"* ]]; then
-        sudo dnf -y install epel-next-release | tee -a "$outfile"
-      fi
       sudo dnf -y install epel-release | tee -a "$outfile"
     fi
   fi
