@@ -15,10 +15,11 @@ var Name = "network_perf"
 type InstanceConfig struct {
 	name string
 	ip   string
+	jfip string
 }
 
-var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4"}
-var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
+var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4", jfip: "192.168.1.4"}
+var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5", jfip: "192.168.1.5"}
 
 //go:embed startupscripts/*
 var scripts embed.FS
@@ -32,22 +33,37 @@ const (
 func TestSetup(t *imagetest.TestWorkflow) error {
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// GVNIC is not supported on some older distros.
-		return fmt.Errorf("GVNIC is not supported on %v", t.Image)
+		fmt.Printf("gVNIC not supported on %v", t.Image)
+		return nil
 	}
 
-	clientServerNetwork, err := t.CreateNetwork("client-server-network", false)
+	// Default network.
+	defaultNetwork, err := t.CreateNetwork("default-network", false)
 	if err != nil {
 		return err
 	}
-	clientServerSubnetwork, err := clientServerNetwork.CreateSubnetwork("client-server-subnetwork", "192.168.0.0/24")
+	defaultSubnetwork, err := defaultNetwork.CreateSubnetwork("default-subnetwork", "192.168.0.0/24")
 	if err != nil {
 		return err
 	}
-	if err := clientServerNetwork.CreateFirewallRule("allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.0.0/24"}); err != nil {
+	if err := defaultNetwork.CreateFirewallRule("default-allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.0.0/24"}); err != nil {
 		return err
 	}
 
-	// Get the startup scripts as byte arrays..
+	// Jumbo frames network.
+	jfNetwork, err := t.CreateNetworkWithMTU("jf-network", imagetest.JumboFramesMTU, false)
+	if err != nil {
+		return err
+	}
+	jfSubnetwork, err := jfNetwork.CreateSubnetwork("jf-subnetwork", "192.168.1.0/24")
+	if err != nil {
+		return err
+	}
+	if err := jfNetwork.CreateFirewallRule("jf-allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.1.0/24"}); err != nil {
+		return err
+	}
+
+	// Get the startup scripts as byte arrays.
 	serverStartup, err := scripts.ReadFile(serverStartupScriptURL)
 	if err != nil {
 		return err
@@ -57,32 +73,44 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	// Create two VMs for GVNIC performance testing.
+	// Create two VMs for default GVNIC performance testing.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
 		return err
 	}
-	if err := serverVM.AddCustomNetwork(clientServerNetwork, clientServerSubnetwork); err != nil {
+	if err := serverVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 		return err
 	}
-	if err := serverVM.SetPrivateIP(clientServerNetwork, serverConfig.ip); err != nil {
+	if err := serverVM.SetPrivateIP(defaultNetwork, serverConfig.ip); err != nil {
 		return err
 	}
-	serverVM.AddMetadata("enable-guest-attributes", "TRUE")
+	if err := serverVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+		return err
+	}
+	if err := serverVM.SetPrivateIP(jfNetwork, serverConfig.jfip); err != nil {
+		return err
+	}
 	serverVM.SetStartupScript(string(serverStartup))
 
 	clientVM, err := t.CreateTestVM(clientConfig.name)
 	if err != nil {
 		return err
 	}
-	if err := clientVM.AddCustomNetwork(clientServerNetwork, clientServerSubnetwork); err != nil {
+	if err := clientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 		return err
 	}
-	if err := clientVM.SetPrivateIP(clientServerNetwork, clientConfig.ip); err != nil {
+	if err := clientVM.SetPrivateIP(defaultNetwork, clientConfig.ip); err != nil {
+		return err
+	}
+	if err := clientVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+		return err
+	}
+	if err := clientVM.SetPrivateIP(jfNetwork, clientConfig.jfip); err != nil {
 		return err
 	}
 	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
-	clientVM.AddMetadata("iperftarget", serverConfig.ip)
+	clientVM.AddMetadata("default-iperftarget", serverConfig.ip)
+	clientVM.AddMetadata("jf-iperftarget", serverConfig.jfip)
 	clientVM.SetStartupScript(string(clientStartup))
 
 	// Run tests.
@@ -90,5 +118,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	serverVM.UseGVNIC()
 	serverVM.RunTests("TestGVNICExists")
 	clientVM.RunTests("TestGVNICExists|TestGVNICPerformance")
+
 	return nil
 }

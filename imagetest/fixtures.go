@@ -35,6 +35,9 @@ const (
 	successMatch             = "FINISHED-TEST"
 	// DefaultSourceRange is the RFC-1918 range used in default rules.
 	DefaultSourceRange = "10.128.0.0/9"
+
+	DefaultMTU     = 1460
+	JumboFramesMTU = 8896
 )
 
 // TestVM is a test VM.
@@ -399,7 +402,29 @@ type Subnetwork struct {
 // CreateNetwork creates custom network. Using AddCustomNetwork method provided by
 // TestVM to config network on vm
 func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks bool) (*Network, error) {
-	createNetworkStep, network, err := t.appendCreateNetworkStep(networkName, autoCreateSubnetworks)
+	createNetworkStep, network, err := t.appendCreateNetworkStep(networkName, DefaultMTU, autoCreateSubnetworks)
+	if err != nil {
+		return nil, err
+	}
+
+	createVMsStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		if err := t.wf.AddDependency(createVMsStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	return &Network{networkName, t, network}, nil
+}
+
+// CreateNetworkWithMTU creates a custom network with the specified MTU.
+func (t *TestWorkflow) CreateNetworkWithMTU(networkName string, mtu int, autoCreateSubnetworks bool) (*Network, error) {
+	// Check if the MTU is a valid MTU.
+	if mtu != DefaultMTU && mtu != JumboFramesMTU {
+		return nil, fmt.Errorf("Invalid MTU: %v not one of [%v, %v]", mtu, DefaultMTU, JumboFramesMTU)
+	}
+
+	createNetworkStep, network, err := t.appendCreateNetworkStep(networkName, mtu, autoCreateSubnetworks)
 	if err != nil {
 		return nil, err
 	}
