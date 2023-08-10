@@ -57,6 +57,27 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	return "", fmt.Errorf("disk block with size not found")
 }
 
+func installFio() error {
+	var installFioCmd *exec.Cmd
+	if utils.CheckLinuxCmdExists("apt") {
+		installFioCmd = exec.Command("apt", "install", "-y", "fio")
+	} else if utils.CheckLinuxCmdExists("yum") {
+		installFioCmd = exec.Command("yum", "-y", "install", "fio")
+	} else if utils.CheckLinuxCmdExists("zypper") {
+		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
+	} else if utils.CheckLinuxCmdExists("dnf") {
+		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
+	} else {
+		return fmt.Errorf("could not find package manager to install fio")
+	}
+
+	if err := installFioCmd.Run(); err != nil {
+		return fmt.Errorf("install fio cmd %s failed with error: %v", installFioCmd.Path, err)
+	}
+
+	return nil
+}
+
 // TestIOPSPrint is a placeholder test which prints out info about iops
 func TestIOPSPrint(t *testing.T) {
 	//mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
@@ -85,6 +106,10 @@ func TestIOPSPrint(t *testing.T) {
 
 	if err := mountCmd.Run(); err != nil {
 		t.Fatalf("failed to mount disk: %v", err)
+	}
+
+	if err := installFio(); err != nil {
+		t.Fatal(err)
 	}
 	t.Logf("empty iops print test")
 }
