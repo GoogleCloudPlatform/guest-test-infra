@@ -58,24 +58,44 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	return "", fmt.Errorf("disk block with size not found")
 }
 
+func checkRunUpdateAndInstall(updateCmd, installFioCmd *exec.Cmd) bool {
+	if err := updateCmd.Run(); err != nil {
+		return false
+	}
+	if err := installFioCmd.Run(); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func installFio() error {
-	var installFioCmd *exec.Cmd
+	success := false
+	var updateCmd, installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
+		updateCmd = exec.Command("apt", "-y", "update")
 		installFioCmd = exec.Command("apt", "install", "-y", "fio")
-	} else if utils.CheckLinuxCmdExists("yum") {
+		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
+	}
+	if !success && utils.CheckLinuxCmdExists("yum") {
+		updateCmd = exec.Command("yum", "check-update")
 		installFioCmd = exec.Command("yum", "-y", "install", "fio")
-	} else if utils.CheckLinuxCmdExists("zypper") {
+		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
+	}
+	if !success && utils.CheckLinuxCmdExists("zypper") {
+		updateCmd = exec.Command("zypper", "refresh")
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
-	} else if utils.CheckLinuxCmdExists("dnf") {
+		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
+	}
+	if !success && utils.CheckLinuxCmdExists("dnf") {
+		updateCmd = exec.Command("dnf", "upgrade")
 		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
-	} else {
+		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
+	}
+
+	if !success {
 		return fmt.Errorf("could not find package manager to install fio")
 	}
-
-	if err := installFioCmd.Run(); err != nil {
-		return fmt.Errorf("install fio cmd %s failed with error: %v", installFioCmd.Path, err)
-	}
-
 	return nil
 }
 
@@ -90,22 +110,16 @@ func getMountDiskPartitionSymlink() (string, error) {
 
 // TestIOPSPrint is a placeholder test which prints out info about iops
 func TestIOPSPrint(t *testing.T) {
-	//mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
-	//symlinkRealPath, err := filepath.EvalSymlinks(mountDiskSymlink)
-	//if err != nil {
-	//	t.Fatalf("symlink could not be resolved: %v", err)
-	//}
-
-	// try multiple methods to find the disk partition: if any succeeds, then continue.
 	symlinkRealPath := ""
 	diskPartition, err := getMountDiskPartition(HyperdiskSize)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
-		t.Logf("error with lsblk: %v", err)
+		errorString := err.Error()
 		symlinkRealPath, err = getMountDiskPartitionSymlink()
 		if err != nil {
-			t.Fatalf("failed to find symlink to mount disk with any method: error %v", err)
+			errorString += err.Error()
+			t.Fatalf("failed to find symlink to mount disk with any method: errors %s", errorString)
 		}
 	}
 
