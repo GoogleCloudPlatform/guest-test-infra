@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -78,6 +79,15 @@ func installFio() error {
 	return nil
 }
 
+func getMountDiskPartitionSymlink() (string, error) {
+	mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
+	symlinkRealPath, err := filepath.EvalSymlinks(mountDiskSymlink)
+	if err != nil {
+		return "", fmt.Errorf("symlink could not be resolved: %v", err)
+	}
+	return symlinkRealPath, nil
+}
+
 // TestIOPSPrint is a placeholder test which prints out info about iops
 func TestIOPSPrint(t *testing.T) {
 	//mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
@@ -85,11 +95,20 @@ func TestIOPSPrint(t *testing.T) {
 	//if err != nil {
 	//	t.Fatalf("symlink could not be resolved: %v", err)
 	//}
+
+	// try multiple methods to find the disk partition: if any succeeds, then continue.
+	symlinkRealPath := ""
 	diskPartition, err := getMountDiskPartition(HyperdiskSize)
-	if err != nil {
-		t.Fatalf("did not find mount disk partition: %v", err)
+	if err == nil {
+		symlinkRealPath = "/dev/" + diskPartition
+	} else {
+		t.Logf("error with lsblk: %v", err)
+		symlinkRealPath, err = getMountDiskPartitionSymlink()
+		if err != nil {
+			t.Fatalf("failed to find symlink to mount disk with any method: error %v", err)
+		}
 	}
-	symlinkRealPath := "/dev/" + diskPartition
+
 	if !utils.CheckLinuxCmdExists(mkfsCmd) {
 		t.Fatalf("could not format mount disk: %s cmd not found", mkfsCmd)
 	}

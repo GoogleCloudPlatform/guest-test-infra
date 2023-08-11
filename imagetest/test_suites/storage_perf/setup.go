@@ -15,6 +15,7 @@ const (
 	// HyperdiskSize is used to determine which partition is the mounted hyperdisk.
 	HyperdiskSize = 100
 	bootdiskSize  = 10
+	mountDiskName = "hyperdisk"
 )
 
 // TestSetup sets up the test workflow.
@@ -23,7 +24,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: bootdiskSize},
-		{Name: "hyperdiskExtreme", Type: imagetest.HyperdiskExtreme, SizeGb: HyperdiskSize}})
+		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: HyperdiskSize}})
 	if err != nil {
 		return err
 	}
