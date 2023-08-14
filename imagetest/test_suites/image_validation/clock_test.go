@@ -12,15 +12,18 @@ import (
 )
 
 const (
-	chronyService = "chronyd"
-	ntpService    = "ntp"
-	ntpdService   = "ntpd"
-	chronycCmd    = "chronyc"
-	ntpqCmd       = "ntpq"
+	chronyService    = "chronyd"
+	ntpService       = "ntp"
+	ntpdService      = "ntpd"
+	chronycCmd       = "chronyc"
+	ntpqCmd          = "ntpq"
+	systemdTimesyncd = "systemd-timesyncd"
+	timedatectlCmd   = "timedatectl"
 )
 
 // TestNTPService Verify that ntp package exist and configuration is correct.
 // debian 9, ubuntu 16.04 ntp
+// debian 12 systemd-timesyncd
 // sles-12 ntpd
 // other distros chronyd
 func TestNTPService(t *testing.T) {
@@ -30,6 +33,8 @@ func TestNTPService(t *testing.T) {
 	}
 	var servicename string
 	switch {
+	case strings.Contains(image, "debian-12"):
+		servicename = systemdTimesyncd
 	case strings.Contains(image, "debian-9"), strings.Contains(image, "ubuntu-pro-1604"):
 		servicename = ntpService
 	case strings.Contains(image, "sles-12"):
@@ -42,8 +47,11 @@ func TestNTPService(t *testing.T) {
 		cmd = exec.Command(chronycCmd, "-c", "sources")
 	} else if utils.CheckLinuxCmdExists(ntpqCmd) {
 		cmd = exec.Command(ntpqCmd, "-np")
+	} else if utils.CheckLinuxCmdExists(timedatectlCmd) {
+		cmd = exec.Command(timedatectlCmd, "show-timesync", "--property=FallbackNTPServers")
+	}
 	} else {
-		t.Fatalf("failed to find chronyc or ntpq cmd")
+		t.Fatalf("failed to find timedatectl chronyc or ntpq cmd")
 	}
 
 	out, err := cmd.Output()
