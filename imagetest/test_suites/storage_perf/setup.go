@@ -20,6 +20,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-  vm.RunTests("TestReadIOPS")
+	vm.RunTests("TestReadIOPS")
 	return nil
 }

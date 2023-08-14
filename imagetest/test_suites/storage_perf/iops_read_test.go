@@ -28,11 +28,11 @@ func TestReadIOPS(t *testing.T) {
 		}
 	}
 
-  if !utils.CheckLinuxCmdExists("fio") {
-	  if err := installFio(); err != nil {
-		  t.Fatal(err)
-	  }
-  }
+	if !utils.CheckLinuxCmdExists("fio") {
+		if err := installFio(); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	// Arbitrary file read size, less than the size of hte hyperdisk in GB.
 	fileReadSizeString := strconv.Itoa(HyperdiskSize/10) + "G"
