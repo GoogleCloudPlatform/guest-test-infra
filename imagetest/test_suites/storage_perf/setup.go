@@ -16,6 +16,7 @@ const (
 	HyperdiskSize = 100
 	bootdiskSize  = 10
 	mountDiskName = "hyperdisk"
+	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
 // TestSetup sets up the test workflow.

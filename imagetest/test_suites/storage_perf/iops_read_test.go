@@ -6,7 +6,6 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -20,6 +19,23 @@ const (
 	mkfsCmd           = "mkfs.ext4"
 	testreadOutputDir = "/mnt/disks/mount_dir"
 )
+
+type FIOOutput struct {
+	Jobs []FIOJob               `json:"jobs,omitempty"`
+	X    map[string]interface{} `json:"-"`
+}
+
+type FIOJob struct {
+	ReadResult  FIOStatistics          `json:"read,omitempty"`
+	WriteResult FIOStatistics          `json:"write,omitempty"`
+	X           map[string]interface{} `json:"-"`
+}
+
+type FIOStatistics struct {
+	IOPS      float64                `json:iops,omitempty"`
+	Bandwidth float64                `json:bw_mean,omitempty"`
+	X         map[string]interface{} `json:"-"`
+}
 
 type BlockDeviceList struct {
 	BlockDevices []BlockDevice `json:"blockdevices,omitempty"`
@@ -123,26 +139,25 @@ func TestIOPSPrint(t *testing.T) {
 		}
 	}
 
-	if !utils.CheckLinuxCmdExists(mkfsCmd) {
-		t.Fatalf("could not format mount disk: %s cmd not found", mkfsCmd)
-	}
-	mkfsFullCmd := exec.Command(mkfsCmd, "-m", "0", "-E", "lazy_itable_init=0,lazy_journal_init=0,discard", symlinkRealPath)
-	if err := mkfsFullCmd.Run(); err != nil {
-		t.Fatalf("mkfs cmd failed to complete: %v", err)
-	}
-
-	if err := os.MkdirAll(testreadOutputDir, 0777); err != nil {
-		t.Fatalf("could not make test read output dir: %v", err)
-	}
-
-	mountCmd := exec.Command("mount", "-o", "discard,defaults", symlinkRealPath, testreadOutputDir)
-
-	if err := mountCmd.Run(); err != nil {
-		t.Fatalf("failed to mount disk: %v", err)
-	}
-
 	if err := installFio(); err != nil {
 		t.Fatal(err)
+	}
+
+	// Arbitrary file read size, less than the size of hte hyperdisk in GB.
+	fileReadSizeString := strconv.Itoa(HyperdiskSize/10) + "G"
+	iopsJson, err := exec.Command("fio", "--name=read_iops_test", "--filename="+symlinkRealPath, "--filesize="+fileReadSizeString, "--time_based", "--ramp_time=2s", "--runtime=1m", "--ioengine=libaio", "--direct=1", "--verify=0", "--randrepeat=0", "--bs=4k", "--iodepth=256", "--rw=randread", "--iodepth_batch_submit=256", "--iodepth_batch_complete_max=256", "--output-format=json").Output()
+	if err != nil {
+		t.Fatalf("fio command failed with %v", err)
+	}
+
+	var fioOut FIOOutput
+	if err = json.Unmarshal(iopsJson, &fioOut); err != nil {
+		t.Fatalf("fio output could not be unmarshalled: %v", err)
+	}
+
+	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
+	if finalIOPSValue < 0 {
+		t.Fatalf("iops was less than 0: %f", finalIOPSValue)
 	}
 	t.Logf("empty iops print test")
 }
