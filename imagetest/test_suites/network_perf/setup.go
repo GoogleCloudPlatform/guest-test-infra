@@ -20,6 +20,8 @@ type InstanceConfig struct {
 
 var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4", jfip: "192.168.1.4"}
 var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5", jfip: "192.168.1.5"}
+var jfServerConfig = InstanceConfig{name: "jf-server-vm", ip: "192.168.1.4"}
+var jfClientConfig = InstanceConfig{name: "jf-client-vm", ip: "192.168.1.5"}
 
 //go:embed startupscripts/*
 var scripts embed.FS
@@ -84,12 +86,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := serverVM.SetPrivateIP(defaultNetwork, serverConfig.ip); err != nil {
 		return err
 	}
-	if err := serverVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
-		return err
-	}
-	if err := serverVM.SetPrivateIP(jfNetwork, serverConfig.jfip); err != nil {
-		return err
-	}
 	serverVM.SetStartupScript(string(serverStartup))
 
 	clientVM, err := t.CreateTestVM(clientConfig.name)
@@ -102,22 +98,47 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := clientVM.SetPrivateIP(defaultNetwork, clientConfig.ip); err != nil {
 		return err
 	}
-	if err := clientVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
-		return err
-	}
-	if err := clientVM.SetPrivateIP(jfNetwork, clientConfig.jfip); err != nil {
-		return err
-	}
 	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
-	clientVM.AddMetadata("default-iperftarget", serverConfig.ip)
-	clientVM.AddMetadata("jf-iperftarget", serverConfig.jfip)
+	clientVM.AddMetadata("iperftarget", serverConfig.ip)
 	clientVM.SetStartupScript(string(clientStartup))
+
+	// Jumbo frames VMs
+	jfServerVM, err := t.CreateTestVM(jfServerConfig.name)
+	if err != nil {
+		return err
+	}
+	if err := jfServerVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+		return err
+	}
+	if err := jfServerVM.SetPrivateIP(jfNetwork, jfServerConfig.ip); err != nil {
+		return err
+	}
+	jfServerVM.SetStartupScript(string(serverStartup))
+
+	jfClientVM, err := t.CreateTestVM(jfClientConfig.name)
+	if err != nil {
+		return err
+	}
+	if err := jfClientVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+		return err
+	}
+	if err := jfClientVM.SetPrivateIP(jfNetwork, jfClientConfig.ip); err != nil {
+		return err
+	}
+	jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
+	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
+	jfClientVM.SetStartupScript(string(clientStartup))
 
 	// Run tests.
 	clientVM.UseGVNIC()
 	serverVM.UseGVNIC()
 	serverVM.RunTests("TestGVNICExists")
 	clientVM.RunTests("TestGVNICExists|TestGVNICPerformance")
+
+	jfClientVM.UseGVNIC()
+	jfServerVM.UseGVNIC()
+	jfServerVM.RunTests("TestGVNICExists")
+	jfClientVM.RunTests("TestGVNICExists|TestGVNICPerformance")
 
 	return nil
 }

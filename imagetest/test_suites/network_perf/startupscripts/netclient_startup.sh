@@ -5,8 +5,7 @@
 
 vmname=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1)
 outfile=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1).txt
-defaultiperftarget=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/default-iperftarget -H "Metadata-Flavor: Google")
-jfiperftarget=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/jf-iperftarget -H "Metadata-Flavor: Google")
+iperftarget=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/iperftarget -H "Metadata-Flavor: Google")
 sleepduration=60
 
 echo "MTU: "
@@ -58,13 +57,9 @@ sleep "$sleepduration"
 
 echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget" | tee -a "$outfile"
 if [[ -f /bin/iperf ]]; then
-  iperf -t 30 -c "$defaultiperftarget" -B 192.168.0.5 -P 16 | tee -a "$outfile"
-  echo Starting jumbo frames test | tee -a "$outfile"
-  iperf -t 30 -c "$jfiperftarget" -B 192.168.1.5 -P 16 | tee -a "$outfile"
+  iperf -t 30 -c "$iperftarget" -P 16 | tee -a "$outfile"
 else
-  iperf3 -t 30 -c "$defaultiperftarget" -B 192.168.0.5 | tee -a "$outfile"
-  echo Starting jumbo frames test | tee -a "$outfile"
-  iperf3 -t 30 -c "$jfiperftarget" -B 192.168.1.5 | tee -a "$outfile"
+  iperf3 -t 30 -c "$iperftarget" | tee -a "$outfile"
 fi
 
 echo "$(date +"%Y-%m-%d %T"): Test Results $results"

@@ -50,11 +50,8 @@ fi
 
 echo "Starting iperf server"
 if [[ -f /bin/iperf ]]; then
-  iperf -s -P 16 -B 192.168.0.4
-  iperf -s -P 16 -B 192.168.1.4
+  iperf -s -P 16
 else
   # Two servers for default and jumbo
-  iperf3 -s -1 -B 192.168.0.4
-  echo Starting jumbo frames server
-  iperf3 -s -1 -B 192.168.1.4
+  iperf3 -s -1
 fi
