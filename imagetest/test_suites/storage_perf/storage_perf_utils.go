@@ -22,27 +22,32 @@ const (
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
+// FIOOutput is the root struct for json output of the fio command.
 type FIOOutput struct {
 	Jobs []FIOJob               `json:"jobs,omitempty"`
 	X    map[string]interface{} `json:"-"`
 }
 
+// FIOJob provides info for any of the jobs within the FIO output.
 type FIOJob struct {
 	ReadResult  FIOStatistics          `json:"read,omitempty"`
 	WriteResult FIOStatistics          `json:"write,omitempty"`
 	X           map[string]interface{} `json:"-"`
 }
 
+// FIOStatistics provide the specific numbers for stats such as IOPS and Bandwidth from the fio output.
 type FIOStatistics struct {
 	IOPS      float64                `json:iops,omitempty"`
 	Bandwidth float64                `json:bw_mean,omitempty"`
 	X         map[string]interface{} `json:"-"`
 }
 
+// BlockDeviceList stores information about block devices from lsblk.
 type BlockDeviceList struct {
 	BlockDevices []BlockDevice `json:"blockdevices,omitempty"`
 }
 
+// BlockDevice includes specific information about a specific device from lsblk.
 type BlockDevice struct {
 	Name string `json:"name,omitempty"`
 	Size string `json:"size,omitempty"`
