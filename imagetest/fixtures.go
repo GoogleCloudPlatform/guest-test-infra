@@ -36,7 +36,10 @@ const (
 	// DefaultSourceRange is the RFC-1918 range used in default rules.
 	DefaultSourceRange = "10.128.0.0/9"
 
+	// DefaultMTU is the default MTU set for a network.
 	DefaultMTU     = 1460
+
+	// JumboFramesMTU is the maximum MTU settable for a network.
 	JumboFramesMTU = 8896
 )
 
