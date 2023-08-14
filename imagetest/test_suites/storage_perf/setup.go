@@ -10,15 +10,6 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "storage_perf"
 
-const (
-	vmName = "vm"
-	// HyperdiskSize is used to determine which partition is the mounted hyperdisk.
-	HyperdiskSize = 100
-	bootdiskSize  = 10
-	mountDiskName = "hyperdisk"
-	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
-)
-
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSize == HyperdiskSize {
@@ -29,6 +20,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm.UseGVNIC()
+  vm.RunTests("TestReadIOPS")
 	return nil
 }
