@@ -258,7 +258,7 @@ func (t *TestWorkflow) appendCreateNetworkStep(networkName string, mtu int, auto
 	network := &daisy.Network{
 		Network: compute.Network{
 			Name: networkName,
-			Mtu: int64(mtu),
+			Mtu:  int64(mtu),
 		},
 		AutoCreateSubnetworks: &autoCreateSubnetworks,
 	}
