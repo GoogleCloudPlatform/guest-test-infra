@@ -15,9 +15,9 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.97
-	// hyperdiskSize is used to determine which partition is the mounted hyperdisk.
+	// hyperdiskSize in GB is used to determine which partition is the mounted hyperdisk.
 	hyperdiskSize = 100
-	bootdiskSize  = 10
+	bootdiskSize  = 50
 	mountDiskName = "hyperdisk"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
@@ -76,44 +76,30 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	return "", fmt.Errorf("disk block with size not found")
 }
 
-func checkRunUpdateAndInstall(updateCmd, installFioCmd *exec.Cmd) bool {
-	if err := updateCmd.Run(); err != nil {
-		return false
-	}
-	if err := installFioCmd.Run(); err != nil {
-		return false
-	}
-
-	return true
-}
-
 // installFio tries to install fio with any of multiple package managers, and returns an error if all the package managers were not found or failed.
 func installFio() error {
-	success := false
 	var updateCmd, installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
 		updateCmd = exec.Command("apt", "-y", "update")
 		installFioCmd = exec.Command("apt", "install", "-y", "fio")
-		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
-	}
-	if !success && utils.CheckLinuxCmdExists("yum") {
+	} else if utils.CheckLinuxCmdExists("yum") {
 		updateCmd = exec.Command("yum", "check-update")
 		installFioCmd = exec.Command("yum", "-y", "install", "fio")
-		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
-	}
-	if !success && utils.CheckLinuxCmdExists("zypper") {
+	} else if utils.CheckLinuxCmdExists("zypper") {
 		updateCmd = exec.Command("zypper", "refresh")
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
-		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
-	}
-	if !success && utils.CheckLinuxCmdExists("dnf") {
+	} else if utils.CheckLinuxCmdExists("dnf") {
 		updateCmd = exec.Command("dnf", "upgrade")
 		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
-		success = checkRunUpdateAndInstall(updateCmd, installFioCmd)
+	} else {
+		return fmt.Errorf("no package managers to install fio foud")
 	}
 
-	if !success {
-		return fmt.Errorf("could not find package manager to successfully install fio")
+	if err := updateCmd.Run(); err != nil {
+		return fmt.Errorf("update cmd failed with error: %v", err)
+	}
+	if err := installFioCmd.Run(); err != nil {
+		return fmt.Errorf("install fio command failed with error: %v", err)
 	}
 	return nil
 }
