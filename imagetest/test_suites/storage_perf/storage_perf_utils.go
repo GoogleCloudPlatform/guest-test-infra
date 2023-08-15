@@ -89,7 +89,7 @@ func installFio() error {
 		updateCmd = exec.Command("apt", "-y", "update")
 		installFioCmd = exec.Command("apt", "install", "-y", "fio")
 	} else if utils.CheckLinuxCmdExists("yum") {
-		updateCmd = exec.Command("yum", "check-update")
+		updateCmd = exec.Command("yum", "update")
 		installFioCmd = exec.Command("yum", "-y", "install", "fio")
 	} else if utils.CheckLinuxCmdExists("zypper") {
 		updateCmd = exec.Command("zypper", "refresh")
@@ -101,11 +101,14 @@ func installFio() error {
 		return fmt.Errorf("no package managers to install fio foud")
 	}
 
-	if err := updateCmd.Run(); err != nil {
-		return fmt.Errorf("update cmd failed with error: %v", err)
+	errorLogString := ""
+	// Update command failure is not necessarily fatal, but worth putting in the error message.
+	if _, err := updateCmd.CombinedOutput(); err != nil {
+		errorLogString += updateCmd.String() + ": " + err.Error()
 	}
-	if err := installFioCmd.Run(); err != nil {
-		return fmt.Errorf("install fio command failed with error: %v", err)
+	if _, err := installFioCmd.CombinedOutput(); err != nil {
+		errorLogString += ", " + installFioCmd.String() + ": " + err.Error()
+		return fmt.Errorf("install fio command failed with errors: %s", errorLogString)
 	}
 	return nil
 }
