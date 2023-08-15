@@ -52,4 +52,5 @@ func TestReadIOPS(t *testing.T) {
 	if finalIOPSValue < iopsErrorMargin*expectedHyperdiskIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
 	}
+	t.Log("iops test pass")
 }
