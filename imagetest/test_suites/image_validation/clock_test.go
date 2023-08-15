@@ -49,7 +49,6 @@ func TestNTPService(t *testing.T) {
 		cmd = exec.Command(ntpqCmd, "-np")
 	} else if utils.CheckLinuxCmdExists(timedatectlCmd) {
 		cmd = exec.Command(timedatectlCmd, "show-timesync", "--property=FallbackNTPServers")
-	}
 	} else {
 		t.Fatalf("failed to find timedatectl chronyc or ntpq cmd")
 	}
