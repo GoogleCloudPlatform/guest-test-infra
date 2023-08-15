@@ -49,8 +49,8 @@ type BlockDeviceList struct {
 
 // BlockDevice defines information about a single partition or disk in the output of lsblk.
 type BlockDevice struct {
-	Name       string `json:"name,omitempty"`
-	Size       string `json:"size,omitempty"`
+	Name string `json:"name,omitempty"`
+	Size string `json:"size,omitempty"`
 	Type string `json:"type,omitempty"`
 	// Other fields are not currently used.
 	X map[string]interface{} `json:"-"`
