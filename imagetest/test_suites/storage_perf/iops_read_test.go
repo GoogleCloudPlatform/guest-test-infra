@@ -41,17 +41,14 @@ func TestReadIOPS(t *testing.T) {
 		t.Fatalf("fio command failed with error: %v", err)
 	}
 
-	var fioOut fioOutput
+	var fioOut FIOOutput
 	if err = json.Unmarshal(iopsJson, &fioOut); err != nil {
 		t.Fatalf("fio output could not be unmarshalled with error: %v", err)
 	}
 
-	finalIOPSValue := fioOut.jobs[0].readResult.iops
+	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
 	//TODO: Update this value to be equal to the input IOPS value, once it is implemented in this testing framework. For now, hyperdisk IOPS are the lesser of 100 IOPS per GiB of disk capacity or 350,000, if unspecified.
 	expectedHyperdiskIOPS := math.Min(100*hyperdiskSize, 350000)
-	if finalIOPSValue > 0 {
-		t.Fatalf("final iops too high: %f", finalIOPSValue)
-	}
 	if finalIOPSValue < iopsErrorMargin*expectedHyperdiskIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
 	}

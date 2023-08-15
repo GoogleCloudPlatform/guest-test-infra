@@ -22,31 +22,36 @@ const (
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
-type fioOutput struct {
-	jobs []fioJob               `json:"jobs,omitempty"`
+// FIOOutput defines the output from the fio command
+type FIOOutput struct {
+	Jobs []FIOJob               `json:"jobs,omitempty"`
 	X    map[string]interface{} `json:"-"`
 }
 
-type fioJob struct {
-	readResult  fioStatistics          `json:"read,omitempty"`
-	writeResult fioStatistics          `json:"write,omitempty"`
+// FIOJob defines one of the jobs listed in the FIO output.
+type FIOJob struct {
+	ReadResult  FIOStatistics          `json:"read,omitempty"`
+	WriteResult FIOStatistics          `json:"write,omitempty"`
 	X           map[string]interface{} `json:"-"`
 }
 
-type fioStatistics struct {
-	iops      float64                `json:iops,omitempty"`
-	bandwidth float64                `json:bw_mean,omitempty"`
+// FIOStatistics give information about FIO performance.
+type FIOStatistics struct {
+	IOPS      float64                `json:iops,omitempty"`
+	Bandwidth float64                `json:bw_mean,omitempty"`
 	X         map[string]interface{} `json:"-"`
 }
 
-type blockDeviceList struct {
-	blockDevices []blockDevice `json:"blockdevices,omitempty"`
+// BlockDeviceList gives full information about blockdevices, from the output of lsblk.
+type BlockDeviceList struct {
+	BlockDevices []BlockDevice `json:"blockdevices,omitempty"`
 }
 
-type blockDevice struct {
-	name       string `json:"name,omitempty"`
-	size       string `json:"size,omitempty"`
-	deviceType string `json:"type,omitempty"`
+// BlockDevice defines information about a single partition or disk in the output of lsblk.
+type BlockDevice struct {
+	Name       string `json:"name,omitempty"`
+	Size       string `json:"size,omitempty"`
+	Type string `json:"type,omitempty"`
 	// Other fields are not currently used.
 	X map[string]interface{} `json:"-"`
 }
@@ -62,15 +67,15 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 		return "", fmt.Errorf("failed to execute lsblk cmd with error: %v", err)
 	}
 
-	var blockDevices blockDeviceList
+	var blockDevices BlockDeviceList
 	if err := json.Unmarshal(lsblkout, &blockDevices); err != nil {
 		return "", fmt.Errorf("failed to unmarshal lsblk output with error: %v", err)
 	}
 
 	diskExpectedSizeGbString := strconv.Itoa(diskExpectedSizeGb) + "G"
-	for _, blockDev := range blockDevices.blockDevices {
-		if strings.ToLower(blockDev.deviceType) == "disk" && blockDev.size == diskExpectedSizeGbString {
-			return blockDev.name, nil
+	for _, blockDev := range blockDevices.BlockDevices {
+		if strings.ToLower(blockDev.Type) == "disk" && blockDev.Size == diskExpectedSizeGbString {
+			return blockDev.Name, nil
 		}
 	}
 
