@@ -51,6 +51,7 @@ type blockDevice struct {
 	X map[string]interface{} `json:"-"`
 }
 
+// This method currently only runs the commands for linux. Support for getting the partition on windows will be added in the future.
 func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	lsblkCmd := "lsblk"
 	if !utils.CheckLinuxCmdExists(lsblkCmd) {
