@@ -15,43 +15,38 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.97
-	// HyperdiskSize is used to determine which partition is the mounted hyperdisk.
-	HyperdiskSize = 100
+	// hyperdiskSize is used to determine which partition is the mounted hyperdisk.
+	hyperdiskSize = 100
 	bootdiskSize  = 10
 	mountDiskName = "hyperdisk"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
-// FIOOutput is the root struct for json output of the fio command.
-type FIOOutput struct {
-	Jobs []FIOJob               `json:"jobs,omitempty"`
+type fioOutput struct {
+	jobs []fioJob               `json:"jobs,omitempty"`
 	X    map[string]interface{} `json:"-"`
 }
 
-// FIOJob provides info for any of the jobs within the FIO output.
-type FIOJob struct {
-	ReadResult  FIOStatistics          `json:"read,omitempty"`
-	WriteResult FIOStatistics          `json:"write,omitempty"`
+type fioJob struct {
+	readResult  fioStatistics          `json:"read,omitempty"`
+	writeResult fioStatistics          `json:"write,omitempty"`
 	X           map[string]interface{} `json:"-"`
 }
 
-// FIOStatistics provide the specific numbers for stats such as IOPS and Bandwidth from the fio output.
-type FIOStatistics struct {
-	IOPS      float64                `json:iops,omitempty"`
-	Bandwidth float64                `json:bw_mean,omitempty"`
+type fioStatistics struct {
+	iops      float64                `json:iops,omitempty"`
+	bandwidth float64                `json:bw_mean,omitempty"`
 	X         map[string]interface{} `json:"-"`
 }
 
-// BlockDeviceList stores information about block devices from lsblk.
-type BlockDeviceList struct {
-	BlockDevices []BlockDevice `json:"blockdevices,omitempty"`
+type blockDeviceList struct {
+	blockDevices []blockDevice `json:"blockdevices,omitempty"`
 }
 
-// BlockDevice includes specific information about a specific device from lsblk.
-type BlockDevice struct {
-	Name string `json:"name,omitempty"`
-	Size string `json:"size,omitempty"`
-	Type string `json:"type,omitempty"`
+type blockDevice struct {
+	name       string `json:"name,omitempty"`
+	size       string `json:"size,omitempty"`
+	deviceType string `json:"type,omitempty"`
 	// Other fields are not currently used.
 	X map[string]interface{} `json:"-"`
 }
@@ -61,20 +56,20 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	if !utils.CheckLinuxCmdExists(lsblkCmd) {
 		return "", fmt.Errorf("could not find lsblk")
 	}
-	lsblkout, err := exec.Command(lsblkCmd, "-o", "name,size,type", "--json").Output()
+	lsblkout, err := exec.Command(lsblkCmd, "-o", "name,size,type", "--json").CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to execute lsblk: %v", err)
+		return "", fmt.Errorf("failed to execute lsblk cmd with error: %v", err)
 	}
 
-	var blockDevices BlockDeviceList
+	var blockDevices blockDeviceList
 	if err := json.Unmarshal(lsblkout, &blockDevices); err != nil {
-		return "", fmt.Errorf("failed to unmarshal lsblk output: %v", err)
+		return "", fmt.Errorf("failed to unmarshal lsblk output with error: %v", err)
 	}
 
 	diskExpectedSizeGbString := strconv.Itoa(diskExpectedSizeGb) + "G"
-	for _, blockDev := range blockDevices.BlockDevices {
-		if strings.ToLower(blockDev.Type) == "disk" && blockDev.Size == diskExpectedSizeGbString {
-			return blockDev.Name, nil
+	for _, blockDev := range blockDevices.blockDevices {
+		if strings.ToLower(blockDev.deviceType) == "disk" && blockDev.size == diskExpectedSizeGbString {
+			return blockDev.name, nil
 		}
 	}
 
@@ -92,6 +87,7 @@ func checkRunUpdateAndInstall(updateCmd, installFioCmd *exec.Cmd) bool {
 	return true
 }
 
+// installFio tries to install fio with any of multiple package managers, and returns an error if all the package managers were not found or failed.
 func installFio() error {
 	success := false
 	var updateCmd, installFioCmd *exec.Cmd
@@ -117,7 +113,7 @@ func installFio() error {
 	}
 
 	if !success {
-		return fmt.Errorf("could not find package manager to install fio")
+		return fmt.Errorf("could not find package manager to successfully install fio")
 	}
 	return nil
 }
@@ -126,7 +122,7 @@ func getMountDiskPartitionSymlink() (string, error) {
 	mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
 	symlinkRealPath, err := filepath.EvalSymlinks(mountDiskSymlink)
 	if err != nil {
-		return "", fmt.Errorf("symlink could not be resolved: %v", err)
+		return "", fmt.Errorf("symlink could not be resolved with error: %v", err)
 	}
 	return symlinkRealPath, nil
 }
