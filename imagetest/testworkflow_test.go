@@ -196,7 +196,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 		t.Fatal("create-disks step already exists")
 	}
 	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-	  map[string]string{"hostname": ""})
+		map[string]string{"hostname": ""})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 		t.Error("step was not correctly added to workflow")
 	}
 	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}},
-	  map[string]string{"hostname": ""})
+		map[string]string{"hostname": ""})
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -279,7 +279,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 		t.Fatal("create-disks step already exists")
 	}
 	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-	  map[string]string{"hostname": "vmname.example.com"})
+		map[string]string{"hostname": "vmname.example.com"})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}

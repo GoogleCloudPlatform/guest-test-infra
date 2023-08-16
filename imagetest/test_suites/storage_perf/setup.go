@@ -17,7 +17,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	hyperdiskParams := map[string]string{"machineType": "c3-standard-88"}
 	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: bootdiskSize},
-		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}}, hyperdiskParams )
+		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}}, hyperdiskParams)
 	if err != nil {
 		return err
 	}

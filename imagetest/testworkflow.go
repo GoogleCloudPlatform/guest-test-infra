@@ -91,16 +91,15 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 	hostname, foundKey := instanceParams["hostname"]
 	if !foundKey {
-	  hostname = ""
+		hostname = ""
 	}
 	if hostname != "" && name != hostname {
 		instance.Hostname = hostname
 	}
 
-  if machineType, foundKey := instanceParams["machineType"]; foundKey {
-    instance.MachineType = machineType
-  }
-
+	if machineType, foundKey := instanceParams["machineType"]; foundKey {
+		instance.MachineType = machineType
+	}
 
 	for _, disk := range disks {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})

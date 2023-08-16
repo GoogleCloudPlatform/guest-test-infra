@@ -144,7 +144,7 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 		createDisksSteps[i] = createDisksStep
 	}
 
-  instanceParams["hostname"] = name
+	instanceParams["hostname"] = name
 	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep(disks, instanceParams)
 	if err != nil {
