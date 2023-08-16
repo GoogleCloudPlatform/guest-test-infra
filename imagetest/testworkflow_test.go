@@ -195,7 +195,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, "")
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
+	  map[string]string{"hostname": ""})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -213,7 +214,8 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}}, "")
+	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}},
+	  map[string]string{"hostname": ""})
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -241,7 +243,8 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 		t.Fatal("create-disks step already exists")
 	}
 	step, instanceFromStep, err := twf.appendCreateVMStep([]*compute.Disk{
-		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}}, "")
+		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}},
+		map[string]string{"hostname": "", "machineType": "n1-standard-1"})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -275,7 +278,8 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, "vmname.example.com")
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
+	  map[string]string{"hostname": "vmname.example.com"})
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}

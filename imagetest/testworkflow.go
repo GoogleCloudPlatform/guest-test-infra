@@ -73,7 +73,7 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string) (*daisy.Step, *daisy.Instance, error) {
+func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams map[string]string) (*daisy.Step, *daisy.Instance, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
 	}
@@ -89,9 +89,18 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, hostname string
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+	hostname, foundKey := instanceParams["hostname"]
+	if !foundKey {
+	  hostname = ""
+	}
 	if hostname != "" && name != hostname {
 		instance.Hostname = hostname
 	}
+
+  if machineType, foundKey := instanceParams["machineType"]; foundKey {
+    instance.MachineType = machineType
+  }
+
 
 	for _, disk := range disks {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})

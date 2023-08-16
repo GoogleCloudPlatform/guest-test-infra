@@ -74,7 +74,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
-	tvm, err := twf.CreateTestVMMultipleDisks(disks)
+	tvm, err := twf.CreateTestVMMultipleDisks(disks, map[string]string{})
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
@@ -146,9 +146,14 @@ func TestRebootMultipleDisks(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced, SizeGb: 100}}
-	tvm, err := twf.CreateTestVMMultipleDisks(disks)
+	testMachineType := "c3-standard-4"
+	pdBalancedParams := map[string]string{"machineType": testMachineType}
+	tvm, err := twf.CreateTestVMMultipleDisks(disks, pdBalancedParams)
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
+	}
+	if tvm.instance.MachineType != testMachineType {
+		t.Errorf("failed to set test machine type, expected %s but got %s", testMachineType, tvm.instance.MachineType)
 	}
 	if twf.counter != 0 {
 		t.Errorf("step counter not starting at 0")

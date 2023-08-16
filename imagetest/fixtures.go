@@ -83,7 +83,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, name)
+	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, map[string]string{"hostname": name})
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 
 // CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
 // name to the workflow.
-func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM, error) {
+func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instanceParams map[string]string) (*TestVM, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
 	}
@@ -144,12 +144,12 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk) (*TestVM
 		createDisksSteps[i] = createDisksStep
 	}
 
+  instanceParams["hostname"] = name
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep(disks, name)
+	createVMStep, i, err := t.appendCreateVMStep(disks, instanceParams)
 	if err != nil {
 		return nil, err
 	}
-	// can modify the daisy instance here to set the machinetype
 	for _, createDisksStep := range createDisksSteps {
 		if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
 			return nil, err
