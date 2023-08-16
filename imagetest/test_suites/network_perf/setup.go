@@ -2,7 +2,6 @@ package gveperf
 
 import (
 	"embed"
-	"fmt"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -15,11 +14,10 @@ var Name = "network_perf"
 type InstanceConfig struct {
 	name string
 	ip   string
-	jfip string
 }
 
-var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4", jfip: "192.168.1.4"}
-var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5", jfip: "192.168.1.5"}
+var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4"}
+var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
 var jfServerConfig = InstanceConfig{name: "jf-server-vm", ip: "192.168.1.4"}
 var jfClientConfig = InstanceConfig{name: "jf-client-vm", ip: "192.168.1.5"}
 
@@ -33,12 +31,6 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// GVNIC is not supported on some older distros.
-		fmt.Printf("gVNIC not supported on %v", t.Image)
-		return nil
-	}
-
 	// Default network.
 	defaultNetwork, err := t.CreateNetwork("default-network", false)
 	if err != nil {
@@ -129,16 +121,26 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
 	jfClientVM.SetStartupScript(string(clientStartup))
 
-	// Run tests.
-	clientVM.UseGVNIC()
-	serverVM.UseGVNIC()
-	serverVM.RunTests("TestGVNICExists")
-	clientVM.RunTests("TestGVNICExists|TestGVNICPerformance")
+	// Setting up tests to run.
+	serverVMTests := ""
+	clientVMTests := ""
+	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
+		// gVNIC not supported on certain images.
+	} else {
+		clientVM.UseGVNIC()
+		serverVM.UseGVNIC()
+		jfClientVM.UseGVNIC()
+		jfServerVM.UseGVNIC()
 
-	jfClientVM.UseGVNIC()
-	jfServerVM.UseGVNIC()
-	jfServerVM.RunTests("TestGVNICExists")
-	jfClientVM.RunTests("TestGVNICExists|TestGVNICPerformance")
+		clientVMTests = "TestGVNICExists|"
+		serverVMTests = "TestGVNICExists"
+	}
+
+	// Run tests.
+	serverVM.RunTests(serverVMTests)
+	clientVM.RunTests(clientVMTests + "TestNetworkPerformance")
+	jfServerVM.RunTests(serverVMTests)
+	jfClientVM.RunTests(clientVMTests + "TestNetworkPerformance")
 
 	return nil
 }
