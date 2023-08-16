@@ -84,31 +84,25 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 
 // installFio tries to install fio with any of multiple package managers, and returns an error if all the package managers were not found or failed.
 func installFio() error {
-	var updateCmd, installFioCmd *exec.Cmd
+	var installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
-		updateCmd = exec.Command("apt", "-y", "update")
+		// only run update if using apt
+		if _, err := exec.Command("apt", "-y", "update").CombinedOutput(); err != nil {
+			return fmt.Errorf("apt update failed with error: %v", err)
+		}
 		installFioCmd = exec.Command("apt", "install", "-y", "fio")
 	} else if utils.CheckLinuxCmdExists("yum") {
-		updateCmd = exec.Command("yum", "update")
 		installFioCmd = exec.Command("yum", "-y", "install", "fio")
 	} else if utils.CheckLinuxCmdExists("zypper") {
-		updateCmd = exec.Command("zypper", "refresh")
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
 	} else if utils.CheckLinuxCmdExists("dnf") {
-		updateCmd = exec.Command("dnf", "upgrade")
 		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
 	} else {
 		return fmt.Errorf("no package managers to install fio foud")
 	}
 
-	errorLogString := ""
-	// Update command failure is not necessarily fatal, but worth putting in the error message.
-	if _, err := updateCmd.CombinedOutput(); err != nil {
-		errorLogString += updateCmd.String() + ": " + err.Error()
-	}
 	if _, err := installFioCmd.CombinedOutput(); err != nil {
-		errorLogString += ", " + installFioCmd.String() + ": " + err.Error()
-		return fmt.Errorf("install fio command failed with errors: %s", errorLogString)
+		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
 	return nil
 }
