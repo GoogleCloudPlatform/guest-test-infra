@@ -1,6 +1,8 @@
 package storageperf
 
 import (
+	"fmt"
+
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"google.golang.org/api/compute/v1"
 )
@@ -8,17 +10,16 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "storage_perf"
 
-const (
-	vmName = "vm"
-)
-
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: 10},
-		{Name: "pdextreme", Type: imagetest.HyperdiskExtreme, SizeGb: 100}})
+	if bootdiskSize == hyperdiskSize {
+		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
+	}
+	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: bootdiskSize},
+		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}})
 	if err != nil {
 		return err
 	}
-	vm.UseGVNIC()
+	vm.RunTests("TestReadIOPS")
 	return nil
 }
