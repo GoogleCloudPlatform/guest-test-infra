@@ -2,11 +2,11 @@
 
 # This script installs iperf on a VM and starts an iperf server for the client
 # to test the network bandwidth between the two VMs.
-sleepduration=300
+timeout=300
 
 if [[ -f /usr/bin/apt ]]; then
   echo "apt found Installing iperf."
-  sudo apt update && sudo apt install iperf
+  sudo apt update && sudo apt install -y iperf
 elif [[ -f /bin/dnf ]]; then
   echo "dnf found Installing iperf."
   os=$(cat /etc/redhat-release)
@@ -51,8 +51,10 @@ fi
 
 echo "Starting iperf server"
 if [[ -f /bin/iperf ]]; then
-  iperf -s -P 16 -t $sleepduration
+  iperf -s -P 1
+  iperf -s -t $timeout -P 16
 else
-  # Two servers for default and jumbo
-  iperf3 -s -1
+  # Use the same port as the default of iperf2.
+  iperf3 -s -1 -p 5001
+  iperf3 -s -1 -p 5001
 fi
