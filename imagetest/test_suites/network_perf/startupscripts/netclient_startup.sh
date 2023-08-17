@@ -43,13 +43,8 @@ elif [[ -f /bin/yum ]]; then
   sudo sudo yum makecache && sudo yum -y install iperf netcat
 elif [[ -f /usr/bin/zypper ]]; then
   echo "$(date +"%Y-%m-%d %T"): zypper found Installing iperf."
-  arch=$(uname -p)
-  version=$(cat /etc/os-release | grep VERSION_ID | cut -d '=' -f 2 | xargs)
-  sudo SUSEConnect --product PackageHub/$version/$arch
-  sudo zypper refresh
-
-  # Installs iperf3 by default.
-  sudo zypper --non-interactive install iperf netcat
+  sudo zypper --no-gpg-checks refresh
+  sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm netcat
 fi
 
 # Ensure the server is up and running.
@@ -66,11 +61,7 @@ sleep $sleepduration
 
 # Run iperf
 echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget" | tee -a "$outfile"
-if [[ -f /bin/iperf ]]; then
-  iperf -t 30 -c $iperftarget -P 16 | tee -a $outfile
-else
-  iperf3 -t 30 -c $iperftarget | tee -a $outfile
-fi
+iperf -t 30 -c $iperftarget -P 12 | tee -a $outfile
 
 echo "$(date +"%Y-%m-%d %T"): Test Results $results"
 echo "$(date +"%Y-%m-%d %T"): Sending results to metadata."

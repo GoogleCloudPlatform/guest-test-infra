@@ -40,7 +40,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := defaultNetwork.CreateFirewallRule("default-allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.0.0/24"}); err != nil {
+	if err := defaultNetwork.CreateFirewallRule("default-allow-tcp", "tcp", []string{"5001"}, []string{"192.168.0.0/24"}); err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := jfNetwork.CreateFirewallRule("jf-allow-tcp", "tcp", []string{"5001", "5201"}, []string{"192.168.1.0/24"}); err != nil {
+	if err := jfNetwork.CreateFirewallRule("jf-allow-tcp", "tcp", []string{"5001"}, []string{"192.168.1.0/24"}); err != nil {
 		return err
 	}
 

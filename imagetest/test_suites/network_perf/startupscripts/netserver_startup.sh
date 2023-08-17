@@ -2,7 +2,7 @@
 
 # This script installs iperf on a VM and starts an iperf server for the client
 # to test the network bandwidth between the two VMs.
-timeout=300
+timeout=60
 
 if [[ -f /usr/bin/apt ]]; then
   echo "apt found Installing iperf."
@@ -40,21 +40,10 @@ elif [[ -f /bin/yum ]]; then
   sudo sudo yum makecache && sudo yum -y install iperf
 elif [[ -f /usr/bin/zypper ]]; then
   echo "zypper found Installing iperf."
-  arch=$(uname -p)
-  version=$(cat /etc/os-release | grep VERSION_ID | cut -d '=' -f 2 | xargs)
-  sudo SUSEConnect --product PackageHub/$version/$arch
-  sudo zypper refresh
-
-  # Installs iperf3 by default.
-  sudo zypper --non-interactive install iperf
+  sudo zypper --no-gpg-checks refresh
+  sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm
 fi
 
 echo "Starting iperf server"
-if [[ -f /bin/iperf ]]; then
-  iperf -s -P 1
-  iperf -s -t $timeout -P 16
-else
-  # Use the same port as the default of iperf2.
-  iperf3 -s -1 -p 5001
-  iperf3 -s -1 -p 5001
-fi
+iperf -s -P 1
+iperf -s -t $timeout -P 12
