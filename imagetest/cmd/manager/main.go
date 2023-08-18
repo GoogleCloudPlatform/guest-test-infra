@@ -45,18 +45,18 @@ var (
 
 var (
 	projectMap = map[string]string{
-		"centos"      : "centos-cloud",
-		"cos"         : "cos-cloud",
-		"debian"      : "debian-cloud",
-		"fedora"      : "fedora-coreos-cloud",
-		"rhel"        : "rhel-cloud",
-		"rhel-sap"    : "rhel-sap-cloud",
-		"rocky-linux" : "rocky-linux-cloud",
-		"sles"        : "suse-cloud",
-		"sles-sap"    : "suse-sap-cloud",
-		"ubuntu-pro"  : "ubuntu-os-pro-cloud",
-		"ubuntu"      : "ubuntu-os-cloud",
-		"windows"     : "windows-cloud",
+		"centos":      "centos-cloud",
+		"cos":         "cos-cloud",
+		"debian":      "debian-cloud",
+		"fedora":      "fedora-coreos-cloud",
+		"rhel":        "rhel-cloud",
+		"rhel-sap":    "rhel-sap-cloud",
+		"rocky-linux": "rocky-linux-cloud",
+		"sles":        "suse-cloud",
+		"sles-sap":    "suse-sap-cloud",
+		"ubuntu-pro":  "ubuntu-os-pro-cloud",
+		"ubuntu":      "ubuntu-os-cloud",
+		"windows":     "windows-cloud",
 	}
 )
 
