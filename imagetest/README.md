@@ -78,32 +78,39 @@ differences between OSes (ex. powershell vs bash commands). This makes the
 test definitions easier to read and maintain.
 
 For example, if the test MyDefaultTest() needs to run different commands to
-achieve similar results:
+achieve similar results (and the test is located in the directory "mydefaulttest"):
 
 ```go
-import runtime
+
+package mydefaulttest
+
+import (
+    "runtime"
+    "testing"
+)
 
 func TestConditionWindows() {
-      //Test something in Windows
+    //Test something in Windows
 }
 func TestCondition() {
-      //Test something in Linux
+    //Test something in Linux
 }
 
-func MyDefaultTest(
-      if runtime.GOOS == "windows" {
-		TestConditionWindows()
-	} else {
-		TestCondition()
-	}
-)
+func MyDefaultTest(t *testing.T) {
+    if runtime.GOOS == "windows" {
+    TestConditionWindows()
+    } else {
+        TestCondition()
+    }
+}
 ```
 
 Note that there are also functions available in the [test_utils.go](utils/test_utils.go)
 for some OS level abstractions such as running a Windows powershell command or
 checking if a Linux binary exists.
 
-It is suggested to start by copying an existing test package.
+It is suggested to start by copying an existing test package. Do not forget to add
+your test to the relevant `setup.go` file in order to add the test to the test suite.
 
 ## Building the container image ##
 
