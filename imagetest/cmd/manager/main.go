@@ -56,9 +56,9 @@ var (
 		"rocky-linux":   "rocky-linux-cloud",
 		"sles":          "suse-cloud",
 		"sles-sap":      "suse-sap-cloud",
-		"sql-":	         "windows-sql-cloud",
-		"ubuntu-pro":    "ubuntu-os-pro-cloud",
+		"sql-":          "windows-sql-cloud",
 		"ubuntu":        "ubuntu-os-cloud",
+		"ubuntu-pro":    "ubuntu-os-pro-cloud",
 		"windows":       "windows-cloud",
 	}
 )
