@@ -44,62 +44,22 @@ var (
 )
 
 var (
-	imageMap = map[string]string{
-		"centos-7":                         "projects/centos-cloud/global/images/family/centos-7",
-		"centos-stream-8":                  "projects/centos-cloud/global/images/family/centos-stream-8",
-		"cos-81-lts":                       "projects/cos-cloud/global/images/family/cos-81-lts",
-		"cos-85-lts":                       "projects/cos-cloud/global/images/family/cos-85-lts",
-		"cos-89-lts":                       "projects/cos-cloud/global/images/family/cos-89-lts",
-		"cos-93-lts":                       "projects/cos-cloud/global/images/family/cos-93-lts",
-		"cos-beta":                         "projects/cos-cloud/global/images/family/cos-beta",
-		"cos-dev":                          "projects/cos-cloud/global/images/family/cos-dev",
-		"cos-stable":                       "projects/cos-cloud/global/images/family/cos-stable",
-		"debian-10":                        "projects/debian-cloud/global/images/family/debian-10",
-		"debian-11":                        "projects/debian-cloud/global/images/family/debian-11",
-		"debian-9":                         "projects/debian-cloud/global/images/family/debian-9",
-		"fedora-coreos-next":               "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-next",
-		"fedora-coreos-stable":             "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-stable",
-		"fedora-coreos-testing":            "projects/fedora-coreos-cloud/global/images/family/fedora-coreos-testing",
-		"rhel-7":                           "projects/rhel-cloud/global/images/family/rhel-7",
-		"rhel-7-6-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-6-sap-ha",
-		"rhel-7-7-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-7-sap-ha",
-		"rhel-7-9-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-7-9-sap-ha",
-		"rhel-8":                           "projects/rhel-cloud/global/images/family/rhel-8",
-		"rhel-8-1-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-1-sap-ha",
-		"rhel-8-2-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-2-sap-ha",
-		"rhel-8-4-sap-ha":                  "projects/rhel-sap-cloud/global/images/family/rhel-8-4-sap-ha",
-		"rocky-linux-8":                    "projects/rocky-linux-cloud/global/images/family/rocky-linux-8",
-		"sles-12":                          "projects/suse-cloud/global/images/family/sles-12",
-		"sles-12-sp3-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp3-sap",
-		"sles-12-sp4-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp4-sap",
-		"sles-12-sp5-sap":                  "projects/suse-sap-cloud/global/images/family/sles-12-sp5-sap",
-		"sles-15":                          "projects/suse-cloud/global/images/family/sles-15",
-		"sles-15-sap":                      "projects/suse-sap-cloud/global/images/family/sles-15-sap",
-		"sles-15-sp1-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp1-sap",
-		"sles-15-sp2-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp2-sap",
-		"sles-15-sp3-sap":                  "projects/suse-sap-cloud/global/images/family/sles-15-sp3-sap",
-		"ubuntu-1804-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-1804-lts",
-		"ubuntu-2004-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-2004-lts",
-		"ubuntu-2204-lts":                  "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts",
-		"ubuntu-2210":                      "projects/ubuntu-os-cloud/global/images/family/ubuntu-2210",
-		"ubuntu-minimal-1804-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-1804-lts",
-		"ubuntu-minimal-2004-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2004-lts",
-		"ubuntu-minimal-2204-lts":          "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2204-lts",
-		"ubuntu-minimal-2210":              "projects/ubuntu-os-cloud/global/images/family/ubuntu-minimal-2210",
-		"ubuntu-pro-1604-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts",
-		"ubuntu-pro-1804-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts",
-		"ubuntu-pro-2004-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts",
-		"ubuntu-pro-2204-lts":              "projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2204-lts",
-		"windows-2012-r2":                  "projects/windows-cloud/global/images/family/windows-2012-r2",
-		"windows-2012-r2-core":             "projects/windows-cloud/global/images/family/windows-2012-r2-core",
-		"windows-2016":                     "projects/windows-cloud/global/images/family/windows-2016",
-		"windows-2016-core":                "projects/windows-cloud/global/images/family/windows-2016-core",
-		"windows-2019":                     "projects/windows-cloud/global/images/family/windows-2019",
-		"windows-2019-core":                "projects/windows-cloud/global/images/family/windows-2019-core",
-		"windows-2019-core-for-containers": "projects/windows-cloud/global/images/family/windows-2019-core-for-containers",
-		"windows-2019-for-containers":      "projects/windows-cloud/global/images/family/windows-2019-for-containers",
-		"windows-2022":                     "projects/windows-cloud/global/images/family/windows-2022",
-		"windows-2022-core":                "projects/windows-cloud/global/images/family/windows-2022-core",
+	projectMap = map[string]string{
+		"centos":        "centos-cloud",
+		"cos":           "cos-cloud",
+		"debian":        "debian-cloud",
+		"fedora-cloud":  "fedora-cloud",
+		"fedora-coreos": "fedora-coreos-cloud",
+		"opensuse":      "opensuse-cloud",
+		"rhel":          "rhel-cloud",
+		"rhel-sap":      "rhel-sap-cloud",
+		"rocky-linux":   "rocky-linux-cloud",
+		"sles":          "suse-cloud",
+		"sles-sap":      "suse-sap-cloud",
+		"sql-":          "windows-sql-cloud",
+		"ubuntu":        "ubuntu-os-cloud",
+		"ubuntu-pro":    "ubuntu-os-pro-cloud",
+		"windows":       "windows-cloud",
 	}
 )
 
@@ -219,11 +179,37 @@ func main() {
 		}
 		for _, image := range strings.Split(*images, ",") {
 			if !strings.Contains(image, "/") {
-				fullimage, ok := imageMap[image]
-				if !ok {
+				// Find the project of the image.
+				project := ""
+				for k := range projectMap {
+					if strings.Contains(k, "sap") {
+						// sap follows a slightly different naming convention.
+						imageName := strings.Split(k, "-")[0]
+						if strings.HasPrefix(image, imageName) && strings.Contains(image, "sap") {
+							project = projectMap[k]
+							break
+						}
+					}
+					if strings.HasPrefix(image, k) {
+						project = projectMap[k]
+						break
+					}
+				}
+				if project == "" {
 					log.Fatalf("unknown image %s", image)
 				}
-				image = fullimage
+
+				// Check whether the image is an image family or a specific image version.
+				isMatch, err := regexp.MatchString(".*v([0-9]+)", image)
+				if err != nil {
+					log.Fatalf("failed regex: %v", err)
+				}
+				category := "family"
+				if isMatch {
+					category = "images"
+				}
+
+				image = fmt.Sprintf("projects/%s/global/%s/%s", project, category, image)
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
