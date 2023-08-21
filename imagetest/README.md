@@ -72,7 +72,45 @@ Google Compute Engine startup script runner. The test files must specify a
 'cit' build constraint in order to prevent the presubmits on this repository
 from invoking the image tests.
 
-It is suggested to start by copying an existing test package.
+When writing tests to run against both Linux and Windows, it is preferred to
+use separate functions within the same test where appropriate based on
+differences between OSes (ex. powershell vs bash commands). This makes the
+test definitions easier to read and maintain.
+
+For example, if the test MyDefaultTest() needs to run different commands to
+achieve similar results (and the test is located in the directory "mydefaulttest"):
+
+```go
+
+package mydefaulttest
+
+import (
+    "runtime"
+    "testing"
+)
+
+func TestConditionWindows() {
+    //Test something in Windows
+}
+func TestCondition() {
+    //Test something in Linux
+}
+
+func MyDefaultTest(t *testing.T) {
+    if runtime.GOOS == "windows" {
+    TestConditionWindows()
+    } else {
+        TestCondition()
+    }
+}
+```
+
+Note that there are also functions available in the [test_utils.go](utils/test_utils.go)
+for some OS level abstractions such as running a Windows powershell command or
+checking if a Linux binary exists.
+
+It is suggested to start by copying an existing test package. Do not forget to add
+your test to the relevant `setup.go` file in order to add the test to the test suite.
 
 ## Building the container image ##
 
