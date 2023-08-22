@@ -16,10 +16,9 @@ var Name = "storage_perf"
 var scripts embed.FS
 
 const (
-	linuxInstallFioScriptURL = "startupscripts/install_fio.sh"
+	linuxInstallFioScriptURL   = "startupscripts/install_fio.sh"
 	windowsInstallFioScriptURL = "startupscripts/install_fio.ps1"
 )
-
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
