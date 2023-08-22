@@ -9,8 +9,6 @@ import (
 	"os/exec"
 	"strconv"
 	"testing"
-
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // TestReadIOPS checks that read IOPS are around the value listed in public docs.
@@ -25,12 +23,6 @@ func TestReadIOPS(t *testing.T) {
 		if err != nil {
 			errorString += err.Error()
 			t.Fatalf("failed to find symlink to mount disk with any method: errors %s", errorString)
-		}
-	}
-
-	if !utils.CheckLinuxCmdExists("fio") {
-		if err := installFio(); err != nil {
-			t.Fatalf("failed to install fio with error: %v", err)
 		}
 	}
 
