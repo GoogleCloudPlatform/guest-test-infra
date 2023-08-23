@@ -5,15 +5,22 @@ package storageperf
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"os/exec"
-	"strconv"
+	"runtime"
+	"strings"
 	"testing"
 )
 
-// TestReadIOPS checks that read IOPS are around the value listed in public docs.
-func TestReadIOPS(t *testing.T) {
-	symlinkRealPath := ""
+const commonFIOReadOptions = "--name=read_iops_test --filesize=10G --numjobs=8 --time_based --runtime=60s --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --group_reporting=1 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+
+func RunFIOReadWindows() ([]byte, error) {
+  return []byte{}, nil
+}
+
+func RunFIOReadLinux() ([]byte, error) {
+  symlinkRealPath := ""
 	diskPartition, err := getMountDiskPartition(hyperdiskSize)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
@@ -22,19 +29,35 @@ func TestReadIOPS(t *testing.T) {
 		symlinkRealPath, err = getMountDiskPartitionSymlink()
 		if err != nil {
 			errorString += err.Error()
-			t.Fatalf("failed to find symlink to mount disk with any method: errors %s", errorString)
+			return []byte{}, fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
 		}
 	}
 
-	// Arbitrary file read size, less than the size of the hyperdisk in GB.
-	fileReadSizeString := strconv.Itoa(hyperdiskSize/10) + "G"
-	iopsJson, err := exec.Command("fio", "--name=read_iops_test", "--filename="+symlinkRealPath, "--filesize="+fileReadSizeString, "--time_based", "--ramp_time=2s", "--runtime=1m", "--ioengine=libaio", "--direct=1", "--verify=0", "--randrepeat=0", "--bs=4k", "--iodepth=256", "--rw=randread", "--iodepth_batch_submit=256", "--iodepth_batch_complete_max=256", "--output-format=json").CombinedOutput()
-	if err != nil {
-		t.Fatalf("fio command failed with error: %v", err)
+  fioReadOptionsLinuxSlice := strings.Fields(commonFIOReadOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
+  readIOPSJson, err := exec.Command("fio", fioReadOptionsLinuxSlice...).CombinedOutput()
+  if err != nil {
+		return []byte{}, fmt.Errorf("fio command failed with error: %v", err)
 	}
+  return readIOPSJson, nil
+}
+
+// TestReadIOPS checks that read IOPS are around the value listed in public docs.
+func TestReadIOPS(t *testing.T) {
+  var readIOPSJson []byte
+  var err error
+  if runtime.GOOS == "windows" {
+    if readIOPSJson, err = RunFIOReadWindows(); err != nil {
+      t.Fatalf("windows fio read failed with error: %v", err)
+    }
+  } else {
+    if readIOPSJson, err = RunFIOReadLinux(); err != nil {
+      t.Fatalf("linux fio read failed with error: %v", err)
+    }
+  }
+
 
 	var fioOut FIOOutput
-	if err = json.Unmarshal(iopsJson, &fioOut); err != nil {
+	if err = json.Unmarshal(readIOPSJson, &fioOut); err != nil {
 		t.Fatalf("fio output could not be unmarshalled with error: %v", err)
 	}
 
