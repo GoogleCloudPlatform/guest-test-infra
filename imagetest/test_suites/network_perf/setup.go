@@ -21,12 +21,13 @@ var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
 var jfServerConfig = InstanceConfig{name: "jf-server-vm", ip: "192.168.1.4"}
 var jfClientConfig = InstanceConfig{name: "jf-client-vm", ip: "192.168.1.5"}
 
-//go:embed startupscripts/*
+//go:embed *
 var scripts embed.FS
 
 const (
 	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
 	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
+	targetsURL             = "targets.txt"
 )
 
 // TestSetup sets up the test workflow.
@@ -67,6 +68,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
+	// Get the target
+	perfTargets, err := scripts.ReadFile(targetsURL)
+	if err != nil {
+		return err
+	}
+
 	// Create two VMs for default GVNIC performance testing.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
@@ -92,6 +99,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
+	clientVM.AddMetadata("perfmap", string(perfTargets))
 	clientVM.SetStartupScript(string(clientStartup))
 
 	// Jumbo frames VMs
@@ -119,6 +127,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
 	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
+	jfClientVM.AddMetadata("perfmap", string(perfTargets))
 	jfClientVM.SetStartupScript(string(clientStartup))
 
 	// Setting up tests to run.

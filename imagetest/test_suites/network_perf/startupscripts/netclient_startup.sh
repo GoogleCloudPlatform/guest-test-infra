@@ -3,13 +3,14 @@
 # This simple script installs iperf on a VM and attempts to connect to an iperf
 # server to test the network bandwidth between the two VMs.
 
-vmname=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1)
 outfile=$(curl http://metadata.google.internal/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google" | cut -d"." -f1).txt
 iperftarget=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/iperftarget -H "Metadata-Flavor: Google")
 sleepduration=5
+maxtimeout=60
+timeout=0
 
 echo "MTU: "
-/sbin/ifconfig | grep mtu | tee -a "$outfile"
+/sbin/ifconfig | grep mtu
 
 if [[ -f /usr/bin/apt ]]; then
   echo "$(date +"%Y-%m-%d %T"): apt found Installing iperf."
@@ -20,7 +21,7 @@ elif [[ -f /bin/dnf ]]; then
   arch=$(uname -p)
   if [[ "$os" == *"release 9"* ]]; then
     if [[ "$os" == *"Red Hat"* ]]; then
-      sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$arch-rpms
+      sudo subscription-manager repos --enable codeready-builder-for-rhel-9-"$arch"-rpms
       sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
     else
       sudo dnf -y config-manager --set-enabled crb
@@ -29,7 +30,7 @@ elif [[ -f /bin/dnf ]]; then
   fi
   if [[ "$os" == *"release 8"* ]]; then
     if [[ "$os" == *"Red Hat"* ]]; then
-      sudo subscription-manager repos --enable codeready-builder-for-rhel-8-$arch-rpms
+      sudo subscription-manager repos --enable codeready-builder-for-rhel-8-"$arch"-rpms
       sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     else
       sudo dnf -y config-manager --set-enabled powertools
@@ -48,20 +49,21 @@ elif [[ -f /usr/bin/zypper ]]; then
 fi
 
 # Ensure the server is up and running.
-timeout 2 nc -v -w 1 $iperftarget 5001 &> /tmp/nc_iperf
-until [[ $(< /tmp/nc_iperf) == *"succeeded"* || $(< /tmp/nc_iperf) == *"Connected"* ]]; do
-  echo "Failed to connect to server. Trying again in 5s"
-  sleep $sleepduration
+timeout 2 nc -v -w 1 "$iperftarget" 5001 &> /tmp/nc_iperf
+until [[ $(< /tmp/nc_iperf) == *"succeeded"* || $(< /tmp/nc_iperf) == *"Connected"* || "$timeout" -ge "$maxtimeout" ]]; do
+  cat /tmp/nc_iperf
+  echo Failed to connect to server. Trying again in 5s
+  sleep "$sleepduration"
 
   # timeout ensures the command stops. On some versions of netcat,
   # the -w flag seems nonfunctional. This is the workaround.
-  timeout 2 nc -v -w 1 $iperftarget 5001 &> /tmp/nc_iperf
+  timeout 2 nc -v -w 1 "$iperftarget" 5001 &> /tmp/nc_iperf
 done
-sleep $sleepduration
+sleep "$sleepduration"
 
 # Run iperf
-echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget" | tee -a "$outfile"
-iperf -t 30 -c $iperftarget -P 12 | tee -a $outfile
+echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget"
+iperf -t 30 -c "$iperftarget" -P 12 | grep SUM | tr -s ' ' | tee -a "$outfile"
 
 echo "$(date +"%Y-%m-%d %T"): Test Results $results"
 echo "$(date +"%Y-%m-%d %T"): Sending results to metadata."
