@@ -5,5 +5,5 @@ elif [[ -f /bin/dnf ]]; then
 elif [[ -f /bin/yum ]]; then
 	yum -y install fio
 elif [[ -f /usr/bin/zypper ]]; then
-	sudo zypper --non-interactive install fio
+	zypper --non-interactive install fio
 fi
