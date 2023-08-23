@@ -35,7 +35,7 @@ func TestNetworkPerformance(t *testing.T) {
 			t.Fatalf("Error: %v", err)
 		}
 		machineTypeSplit := strings.Split(machineType, "/")
-		machineTypeName := machineTypeSplit[len(machineTypeSplit) - 1]
+		machineTypeName := machineTypeSplit[len(machineTypeSplit)-1]
 		target := targetMap[machineTypeName]
 
 		// Find actual performance..
