@@ -8,6 +8,7 @@ fi
 
 if [[ -f /usr/bin/zypper ]]; then
 	sudo zypper --non-interactive install fio
+fi
 
 if [[ -f /bin/dnf ]]; then
 	sudo dnf -y install fio
