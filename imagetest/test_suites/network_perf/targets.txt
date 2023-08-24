@@ -38,9 +38,6 @@
         "e2-highcpu-8" : 16,
         "e2-highcpu-16": 16,
         "e2-highcpu-32": 16,
-        "e2-micro":  1,
-        "e2-small":  1,
-        "e2-medium": 2,
 
         "n1-standard-1":   2,
         "n1-standard-2":   10,
@@ -70,8 +67,6 @@
         "n1-highcpu-64":  32,
         "n1-highcpu-80":  32,
         "n1-highcpu-96":  32,
-        "f1-core":  1,
-        "g1-small": 1,
 
         "n2-standard-2":   10,
         "n2-standard-4":   10,

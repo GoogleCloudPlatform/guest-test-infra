@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package gveperf
+package networkperf
 
 import (
 	"errors"

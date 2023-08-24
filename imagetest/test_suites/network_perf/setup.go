@@ -1,4 +1,4 @@
-package gveperf
+package networkperf
 
 import (
 	"embed"
