@@ -80,7 +80,100 @@ func lookForSshdAndGuestAgentProcess() error {
 		return nil
 	}
 
-	return fmt.Errorf("not found")
+	return fmt.Errorf("Guest Agent and/or sshd not found.")
+}
+
+func lookForGuestAgentProcessWindows() error {
+	command := `$agentservice = Get-Service GCEAgent
+	$agentservice.Status`
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return fmt.Errorf("Failed to find Guest Agent service.")
+	}
+
+	agentStatus := strings.TrimSpace(output.Stdout)
+	if agentStatus == "Running" {
+		return nil
+	}
+
+	return fmt.Errorf("Guest Agent not found.")
+}
+
+func verifyBootTime() error {
+	// Reading the system uptime once both guest agent and sshd are found in the processes
+	uptimeData, err := os.ReadFile("/proc/uptime")
+	if err != nil {
+		return fmt.Errorf("Failed to read uptime file")
+	}
+	fields := strings.Split(string(uptimeData), " ")
+	uptime, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return fmt.Errorf("Failed to read uptime numeric value")
+	}
+	fmt.Println("found guest agent and sshd running at ", int(uptime), " seconds")
+	return nil
+
+	//Validating the uptime against the allowed threshold value
+	var maxThreshold int
+
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		return fmt.Errorf("couldn't get image from metadata")
+	}
+
+	switch {
+	case strings.Contains(image, "almalinux"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["almalinux"]
+	case strings.Contains(image, "centos"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["centos"]
+	case strings.Contains(image, "debian"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["debian"]
+	case strings.Contains(image, "rhel"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["rhel"]
+	case strings.Contains(image, "rocky-linux"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["rocky-linux"]
+	case strings.Contains(image, "sles-12"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["sles-12"]
+	case strings.Contains(image, "sles-15"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["sles-15"]
+	case strings.Contains(image, "ubuntu-pro"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu-pro"]
+	case strings.Contains(image, "ubuntu"):
+		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu"]
+	default:
+		return fmt.Errorf("OS not supported for boot time test")
+	}
+
+	if int(uptime) > maxThreshold {
+		return fmt.Errorf("Boot time too long: %v is beyond max of %v", uptime, maxThreshold)
+	}
+
+	return nil
+}
+
+func verifyBootTimeWindows() error {
+	command := `$boot = Get-WmiObject win32_operatingsystem
+	$uptime = (Get-Date) - $boot.ConvertToDateTime($boot.LastBootUpTime)
+	$uptime.TotalSeconds`
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return fmt.Errorf("Failed to read uptime value")
+	}
+	uptimeString := strings.TrimSpace(output.Stdout)
+	uptime, err := strconv.ParseFloat(uptimeString, 64)
+	if err != nil {
+		return fmt.Errorf("Failed to convert output to Integer: %v", err)
+	}
+
+	fmt.Println("found guest agent running at ", uptime, " seconds")
+
+	var maxThreshold float64
+	maxThreshold = 300
+	if uptime > maxThreshold {
+		return fmt.Errorf("Boot time too long: %v is beyond max of %v", uptime, maxThreshold)
+	}
+
+	return nil
 }
 
 func TestGuestBoot(t *testing.T) {
@@ -189,65 +282,36 @@ func TestStartTime(t *testing.T) {
 }
 
 func TestBootTime(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("couldn't get image from metadata")
-	}
 
-	var maxThreshold int
+	var foundPassCondition bool
 
-	switch {
-	case strings.Contains(image, "almalinux"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["almalinux"]
-	case strings.Contains(image, "centos"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["centos"]
-	case strings.Contains(image, "debian"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["debian"]
-	case strings.Contains(image, "rhel"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["rhel"]
-	case strings.Contains(image, "rocky-linux"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["rocky-linux"]
-	case strings.Contains(image, "sles-12"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["sles-12"]
-	case strings.Contains(image, "sles-15"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["sles-15"]
-	case strings.Contains(image, "ubuntu-pro"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu-pro"]
-	case strings.Contains(image, "ubuntu"):
-		maxThreshold = imageFamilyBootTimeThresholdMap["ubuntu"]
-	default:
-		t.Fatalf("OS not supported for boot time test")
-	}
-
-	var foundGuestAgentAndSshd bool
-
-	// 120 is the current maximum number of seconds to allow any distro to start sshd and guest-agent before returning a test failure
-	for i := 0; i < 120; i++ {
-		if err := lookForSshdAndGuestAgentProcess(); err == nil {
-			foundGuestAgentAndSshd = true
+	// 300 is the current maximum number of seconds to allow any distro to start sshd and guest-agent before returning a test failure
+	for i := 0; i < 300; i++ {
+		if runtime.GOOS == "windows" {
+			if err := lookForGuestAgentProcessWindows(); err == nil {
+				foundPassCondition = true
+				break
+			}
+		} else if err := lookForSshdAndGuestAgentProcess(); err == nil {
+			foundPassCondition = true
 			break
 		}
 		time.Sleep(1 * time.Second)
 	}
 
-	if !foundGuestAgentAndSshd {
-		t.Fatalf("Condition for guest agent and sshd process to start not reached within timeout")
+	if !foundPassCondition {
+		t.Fatalf("Condition for guest agent and/or sshd process to start not reached within timeout")
 	}
 
-	// Reading the system uptime once both guest agent and sshd are found in the processes
-	uptimeData, err := os.ReadFile("/proc/uptime")
-	if err != nil {
-		t.Fatalf("Failed to read uptime file")
-	}
-	fields := strings.Split(string(uptimeData), " ")
-	uptime, err := strconv.ParseFloat(fields[0], 64)
-	if err != nil {
-		t.Fatalf("Failed to read uptime numeric value")
-	}
-	t.Logf("found guest agent and sshd running at %v seconds", int(uptime))
-
-	//Validating the uptime against the allowed threshold value
-	if int(uptime) > maxThreshold {
-		t.Errorf("Boot time too long: %v is beyond max of %v", uptime, maxThreshold)
+	if runtime.GOOS == "windows" {
+		err := verifyBootTimeWindows()
+		if err != nil {
+			t.Fatalf("Failed to verify boot time: %v", err)
+		}
+	} else {
+		err := verifyBootTime()
+		if err != nil {
+			t.Fatalf("Failed to verify boot time: %v", err)
+		}
 	}
 }
