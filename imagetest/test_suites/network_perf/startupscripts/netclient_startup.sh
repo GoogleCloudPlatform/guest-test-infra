@@ -14,7 +14,7 @@ echo "MTU: "
 
 if [[ -f /usr/bin/apt ]]; then
   echo "$(date +"%Y-%m-%d %T"): apt found Installing iperf."
-  sudo apt update && sudo apt install -y iperf netcat
+  sudo apt update && sudo apt install -y iperf netcat-openbsd
 elif [[ -f /bin/dnf ]]; then
   echo "$(date +"%Y-%m-%d %T"): dnf found Installing iperf."
   os=$(cat /etc/redhat-release)
