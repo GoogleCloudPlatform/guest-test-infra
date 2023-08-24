@@ -91,12 +91,12 @@ func installFio() error {
 			return fmt.Errorf("apt update failed with error: %v", err)
 		}
 		installFioCmd = exec.Command("apt", "install", "-y", "fio")
+	} else if utils.CheckLinuxCmdExists("dnf") {
+		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
 	} else if utils.CheckLinuxCmdExists("yum") {
 		installFioCmd = exec.Command("yum", "-y", "install", "fio")
 	} else if utils.CheckLinuxCmdExists("zypper") {
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
-	} else if utils.CheckLinuxCmdExists("dnf") {
-		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
 	} else {
 		return fmt.Errorf("no package managers to install fio foud")
 	}
