@@ -289,6 +289,14 @@ func Skip32BitWindows(t *testing.T, skipMsg string) {
 	}
 }
 
+// IsWindows returns true if the detected runtime environment is Windows.
+func IsWindows() bool {
+	if runtime.GOOS == "windows" {
+		return true
+	}
+	return false
+}
+
 // IsWindowsClient returns true if the image is a client (non-server) Windows image.
 func IsWindowsClient(image string) bool {
 	for _, pattern := range windowsClientImagePatterns {
