@@ -17,7 +17,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imagevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network_perf"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
