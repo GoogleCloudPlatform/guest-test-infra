@@ -45,6 +45,7 @@ var (
 
 var (
 	projectMap = map[string]string{
+		"almalinux":     "almalinux-cloud",
 		"centos":        "centos-cloud",
 		"cos":           "cos-cloud",
 		"debian":        "debian-cloud",
