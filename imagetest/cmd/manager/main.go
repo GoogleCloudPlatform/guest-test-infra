@@ -45,6 +45,7 @@ var (
 
 var (
 	projectMap = map[string]string{
+		"almalinux":     "almalinux-cloud",
 		"centos":        "centos-cloud",
 		"cos":           "cos-cloud",
 		"debian":        "debian-cloud",
@@ -204,12 +205,11 @@ func main() {
 				if err != nil {
 					log.Fatalf("failed regex: %v", err)
 				}
-				category := "family"
 				if isMatch {
-					category = "images"
+					image = fmt.Sprintf("projects/%s/global/images/%s", project, image)
+				} else {
+					image = fmt.Sprintf("projects/%s/global/images/family/%s", project, image)
 				}
-
-				image = fmt.Sprintf("projects/%s/global/%s/%s", project, category, image)
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
