@@ -94,15 +94,15 @@ import (
 func RunTestConditionWindows() {
     //Test something in Windows
 }
-func RunTestConditionLinux() {
+func RunTestCondition() {
     //Test something in Linux
 }
 
 func TestSomeCondition(t *testing.T) {
     if runtime.GOOS == "windows" {
-    TestConditionWindows()
+    RunTestConditionWindows()
     } else {
-        TestCondition()
+        RunTestCondition()
     }
 }
 ```
