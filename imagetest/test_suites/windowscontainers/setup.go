@@ -5,7 +5,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "windows_containers"
+var Name = "windowscontainers"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {

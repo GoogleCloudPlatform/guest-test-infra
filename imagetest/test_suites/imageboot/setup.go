@@ -9,7 +9,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "image_boot"
+var Name = "imageboot"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {

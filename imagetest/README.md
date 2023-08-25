@@ -57,7 +57,9 @@ JUnit format XML will also be output.
 Tests are organized into go packages in the test\_suites directory and are
 written in go. Each package must at a minimum contain a setup file (by
 conventioned named setup.go) and at least one test file (by convention named
-$packagename\_test.go).
+$packagename\_test.go). The name of the test suite should not contain an
+underscore. For example, if a new test suite was created to test image licenses,
+it should be called imagelicensing, not image_licensing.
 
 The setup.go file describes the workflow to run including the VMs and other GCE
 resources to create, any necessary configuration for those resources, which
@@ -77,7 +79,7 @@ use separate functions within the same test where appropriate based on
 differences between OSes (ex. powershell vs bash commands). This makes the
 test definitions easier to read and maintain.
 
-For example, if the test MyDefaultTest() needs to run different commands to
+For example, if the test TestSomeCondition() needs to run different commands to
 achieve similar results (and the test is located in the directory "mydefaulttest"):
 
 ```go
@@ -89,14 +91,14 @@ import (
     "testing"
 )
 
-func TestConditionWindows() {
+func RunTestConditionWindows() {
     //Test something in Windows
 }
-func TestCondition() {
+func RunTestConditionLinux() {
     //Test something in Linux
 }
 
-func MyDefaultTest(t *testing.T) {
+func TestSomeCondition(t *testing.T) {
     if runtime.GOOS == "windows" {
     TestConditionWindows()
     } else {
