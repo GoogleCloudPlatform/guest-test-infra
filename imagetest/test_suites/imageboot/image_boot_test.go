@@ -222,14 +222,6 @@ func TestGuestSecureBoot(t *testing.T) {
 			t.Fatalf("SecureBoot test failed with: %v", err)
 		}
 	} else {
-		image, err := utils.GetMetadata("image")
-		if err != nil {
-			t.Fatalf("couldn't get image from metadata")
-		}
-		if strings.Contains(image, "debian-9") {
-			t.Skip("secure boot is not supported on Debian 9")
-		}
-
 		if err := testLinuxGuestSecureBoot(); err != nil {
 			t.Fatalf("SecureBoot test failed with: %v", err)
 		}

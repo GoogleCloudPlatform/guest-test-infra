@@ -1,8 +1,8 @@
 package imageboot
 
 import (
+	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -10,6 +10,19 @@ import (
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "imageboot"
+
+var sbUnsupported = []*regexp.Regexp{
+	// Permanent exceptions
+	regexp.MustCompile("debian-9"),
+	regexp.MustCompile("debian-1[01].*arm64"),
+	regexp.MustCompile("windows-server-2012-r2-dc-core"),
+	// Temporary exceptions
+	regexp.MustCompile("debian-12.*arm64"),
+	// Waiting on MSFT signed shims:
+	regexp.MustCompile("rocky-linux-[89].*arm64"), // https://bugs.rockylinux.org/view.php?id=4027
+	regexp.MustCompile("rhel-9.*arm64"), // https://bugzilla.redhat.com/show_bug.cgi?id=2103803
+	regexp.MustCompile("sles-15.*arm64"), // https://bugzilla.suse.com/show_bug.cgi?id=1214761
+}
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -28,14 +41,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	if strings.Contains(t.Image, "debian-9") {
-		// secure boot is not supported on Debian 9
-		return nil
-	}
-
-	if strings.Contains(t.Image, "arm64") {
-		// secure boot is not supported on ARM images
-		return nil
+	for _, r := range sbUnsupported {
+		if r.MatchString(t.Image) {
+			return nil
+		}
 	}
 
 	vm3, err := t.CreateTestVM("vm3")
