@@ -57,7 +57,7 @@ JUnit format XML will also be output.
 Tests are organized into go packages in the test\_suites directory and are
 written in go. Each package must at a minimum contain a setup file (by
 conventioned named setup.go) and at least one test file (by convention named
-$packagename\_test.go). The name of the test suite should not contain an
+$packagename\_test.go). Due to golang style conventions, the package name cannot contain an underscore. Thus, for the test suite name to match the packagename, the name of the test suite should not contain an
 underscore. For example, if a new test suite was created to test image licenses,
 it should be called imagelicensing, not image_licensing.
 
