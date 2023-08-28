@@ -86,7 +86,7 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	return "", fmt.Errorf("disk block with size not found")
 }
 
-// installFioWindows copies the msi file from a known location, and runs msiexec to produce the executable at the relative path fio\fio.exe.
+// installFioWindows copies the fio.exe file onto the VM instance.
 func installFioWindows() error {
 	if procStatus, err := utils.RunPowershellCmd("gsutil cp " + fioWindowsGCS + " " + fioWindowsLocalPath); err != nil {
 		return fmt.Errorf("gsutil failed with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)

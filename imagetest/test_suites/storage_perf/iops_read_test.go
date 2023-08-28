@@ -21,9 +21,6 @@ const (
 )
 
 func RunFIOReadWindows() ([]byte, error) {
-	if err := installFioWindows(); err != nil {
-		return []byte{}, err
-	}
 	testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
 	if procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false"); err != nil {
