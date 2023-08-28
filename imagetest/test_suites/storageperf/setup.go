@@ -10,7 +10,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "storageperf"
+var Name = "storage_perf"
 
 //go:embed startupscripts/*
 var scripts embed.FS
@@ -38,7 +38,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		vm.SetStartupScript(string(windowsStartup))
+		vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
 	} else {
 		linuxStartup, err := scripts.ReadFile(linuxInstallFioScriptURL)
 		if err != nil {
