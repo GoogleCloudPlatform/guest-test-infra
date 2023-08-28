@@ -249,7 +249,7 @@ func testLinuxGuestSecureBoot() error {
 	secureBootMode := data[len(data)-1]
 	// https://uefi.org/specs/UEFI/2.9_A/32_Secure_Boot_and_Driver_Signing.html#firmware-os-key-exchange-creating-trust-relationships
 	// If setup mode is not 0 secure boot isn't actually enabled because no PK is enrolled.
-        if _, err = os.Stat(setupModeFile); os.IsNotExist(err) {
+	if _, err = os.Stat(setupModeFile); os.IsNotExist(err) {
 		return errors.New("setupmode efi var is missing")
 	}
 	data, err = ioutil.ReadFile(setupModeFile)
