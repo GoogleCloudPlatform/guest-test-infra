@@ -10,7 +10,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "storage_perf"
+var Name = "storageperf"
 
 //go:embed startupscripts/*
 var scripts embed.FS

@@ -8,7 +8,7 @@ import (
 )
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "network_perf"
+var Name = "networkperf"
 
 // InstanceConfig for setting up test VMs.
 type InstanceConfig struct {
