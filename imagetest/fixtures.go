@@ -233,6 +233,20 @@ func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
 }
 
+// SetNetworkPerformanceTier sets the performance tier of the VM.
+// The tier must be one of "DEFAULT" or "TIER_1"
+func (t *TestVM) SetNetworkPerformanceTier(tier string) error {
+	if tier != "DEFAULT" || tier != "TIER_1" {
+		return fmt.Errorf("Error: %v not one of DEFAULT or TIER_1", tier)
+	}
+	if t.instance.NetworkPerformanceConfig == nil {
+		t.instance.NetworkPerformanceConfig = &compute.NetworkPerformanceConfig{TotalEgressBandwidthTier: tier}
+	} else {
+		t.instance.NetworkPerformanceConfig.TotalEgressBandwidthTier = tier
+	}
+	return nil
+}
+
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your
 // test package must handle being run twice.
 func (t *TestVM) Reboot() error {

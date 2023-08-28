@@ -20,6 +20,8 @@ var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.4"}
 var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.5"}
 var jfServerConfig = InstanceConfig{name: "jf-server-vm", ip: "192.168.1.4"}
 var jfClientConfig = InstanceConfig{name: "jf-client-vm", ip: "192.168.1.5"}
+var tier1ServerConfig = InstanceConfig{name: "tier1-server-vm", ip: "192.168.0.6"}
+var tier1ClientConfig = InstanceConfig{name: "tier1-client-vm", ip: "192.168.0.7"}
 
 //go:embed *
 var scripts embed.FS
@@ -28,6 +30,7 @@ const (
 	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
 	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
 	targetsURL             = "targets.txt"
+	tier1TargetsURL	       = "tier1_targets.txt"
 )
 
 // TestSetup sets up the test workflow.
@@ -68,8 +71,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	// Get the target
-	perfTargets, err := scripts.ReadFile(targetsURL)
+	// Get the targets.
+	defaultPerfTargets, err := scripts.ReadFile(targetsURL)
 	if err != nil {
 		return err
 	}
@@ -99,7 +102,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
-	clientVM.AddMetadata("perfmap", string(perfTargets))
+	clientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 	clientVM.SetStartupScript(string(clientStartup))
 
 	// Jumbo frames VMs
@@ -127,7 +130,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
 	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
-	jfClientVM.AddMetadata("perfmap", string(perfTargets))
+	jfClientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 	jfClientVM.SetStartupScript(string(clientStartup))
 
 	// Setting up tests to run.
@@ -136,13 +139,53 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
 		// gVNIC not supported on certain images.
 	} else {
+		// Only images that support gVNIC can should run tier1 tests.
+		tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
+		if err != nil {
+			return err
+		}
+
+		// Create Test VMs for Tier1 tests.
+		tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name)
+		if err != nil {
+			return err
+		}
+		if err := tier1ServerVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+			return err
+		}
+		if err := tier1ServerVM.SetPrivateIP(defaultNetwork, tier1ServerConfig.ip); err != nil {
+			return err
+		}
+		tier1ServerVM.SetStartupScript(string(serverStartup))
+		tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
+
+		tier1ClientVM, err := t.CreateTestVM(tier1ClientConfig.name)
+		if err != nil {
+			return err
+		}
+		if err := tier1ClientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+			return err
+		}
+		if err := tier1ClientVM.SetPrivateIP(defaultNetwork, tier1ClientConfig.ip); err != nil {
+			return err
+		}
+		tier1ClientVM.AddMetadata("enable-guest-attributes", "TRUE")
+		tier1ClientVM.AddMetadata("iperftarget", tier1ServerConfig.ip)
+		tier1ClientVM.AddMetadata("perfmap", string(tier1PerfTargets))
+		tier1ClientVM.SetStartupScript(string(clientStartup))
+
 		clientVM.UseGVNIC()
 		serverVM.UseGVNIC()
 		jfClientVM.UseGVNIC()
 		jfServerVM.UseGVNIC()
+		tier1ClientVM.UseGVNIC()
+		tier1ServerVM.UseGVNIC()
 
 		clientVMTests = "TestGVNICExists|"
 		serverVMTests = "TestGVNICExists"
+
+		tier1ServerVM.RunTests("TestGVNICExists")
+		tier1ClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 	}
 
 	// Run tests.
