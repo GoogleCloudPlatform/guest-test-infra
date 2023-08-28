@@ -19,6 +19,10 @@ const (
 	hyperdiskSize = 100
 	bootdiskSize  = 50
 	mountDiskName = "hyperdisk"
+	// The fixed gcs location where fio.exe is stored.
+	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
+	// The local path on the test VM where fio is stored.
+	fioWindowsLocalPath = "C:\\fio.exe"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
@@ -82,8 +86,16 @@ func getMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	return "", fmt.Errorf("disk block with size not found")
 }
 
-// installFio tries to install fio with any of multiple package managers, and returns an error if all the package managers were not found or failed.
-func installFio() error {
+// installFioWindows copies the fio.exe file onto the VM instance.
+func installFioWindows() error {
+	if procStatus, err := utils.RunPowershellCmd("gsutil cp " + fioWindowsGCS + " " + fioWindowsLocalPath); err != nil {
+		return fmt.Errorf("gsutil failed with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
+	}
+	return nil
+}
+
+// installFioLinux tries to install fio on linux with any of multiple package managers, and returns an error if all the package managers were not found or failed.
+func installFioLinux() error {
 	var installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
 		// only run update if using apt
