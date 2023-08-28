@@ -292,7 +292,7 @@ func Skip32BitWindows(t *testing.T, skipMsg string) {
 // IsWindows returns true if the detected runtime environment is Windows.
 func IsWindows() bool {
 	if runtime.GOOS == "windows" {
-		return runtime.GOOS == "windows"
+		return true
 	}
 	return false
 }
