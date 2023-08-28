@@ -34,6 +34,7 @@ var imageFamilyBootTimeThresholdMap = map[string]int{
 const (
 	markerFile     = "/boot-marker"
 	secureBootFile = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+	setupModeFile  = "/sys/firmware/efi/efivars/SetupMode-8be4df61-93ca-11d2-aa0d-00e098032b8c"
 )
 
 func lookForSshdAndGuestAgentProcess() error {
@@ -238,17 +239,27 @@ func TestGuestSecureBoot(t *testing.T) {
 
 func testLinuxGuestSecureBoot() error {
 	if _, err := os.Stat(secureBootFile); os.IsNotExist(err) {
-		return errors.New("efi var is missing")
+		return errors.New("secureboot efi var is missing")
 	}
 	data, err := ioutil.ReadFile(secureBootFile)
 	if err != nil {
 		return errors.New("failed reading secure boot file")
 	}
 	// https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-firmware-efi-vars
-	if data[len(data)-1] != 1 {
-		return errors.New("secure boot is not enabled as expected")
+	secureBootMode := data[len(data)-1]
+	// https://uefi.org/specs/UEFI/2.9_A/32_Secure_Boot_and_Driver_Signing.html#firmware-os-key-exchange-creating-trust-relationships
+	// If setup mode is not 0 secure boot isn't actually enabled because no PK is enrolled.
+	if _, err = os.Stat(setupModeFile); os.IsNotExist(err) {
+		return errors.New("setupmode efi var is missing")
 	}
-
+	data, err = ioutil.ReadFile(setupModeFile)
+	if err != nil {
+		return errors.New("failed reading setup mode file")
+	}
+	setupMode := data[len(data)-1]
+	if secureBootMode != 1 || setupMode != 0 {
+		return fmt.Errorf("secure boot is not enabled, found secureboot mode: %c (want 1) and setup mode: %c (want 0)", secureBootMode, setupMode)
+	}
 	return nil
 }
 
