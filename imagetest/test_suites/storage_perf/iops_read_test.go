@@ -66,7 +66,6 @@ func TestReadIOPS(t *testing.T) {
 	var readIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		t.Logf("running windows fio")
 		if readIOPSJson, err = RunFIOReadWindows(); err != nil {
 			t.Fatalf("windows fio read failed with error: %v", err)
 		}
