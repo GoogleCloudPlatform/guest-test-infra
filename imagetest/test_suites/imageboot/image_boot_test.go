@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -203,7 +202,7 @@ func TestGuestRebootOnHost(t *testing.T) {
 			t.Fatalf("failed creating marker file: %v", err)
 		}
 		var cmd *exec.Cmd
-		if runtime.GOOS == "windows" {
+		if utils.IsWindows() {
 			cmd = exec.Command("shutdown", "-r", "-t", "0")
 		} else {
 			cmd = exec.Command("sudo", "nohup", "reboot")
@@ -218,7 +217,7 @@ func TestGuestRebootOnHost(t *testing.T) {
 }
 
 func TestGuestSecureBoot(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if utils.IsWindows() {
 		if err := testWindowsGuestSecureBoot(); err != nil {
 			t.Fatalf("SecureBoot test failed with: %v", err)
 		}
@@ -298,7 +297,7 @@ func TestBootTime(t *testing.T) {
 
 	// 300 is the current maximum number of seconds to allow any distro to start sshd and guest-agent before returning a test failure
 	for i := 0; i < 300; i++ {
-		if runtime.GOOS == "windows" {
+		if utils.IsWindows() {
 			if err := lookForGuestAgentProcessWindows(); err == nil {
 				foundPassCondition = true
 				break
@@ -314,7 +313,7 @@ func TestBootTime(t *testing.T) {
 		t.Fatalf("Condition for guest agent and/or sshd process to start not reached within timeout")
 	}
 
-	if runtime.GOOS == "windows" {
+	if utils.IsWindows() {
 		err := verifyBootTimeWindows()
 		if err != nil {
 			t.Fatalf("Failed to verify boot time: %v", err)
