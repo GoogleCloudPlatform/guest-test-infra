@@ -32,7 +32,7 @@ local imagetesttask = {
       '-project=gcp-guest',
       '-zone=us-central1-a',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storage_perf)|(network_perf)',
+      '-exclude=(oslogin)|(storageperf)|(networkperf)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
