@@ -41,6 +41,9 @@ const (
 
 	// JumboFramesMTU is the maximum MTU settable for a network.
 	JumboFramesMTU = 8896
+
+	// DefaultMachineType is the default machine type when machine type isn't specified.
+	DefaultMachineType = "n1-standard-1"
 )
 
 // TestVM is a test VM.
