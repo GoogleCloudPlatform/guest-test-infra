@@ -30,7 +30,7 @@ const (
 	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
 	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
 	targetsURL             = "targets.txt"
-	tier1TargetsURL	       = "tier1_targets.txt"
+	tier1TargetsURL        = "tier1_targets.txt"
 )
 
 // TestSetup sets up the test workflow.
@@ -195,7 +195,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 	tier1ServerVM.RunTests("TestGVNICExists")
 	tier1ClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
-
 
 	return nil
 }
