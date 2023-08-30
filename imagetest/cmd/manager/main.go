@@ -20,6 +20,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
@@ -147,6 +148,10 @@ func main() {
 		{
 			ssh.Name,
 			ssh.TestSetup,
+		},
+		{
+			sql.Name,
+			sql.TestSetup,
 		},
 		{
 			metadata.Name,
