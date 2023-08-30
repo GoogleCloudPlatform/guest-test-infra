@@ -38,7 +38,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		vm.SetStartupScript(string(windowsStartup))
+		vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
 	} else {
 		linuxStartup, err := scripts.ReadFile(linuxInstallFioScriptURL)
 		if err != nil {

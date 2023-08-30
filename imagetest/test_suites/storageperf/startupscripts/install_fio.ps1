@@ -1,9 +1,7 @@
-cd C:\
-gsutil cp gs://gce-image-build-resources/windows/fio-3.35-x64.msi C:\
 try {
-	msiexec.exe "C:\fio-3.35-x64.msi" /quiet /norestart
+	gsutil cp gs://gce-image-build-resources/windows/fio.exe 'C:\\fio.exe'
 }
 catch {
-	Write-Output "msi file failed to resolve"
+	Write-Output "failed to copy fio.exe"
 	Write-Output $_
 }

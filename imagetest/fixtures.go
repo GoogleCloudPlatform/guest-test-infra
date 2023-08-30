@@ -228,7 +228,7 @@ func (t *TestVM) SetShutdownScriptURL(script string) error {
 	return nil
 }
 
-// SetStartupScript sets the `startup-script` metadata key for a VM.
+// SetStartupScript sets the `startup-script` metadata key for a VM. On Windows VMs, this script does not run on startup: different guest attributes must be set.
 func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
 }
