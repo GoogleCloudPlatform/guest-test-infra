@@ -25,7 +25,6 @@ func TestSqlVersion(t *testing.T) {
 	}
 
 	imageNameSplit := strings.Split(imageName, "-")
-	fmt.Print(imageNameSplit)
 	sqlExpectedVer := imageNameSplit[1]
 	sqlExpectedEdition := imageNameSplit[2]
 	serverExpectedVer := imageNameSplit[4]
