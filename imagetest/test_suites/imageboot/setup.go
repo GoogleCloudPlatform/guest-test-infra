@@ -15,7 +15,7 @@ var sbUnsupported = []*regexp.Regexp{
 	// Permanent exceptions
 	regexp.MustCompile("debian-9"),
 	regexp.MustCompile("debian-1[01].*arm64"),
-	regexp.MustCompile("windows-server-2012-r2-dc-core"),
+	regexp.MustCompile("windows-server-2012-r2-dc-core"), // Working but not easily testable and EOL in 1.5 months
 	// Temporary exceptions
 	regexp.MustCompile("debian-12.*arm64"),
 	// Waiting on MSFT signed shims:
@@ -41,18 +41,23 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	for _, r := range sbUnsupported {
-		if r.MatchString(t.Image) {
-			return nil
-		}
-	}
-
 	vm3, err := t.CreateTestVM("vm3")
 	if err != nil {
 		return err
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
-	vm3.EnableSecureBoot()
-	vm3.RunTests("TestGuestSecureBoot|TestStartTime|TestBootTime")
+	vm3.RunTests("TestStartTime|TestBootTime")
+
+	for _, r := range sbUnsupported {
+		if r.MatchString(t.Image) {
+			return nil
+		}
+	}
+	vm4, err := t.CreateTestVM("vm4")
+	if err != nil {
+		return err
+	}
+	vm4.EnableSecureBoot()
+	vm4.RunTests("TestGuestSecureBoot")
 	return nil
 }
