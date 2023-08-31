@@ -94,7 +94,6 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		instance.Scopes = append(instance.Scopes, extraScopes)
 	}
 
-
 	hostname, foundKey := instanceParams["hostname"]
 	if !foundKey {
 		hostname = ""
