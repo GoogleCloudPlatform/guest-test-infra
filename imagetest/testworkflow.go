@@ -89,6 +89,14 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+	// additional IAM scopes may be passed in, such as for detachDisk and attachDisk calls.
+	if extraScopes, foundKey := instanceParams["extraScopes"]; foundKey {
+		for _, extraScope := range extraScopes {
+			instance.Scopes = append(instance.Scopes, extraScope)
+		}
+	}
+
+
 	hostname, foundKey := instanceParams["hostname"]
 	if !foundKey {
 		hostname = ""
