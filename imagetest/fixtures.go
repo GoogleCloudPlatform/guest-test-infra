@@ -41,6 +41,9 @@ const (
 
 	// JumboFramesMTU is the maximum MTU settable for a network.
 	JumboFramesMTU = 8896
+
+	// DefaultMachineType is the default machine type when machine type isn't specified.
+	DefaultMachineType = "n1-standard-1"
 )
 
 // TestVM is a test VM.
@@ -231,6 +234,20 @@ func (t *TestVM) SetShutdownScriptURL(script string) error {
 // SetStartupScript sets the `startup-script` metadata key for a VM. On Windows VMs, this script does not run on startup: different guest attributes must be set.
 func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
+}
+
+// SetNetworkPerformanceTier sets the performance tier of the VM.
+// The tier must be one of "DEFAULT" or "TIER_1"
+func (t *TestVM) SetNetworkPerformanceTier(tier string) error {
+	if tier != "DEFAULT" || tier != "TIER_1" {
+		return fmt.Errorf("Error: %v not one of DEFAULT or TIER_1", tier)
+	}
+	if t.instance.NetworkPerformanceConfig == nil {
+		t.instance.NetworkPerformanceConfig = &compute.NetworkPerformanceConfig{TotalEgressBandwidthTier: tier}
+	} else {
+		t.instance.NetworkPerformanceConfig.TotalEgressBandwidthTier = tier
+	}
+	return nil
 }
 
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your

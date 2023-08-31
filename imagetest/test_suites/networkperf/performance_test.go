@@ -13,6 +13,10 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+func TestEmpty(t *testing.T) {
+	t.Logf("Empty test")
+}
+
 func TestNetworkPerformance(t *testing.T) {
 	// Check performance of the driver.
 	if runtime.GOOS != "windows" {
@@ -36,7 +40,11 @@ func TestNetworkPerformance(t *testing.T) {
 		}
 		machineTypeSplit := strings.Split(machineType, "/")
 		machineTypeName := machineTypeSplit[len(machineTypeSplit)-1]
-		target := targetMap[machineTypeName]
+		target, found := targetMap[machineTypeName]
+		if !found {
+			t.Logf("%v not supported in this test", machineTypeName)
+			return
+		}
 
 		// Find actual performance..
 		var result_perf float64
