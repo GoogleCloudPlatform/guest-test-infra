@@ -20,19 +20,19 @@ func TestEmptyAttach(t *testing.T) {
 		t.Fatalf("failed to create service: %v", err)
 	}
 	instancesService := compute.NewInstancesService(service)
-	instName, err := exec.Command("hostname").CombinedOutput()
+	instName, err := exec.Command("hostname").Output()
 	if err != nil {
 		t.Fatalf("failed to get hostname: %v %v", instName, err)
 	}
 	// fullzone looks like projects/$PROJECTNUMBER/zone/$ZONE, and we want to pass in just the $ZONE value to detach the disk.
-	projectZoneBytes, err := exec.Command("curl", "http://metadata.google.internal/computeMetadata/v1/instance/zone", "-H", "Metadata-Flavor: Google").CombinedOutput()
+	projectZoneBytes, err := exec.Command("curl", "http://metadata.google.internal/computeMetadata/v1/instance/zone", "-H", "Metadata-Flavor: Google").Output()
 	projectZoneString := strings.TrimSpace(string(projectZoneBytes))
 	if err != nil {
 		t.Fatalf("failed to get project or zone: %v", err)
 	}
 	projectZoneSlice := strings.Split(string(projectZoneString), "/")
-	if strings.ToLower(projectZoneSlice[0]) != "projects" || strings.ToLower(projectZoneSlice[2]) != "zone" || len(projectZoneSlice) != 4 {
-	   return t.Fatalf("returned string for vm metata was the wrong format: got %s", projectZoneString)
+	if strings.ToLower(projectZoneSlice[0]) != "projects" || strings.ToLower(projectZoneSlice[2]) != "zones" || len(projectZoneSlice) != 4 {
+	   t.Fatalf("returned string for vm metata was the wrong format: got %s", projectZoneString)
 	}
 
   // prepare fields for the disk detach call
