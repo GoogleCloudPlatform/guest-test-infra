@@ -16,7 +16,7 @@ const (
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
   // The extra scope is required to call detachDisk and attachDisk.
-	hotattachParams := map[string]string{"machineType": "n2-standard-8", "extraScopes": []string{"https://www.googleapis.com/auth/cloud-platform"}}
+	hotattachParams := map[string]string{"machineType": "n2-standard-8", "extraScopes": "https://www.googleapis.com/auth/cloud-platform"}
 	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: instanceName, Type: imagetest.PdBalanced, SizeGb: 10}, {Name: diskName, Type: imagetest.PdBalanced, SizeGb: 30}}, hotattachParams)
 	if err != nil {
 		return err

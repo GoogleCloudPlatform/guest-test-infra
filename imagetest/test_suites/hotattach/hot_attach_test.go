@@ -32,7 +32,7 @@ func TestEmptyAttach(t *testing.T) {
 	}
 	projectZoneSlice := strings.Split(string(projectZoneString), "/")
 	if strings.ToLower(projectZoneSlice[0]) != "projects" || strings.ToLower(projectZoneSlice[2]) != "zone" || len(projectZoneSlice) != 4 {
-	   return fmt.Errorf("returned string for vm metata was the wrong format: got %s", projectZoneString)
+	   return t.Fatalf("returned string for vm metata was the wrong format: got %s", projectZoneString)
 	}
 
   // prepare fields for the disk detach call
