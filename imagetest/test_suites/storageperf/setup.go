@@ -34,6 +34,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm.AddMetadata("enable-guest-attributes", "TRUE")
 	if strings.Contains(t.Image, "windows") {
+		vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
 		windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 		if err != nil {
 			return err
@@ -46,6 +47,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		vm.SetStartupScript(string(linuxStartup))
 	}
-	vm.RunTests("TestReadIOPS")
+	vm.RunTests("TestReadIOPS|TestWriteIOPS")
 	return nil
 }

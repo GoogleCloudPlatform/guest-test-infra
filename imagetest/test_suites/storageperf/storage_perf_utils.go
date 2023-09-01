@@ -23,6 +23,7 @@ const (
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
 	fioWindowsLocalPath = "C:\\fio.exe"
+	windowsDriveLetter = "F"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 
