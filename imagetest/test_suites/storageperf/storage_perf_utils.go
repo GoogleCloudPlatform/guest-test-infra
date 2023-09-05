@@ -16,7 +16,7 @@ const (
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.97
 	// hyperdiskSize in GB is used to determine which partition is the mounted hyperdisk.
-	hyperdiskSize = 100
+	hyperdiskSize = 300
 	bootdiskSize  = 50
 	mountDiskName = "hyperdisk"
 	// The fixed gcs location where fio.exe is stored.

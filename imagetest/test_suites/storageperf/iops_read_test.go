@@ -76,7 +76,7 @@ func TestReadIOPS(t *testing.T) {
 
 	var fioOut FIOOutput
 	if err = json.Unmarshal(readIOPSJson, &fioOut); err != nil {
-		t.Fatalf("fio output could not be unmarshalled with error: %v", err)
+		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(readIOPSJson), err)
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS

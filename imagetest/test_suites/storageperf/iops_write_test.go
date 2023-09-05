@@ -22,10 +22,7 @@ const (
 func RunFIOWriteWindows() ([]byte, error) {
 	testdiskDrive := windowsDriveLetter + ":\\"
 	writeIopsFile := "C:\\fio-write-iops.txt"
-	//if procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false"); err != nil {
-	//	return []byte{}, fmt.Errorf("Initialize-Disk returned with error: %v, %s, %s", err, procStatus.Stdout, procStatus.Stderr)
-	//}
-	fioWriteOptionsWindows := " -ArgumentList \"" + commonFIOWriteOptions + " --output=" + writeIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
+	fioWriteOptionsWindows := " -ArgumentList \"" + commonFIOWriteOptions + " --output=" + writeIopsFile + " --ioengine=windowsaio --thread\" -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioWriteOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -76,7 +73,7 @@ func TestWriteIOPS(t *testing.T) {
 
 	var fioOut FIOOutput
 	if err = json.Unmarshal(writeIOPSJson, &fioOut); err != nil {
-		t.Fatalf("fio output could not be unmarshalled with error: %v", err)
+		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(writeIOPSJson), err)
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
