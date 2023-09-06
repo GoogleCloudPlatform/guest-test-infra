@@ -21,6 +21,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm.RunTests("TestEmptyAttach")
+	vm.RunTests("TestFileHotAttach")
 	return nil
 }

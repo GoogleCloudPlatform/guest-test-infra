@@ -293,3 +293,31 @@ no' and 'PermitRootLogin no' directives set. Read the /etc/passwd file and
 confirm all users have disabled passwords, and that 'system account' users
 (those with UID < 1000) have the correct shell set (typically set to 'nologin'
 or 'false')
+
+### Test suite: storageperf ###
+
+#### TestReadIOPS
+Checks random read performance on files and compares it to the documented IOPS number.
+
+Background
+
+The public documentation for machine shapes and types lists certain values for
+read IOPS. This test was designed to verify that the read IOPS which are attainable
+are within a certain range (such as 97%) of the documented value.
+
+Test logic
+
+FIO is downloaded based on the machine type and distribution. Next, the fio program is
+run and the json output is returned. Out of the json output, we can get the read iops
+value which was achieved, and check that it is above a certain threshold.
+
+### Test suite: hotattach ###
+
+### TestFileHotAttach
+Validate that hot attach disks work: a file can be written to the disk, the disk can be detached and reattached, and the file can still be read.
+
+Background
+On windows and linux instances, we want to verify that we can add and remove additional disks. The hot attach functionality can be used to verify that disk memory is not lost after attach and detach operations.
+
+Test Logic
+The test writes a file to the disk, and then detaches and reattaches the disk. The test then verifies that the file can be read from. 
