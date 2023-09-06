@@ -30,7 +30,7 @@ func getProjectAndZone() (string, string, error) {
 			return "", "", fmt.Errorf("failed to get project or zone on linux: %v", err)
 		}
 	}
-// projectZoneUrl should be in the fomrat projects/$PROJECTNUMBER/zone/$ZONE, and we want to pass in just the $ZONE value to detach the disk.
+	// projectZoneUrl should be in the fomrat projects/$PROJECTNUMBER/zone/$ZONE, and we want to pass in just the $ZONE value to detach the disk.
 	projectZoneSlice := strings.Split(string(projectZoneUrl), "/")
 	if strings.ToLower(projectZoneSlice[0]) != "projects" || strings.ToLower(projectZoneSlice[2]) != "zones" || len(projectZoneSlice) != 4 {
 		return "", "", fmt.Errorf("returned string for vm metata was the wrong format: got %s", projectZoneUrl)
