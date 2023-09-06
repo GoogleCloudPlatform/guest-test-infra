@@ -22,9 +22,6 @@ const (
 func RunFIOReadWindows() ([]byte, error) {
 	testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
-	//if procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false"); err != nil {
-	//	return []byte{}, fmt.Errorf("Initialize-Disk returned with error: %v, %s, %s", err, procStatus.Stdout, procStatus.Stderr)
-	//}
 	fioReadOptionsWindows := " -ArgumentList \"" + commonFIOReadOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
