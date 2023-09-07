@@ -16,13 +16,14 @@ const (
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.97
 	// hyperdiskSize in GB is used to determine which partition is the mounted hyperdisk.
-	hyperdiskSize = 100
+	hyperdiskSize = 300
 	bootdiskSize  = 50
 	mountDiskName = "hyperdisk"
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
 	fioWindowsLocalPath = "C:\\fio.exe"
+	windowsDriveLetter  = "F"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
 

@@ -17,15 +17,11 @@ import (
 
 const (
 	commonFIOReadOptions = "--name=read_iops_test --filesize=10G --numjobs=8 --time_based --runtime=60s --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --group_reporting=1 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	windowsDriveLetter   = "F"
 )
 
 func RunFIOReadWindows() ([]byte, error) {
 	testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
-	if procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false"); err != nil {
-		return []byte{}, fmt.Errorf("Initialize-Disk returned with error: %v, %s, %s", err, procStatus.Stdout, procStatus.Stderr)
-	}
 	fioReadOptionsWindows := " -ArgumentList \"" + commonFIOReadOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
@@ -77,7 +73,7 @@ func TestReadIOPS(t *testing.T) {
 
 	var fioOut FIOOutput
 	if err = json.Unmarshal(readIOPSJson, &fioOut); err != nil {
-		t.Fatalf("fio output could not be unmarshalled with error: %v", err)
+		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(readIOPSJson), err)
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
