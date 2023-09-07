@@ -7,7 +7,6 @@ $timeout=60
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Invoke-WebRequest -Uri $iperfurl -OutFile $iperfzippath
 Expand-Archive -Path $iperfzippath -DestinationPath $zipdir
-
 New-NetFirewallRule -DisplayName "allow-iperf" -Direction Inbound -LocalPort 5001 -Protocol TCP -Action Allow
 
 cd $exepath

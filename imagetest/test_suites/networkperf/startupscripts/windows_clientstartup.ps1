@@ -7,13 +7,12 @@ $outfile="iperfoutput.txt"
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $iperftarget=Invoke-RestMethod -Uri "http://metadata.google.internal/computeMetadata/v1/instance/attributes/iperftarget" -Header @{"Metadata-Flavor" = "Google"} -UseBasicParsing
-
 Invoke-WebRequest -Uri $iperfurl -OutFile $iperfzippath
 Expand-Archive -Path $iperfzippath -DestinationPath $zipdir
 New-NetFirewallRule -DisplayName "allow-iperf" -Direction Inbound -LocalPort 5001 -Protocol TCP -Action Allow
 
 cd $exepath
-Start-Sleep -s 15
+Start-Sleep -s 5 # Wait for the server to start up.
 
 # Perform the test, and upload results.
 ./iperf -c $iperftarget -t 30 -P 16 2>&1 > $outfile
