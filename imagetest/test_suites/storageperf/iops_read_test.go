@@ -37,12 +37,12 @@ func RunFIOReadWindows() ([]byte, error) {
 
 func RunFIOReadLinux() ([]byte, error) {
 	symlinkRealPath := ""
-	diskPartition, err := getMountDiskPartition(hyperdiskSize)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
 		errorString := err.Error()
-		symlinkRealPath, err = getMountDiskPartitionSymlink()
+		symlinkRealPath, err = utils.GetMountDiskPartitionSymlink(mountDiskName)
 		if err != nil {
 			errorString += err.Error()
 			return []byte{}, fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
