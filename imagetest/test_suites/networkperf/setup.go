@@ -37,6 +37,12 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
+		// gVNIC not supported on certain images.
+		t.Skip(fmt.Sprintf("%v does not support gVNIC", t.Image))
+		return nil
+	}
+
 	// Default network.
 	defaultNetwork, err := t.CreateNetwork("default-network", false)
 	if err != nil {
@@ -68,8 +74,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
+	if err != nil {
+		return err
+	}
 
-	// Create two VMs for default GVNIC performance testing.
+
+	// Default VMs.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
 		return err
@@ -95,7 +106,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
 	clientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 
-	// Jumbo frames VMs
+	// Jumbo frames VMs.
 	jfServerVM, err := t.CreateTestVM(jfServerConfig.name)
 	if err != nil {
 		return err
@@ -121,22 +132,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
 	jfClientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 
-	// Setting up tests to run.
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// gVNIC not supported on certain images.
-		serverVM.RunTests("TestEmpty")
-		clientVM.RunTests("TestEmpty")
-		jfServerVM.RunTests("TestEmpty")
-		jfClientVM.RunTests("TestEmpty")
-		return nil
-	}
-	// Only images that support gVNIC can run tier1 tests.
-	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
-	if err != nil {
-		return err
-	}
-
-	// Create Test VMs for Tier1 tests.
+	// Tier 1 VMs.
 	tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name)
 	if err != nil {
 		return err
