@@ -19,20 +19,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		t.Skip(fmt.Sprintf("%v does not support CVM", t.Image))
 	}
 
-	network, err := t.CreateNetwork("default-network", false)
-	if err != nil {
-		return err
-	}
-	subnetwork, err := network.CreateSubnetwork("default-subnetwork", "192.168.0.0/24")
-	if err != nil {
-		return err
-	}
-
 	vm := t.CreateTestVM(vmName)
 	if err != nil {
-		return err
-	}
-	if err := vm.AddCustomNetwork(network, subnetwork); err != nil {
 		return err
 	}
 	vm.EnableConfidentialInstance()
