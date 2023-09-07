@@ -79,7 +79,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-
 	// Default VMs.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
