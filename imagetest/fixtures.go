@@ -236,6 +236,11 @@ func (t *TestVM) SetStartupScript(script string) {
 	t.AddMetadata("startup-script", script)
 }
 
+// SetWindowsStartupScript sets the `windows-startup-script-ps1` metadata key for a VM.
+func (t *TestVM) SetWindowsStartupScript(script string) {
+	t.AddMetadata("windows-startup-script-ps1", script)
+}
+
 // SetNetworkPerformanceTier sets the performance tier of the VM.
 // The tier must be one of "DEFAULT" or "TIER_1"
 func (t *TestVM) SetNetworkPerformanceTier(tier string) error {

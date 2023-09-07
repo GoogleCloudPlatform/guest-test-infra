@@ -27,10 +27,12 @@ var tier1ClientConfig = InstanceConfig{name: "tier1-client-vm", ip: "192.168.0.7
 var scripts embed.FS
 
 const (
-	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
-	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
-	targetsURL             = "targets.txt"
-	tier1TargetsURL        = "tier1_targets.txt"
+	serverStartupScriptURL        = "startupscripts/netserver_startup.sh"
+	clientStartupScriptURL        = "startupscripts/netclient_startup.sh"
+	windowsServerStartupScriptURL = "startupscripts/windows_serverstartup.ps1"
+	windowsClientStartupScriptURL = "startupscripts/windows_clientstartup.ps1"
+	targetsURL                    = "targets.txt"
+	tier1TargetsURL               = "tier1_targets.txt"
 )
 
 // TestSetup sets up the test workflow.
@@ -60,18 +62,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := jfNetwork.CreateFirewallRule("jf-allow-tcp", "tcp", []string{"5001"}, []string{"192.168.1.0/24"}); err != nil {
 		return err
 	}
-
-	// Get the startup scripts as byte arrays.
-	serverStartupByteArr, err := scripts.ReadFile(serverStartupScriptURL)
-	if err != nil {
-		return err
-	}
-	clientStartupByteArr, err := scripts.ReadFile(clientStartupScriptURL)
-	if err != nil {
-		return err
-	}
-	serverStartup := string(serverStartupByteArr)
-	clientStartup := string(clientStartupByteArr)
 
 	// Get the targets.
 	defaultPerfTargets, err := scripts.ReadFile(targetsURL)
@@ -140,7 +130,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		jfClientVM.RunTests("TestEmpty")
 		return nil
 	}
-	// Only images that support gVNIC can should run tier1 tests.
+	// Only images that support gVNIC can run tier1 tests.
 	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
 	if err != nil {
 		return err
@@ -174,12 +164,45 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	tier1ClientVM.AddMetadata("perfmap", string(tier1PerfTargets))
 
 	// Set startup scripts.
-	serverVM.SetStartupScript(serverStartup)
-	clientVM.SetStartupScript(clientStartup)
-	jfServerVM.SetStartupScript(serverStartup)
-	jfClientVM.SetStartupScript(clientStartup)
-	tier1ServerVM.SetStartupScript(serverStartup)
-	tier1ClientVM.SetStartupScript(clientStartup)
+	var serverStartupByteArr []byte
+	var clientStartupByteArr []byte
+	if strings.Contains(t.Image, "windows") {
+		serverStartupByteArr, err = scripts.ReadFile(windowsServerStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		clientStartupByteArr, err = scripts.ReadFile(windowsClientStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		serverStartup := string(serverStartupByteArr)
+		clientStartup := string(clientStartupByteArr)
+
+		serverVM.SetWindowsStartupScript(serverStartup)
+		clientVM.SetWindowsStartupScript(clientStartup)
+		jfServerVM.SetWindowsStartupScript(serverStartup)
+		jfClientVM.SetWindowsStartupScript(clientStartup)
+		tier1ServerVM.SetWindowsStartupScript(serverStartup)
+		tier1ClientVM.SetWindowsStartupScript(clientStartup)
+	} else {
+		serverStartupByteArr, err = scripts.ReadFile(serverStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		clientStartupByteArr, err = scripts.ReadFile(clientStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		serverStartup := string(serverStartupByteArr)
+		clientStartup := string(clientStartupByteArr)
+
+		serverVM.SetStartupScript(serverStartup)
+		clientVM.SetStartupScript(clientStartup)
+		jfServerVM.SetStartupScript(serverStartup)
+		jfClientVM.SetStartupScript(clientStartup)
+		tier1ServerVM.SetStartupScript(serverStartup)
+		tier1ClientVM.SetStartupScript(clientStartup)
+	}
 
 	clientVM.UseGVNIC()
 	serverVM.UseGVNIC()
