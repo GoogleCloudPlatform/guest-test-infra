@@ -21,7 +21,7 @@ const (
 	fioWindowsLocalPath = "C:\\fio.exe"
 	windowsDriveLetter  = "F"
 	// constants for the mode of running the test
-	randomMode = "random"
+	randomMode     = "random"
 	sequentialMode = "sequential"
 	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
 )
