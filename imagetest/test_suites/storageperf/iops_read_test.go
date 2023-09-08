@@ -127,7 +127,7 @@ func TestSequentialReadIOPS(t *testing.T) {
 		finalIOPSValue += job.ReadResult.IOPS
 	}
 	//TODO: Update this value to be equal to the input IOPS value, once it is implemented in this testing framework. For now, it is not clear what the sequential read iops value should be.
-	expectedHyperdiskIOPS := 5 * hyperdiskSize
+	expectedHyperdiskIOPS := 5.0 * hyperdiskSize
 	if finalIOPSValue < iopsErrorMargin*expectedHyperdiskIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
 	}
