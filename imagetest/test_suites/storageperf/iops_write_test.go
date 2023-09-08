@@ -35,7 +35,7 @@ func RunFIOWriteWindows() ([]byte, error) {
 	return []byte(writeIopsJsonProcStatus.Stdout), nil
 }
 
-func RunFIOWriteLinux() ([]byte, error) {
+func getLinuxSymlinkWrite() (string, error) {
 	symlinkRealPath := ""
 	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
 	if err == nil {
@@ -45,10 +45,17 @@ func RunFIOWriteLinux() ([]byte, error) {
 		symlinkRealPath, err = utils.GetMountDiskPartitionSymlink(mountDiskName)
 		if err != nil {
 			errorString += err.Error()
-			return []byte{}, fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
+			return "", fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
 		}
 	}
+	return symlinkRealPath, nil
+}
 
+func RunFIOWriteLinux() ([]byte, error) {
+	symlinkRealPath, err := getLinuxSymlinkWrite()
+	if err != nil {
+		return []byte{}, err
+	}
 	fioWriteOptionsLinuxSlice := strings.Fields(commonFIOWriteOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
 	writeIOPSJson, err := exec.Command("fio", fioWriteOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {

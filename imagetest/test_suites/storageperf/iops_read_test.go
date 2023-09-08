@@ -16,13 +16,20 @@ import (
 )
 
 const (
-	commonFIOReadOptions = "--name=read_iops_test --filesize=10G --numjobs=8 --time_based --runtime=60s --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --group_reporting=1 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIORandReadOptions = "--name=read_iops_test --filesize=10G --numjobs=8 --time_based --runtime=60s --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --group_reporting=1 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqReadOptions = "--name=read_bandwidth_test --filesize=10G --numjobs=4 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --thread --offset_increment=2G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64  --iodepth_batch_complete_max=64 --output-format=json"
 )
 
-func RunFIOReadWindows() ([]byte, error) {
+func RunFIOReadWindows(mode string) ([]byte, error) {
 	testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
-	fioReadOptionsWindows := " -ArgumentList \"" + commonFIOReadOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
+	var readOptions string
+	if mode == sequentialMode {
+		readOptions = commonFIOSeqReadOptions
+	} else {
+		readOptions = commonFIORandReadOptions
+	}
+	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -35,7 +42,7 @@ func RunFIOReadWindows() ([]byte, error) {
 	return []byte(readIopsJsonProcStatus.Stdout), nil
 }
 
-func RunFIOReadLinux() ([]byte, error) {
+func getLinuxSymlinkRead() (string, error) {
 	symlinkRealPath := ""
 	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
 	if err == nil {
@@ -45,11 +52,23 @@ func RunFIOReadLinux() ([]byte, error) {
 		symlinkRealPath, err = utils.GetMountDiskPartitionSymlink(mountDiskName)
 		if err != nil {
 			errorString += err.Error()
-			return []byte{}, fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
+			return "", fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
 		}
 	}
-
-	fioReadOptionsLinuxSlice := strings.Fields(commonFIOReadOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
+	return symlinkRealPath, nil
+}
+func RunFIOReadLinux(mode string) ([]byte, error) {
+	var readOptions string
+	if mode == sequentialMode {
+		readOptions = commonFIOSeqReadOptions
+	} else {
+		readOptions = commonFIORandReadOptions
+	}
+	symlinkRealPath, err := getLinuxSymlinkRead()
+	if err != nil {
+		return []byte{}, err
+	}
+	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
 	readIOPSJson, err := exec.Command("fio", fioReadOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v", err)
@@ -58,22 +77,22 @@ func RunFIOReadLinux() ([]byte, error) {
 }
 
 // TestReadIOPS checks that read IOPS are around the value listed in public docs.
-func TestReadIOPS(t *testing.T) {
-	var readIOPSJson []byte
+func TestRandomReadIOPS(t *testing.T) {
+	var randReadIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if readIOPSJson, err = RunFIOReadWindows(); err != nil {
+		if randReadIOPSJson, err = RunFIOReadWindows(randomMode); err != nil {
 			t.Fatalf("windows fio read failed with error: %v", err)
 		}
 	} else {
-		if readIOPSJson, err = RunFIOReadLinux(); err != nil {
+		if randReadIOPSJson, err = RunFIOReadLinux(randomMode); err != nil {
 			t.Fatalf("linux fio read failed with error: %v", err)
 		}
 	}
 
 	var fioOut FIOOutput
-	if err = json.Unmarshal(readIOPSJson, &fioOut); err != nil {
-		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(readIOPSJson), err)
+	if err = json.Unmarshal(randReadIOPSJson, &fioOut); err != nil {
+		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randReadIOPSJson), err)
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
