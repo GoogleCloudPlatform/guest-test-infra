@@ -76,7 +76,7 @@ func RunFIOReadLinux(mode string) ([]byte, error) {
 	return readIOPSJson, nil
 }
 
-// TestReadIOPS checks that read IOPS are around the value listed in public docs.
+// TestRandomReadIOPS checks that random read IOPS are around the value listed in public docs.
 func TestRandomReadIOPS(t *testing.T) {
 	var randReadIOPSJson []byte
 	var err error
@@ -104,7 +104,7 @@ func TestRandomReadIOPS(t *testing.T) {
 	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedHyperdiskIOPS)
 }
 
-// TestReadIOPS checks that read IOPS are around the value listed in public docs.
+// TestSequentialReadIOPS checks that sequential read IOPS are around the value listed in public docs.
 func TestSequentialReadIOPS(t *testing.T) {
 	var seqReadIOPSJson []byte
 	var err error

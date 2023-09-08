@@ -47,6 +47,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		vm.SetStartupScript(string(linuxStartup))
 	}
-	vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestWriteIOPS")
+	vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
 	return nil
 }
