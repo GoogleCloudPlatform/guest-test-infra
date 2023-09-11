@@ -12,10 +12,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-func TestEmpty(t *testing.T) {
-	t.Logf("Empty test")
-}
-
 func TestNetworkPerformance(t *testing.T) {
 	// Check performance of the driver.
 	results, err := utils.GetMetadataGuestAttribute("testing/results")
