@@ -509,7 +509,6 @@ local imggroup = {
   local debian_images = ['debian-10', 'debian-11', 'debian-11-arm64', 'debian-12', 'debian-12-arm64'],
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_sap_images = [
-    'rhel-7-7-sap',
     'rhel-7-9-sap',
     'rhel-8-1-sap',
     'rhel-8-2-sap',
