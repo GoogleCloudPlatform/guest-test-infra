@@ -27,14 +27,22 @@ var tier1ClientConfig = InstanceConfig{name: "tier1-client-vm", ip: "192.168.0.7
 var scripts embed.FS
 
 const (
-	serverStartupScriptURL = "startupscripts/netserver_startup.sh"
-	clientStartupScriptURL = "startupscripts/netclient_startup.sh"
-	targetsURL             = "targets.txt"
-	tier1TargetsURL        = "tier1_targets.txt"
+	serverStartupScriptURL        = "startupscripts/netserver_startup.sh"
+	clientStartupScriptURL        = "startupscripts/netclient_startup.sh"
+	windowsServerStartupScriptURL = "startupscripts/windows_serverstartup.ps1"
+	windowsClientStartupScriptURL = "startupscripts/windows_clientstartup.ps1"
+	targetsURL                    = "targets.txt"
+	tier1TargetsURL               = "tier1_targets.txt"
 )
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
+		// gVNIC not supported on certain images.
+		t.Skip(fmt.Sprintf("%v does not support gVNIC", t.Image))
+		return nil
+	}
+
 	// Default network.
 	defaultNetwork, err := t.CreateNetwork("default-network", false)
 	if err != nil {
@@ -61,25 +69,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	// Get the startup scripts as byte arrays.
-	serverStartupByteArr, err := scripts.ReadFile(serverStartupScriptURL)
-	if err != nil {
-		return err
-	}
-	clientStartupByteArr, err := scripts.ReadFile(clientStartupScriptURL)
-	if err != nil {
-		return err
-	}
-	serverStartup := string(serverStartupByteArr)
-	clientStartup := string(clientStartupByteArr)
-
 	// Get the targets.
 	defaultPerfTargets, err := scripts.ReadFile(targetsURL)
 	if err != nil {
 		return err
 	}
+	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
+	if err != nil {
+		return err
+	}
 
-	// Create two VMs for default GVNIC performance testing.
+	// Default VMs.
 	serverVM, err := t.CreateTestVM(serverConfig.name)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	clientVM.AddMetadata("iperftarget", serverConfig.ip)
 	clientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 
-	// Jumbo frames VMs
+	// Jumbo frames VMs.
 	jfServerVM, err := t.CreateTestVM(jfServerConfig.name)
 	if err != nil {
 		return err
@@ -131,22 +131,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
 	jfClientVM.AddMetadata("perfmap", string(defaultPerfTargets))
 
-	// Setting up tests to run.
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// gVNIC not supported on certain images.
-		serverVM.RunTests("TestEmpty")
-		clientVM.RunTests("TestEmpty")
-		jfServerVM.RunTests("TestEmpty")
-		jfClientVM.RunTests("TestEmpty")
-		return nil
-	}
-	// Only images that support gVNIC can should run tier1 tests.
-	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
-	if err != nil {
-		return err
-	}
-
-	// Create Test VMs for Tier1 tests.
+	// Tier 1 VMs.
 	tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name)
 	if err != nil {
 		return err
@@ -174,12 +159,45 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	tier1ClientVM.AddMetadata("perfmap", string(tier1PerfTargets))
 
 	// Set startup scripts.
-	serverVM.SetStartupScript(serverStartup)
-	clientVM.SetStartupScript(clientStartup)
-	jfServerVM.SetStartupScript(serverStartup)
-	jfClientVM.SetStartupScript(clientStartup)
-	tier1ServerVM.SetStartupScript(serverStartup)
-	tier1ClientVM.SetStartupScript(clientStartup)
+	var serverStartupByteArr []byte
+	var clientStartupByteArr []byte
+	if strings.Contains(t.Image, "windows") {
+		serverStartupByteArr, err = scripts.ReadFile(windowsServerStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		clientStartupByteArr, err = scripts.ReadFile(windowsClientStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		serverStartup := string(serverStartupByteArr)
+		clientStartup := string(clientStartupByteArr)
+
+		serverVM.SetWindowsStartupScript(serverStartup)
+		clientVM.SetWindowsStartupScript(clientStartup)
+		jfServerVM.SetWindowsStartupScript(serverStartup)
+		jfClientVM.SetWindowsStartupScript(clientStartup)
+		tier1ServerVM.SetWindowsStartupScript(serverStartup)
+		tier1ClientVM.SetWindowsStartupScript(clientStartup)
+	} else {
+		serverStartupByteArr, err = scripts.ReadFile(serverStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		clientStartupByteArr, err = scripts.ReadFile(clientStartupScriptURL)
+		if err != nil {
+			return err
+		}
+		serverStartup := string(serverStartupByteArr)
+		clientStartup := string(clientStartupByteArr)
+
+		serverVM.SetStartupScript(serverStartup)
+		clientVM.SetStartupScript(clientStartup)
+		jfServerVM.SetStartupScript(serverStartup)
+		jfClientVM.SetStartupScript(clientStartup)
+		tier1ServerVM.SetStartupScript(serverStartup)
+		tier1ClientVM.SetStartupScript(clientStartup)
+	}
 
 	clientVM.UseGVNIC()
 	serverVM.UseGVNIC()
