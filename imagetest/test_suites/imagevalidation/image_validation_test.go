@@ -64,6 +64,28 @@ func TestCustomHostname(t *testing.T) {
 
 // TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
+	// TODO Zonal DNS is breaking this test case in EL9.
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata")
+	}
+	if strings.Contains(image, "almalinux-9") {
+		// Zonal DNS change is breaking EL9.
+		t.Skip("Broken on EL9")
+	}
+	if strings.Contains(image, "centos-stream-9") {
+		// Zonal DNS change is breaking EL9.
+		t.Skip("Broken on EL9")
+	}
+	if strings.Contains(image, "rhel-9") {
+		// Zonal DNS change is breaking EL9.
+		t.Skip("Broken on EL9")
+	}
+	if strings.Contains(image, "rocky-linux-9") {
+		// Zonal DNS change is breaking EL9.
+		t.Skip("Broken on EL9")
+	}
+
 	metadataHostname, err := utils.GetMetadata("hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
