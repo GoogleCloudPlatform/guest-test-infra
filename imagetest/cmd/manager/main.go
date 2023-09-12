@@ -142,7 +142,7 @@ func main() {
 		{
 			hotattach.Name,
 			hotattach.TestSetup,
-		}
+		},
 		{
 			disk.Name,
 			disk.TestSetup,
