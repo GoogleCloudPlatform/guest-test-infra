@@ -327,6 +327,20 @@ func (t *TestVM) ResizeDiskAndReboot(diskSize int) error {
 	return t.Reboot()
 }
 
+// ForceMachineType sets the machine type for the test VM. This will override
+// the machine_type flag in the CIT wrapper, and should only be used when a
+// test absolutely requires a specific machine shape.
+func (t *TestVM) ForceMachineType(machinetype string) {
+	t.instance.MachineType = machinetype
+}
+
+// ForceZone sets the zone for the test vm. This will override the zone option
+// from the CIT wrapper and and should only be used when a test requires a specific
+// zone.
+func (t *TestVM) ForceZone(z string) {
+	t.instance.Zone = z
+}
+
 // EnableSecureBoot make the current test VMs in workflow with secure boot.
 func (t *TestVM) EnableSecureBoot() {
 	t.instance.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
