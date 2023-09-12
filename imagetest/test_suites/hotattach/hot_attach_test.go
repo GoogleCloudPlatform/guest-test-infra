@@ -57,7 +57,10 @@ func getLinuxMountPath(mountDiskSizeGb int, mountDiskName string) (string, error
 	return symlinkRealPath, nil
 }
 
-func mountLinuxDiskToPath(mountDiskDir string) error {
+func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
+	if err := os.MkdirAll(mountDiskDir, 0777); err != nil {
+		return fmt.Errorf("could not make mount disk dir %s: error %v", mountDiskDir, err)
+	}
 	// see constants defined in setup.go
 	mountDiskPath, err := getLinuxMountPath(mountDiskSize, diskName)
 	if err != nil {
@@ -66,13 +69,11 @@ func mountLinuxDiskToPath(mountDiskDir string) error {
 	if !utils.CheckLinuxCmdExists(mkfsCmd) {
 		return fmt.Errorf("could not format mount disk: %s cmd not found", mkfsCmd)
 	}
-	mkfsFullCmd := exec.Command(mkfsCmd, "-m", "0", "-E", "lazy_itable_init=0,lazy_journal_init=0,discard", mountDiskPath)
-	if stdout, err := mkfsFullCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("mkfs cmd failed to complete: %v %v", stdout, err)
-	}
-
-	if err := os.MkdirAll(mountDiskDir, 0777); err != nil {
-		return fmt.Errorf("could not make test read output dir: %v", err)
+	if !isReattach {
+		mkfsFullCmd := exec.Command(mkfsCmd, "-m", "0", "-E", "lazy_itable_init=0,lazy_journal_init=0,discard", mountDiskPath)
+		if stdout, err := mkfsFullCmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("mkfs cmd failed to complete: %v %v", stdout, err)
+		}
 	}
 
 	mountCmd := exec.Command("mount", "-o", "discard,defaults", mountDiskPath, mountDiskDir)
@@ -81,6 +82,19 @@ func mountLinuxDiskToPath(mountDiskDir string) error {
 		return fmt.Errorf("failed to mount disk: %v", err)
 	}
 
+	return nil
+}
+
+func unmountLinuxDisk() error {
+	// see constants defined in setup.go
+	mountDiskPath, err := getLinuxMountPath(mountDiskSize, diskName)
+	if err != nil {
+		return fmt.Errorf("failed to find unmount path: %v", err)
+	}
+	umountCmd := exec.Command("umount", "-l", mountDiskPath)
+	if stdout, err := umountCmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to run unmount command: %v %v", stdout, err)
+	}
 	return nil
 }
 
@@ -97,7 +111,7 @@ func TestFileHotAttach(t *testing.T) {
 		}
 		fileFullPath = windowsMountDriveLetter + ":\\" + fileName
 	} else {
-		if err := mountLinuxDiskToPath(linuxMountPath); err != nil {
+		if err := mountLinuxDiskToPath(linuxMountPath, false); err != nil {
 			t.Fatalf("failed to mount linux disk to linuxmountpath %s: error %v", linuxMountPath, err)
 		}
 		fileFullPath = linuxMountPath + "/" + fileName
@@ -109,6 +123,12 @@ func TestFileHotAttach(t *testing.T) {
 	_, err = f.WriteString(fileContents)
 	if err != nil {
 		t.Fatalf("failed to write to file: %v", err)
+	}
+	// run unmount steps if linux
+	if runtime.GOOS != "windows" {
+		if err = unmountLinuxDisk(); err != nil {
+			t.Fatalf("unmount failed on linux: %v", err)
+		}
 	}
 	ctx := context.Background()
 	service, err := compute.NewService(ctx)
@@ -158,7 +178,7 @@ func TestFileHotAttach(t *testing.T) {
 			t.Fatalf("failed to initialize disk on reattach for windows: errors %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
 		}
 	} else {
-		if err := mountLinuxDiskToPath(linuxMountPath); err != nil {
+		if err := mountLinuxDiskToPath(linuxMountPath, true); err != nil {
 			t.Fatalf("failed to mount linux disk to path %s on reattach: error %v", linuxMountPath, err)
 		}
 	}
