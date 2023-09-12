@@ -439,3 +439,39 @@ func TestAddUser(t *testing.T) {
 		t.Errorf("\"ssh-keys\" key malformed after repeated entry")
 	}
 }
+
+func TestForceMachineType(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if tvm.instance.MachineType != "" {
+		t.Errorf("machine type already set: %v", tvm.instance.MachineType)
+	}
+	tvm.ForceMachineType("t2a-standard-1")
+	if tvm.instance.MachineType != "t2a-standard-1" {
+		t.Errorf("could not set test machine type, got %q, want t2a-standard-1", tvm.instance.MachineType)
+	}
+}
+
+func TestForceZone(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if tvm.instance.Zone != "" {
+		t.Errorf("machine zone already set: %v", tvm.instance.Zone)
+	}
+	tvm.ForceZone("us-east1-a")
+	if tvm.instance.Zone != "us-east1-a" {
+		t.Errorf("could not set test zone, got %q, want us-east1-a", tvm.instance.Zone)
+	}
+}

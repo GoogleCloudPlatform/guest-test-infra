@@ -20,6 +20,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/shapevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
@@ -41,7 +42,7 @@ var (
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
-	machineType   = flag.String("machine_type", "", "machine type to use for test instances")
+	machineType   = flag.String("machine_type", "", "machine type to use for test instances, overridable by individual tests")
 )
 
 var (
@@ -140,6 +141,10 @@ func main() {
 		{
 			disk.Name,
 			disk.TestSetup,
+		},
+		{
+			shapevalidation.Name,
+			shapevalidation.TestSetup,
 		},
 		{
 			storageperf.Name,

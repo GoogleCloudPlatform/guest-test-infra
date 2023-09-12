@@ -139,6 +139,7 @@ func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.S
 	bootdisk.Name = diskParams.Name
 	bootdisk.SourceImage = t.Image
 	bootdisk.Type = diskParams.Type
+	bootdisk.Zone = diskParams.Zone
 
 	createDisks := &daisy.CreateDisks{bootdisk}
 
@@ -166,6 +167,7 @@ func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*da
 	mountdisk := &daisy.Disk{}
 	mountdisk.Name = diskParams.Name
 	mountdisk.Type = diskParams.Type
+	mountdisk.Zone = diskParams.Zone
 	if diskParams.SizeGb == 0 {
 		return nil, fmt.Errorf("failed to create mount disk with no SizeGb parameter")
 	}
@@ -341,15 +343,23 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
+		createVMsStep := twf.wf.Steps[createVMsStepName]
+		for _, vm := range createVMsStep.CreateInstances.Instances {
+			if vm.Zone != "" && vm.Zone != twf.wf.Zone {
+				log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
+			}
+			if machineType != "" {
+				if vm.MachineType != "" {
+					log.Printf("VM %s machine type set to %s for test %s, not overriding\n", vm.Name, vm.MachineType, twf.Name)
+				} else {
+					vm.MachineType = machineType
+				}
+			}
+		}
+
 		arch := "amd64"
-		if machineType != "" {
-			createVMsStep := twf.wf.Steps[createVMsStepName]
-			for _, vm := range createVMsStep.CreateInstances.Instances {
-				vm.MachineType = machineType
-			}
-			if strings.HasPrefix(machineType, "t2a") {
-				arch = "arm64"
-			}
+		if strings.Contains(twf.Image, "arm64") || strings.Contains(twf.Image, "aarch64") {
+			arch = "arm64"
 		}
 
 		if strings.Contains(twf.Image, "windows") {
