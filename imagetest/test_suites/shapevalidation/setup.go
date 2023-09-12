@@ -22,7 +22,7 @@ type shape struct {
 
 // Map of family name to the shape that should be tested in that family.
 var x86shapes = map[string]*shape{
-	"C3": &shape{
+	"C3": {
 		name:  "c3-highmem-176",
 		cpu:   176,
 		mem:   1408,
@@ -30,35 +30,35 @@ var x86shapes = map[string]*shape{
 		disks: []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
 		zone:  "us-east1-b",
 	},
-	"E2": &shape{
+	"E2": {
 		name:  "e2-standard-32",
 		cpu:   32,
 		mem:   128,
 		numa:  1,
 		disks: []*compute.Disk{{Name: "E2", Type: imagetest.PdStandard}},
 	},
-	"N2": &shape{
+	"N2": {
 		name:  "n2-highmem-128",
 		cpu:   128,
 		mem:   864,
 		numa:  2,
 		disks: []*compute.Disk{{Name: "N2", Type: imagetest.PdStandard}},
 	},
-	"N2D": &shape{
+	"N2D": {
 		name:  "n2d-standard-224",
 		cpu:   224,
 		mem:   896,
 		numa:  2,
 		disks: []*compute.Disk{{Name: "N2D", Type: imagetest.PdStandard}},
 	},
-	"T2D": &shape{
+	"T2D": {
 		name:  "t2d-standard-60",
 		cpu:   60,
 		mem:   240,
 		numa:  1,
 		disks: []*compute.Disk{{Name: "T2D", Type: imagetest.PdStandard}},
 	},
-	"N1": &shape{
+	"N1": {
 		name:  "n1-highmem-96",
 		cpu:   96,
 		mem:   624,
@@ -68,7 +68,7 @@ var x86shapes = map[string]*shape{
 }
 
 var armshapes = map[string]*shape{
-	"T2A": &shape{
+	"T2A": {
 		name:  "t2a-standard-48",
 		cpu:   48,
 		mem:   192,

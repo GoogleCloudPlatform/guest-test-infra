@@ -15,6 +15,6 @@ run:
   - -zone=us-central1-a
   - -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
   - -images=((images))
-  - -exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)
+  - -exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)
   - -machine_type=((machine-type))
   - ((extra-args))
