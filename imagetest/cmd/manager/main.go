@@ -13,6 +13,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imagevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
@@ -138,6 +139,10 @@ func main() {
 			security.Name,
 			security.TestSetup,
 		},
+		{
+			hotattach.Name,
+			hotattach.TestSetup,
+		}
 		{
 			disk.Name,
 			disk.TestSetup,
