@@ -2,6 +2,7 @@ package networkperf
 
 import (
 	"embed"
+	"fmt"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
