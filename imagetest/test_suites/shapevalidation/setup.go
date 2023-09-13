@@ -2,6 +2,7 @@ package shapevalidation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -12,12 +13,13 @@ import (
 var Name = "shapevalidation"
 
 type shape struct {
-	name  string          // Full shape name
-	cpu   int             // Expected number of vCPUs
-	mem   uint64          // Expected memory in GB
-	numa  uint8           // Expected number of vNUMA nodes
-	disks []*compute.Disk // Disk configuration for created instances
-	zone  string          // If set, force the VM to run in this zone
+	name       string           // Full shape name
+	cpu        int              // Expected number of vCPUs
+	mem        uint64           // Expected memory in GB
+	numa       uint8            // Expected number of vNUMA nodes
+	disks      []*compute.Disk  // Disk configuration for created instances
+	zone       string           // If set, force the VM to run in this zone
+	exceptions []*regexp.Regexp // Regexp matches for image names to skip testing this family on
 }
 
 // Map of family name to the shape that should be tested in that family.
@@ -31,12 +33,13 @@ var x86shapes = map[string]*shape{
 		zone:  "us-east1-b",
 	},
 	"C3D": {
-		name:  "c3d-highmem-360",
-		cpu:   360,
-		mem:   2880,
-		numa:  2,
-		disks: []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
-		zone:  "us-east4-c",
+		name:       "c3d-highmem-360",
+		cpu:        360,
+		mem:        2880,
+		numa:       2,
+		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
+		zone:       "us-east4-c",
+		exceptions: []*regexp.Regexp{regexp.MustCompile("windows")},
 	},
 	"E2": {
 		name:  "e2-standard-32",
@@ -98,7 +101,13 @@ func testFamily(t *imagetest.TestWorkflow, families map[string]*shape) error {
 	// This isn't because the test modifies project-level data, but because the
 	// test uses so much capacity that we need to test images serially.
 	t.LockProject()
+Familyloop:
 	for family, shape := range families {
+		for _, e := range shape.exceptions {
+			if e.MatchString(t.Image) {
+				continue Familyloop
+			}
+		}
 		vm, err := t.CreateTestVMMultipleDisks(shape.disks, map[string]string{})
 		if err != nil {
 			return err
