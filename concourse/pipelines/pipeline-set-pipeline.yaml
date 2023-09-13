@@ -48,5 +48,3 @@ jobs:
     file: rendered/artifact-releaser-test.json
   - set_pipeline: partner-image-validations
     file: rendered/partner-image-validations.json
-  - set_pipeline: image-release-testing
-    file: rendered/image-release-testing.json
