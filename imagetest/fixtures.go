@@ -348,6 +348,21 @@ func (t *TestVM) EnableSecureBoot() {
 	}
 }
 
+// EnableConfidentialInstance enabled CVM features for the instance.
+func (t *TestVM) EnableConfidentialInstance() {
+	t.instance.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{
+		EnableConfidentialCompute: true,
+	}
+	t.instance.Scheduling = &compute.Scheduling{
+		OnHostMaintenance: "TERMINATE",
+	}
+}
+
+// SetMinCPUPlatform sets the minimum CPU platform of the instance.
+func (t *TestVM) SetMinCPUPlatform(minCPUPlatform string) {
+	t.instance.MinCpuPlatform = minCPUPlatform
+}
+
 // UseGVNIC sets the type of vNIC to be used to GVNIC
 func (t *TestVM) UseGVNIC() {
 	if t.instance.NetworkInterfaces == nil {

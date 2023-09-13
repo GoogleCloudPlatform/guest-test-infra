@@ -12,6 +12,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/cvm"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
@@ -119,6 +120,10 @@ func main() {
 		name      string
 		setupFunc func(*imagetest.TestWorkflow) error
 	}{
+		{
+			cvm.Name,
+			cvm.TestSetup,
+		},
 		{
 			networkperf.Name,
 			networkperf.TestSetup,
