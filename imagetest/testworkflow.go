@@ -102,8 +102,8 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		instance.Hostname = hostname
 	}
 
-	if minCpuPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
-		instance.MinCpuPlatform = minCpuPlatform
+	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
+		instance.MinCpuPlatform = minCPUPlatform
 	}
 	if machineType, foundKey := instanceParams["machineType"]; foundKey {
 		instance.MachineType = machineType
