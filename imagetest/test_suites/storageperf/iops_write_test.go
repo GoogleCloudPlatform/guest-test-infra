@@ -48,12 +48,13 @@ func getLinuxSymlinkWrite() (string, error) {
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
-		errorString := err.Error()
+		return "", fmt.Errorf("failed to find symlink: error %v", err)
+		/* errorString := err.Error()
 		symlinkRealPath, err = utils.GetMountDiskPartitionSymlink(mountDiskName)
 		if err != nil {
 			errorString += err.Error()
 			return "", fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
-		}
+		}*/
 	}
 	return symlinkRealPath, nil
 }
