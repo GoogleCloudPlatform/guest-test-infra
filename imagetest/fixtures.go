@@ -353,6 +353,9 @@ func (t *TestVM) EnableConfidentialInstance() {
 	t.instance.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{
 		EnableConfidentialCompute: true,
 	}
+	t.instance.Scheduling = &compute.Scheduling{
+		OnHostMaintenance: "TERMINATE",
+	}
 }
 
 // SetMinCpuPlatform sets the minimum CPU platform of the instance.

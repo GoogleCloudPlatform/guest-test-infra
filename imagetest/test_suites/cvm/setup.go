@@ -1,4 +1,4 @@
-package setup
+package cvm
 
 import (
 	"fmt"
@@ -13,13 +13,11 @@ const vmName = "vm"
 
 // TestSetup sets up test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	// TODO -- Workflow passes full image URL, so use that to find if it's
-	// in the list of valid images
-	if strings.Contains(t.Image, "windows") {
+	if strings.Contains(t.Image, "windows") || strings.Contains(t.Image, "rhel-7") || strings.Contains(t.Image, "centos-7") || strings.Contains(t.Image, "debian-10") {
 		t.Skip(fmt.Sprintf("%v does not support CVM", t.Image))
 	}
 
-	vm := t.CreateTestVM(vmName)
+	vm, err := t.CreateTestVM(vmName)
 	if err != nil {
 		return err
 	}
