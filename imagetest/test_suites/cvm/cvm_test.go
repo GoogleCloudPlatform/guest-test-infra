@@ -13,7 +13,7 @@ func TestCVMEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
-	for _, msg := range(sevMsgList) {
+	for _, msg := range sevMsgList {
 		if strings.Contains(string(output), msg) {
 			return
 		}
