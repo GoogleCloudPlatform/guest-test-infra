@@ -30,6 +30,14 @@ var x86shapes = map[string]*shape{
 		disks: []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
 		zone:  "us-east1-b",
 	},
+	"C3D": {
+		name:  "c3d-highmem-360",
+		cpu:   360,
+		mem:   2880,
+		numa:  2,
+		disks: []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
+		zone:  "us-east4-c",
+	},
 	"E2": {
 		name:  "e2-standard-32",
 		cpu:   32,
