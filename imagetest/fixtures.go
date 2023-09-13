@@ -359,8 +359,8 @@ func (t *TestVM) EnableConfidentialInstance() {
 }
 
 // SetMinCpuPlatform sets the minimum CPU platform of the instance.
-func (t *TestVM) SetMinCpuPlatform(minCpuPlatform string) {
-	t.instance.MinCpuPlatform = minCpuPlatform
+func (t *TestVM) SetMinCPUPlatform(minCPUPlatform string) {
+	t.instance.MinCpuPlatform = minCPUPlatform
 }
 
 // SetMachineType sets the machine type of the instance.

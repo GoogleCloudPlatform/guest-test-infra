@@ -7,6 +7,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
 
+// Name is the name of the test package. It must match the directory name.
 var Name = "cvm"
 
 const vmName = "vm"
@@ -22,7 +23,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	vm.EnableConfidentialInstance()
-	vm.SetMinCpuPlatform("AMD Milan")
+	vm.SetMinCPUPlatform("AMD Milan")
 	vm.SetMachineType("n2d-standard-16")
 
 	vm.RunTests("TestCVMEnabled")
