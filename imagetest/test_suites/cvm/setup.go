@@ -24,7 +24,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.EnableConfidentialInstance()
 	vm.SetMinCPUPlatform("AMD Milan")
-	vm.SetMachineType("n2d-standard-16")
+	vm.ForceMachineType("n2d-standard-16")
 
 	vm.RunTests("TestCVMEnabled")
 	return nil

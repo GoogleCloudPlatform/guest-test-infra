@@ -358,14 +358,9 @@ func (t *TestVM) EnableConfidentialInstance() {
 	}
 }
 
-// SetMinCpuPlatform sets the minimum CPU platform of the instance.
+// SetMinCPUPlatform sets the minimum CPU platform of the instance.
 func (t *TestVM) SetMinCPUPlatform(minCPUPlatform string) {
 	t.instance.MinCpuPlatform = minCPUPlatform
-}
-
-// SetMachineType sets the machine type of the instance.
-func (t *TestVM) SetMachineType(machineType string) {
-	t.instance.MachineType = machineType
 }
 
 // UseGVNIC sets the type of vNIC to be used to GVNIC
