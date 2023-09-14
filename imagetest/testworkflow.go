@@ -355,16 +355,18 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		createVMsStep := twf.wf.Steps[createVMsStepName]
-		for _, vm := range createVMsStep.CreateInstances.Instances {
-			if vm.Zone != "" && vm.Zone != twf.wf.Zone {
-				log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
-			}
-			if machineType != "" {
-				if vm.MachineType != "" {
-					log.Printf("VM %s machine type set to %s for test %s, not overriding\n", vm.Name, vm.MachineType, twf.Name)
-				} else {
-					vm.MachineType = machineType
+		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
+		if ok {
+			for _, vm := range createVMsStep.CreateInstances.Instances {
+				if vm.Zone != "" && vm.Zone != twf.wf.Zone {
+					log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
+				}
+				if machineType != "" {
+					if vm.MachineType != "" {
+						log.Printf("VM %s machine type set to %s for test %s, not overriding\n", vm.Name, vm.MachineType, twf.Name)
+					} else {
+						vm.MachineType = machineType
+					}
 				}
 			}
 		}
