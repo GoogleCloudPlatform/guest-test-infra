@@ -102,8 +102,15 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		instance.Hostname = hostname
 	}
 
+	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
+		instance.MinCpuPlatform = minCPUPlatform
+	}
 	if machineType, foundKey := instanceParams["machineType"]; foundKey {
 		instance.MachineType = machineType
+	}
+
+	if zone, foundKey := instanceParams["zone"]; foundKey {
+		instance.Zone = zone
 	}
 
 	for _, disk := range disks {

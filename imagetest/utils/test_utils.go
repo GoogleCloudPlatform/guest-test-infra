@@ -404,19 +404,38 @@ func GetMountDiskPartition(diskExpectedSizeGb int) (string, error) {
 	if !CheckLinuxCmdExists(lsblkCmd) {
 		return "", fmt.Errorf("could not find lsblk")
 	}
+	diskExpectedSizeGbString := strconv.Itoa(diskExpectedSizeGb) + "G"
+	diskType := "disk"
 	lsblkout, err := exec.Command(lsblkCmd, "-o", "name,size,type", "--json").CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to execute lsblk cmd with error: %v", err)
+		errorString := err.Error()
+		// execute lsblk without json as a backup
+		lsblkout, err = exec.Command(lsblkCmd, "-o", "-name,size,type").CombinedOutput()
+		if err != nil {
+			errorString += err.Error()
+			return "", fmt.Errorf("failed to execute lsblk with and without json: %s", errorString)
+		}
+		lsblkoutlines := strings.Split(string(lsblkout), "\n")
+		for _, line := range lsblkoutlines {
+			linetokens := strings.Fields(line)
+			if len(linetokens) != 3 {
+				continue
+			}
+			// we should have a slice of length 3, with fields name, size, type
+			var blkname, blksize, blktype = linetokens[0], linetokens[1], linetokens[2]
+			if blktype == diskType && blksize == diskExpectedSizeGbString {
+				return blkname, nil
+			}
+		}
+		return "", fmt.Errorf("failed to find disk partition with expected size %s", diskExpectedSizeGbString)
 	}
 
 	var blockDevices BlockDeviceList
 	if err := json.Unmarshal(lsblkout, &blockDevices); err != nil {
 		return "", fmt.Errorf("failed to unmarshal lsblk output with error: %v", err)
 	}
-
-	diskExpectedSizeGbString := strconv.Itoa(diskExpectedSizeGb) + "G"
 	for _, blockDev := range blockDevices.BlockDevices {
-		if strings.ToLower(blockDev.Type) == "disk" && blockDev.Size == diskExpectedSizeGbString {
+		if strings.ToLower(blockDev.Type) == diskType && blockDev.Size == diskExpectedSizeGbString {
 			return blockDev.Name, nil
 		}
 	}

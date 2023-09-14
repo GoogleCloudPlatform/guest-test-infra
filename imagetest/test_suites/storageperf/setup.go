@@ -25,28 +25,48 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSize == hyperdiskSize {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
-	hyperdiskParams := map[string]string{"machineType": "c3-standard-88"}
-	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName, Type: imagetest.PdBalanced, SizeGb: bootdiskSize},
-		{Name: mountDiskName, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}}, hyperdiskParams)
-	if err != nil {
-		return err
+	// initialize vm with the hard coded machine type and platform corresponding to the index
+	paramMaps := []map[string]string{
+		{"machineType": "c3-standard-88"},
+		{"machineType": "c3d-standard-180", "zone": "us-east4-c"},
+		{"machineType": "n2-standard-80"},
 	}
+	testVMs := []*imagetest.TestVM{}
+	for _, paramMap := range paramMaps {
+		machineType := "n1-standard-1"
+		if machineTypeParam, foundKey := paramMap["machineType"]; foundKey {
+			machineType = machineTypeParam
+		}
+		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSize}
+		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}
+		if zoneParam, foundKey := paramMap["zone"]; foundKey {
+			bootDisk.Zone = zoneParam
+			mountDisk.Zone = zoneParam
+		}
+		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, paramMap)
+		if err != nil {
+			return err
+		}
 
-	vm.AddMetadata("enable-guest-attributes", "TRUE")
-	if strings.Contains(t.Image, "windows") {
-		vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
-		windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
-		if err != nil {
-			return err
+		vm.AddMetadata("enable-guest-attributes", "TRUE")
+		if strings.Contains(t.Image, "windows") {
+			vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
+			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
+			if err != nil {
+				return err
+			}
+			vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
+		} else {
+			linuxStartup, err := scripts.ReadFile(linuxInstallFioScriptURL)
+			if err != nil {
+				return err
+			}
+			vm.SetStartupScript(string(linuxStartup))
 		}
-		vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
-	} else {
-		linuxStartup, err := scripts.ReadFile(linuxInstallFioScriptURL)
-		if err != nil {
-			return err
-		}
-		vm.SetStartupScript(string(linuxStartup))
+		testVMs = append(testVMs, vm)
 	}
-	vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
+	for _, vm := range testVMs {
+		vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
+	}
 	return nil
 }
