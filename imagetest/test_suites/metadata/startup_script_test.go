@@ -57,8 +57,8 @@ func testStartupScriptFailedLinux() error {
 }
 
 func testStartupScriptFailedWindows() error {
-	if _, err := utils.GetMetadataAttribute("startup-script-ps1"); err != nil {
-		return fmt.Errorf("couldn't get startup-script from metadata, %v", err)
+	if _, err := utils.GetMetadataAttribute("windows-startup-script-ps1"); err != nil {
+		return fmt.Errorf("couldn't get windows-startup-script-ps1 from metadata, %v", err)
 	}
 
 	return nil
@@ -95,7 +95,7 @@ func TestStartupScripts(t *testing.T) {
 func TestStartupScriptsFailed(t *testing.T) {
 	if utils.IsWindows() {
 		if err := testStartupScriptFailedWindows(); err != nil {
-			t.Fatalf("Shutdown script failure test failed with error: %v", err)
+			t.Fatalf("Startup script failure test failed with error: %v", err)
 		}
 	} else {
 		if err := testStartupScriptFailedLinux(); err != nil {

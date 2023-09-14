@@ -59,8 +59,8 @@ func testShutdownScriptFailedLinux() error {
 }
 
 func testShutdownScriptFailedWindows() error {
-	if _, err := utils.GetMetadataAttribute("shutdown-script-ps1"); err != nil {
-		return fmt.Errorf("couldn't get shutdown-script from metadata")
+	if _, err := utils.GetMetadataAttribute("windows-shutdown-script-ps1"); err != nil {
+		return fmt.Errorf("couldn't get windows-shutdown-script-ps1 from metadata")
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func testShutdownScriptTimeLinux() error {
 }
 
 func testShutdownScriptTimeWindows() error {
-	bytes, err := ioutil.ReadFile("C:\\shutdown.txt")
+	bytes, err := ioutil.ReadFile("C:\\shutdown_out.txt")
 	if err != nil {
 		return fmt.Errorf("error reading file: %v", err)
 	}

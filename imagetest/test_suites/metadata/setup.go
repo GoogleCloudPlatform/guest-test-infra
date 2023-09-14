@@ -41,6 +41,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm2.ForceMachineType("n2-standard-4")
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
@@ -49,7 +50,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm3.SetShutdownScript(strings.Repeat("a", metadataMaxLength))
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
@@ -74,12 +74,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm6.ForceMachineType("n2-standard-4")
 
 	vm7, err := t.CreateTestVM("vm7")
 	if err != nil {
 		return err
 	}
-	vm7.SetStartupScript(strings.Repeat("a", metadataMaxLength))
 
 	vm8, err := t.CreateTestVM("vm8")
 	if err != nil {
@@ -113,10 +113,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		daemonScript := string(daemonByteArr)
 		timeScript := string(timeByteArr)
 
-		vm2.SetShutdownScript(shutdownScript)
-		vm4.SetShutdownScriptURL(shutdownScript)
-		vm5.SetShutdownScript(timeScript)
+		vm2.SetWindowsShutdownScript(shutdownScript)
+		vm3.SetWindowsShutdownScript(strings.Repeat("a", metadataMaxLength))
+		vm4.SetWindowsShutdownScriptURL(shutdownScript)
+		vm5.SetWindowsShutdownScript(timeScript)
 		vm6.SetWindowsStartupScript(startupScript)
+		vm7.SetWindowsStartupScript(strings.Repeat("a", metadataMaxLength))
 		vm8.SetWindowsStartupScript(daemonScript)
 
 	} else {
@@ -142,9 +144,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		timeScript := string(timeByteArr)
 
 		vm2.SetShutdownScript(shutdownScript)
+		vm3.SetShutdownScript(strings.Repeat("a", metadataMaxLength))
 		vm4.SetShutdownScriptURL(shutdownScript)
 		vm5.SetShutdownScript(timeScript)
 		vm6.SetStartupScript(startupScript)
+		vm7.SetStartupScript(strings.Repeat("a", metadataMaxLength))
 		vm8.SetStartupScript(daemonScript)
 	}
 
