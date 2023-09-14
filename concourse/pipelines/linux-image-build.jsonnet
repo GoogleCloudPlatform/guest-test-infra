@@ -46,6 +46,7 @@ local prepublishtesttask = {
 
   // Start of task
   platform: 'linux',
+  serial_groups: ['shapevalidation'],
   image_resource: {
     type: 'registry-image',
     source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
