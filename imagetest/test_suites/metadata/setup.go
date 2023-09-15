@@ -41,7 +41,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm2.ForceMachineType("n2-standard-4")
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
@@ -74,7 +73,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm6.ForceMachineType("n2-standard-4")
 
 	vm7, err := t.CreateTestVM("vm7")
 	if err != nil {
