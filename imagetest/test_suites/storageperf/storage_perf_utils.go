@@ -7,7 +7,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-// Store the types of performance targets, which can be used as a value in a map from machine type to performance targets
+// PerformanceTargets is a structure which stores the expected iops for each operation. This is used as a value in a map from machine type to performance targets
 type PerformanceTargets struct {
 	randReadIOPS  float64
 	randWriteIOPS float64
