@@ -6,9 +6,9 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -92,10 +92,15 @@ func TestRandomWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	expectedRandWriteIOPSString := strings.Trim(utils.GetMetadataGuestAttribute(randWriteAttribute))
+	expectedRandWriteIOPSString, err := utils.GetMetadata(randWriteAttribute)
+	if err != nil {
+		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
+	}
+
+	expectedRandWriteIOPSString = strings.TrimSpace(expectedRandWriteIOPSString)
 	var expectedRandWriteIOPS float64
 	if expectedRandWriteIOPS, err := strconv.ParseFloat(expectedRandWriteIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandWriteIOPS, err)
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandWriteIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedRandWriteIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedRandWriteIOPS, finalIOPSValue)
@@ -124,10 +129,15 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	expectedSeqWriteIOPSString := strings.Trim(utils.GetMetadataGuestAttribute(seqWriteAttribute))
+	expectedSeqWriteIOPSString, err := utils.GetMetadata(seqWriteAttribute)
+	if err != nil {
+		t.Fatalf("could not get metadata attribute %s: err %v", seqWriteAttribute, err)
+	}
+
+	expectedSeqWriteIOPSString = strings.TrimSpace(expectedSeqWriteIOPSString)
 	var expectedSeqWriteIOPS float64
 	if expectedSeqWriteIOPS, err := strconv.ParseFloat(expectedSeqWriteIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedSeqWriteIOPS, err)
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqWriteIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedSeqWriteIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedSeqWriteIOPS, finalIOPSValue)

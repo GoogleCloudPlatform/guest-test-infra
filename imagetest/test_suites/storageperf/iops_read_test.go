@@ -6,9 +6,9 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -91,16 +91,21 @@ func TestRandomReadIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
-	expectedRandReadIOPSString := strings.Trim(utils.GetMetadataGuestAttribute(randReadAttribute))
-	var expectedRandReadIOPS float64
-	if expectedRandReadIOPS, err := strconv.ParseFloat(expectedRandReadIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandReadIOPS, err)
-	}
-	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
+	expectedRandReadIOPSString, err := utils.GetMetadata(randReadAttribute)
+	if err != nil {
+		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedHyperdiskIOPS)
+	expectedRandReadIOPSString = strings.TrimSpace(expectedRandReadIOPSString)
+	var expectedRandReadIOPS float64
+	if expectedRandReadIOPS, err := strconv.ParseFloat(expectedRandReadIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandReadIOPS, err)
+	}
+	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
+		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedRandReadIOPS, finalIOPSValue)
+	}
+
+	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedRandReadIOPS)
 }
 
 // TestSequentialReadIOPS checks that sequential read IOPS are around the value listed in public docs.
@@ -123,14 +128,19 @@ func TestSequentialReadIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
-	expectedSeqReadIOPSString := strings.Trim(utils.GetMetadataGuestAttribute(seqReadAttribute))
+	expectedSeqReadIOPSString, err := utils.GetMetadata(seqReadAttribute)
+	if err != nil {
+		t.Fatalf("could not get guest metadata %s: err r%v", seqReadAttribute, err)
+	}
+
+	expectedSeqReadIOPSString = strings.TrimSpace(expectedSeqReadIOPSString)
 	var expectedSeqReadIOPS float64
 	if expectedSeqReadIOPS, err := strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedSeqReadIOPS, err)
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqReadIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedSeqReadIOPS {
 		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedSeqReadIOPS, finalIOPSValue)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedHyperdiskIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedSeqReadIOPS)
 }

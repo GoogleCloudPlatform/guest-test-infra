@@ -6,13 +6,15 @@ import (
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
+
 // Store the types of performance targets, which can be used as a value in a map from machine type to performance targets
 type PerformanceTargets struct {
-	randReadIOPS	float64
-	randWriteIOPS	float64
-	seqReadIOPS	float64
-	seqWriteIOPS	float64
+	randReadIOPS  float64
+	randWriteIOPS float64
+	seqReadIOPS   float64
+	seqWriteIOPS  float64
 }
+
 const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
@@ -30,32 +32,33 @@ const (
 	randomMode     = "random"
 	sequentialMode = "sequential"
 	// Guest Attribute constants for storing the expected iops
-	randReadAttribute = "randRead"
+	randReadAttribute  = "randRead"
 	randWriteAttribute = "randWrite"
-	seqReadAttribute = "seqRead"
-	seqWriteAttribute = "seqWrite"
-	// map the machine type to performance targets
-	expectedIOPSMap = map[string]PerformanceTargets{
-		"c3-standard-88": PerformanceTargets{
-			randReadIOPS: 350000.0,
-			randWriteIOPS: 350000.0,
-			seqReadIOPS: 5000.0,
-			seqWriteIOPS: 5000.0,
-		},
-		"c3d-standard-180": PerformanceTargets{
-			randReadIOPS: 350000.0,
-			randWriteIOPS: 350000.0,
-			seqReadIOPS: 5000.0,
-			seqWriteIOPS: 5000.0,
-		},
-		"n2-standard-80": PerformanceTargets{
-			randReadIOPS: 160000.0,
-			randWriteIOPS: 160000.0,
-			seqReadIOPS: 5000.0,
-			seqWriteIOPS: 5000.0,
-		},
-	}
+	seqReadAttribute   = "seqRead"
+	seqWriteAttribute  = "seqWrite"
 )
+
+// map the machine type to performance targets
+var expectedIOPSMap = map[string]PerformanceTargets{
+	"c3-standard-88": {
+		randReadIOPS:  350000.0,
+		randWriteIOPS: 350000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+	"c3d-standard-180": {
+		randReadIOPS:  350000.0,
+		randWriteIOPS: 350000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+	"n2-standard-80": {
+		randReadIOPS:  160000.0,
+		randWriteIOPS: 160000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+}
 
 // FIOOutput defines the output from the fio command
 type FIOOutput struct {
