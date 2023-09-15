@@ -13,40 +13,10 @@ import (
 )
 
 const (
-	expectedShutdownContent   = "Shutdown script success."
-	shutdownOutputPathLinux   = "/shutdown_out.txt"
-	shutdownOutputPathWindows = "C:\\shutdown_out.txt"
+	expectedShutdownContent = "shutdown_success"
+	// The designed shutdown limit is 90s. Let's verify it's executed no less than 80s.
+	shutdownTime = 80
 )
-
-// The designed shutdown limit is 90s. Let's verify it's executed no less than 80s.
-const shutdownTime = 80
-
-// TestShutdownScript test the standard metadata script.
-func testShutdownScriptLinux() error {
-	bytes, err := ioutil.ReadFile(shutdownOutputPathLinux)
-	if err != nil {
-		return fmt.Errorf("failed to read shutdown output %v", err)
-	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedShutdownContent {
-		return fmt.Errorf(`shutdown script output expected "%s", got "%s"`, expectedShutdownContent, output)
-	}
-
-	return nil
-}
-
-func testShutdownScriptWindows() error {
-	bytes, err := ioutil.ReadFile(shutdownOutputPathWindows)
-	if err != nil {
-		return fmt.Errorf("failed to read shutdown output %v", err)
-	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedShutdownContent {
-		return fmt.Errorf(`shutdown script output expected "%s", got "%s"`, expectedShutdownContent, output)
-	}
-
-	return nil
-}
 
 // TestShutdownScriptFailed test that a script failed execute doesn't crash the vm.
 func testShutdownScriptFailedLinux() error {
@@ -61,35 +31,6 @@ func testShutdownScriptFailedLinux() error {
 func testShutdownScriptFailedWindows() error {
 	if _, err := utils.GetMetadataAttribute("windows-shutdown-script-ps1"); err != nil {
 		return fmt.Errorf("couldn't get windows-shutdown-script-ps1 from metadata")
-	}
-
-	return nil
-
-}
-
-// TestShutdownUrlScript test that URL scripts work correctly.
-func testShutdownUrlScriptLinux() error {
-	bytes, err := ioutil.ReadFile(shutdownOutputPathLinux)
-	if err != nil {
-		return fmt.Errorf("failed to read shutdown output %v", err)
-	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedShutdownContent {
-		return fmt.Errorf(`shutdown script output expected "%s", got "%s"`, expectedShutdownContent, output)
-	}
-
-	return nil
-
-}
-
-func testShutdownUrlScriptWindows() error {
-	bytes, err := ioutil.ReadFile(shutdownOutputPathWindows)
-	if err != nil {
-		return fmt.Errorf("failed to read shutdown output %v", err)
-	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedShutdownContent {
-		return fmt.Errorf(`shutdown script output expected "%s", got "%s"`, expectedShutdownContent, output)
 	}
 
 	return nil
@@ -127,15 +68,14 @@ func testShutdownScriptTimeWindows() error {
 
 }
 
+// TestShutdownScripts test the standard metadata script.
 func TestShutdownScripts(t *testing.T) {
-	if utils.IsWindows() {
-		if err := testShutdownScriptWindows(); err != nil {
-			t.Fatalf("Shutdown script test failed with error: %v", err)
-		}
-	} else {
-		if err := testShutdownScriptLinux(); err != nil {
-			t.Fatalf("Shutdown script test failed with error: %v", err)
-		}
+	result, err := utils.GetMetadataGuestAttribute("testing/result")
+	if err != nil {
+		t.Fatalf("failed to read shutdown script result key: %v", err)
+	}
+	if result != expectedShutdownContent {
+		t.Fatalf(`shutdown script output expected "%s", got "%s".`, expectedShutdownContent, result)
 	}
 }
 
@@ -151,14 +91,13 @@ func TestShutdownScriptsFailed(t *testing.T) {
 	}
 }
 
+// TestShutdownUrlScript test that URL scripts work correctly.
 func TestShutdownUrlScripts(t *testing.T) {
-	if utils.IsWindows() {
-		if err := testShutdownUrlScriptWindows(); err != nil {
-			t.Fatalf("Shutdown script URL test failed with error: %v", err)
-		}
-	} else {
-		if err := testShutdownUrlScriptLinux(); err != nil {
-			t.Fatalf("Shutdown script URL test failed with error: %v", err)
-		}
+	result, err := utils.GetMetadataGuestAttribute("testing/result")
+	if err != nil {
+		t.Fatalf("failed to read shutdown script result key: %v", err)
+	}
+	if result != expectedShutdownContent {
+		t.Fatalf(`shutdown script output expected "%s", got "%s".`, expectedShutdownContent, result)
 	}
 }

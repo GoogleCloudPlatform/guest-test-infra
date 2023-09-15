@@ -1,3 +1,4 @@
 #!/bin/bash
 
-echo "Shutdown script success." > /shutdown_out.txt
+data="shutdown_success"
+curl -X PUT http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/result -H "Metadata-Flavor: Google" -d $data

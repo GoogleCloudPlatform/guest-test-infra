@@ -14,36 +14,8 @@ import (
 )
 
 const (
-	expectedStartupContent = "Startup script success."
+	expectedStartupContent = "startup_success"
 )
-
-// TestStartupScript verify that the standard metadata script could run successfully
-// by checking the output content.
-func testStartupScriptLinux() error {
-	startupOutputPath := "/startup_out.txt"
-	bytes, err := ioutil.ReadFile(startupOutputPath)
-	if err != nil {
-		return fmt.Errorf("failed to read startup script output %v", err)
-	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedStartupContent {
-		return fmt.Errorf(`startup script output expected "%s", got "%s"`, expectedStartupContent, output)
-	}
-
-	return nil
-}
-
-func testStartupScriptWindows() error {
-	result, err := utils.GetMetadataGuestAttribute("testing/result")
-	if err != nil {
-		return fmt.Errorf("failed to read startup script result key: %v", err)
-	}
-	if result != expectedStartupContent {
-		return fmt.Errorf("startup script output did not match expected value.")
-	}
-
-	return nil
-}
 
 // TestStartupScriptFailed test that a script failed execute doesn't crash the vm.
 func testStartupScriptFailedLinux() error {
@@ -78,15 +50,15 @@ func testDaemonScriptLinux(t *testing.T) {
 	}
 }
 
+// TestStartupScripts verify that the standard metadata script could run successfully
+// by checking the output content.
 func TestStartupScripts(t *testing.T) {
-	if utils.IsWindows() {
-		if err := testStartupScriptWindows(); err != nil {
-			t.Fatalf("Startup script test failed with error: %v", err)
-		}
-	} else {
-		if err := testStartupScriptLinux(); err != nil {
-			t.Fatalf("Startup script test failed with error: %v", err)
-		}
+	result, err := utils.GetMetadataGuestAttribute("testing/result")
+	if err != nil {
+		t.Fatalf("failed to read startup script result key: %v", err)
+	}
+	if result != expectedStartupContent {
+		t.Fatalf(`startup script output expected "%s", got "%s".`, expectedStartupContent, result)
 	}
 }
 

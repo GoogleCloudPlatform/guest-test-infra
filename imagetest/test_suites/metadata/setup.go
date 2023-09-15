@@ -41,6 +41,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm2.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
@@ -49,6 +50,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm3.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm3.Reboot(); err != nil {
 		return err
 	}
@@ -57,6 +59,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm4.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm4.Reboot(); err != nil {
 		return err
 	}
@@ -65,6 +68,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm5.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm5.Reboot(); err != nil {
 		return err
 	}
@@ -73,16 +77,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
+	vm6.AddMetadata("enable-guest-attributes", "TRUE")
 
 	vm7, err := t.CreateTestVM("vm7")
 	if err != nil {
 		return err
 	}
+	vm7.AddMetadata("enable-guest-attributes", "TRUE")
 
 	vm8, err := t.CreateTestVM("vm8")
 	if err != nil {
 		return err
 	}
+	vm8.AddMetadata("enable-guest-attributes", "TRUE")
 
 	var startupByteArr []byte
 	var shutdownByteArr []byte
