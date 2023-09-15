@@ -41,9 +41,9 @@ func getProjectAndZone() (string, string, error) {
 	return projectZoneSlice[1], projectZoneSlice[3], nil
 }
 
-func getLinuxMountPath(mountDiskSizeGb int, mountDiskName string) (string, error) {
+func getLinuxMountPath(mountDiskSizeGB int, mountDiskName string) (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGb)
+	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGB * bytesInGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -62,7 +62,7 @@ func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
 		return fmt.Errorf("could not make mount disk dir %s: error %v", mountDiskDir, err)
 	}
 	// see constants defined in setup.go
-	mountDiskPath, err := getLinuxMountPath(mountDiskSize, diskName)
+	mountDiskPath, err := getLinuxMountPath(mountDiskSizeGB, diskName)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
 
 func unmountLinuxDisk() error {
 	// see constants defined in setup.go
-	mountDiskPath, err := getLinuxMountPath(mountDiskSize, diskName)
+	mountDiskPath, err := getLinuxMountPath(mountDiskSizeGB, diskName)
 	if err != nil {
 		return fmt.Errorf("failed to find unmount path: %v", err)
 	}

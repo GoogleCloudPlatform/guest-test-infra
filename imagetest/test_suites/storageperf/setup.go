@@ -22,7 +22,7 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if bootdiskSize == hyperdiskSize {
+	if bootdiskSizeGB == hyperdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	// initialize vm with the hard coded machine type and platform corresponding to the index
@@ -37,8 +37,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if machineTypeParam, foundKey := paramMap["machineType"]; foundKey {
 			machineType = machineTypeParam
 		}
-		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSize}
-		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}
+		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
+		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
 		mountDisk.Zone = paramMap["zone"]
 

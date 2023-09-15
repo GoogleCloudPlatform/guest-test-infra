@@ -44,7 +44,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkWrite() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB * bytesInGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -92,7 +92,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	expectedRandWriteIOPSString, err := utils.GetMetadata(randWriteAttribute)
+	expectedRandWriteIOPSString, err := utils.GetMetadataAttribute(randWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
 	}
@@ -129,7 +129,7 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	expectedSeqWriteIOPSString, err := utils.GetMetadata(seqWriteAttribute)
+	expectedSeqWriteIOPSString, err := utils.GetMetadataAttribute(seqWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", seqWriteAttribute, err)
 	}

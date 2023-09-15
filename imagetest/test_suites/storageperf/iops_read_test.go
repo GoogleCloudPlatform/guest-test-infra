@@ -44,7 +44,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkRead() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB * bytesInGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -91,7 +91,7 @@ func TestRandomReadIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
-	expectedRandReadIOPSString, err := utils.GetMetadata(randReadAttribute)
+	expectedRandReadIOPSString, err := utils.GetMetadataAttribute(randReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
 	}
@@ -128,7 +128,7 @@ func TestSequentialReadIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
-	expectedSeqReadIOPSString, err := utils.GetMetadata(seqReadAttribute)
+	expectedSeqReadIOPSString, err := utils.GetMetadataAttribute(seqReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", seqReadAttribute, err)
 	}
