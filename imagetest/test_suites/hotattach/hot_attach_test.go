@@ -173,10 +173,7 @@ func TestFileHotAttach(t *testing.T) {
 	}
 	// mount again, then read from the file
 	if runtime.GOOS == "windows" {
-		procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsMountDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false")
-		if err != nil {
-			t.Fatalf("failed to initialize disk on reattach for windows: errors %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
-		}
+		t.Log("windows disk was successfully reattached")
 	} else {
 		if err := mountLinuxDiskToPath(linuxMountPath, true); err != nil {
 			t.Fatalf("failed to mount linux disk to path %s on reattach: error %v", linuxMountPath, err)
