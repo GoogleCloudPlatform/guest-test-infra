@@ -39,16 +39,24 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSize}
 		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSize}
-		if zoneParam, foundKey := paramMap["zone"]; foundKey {
-			bootDisk.Zone = zoneParam
-			mountDisk.Zone = zoneParam
-		}
+		bootDisk.Zone = zoneParam
+		mountDisk.Zone = zoneParam
+
 		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, paramMap)
 		if err != nil {
 			return err
 		}
 
 		vm.AddMetadata("enable-guest-attributes", "TRUE")
+		// set the expected performance values
+		var vmPerformanceTargets PerformanceTargets
+		if vmPerformanceTargets, foundKey := expectedIOPSMap[machineType]; !foundKey {
+			return fmt.Errorf("expected performance for machine type %s not found", machineType
+		}
+		vm.AddMetadata(randReadAttribute, vmPerformanceTargets.randReadIOPS)
+		vm.AddMetadata(randWriteAttribute, vmPerformanceTargets.randWriteIOPS)
+		vm.AddMetadata(seqReadAttribute, vmPerformanceTargets.seqReadIOPS)
+		vm.AddMetadata(seqWriteAttribute, vmPerformanceTargets.seqWriteIOPS)
 		if strings.Contains(t.Image, "windows") {
 			vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
