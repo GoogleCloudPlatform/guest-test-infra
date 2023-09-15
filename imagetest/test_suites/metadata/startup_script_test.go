@@ -34,14 +34,12 @@ func testStartupScriptLinux() error {
 }
 
 func testStartupScriptWindows() error {
-	startupOutputPath := "C:\\startup_out.txt"
-	bytes, err := ioutil.ReadFile(startupOutputPath)
+	result, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
-		return fmt.Errorf("failed to read startup script output %v", err)
+		return fmt.Errorf("failed to read startup script result key: %v", err)
 	}
-	output := strings.TrimSpace(string(bytes))
-	if output != expectedStartupContent {
-		return fmt.Errorf(`startup script output expected "%s", got "%s"`, expectedStartupContent, output)
+	if result != expectedStartupContent {
+		return fmt.Errorf("startup script output did not match expected value.")
 	}
 
 	return nil
