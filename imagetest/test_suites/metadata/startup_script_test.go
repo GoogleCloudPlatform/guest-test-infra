@@ -52,15 +52,15 @@ func testDaemonScriptLinux() error {
 }
 
 func testDaemonScriptWindows() error {
-	command := `Get-Process powershell`
+	command := `Get-Process cmd`
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
 		return fmt.Errorf("Daemon process not found: %v", err)
 	}
 
 	job := strings.TrimSpace(output.Stdout)
-	if !strings.Contains(job, "Running") {
-		return fmt.Errorf("Daemon process found but not running: %s", job)
+	if !strings.Contains(job, "cmd") {
+		return fmt.Errorf("Daemon process not running. Output of Get-Process: %s", job)
 	}
 
 	return nil
