@@ -105,7 +105,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		daemonByteArr, err = scripts.ReadFile(shutdownScriptWindowsUrl)
+		daemonByteArr, err = scripts.ReadFile(daemonScriptWindowsUrl)
 		if err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		daemonByteArr, err = scripts.ReadFile(shutdownScriptWindowsUrl)
+		daemonByteArr, err = scripts.ReadFile(daemonScriptLinuxUrl)
 		if err != nil {
 			return err
 		}
@@ -164,6 +164,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm5.RunTests("TestShutdownScriptTime")
 	vm6.RunTests("TestStartupScripts")
 	vm7.RunTests("TestStartupScriptsFailed")
-	vm8.RunTests("TestDaemonScript")
+	vm8.RunTests("TestDaemonScripts")
 	return nil
 }

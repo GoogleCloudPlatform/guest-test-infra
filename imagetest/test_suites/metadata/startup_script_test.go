@@ -36,18 +36,34 @@ func testStartupScriptFailedWindows() error {
 
 // TestDaemonScript test that daemon process started by startup script is still
 // running in the VM after execution of startup script
-func testDaemonScriptLinux(t *testing.T) {
+func testDaemonScriptLinux() error {
 	daemonOutputPath := "/daemon_out.txt"
 	bytes, err := ioutil.ReadFile(daemonOutputPath)
 	if err != nil {
-		t.Fatalf("failed to read daemon script PID file: %v", err)
+		return fmt.Errorf("failed to read daemon script PID file: %v", err)
 	}
 	pid := strings.TrimSpace(string(bytes))
 	cmd := exec.Command("ps", "-p", pid)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Logf("command \"ps -p %s\" failed: %v, output was: %s", pid, err, out)
-		t.Fatalf("Daemon process not running")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("Daemon process not running: command \"ps -p %s\" failed: %v, output was: %s", pid, err, output)
 	}
+
+	return nil
+}
+
+func testDaemonScriptWindows() error {
+	command := `Get-Process powershell`
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return fmt.Errorf("Daemon process not found: %v", err)
+	}
+
+	job := strings.TrimSpace(output.Stdout)
+	if !strings.Contains(job, "Running") {
+		return fmt.Errorf("Daemon process found but not running: %s", job)
+	}
+
+	return nil
 }
 
 // TestStartupScripts verify that the standard metadata script could run successfully
@@ -70,6 +86,18 @@ func TestStartupScriptsFailed(t *testing.T) {
 	} else {
 		if err := testStartupScriptFailedLinux(); err != nil {
 			t.Fatalf("Shutdown script failure test failed with error: %v", err)
+		}
+	}
+}
+
+func TestDaemonScripts(t *testing.T) {
+	if utils.IsWindows() {
+		if err := testDaemonScriptWindows(); err != nil {
+			t.Fatalf("Daemon script test failed with error: %v", err)
+		}
+	} else {
+		if err := testDaemonScriptLinux(); err != nil {
+			t.Fatalf("Daemon script test failed with error: %v", err)
 		}
 	}
 }
