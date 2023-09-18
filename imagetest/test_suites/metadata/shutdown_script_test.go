@@ -18,7 +18,7 @@ const (
 	shutdownTime = 80
 )
 
-// TestShutdownScriptFailed test that a script failed execute doesn't crash the vm.
+// TestShutdownScriptFailedLinux tests that a script failed execute doesn't crash the vm.
 func testShutdownScriptFailedLinux() error {
 	if _, err := utils.GetMetadataAttribute("shutdown-script"); err != nil {
 		return fmt.Errorf("couldn't get shutdown-script from metadata")
@@ -28,6 +28,7 @@ func testShutdownScriptFailedLinux() error {
 
 }
 
+// TestShutdownScriptFailedWindows tests that a script failed execute doesn't crash the vm.
 func testShutdownScriptFailedWindows() error {
 	if _, err := utils.GetMetadataAttribute("windows-shutdown-script-ps1"); err != nil {
 		return fmt.Errorf("couldn't get windows-shutdown-script-ps1 from metadata")
@@ -37,7 +38,7 @@ func testShutdownScriptFailedWindows() error {
 
 }
 
-// TestShutdownScriptTime test that shutdown scripts can run for around two minutes
+// TestShutdownScriptTimeLinux tests that shutdown scripts can run for around two minutes.
 func testShutdownScriptTimeLinux() error {
 	bytes, err := ioutil.ReadFile("/shutdown.txt")
 	if err != nil {
@@ -53,6 +54,7 @@ func testShutdownScriptTimeLinux() error {
 
 }
 
+// TestShutdownScriptTimeWindows tests that shutdown scripts can run for around two minutes.
 func testShutdownScriptTimeWindows() error {
 	bytes, err := ioutil.ReadFile("C:\\shutdown_out.txt")
 	if err != nil {
@@ -68,7 +70,8 @@ func testShutdownScriptTimeWindows() error {
 
 }
 
-// TestShutdownScripts test the standard metadata script.
+// TestShutdownScripts verifies that the standard metadata script could run successfully
+// by checking the output content of the Shutdown script.
 func TestShutdownScripts(t *testing.T) {
 	result, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
@@ -79,6 +82,7 @@ func TestShutdownScripts(t *testing.T) {
 	}
 }
 
+// Determine if the OS is Windows or Linux and run the appropriate failure test.
 func TestShutdownScriptsFailed(t *testing.T) {
 	if utils.IsWindows() {
 		if err := testShutdownScriptFailedWindows(); err != nil {
@@ -91,7 +95,7 @@ func TestShutdownScriptsFailed(t *testing.T) {
 	}
 }
 
-// TestShutdownUrlScript test that URL scripts work correctly.
+// Determine if the OS is Windows or Linux and run the appropriate daemon test.
 func TestShutdownUrlScripts(t *testing.T) {
 	result, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
@@ -99,5 +103,18 @@ func TestShutdownUrlScripts(t *testing.T) {
 	}
 	if result != expectedShutdownContent {
 		t.Fatalf(`shutdown script output expected "%s", got "%s".`, expectedShutdownContent, result)
+	}
+}
+
+// Determine if the OS is Windows or Linux and run the appropriate shutdown time test.
+func TestShutDownScriptTime(t *testing.T) {
+	if utils.IsWindows() {
+		if err := testShutdownScriptTimeWindows(); err != nil {
+			t.Fatalf("Shutdown script time test failed with error: %v", err)
+		}
+	} else {
+		if err := testShutdownScriptTimeLinux(); err != nil {
+			t.Fatalf("Shutdown script time test failed with error: %v", err)
+		}
 	}
 }

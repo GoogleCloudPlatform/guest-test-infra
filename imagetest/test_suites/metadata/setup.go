@@ -96,6 +96,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	var daemonByteArr []byte
 	var timeByteArr []byte
 
+	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
 	if strings.Contains(t.Image, "windows") {
 		startupByteArr, err = scripts.ReadFile(startupScriptWindowsUrl)
 		if err != nil {
@@ -157,6 +158,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm8.SetStartupScript(daemonScript)
 	}
 
+	// Run the tests after setup is complete.
 	vm.RunTests("TestTokenFetch|TestMetaDataResponseHeaders|TestGetMetaDataUsingIP")
 	vm2.RunTests("TestShutdownScripts")
 	vm3.RunTests("TestShutdownScriptsFailed")
@@ -165,5 +167,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm6.RunTests("TestStartupScripts")
 	vm7.RunTests("TestStartupScriptsFailed")
 	vm8.RunTests("TestDaemonScripts")
+
 	return nil
 }

@@ -17,7 +17,7 @@ const (
 	expectedStartupContent = "startup_success"
 )
 
-// TestStartupScriptFailed test that a script failed execute doesn't crash the vm.
+// TestStartupScriptFailedLinux tests that a script failed execute doesn't crash the vm.
 func testStartupScriptFailedLinux() error {
 	if _, err := utils.GetMetadataAttribute("startup-script"); err != nil {
 		return fmt.Errorf("couldn't get startup-script from metadata, %v", err)
@@ -26,6 +26,7 @@ func testStartupScriptFailedLinux() error {
 	return nil
 }
 
+// TestStartupScriptFailedWindows tests that a script failed execute doesn't crash the vm.
 func testStartupScriptFailedWindows() error {
 	if _, err := utils.GetMetadataAttribute("windows-startup-script-ps1"); err != nil {
 		return fmt.Errorf("couldn't get windows-startup-script-ps1 from metadata, %v", err)
@@ -34,7 +35,7 @@ func testStartupScriptFailedWindows() error {
 	return nil
 }
 
-// TestDaemonScript test that daemon process started by startup script is still
+// TestDaemonScriptLinux tests that daemon process started by startup script is still
 // running in the VM after execution of startup script
 func testDaemonScriptLinux() error {
 	daemonOutputPath := "/daemon_out.txt"
@@ -51,6 +52,8 @@ func testDaemonScriptLinux() error {
 	return nil
 }
 
+// TestDaemonScriptWindows tests that background cmd process started by startup script is still
+// running in the VM after execution of startup script
 func testDaemonScriptWindows() error {
 	command := `Get-Process cmd`
 	output, err := utils.RunPowershellCmd(command)
@@ -66,8 +69,8 @@ func testDaemonScriptWindows() error {
 	return nil
 }
 
-// TestStartupScripts verify that the standard metadata script could run successfully
-// by checking the output content.
+// TestStartupScripts verifies that the standard metadata script could run successfully
+// by checking the output content of the Startup script.
 func TestStartupScripts(t *testing.T) {
 	result, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
@@ -78,6 +81,7 @@ func TestStartupScripts(t *testing.T) {
 	}
 }
 
+// Determine if the OS is Windows or Linux and run the appropriate failure test.
 func TestStartupScriptsFailed(t *testing.T) {
 	if utils.IsWindows() {
 		if err := testStartupScriptFailedWindows(); err != nil {
@@ -90,6 +94,7 @@ func TestStartupScriptsFailed(t *testing.T) {
 	}
 }
 
+// Determine if the OS is Windows or Linux and run the appropriate daemon test.
 func TestDaemonScripts(t *testing.T) {
 	if utils.IsWindows() {
 		if err := testDaemonScriptWindows(); err != nil {
