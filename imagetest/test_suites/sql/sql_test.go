@@ -5,7 +5,7 @@ package sql
 
 import (
 	"fmt"
-	"io/ioutil"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -71,10 +71,6 @@ func TestPowerPlan(t *testing.T) {
 func TestRemoteConnectivity(t *testing.T) {
 	utils.WindowsOnly(t)
 
-	testcommand := fmt.Sprintf("Get-LocalGroupMember -Group 'Administrators'")
-	testoutput, err := utils.RunPowershellCmd(testcommand)
-	fmt.Println(testoutput.Stdout)
-
 	connectionCmd := `$SQLServer = (Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri 'http://metadata.google.internal/computeMetadata/v1/instance/attributes/sqltarget')
 	$SQLDBName = 'master'
 	$DBUser = 'sa'
@@ -91,28 +87,23 @@ func TestRemoteConnectivity(t *testing.T) {
 	$SqlAdapter.SelectCommand = $SqlCmd
 	
 	$DataSet = New-Object System.Data.DataSet
-	$SqlAdapter.Fill($DataSet)
+	$result = $SqlAdapter.Fill($DataSet)
 	$SqlConnection.Close()
 	
-	$DataSet | Out-File C:\remote_connection_output.txt`
+	Invoke-RestMethod -Method Put -Body $result -Headers @{'Metadata-Flavor' = 'Google'} -Uri 'http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/result' -ContentType "application/json; charset=utf-8" -UseBasicParsing`
 
 	command := fmt.Sprintf(connectionCmd)
-	fmt.Println("Running command:")
-	fmt.Println(command)
-	_, err := utils.RunPowershellCmd(command)
+	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
-		t.Fatalf("Unable to query server database.")
+		t.Fatalf("Unable to query server database: %v", err)
 	}
 
-	bytes, err := ioutil.ReadFile("C:\\remote_connection_output.txt")
+	data, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
-		t.Fatalf("Could not open test file for results.")
+		t.Fatalf("Failed to get test result from metadata: %v", err)
 	}
 
-	expectedData := "system.data.datarow"
-	data := strings.TrimSpace(string(bytes))
-	if !strings.Contains(strings.ToLower(data), expectedData) {
-		t.Fatalf("Not found.")
+	if strconv.ParseInt(data, 10, 32) > 0 {
+		t.Fatalf("Test failed: query returned %s rows, expected > 0.", data)
 	}
-	fmt.Println("Test complete")
 }
