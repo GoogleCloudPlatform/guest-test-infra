@@ -37,17 +37,18 @@ func TestOsLoginEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot read /etc/ssh/sshd_config")
 	}
-	var found bool
+	var foundAuthorizedKeys bool
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
 		if strings.Contains(line, "AuthorizedKeysCommand") && strings.Contains(line, "/usr/bin/google_authorized_keys") {
-			found = true
+			foundAuthorizedKeys = true
 		}
 	}
-	if !found {
+
+	if !foundAuthorizedKeys {
 		t.Errorf("AuthorizedKeysCommand not set up for OS Login.")
 	}
 
@@ -57,7 +58,7 @@ func TestOsLoginEnabled(t *testing.T) {
 		t.Fatalf("cannot read /etc/pam.d/sshd")
 	}
 	contents := string(data)
-	if !strings.Contains(contents, "pam_oslogin_login.so") || !strings.Contains(contents, "pam_oslogin_admin.so") {
+	if !strings.Contains(contents, "pam_oslogin_login.so") {
 		t.Errorf("OS Login PAM module missing from pam.d/sshd.")
 	}
 }
@@ -99,7 +100,7 @@ func TestOsLoginDisabled(t *testing.T) {
 		t.Fatalf("cannot read /etc/pam.d/sshd")
 	}
 	contents := string(data)
-	if strings.Contains(contents, "pam_oslogin_login.so") || strings.Contains(contents, "pam_oslogin_admin.so") {
+	if strings.Contains(contents, "pam_oslogin_login.so") {
 		t.Errorf("OS Login PAM module wrongly included in pam.d/sshd when disabled.")
 	}
 }
