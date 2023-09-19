@@ -214,12 +214,17 @@ func (t *TestVM) RunTests(runtest string) {
 	t.AddMetadata("_test_run", runtest)
 }
 
-// SetShutdownScript sets the `shutdown-script` metadata key for a VM.
+// SetShutdownScript sets the `shutdown-script` metadata key for a non-Windows VM.
 func (t *TestVM) SetShutdownScript(script string) {
 	t.AddMetadata("shutdown-script", script)
 }
 
-// SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a VM.
+// SetWindowsShutdownScript sets the `windows-shutdown-script-ps1` metadata key for a Windows VM.
+func (t *TestVM) SetWindowsShutdownScript(script string) {
+	t.AddMetadata("windows-shutdown-script-ps1", script)
+}
+
+// SetShutdownScriptURL sets the`shutdown-script-url` metadata key for a non-Windows VM.
 func (t *TestVM) SetShutdownScriptURL(script string) error {
 	fileName := fmt.Sprintf("/shutdown_script-%s", uuid.New())
 	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
@@ -228,6 +233,18 @@ func (t *TestVM) SetShutdownScriptURL(script string) error {
 	t.testWorkflow.wf.Sources["shutdown-script"] = fileName
 
 	t.AddMetadata("shutdown-script-url", "${SOURCESPATH}/shutdown-script")
+	return nil
+}
+
+// SetWindowsShutdownScriptURL sets the`windows-shutdown-script-url` metadata key for a Windows VM.
+func (t *TestVM) SetWindowsShutdownScriptURL(script string) error {
+	fileName := fmt.Sprintf("/shutdown_script-%s.ps1", uuid.New())
+	if err := ioutil.WriteFile(fileName, []byte(script), 0755); err != nil {
+		return err
+	}
+	t.testWorkflow.wf.Sources["shutdown-script.ps1"] = fileName
+
+	t.AddMetadata("windows-shutdown-script-url", "${SOURCESPATH}/shutdown-script.ps1")
 	return nil
 }
 
