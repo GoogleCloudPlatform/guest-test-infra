@@ -16,14 +16,14 @@ const (
 	// TODO(hopkiw): above is commented out until error handler is added to
 	// output scanner in the script runner. Use smaller size for now.
 	metadataMaxLength        = 32768
-	shutdownScriptLinuxUrl   = "scripts/shutdownScriptLinux.sh"
-	startupScriptLinuxUrl    = "scripts/startupScriptLinux.sh"
-	daemonScriptLinuxUrl     = "scripts/daemonScriptLinux.sh"
-	timeScriptLinuxUrl       = "scripts/shutdownTimeLinux.sh"
-	shutdownScriptWindowsUrl = "scripts/shutdownScriptWindows.ps1"
-	startupScriptWindowsUrl  = "scripts/startupScriptWindows.ps1"
-	daemonScriptWindowsUrl   = "scripts/daemonScriptWindows.ps1"
-	timeScriptWindowsUrl     = "scripts/shutdownTimeWindows.ps1"
+	shutdownScriptLinuxURL   = "scripts/shutdownScriptLinux.sh"
+	startupScriptLinuxURL    = "scripts/startupScriptLinux.sh"
+	daemonScriptLinuxURL     = "scripts/daemonScriptLinux.sh"
+	timeScriptLinuxURL       = "scripts/shutdownTimeLinux.sh"
+	shutdownScriptWindowsURL = "scripts/shutdownScriptWindows.ps1"
+	startupScriptWindowsURL  = "scripts/startupScriptWindows.ps1"
+	daemonScriptWindowsURL   = "scripts/daemonScriptWindows.ps1"
+	timeScriptWindowsURL     = "scripts/shutdownTimeWindows.ps1"
 )
 
 //go:embed *
@@ -98,19 +98,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
 	if strings.Contains(t.Image, "windows") {
-		startupByteArr, err = scripts.ReadFile(startupScriptWindowsUrl)
+		startupByteArr, err = scripts.ReadFile(startupScriptWindowsURL)
 		if err != nil {
 			return err
 		}
-		shutdownByteArr, err = scripts.ReadFile(shutdownScriptWindowsUrl)
+		shutdownByteArr, err = scripts.ReadFile(shutdownScriptWindowsURL)
 		if err != nil {
 			return err
 		}
-		daemonByteArr, err = scripts.ReadFile(daemonScriptWindowsUrl)
+		daemonByteArr, err = scripts.ReadFile(daemonScriptWindowsURL)
 		if err != nil {
 			return err
 		}
-		timeByteArr, err = scripts.ReadFile(timeScriptWindowsUrl)
+		timeByteArr, err = scripts.ReadFile(timeScriptWindowsURL)
 		if err != nil {
 			return err
 		}
@@ -128,19 +128,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm8.SetWindowsStartupScript(daemonScript)
 
 	} else {
-		startupByteArr, err = scripts.ReadFile(startupScriptLinuxUrl)
+		startupByteArr, err = scripts.ReadFile(startupScriptLinuxURL)
 		if err != nil {
 			return err
 		}
-		shutdownByteArr, err = scripts.ReadFile(shutdownScriptLinuxUrl)
+		shutdownByteArr, err = scripts.ReadFile(shutdownScriptLinuxURL)
 		if err != nil {
 			return err
 		}
-		daemonByteArr, err = scripts.ReadFile(daemonScriptLinuxUrl)
+		daemonByteArr, err = scripts.ReadFile(daemonScriptLinuxURL)
 		if err != nil {
 			return err
 		}
-		timeByteArr, err = scripts.ReadFile(timeScriptWindowsUrl)
+		timeByteArr, err = scripts.ReadFile(timeScriptWindowsURL)
 		if err != nil {
 			return err
 		}
@@ -162,7 +162,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm.RunTests("TestTokenFetch|TestMetaDataResponseHeaders|TestGetMetaDataUsingIP")
 	vm2.RunTests("TestShutdownScripts")
 	vm3.RunTests("TestShutdownScriptsFailed")
-	vm4.RunTests("TestShutdownUrlScripts")
+	vm4.RunTests("TestShutdownURLScripts")
 	vm5.RunTests("TestShutdownScriptTime")
 	vm6.RunTests("TestStartupScripts")
 	vm7.RunTests("TestStartupScriptsFailed")

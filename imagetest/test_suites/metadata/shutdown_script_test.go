@@ -96,7 +96,7 @@ func TestShutdownScriptsFailed(t *testing.T) {
 }
 
 // Determine if the OS is Windows or Linux and run the appropriate daemon test.
-func TestShutdownUrlScripts(t *testing.T) {
+func TestShutdownURLScripts(t *testing.T) {
 	result, err := utils.GetMetadataGuestAttribute("testing/result")
 	if err != nil {
 		t.Fatalf("failed to read shutdown script result key: %v", err)
