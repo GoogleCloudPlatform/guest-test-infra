@@ -89,6 +89,11 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+	// An additional IAM scope may be passed in, such as for detachDisk and attachDisk calls.
+	if extraScopes, foundKey := instanceParams["extraScopes"]; foundKey {
+		instance.Scopes = append(instance.Scopes, extraScopes)
+	}
+
 	hostname, foundKey := instanceParams["hostname"]
 	if !foundKey {
 		hostname = ""
@@ -97,8 +102,15 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		instance.Hostname = hostname
 	}
 
+	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
+		instance.MinCpuPlatform = minCPUPlatform
+	}
 	if machineType, foundKey := instanceParams["machineType"]; foundKey {
 		instance.MachineType = machineType
+	}
+
+	if zone, foundKey := instanceParams["zone"]; foundKey {
+		instance.Zone = zone
 	}
 
 	for _, disk := range disks {
@@ -139,6 +151,7 @@ func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.S
 	bootdisk.Name = diskParams.Name
 	bootdisk.SourceImage = t.Image
 	bootdisk.Type = diskParams.Type
+	bootdisk.Zone = diskParams.Zone
 
 	createDisks := &daisy.CreateDisks{bootdisk}
 
@@ -166,6 +179,7 @@ func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*da
 	mountdisk := &daisy.Disk{}
 	mountdisk.Name = diskParams.Name
 	mountdisk.Type = diskParams.Type
+	mountdisk.Zone = diskParams.Zone
 	if diskParams.SizeGb == 0 {
 		return nil, fmt.Errorf("failed to create mount disk with no SizeGb parameter")
 	}
@@ -341,15 +355,25 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		arch := "amd64"
-		if machineType != "" {
-			createVMsStep := twf.wf.Steps[createVMsStepName]
+		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
+		if ok {
 			for _, vm := range createVMsStep.CreateInstances.Instances {
-				vm.MachineType = machineType
+				if vm.Zone != "" && vm.Zone != twf.wf.Zone {
+					log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
+				}
+				if machineType != "" {
+					if vm.MachineType != "" {
+						log.Printf("VM %s machine type set to %s for test %s, not overriding\n", vm.Name, vm.MachineType, twf.Name)
+					} else {
+						vm.MachineType = machineType
+					}
+				}
 			}
-			if strings.HasPrefix(machineType, "t2a") {
-				arch = "arm64"
-			}
+		}
+
+		arch := "amd64"
+		if strings.Contains(twf.Image, "arm64") || strings.Contains(twf.Image, "aarch64") {
+			arch = "arm64"
 		}
 
 		if strings.Contains(twf.Image, "windows") {

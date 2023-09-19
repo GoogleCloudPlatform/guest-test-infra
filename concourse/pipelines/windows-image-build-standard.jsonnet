@@ -9,6 +9,34 @@ local sql_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
+
+local prepublishtesttask = {
+  local task = self,
+
+  images:: error 'must set images in prepublishtesttask',
+  extra_args:: [],
+
+  // Start of task
+  platform: 'linux',
+  serial_groups: ['shapevalidation'],
+  image_resource: {
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+  },
+  run: {
+    path: '/manager',
+    args: [
+      '-project=gcp-guest',
+      '-zone=us-central1-a',
+      '-test_projects=compute-image-test-pool-005',
+      // Run tests not ran in publish-to-testing
+      // TODO enable oslogin
+      '-filter=(shapevalidation)|(hotattach)',
+      '-images=' + task.images,
+    ] + task.extra_args,
+  },
+};
+
 local imgbuildjob = {
   local job = self,
 
@@ -534,6 +562,16 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
+    // Run prepublish tests in prod
+    if job.env == 'prod' then
+    {
+      task: 'prepublish-test-' + job.image,
+      config: prepublishtesttask {
+        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
+      },
+      attempts: 3,
+    }
+    else
     // Different publish step in prod
     if job.env == 'prod' then
       {

@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -28,6 +30,20 @@ var windowsClientImagePatterns = []string{
 	"windows-8-",
 	"windows-10-",
 	"windows-11-",
+}
+
+// BlockDeviceList gives full information about blockdevices, from the output of lsblk.
+type BlockDeviceList struct {
+	BlockDevices []BlockDevice `json:"blockdevices,omitempty"`
+}
+
+// BlockDevice defines information about a single partition or disk in the output of lsblk.
+type BlockDevice struct {
+	Name string `json:"name,omitempty"`
+	Size string `json:"size,omitempty"`
+	Type string `json:"type,omitempty"`
+	// Other fields are not currently used.
+	X map[string]interface{} `json:"-"`
 }
 
 // GetRealVMName returns the real name of a VM running in the same test.
@@ -379,4 +395,61 @@ func FailOnPowershellFail(command string, errorMsg string, t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s: %v", errorMsg, err)
 	}
+}
+
+// GetMountDiskPartition runs lsblk to get the partition of the mount disk on linux, assuming the
+// size of the mount disk is diskExpectedSizeGb.
+func GetMountDiskPartition(diskExpectedSizeGb int) (string, error) {
+	lsblkCmd := "lsblk"
+	if !CheckLinuxCmdExists(lsblkCmd) {
+		return "", fmt.Errorf("could not find lsblk")
+	}
+	diskExpectedSizeGbString := strconv.Itoa(diskExpectedSizeGb) + "G"
+	diskType := "disk"
+	lsblkout, err := exec.Command(lsblkCmd, "-o", "name,size,type", "--json").CombinedOutput()
+	if err != nil {
+		errorString := err.Error()
+		// execute lsblk without json as a backup
+		lsblkout, err = exec.Command(lsblkCmd, "-o", "-name,size,type").CombinedOutput()
+		if err != nil {
+			errorString += err.Error()
+			return "", fmt.Errorf("failed to execute lsblk with and without json: %s", errorString)
+		}
+		lsblkoutlines := strings.Split(string(lsblkout), "\n")
+		for _, line := range lsblkoutlines {
+			linetokens := strings.Fields(line)
+			if len(linetokens) != 3 {
+				continue
+			}
+			// we should have a slice of length 3, with fields name, size, type
+			var blkname, blksize, blktype = linetokens[0], linetokens[1], linetokens[2]
+			if blktype == diskType && blksize == diskExpectedSizeGbString {
+				return blkname, nil
+			}
+		}
+		return "", fmt.Errorf("failed to find disk partition with expected size %s", diskExpectedSizeGbString)
+	}
+
+	var blockDevices BlockDeviceList
+	if err := json.Unmarshal(lsblkout, &blockDevices); err != nil {
+		return "", fmt.Errorf("failed to unmarshal lsblk output with error: %v", err)
+	}
+	for _, blockDev := range blockDevices.BlockDevices {
+		if strings.ToLower(blockDev.Type) == diskType && blockDev.Size == diskExpectedSizeGbString {
+			return blockDev.Name, nil
+		}
+	}
+
+	return "", fmt.Errorf("disk block with size not found")
+}
+
+// GetMountDiskPartitionSymlink uses symlinks to get the partition of the mount disk
+// on linux, assuming the name of the disk resource is mountDiskName.
+func GetMountDiskPartitionSymlink(mountDiskName string) (string, error) {
+	mountDiskSymlink := "/dev/disk/by-id/google-" + mountDiskName
+	symlinkRealPath, err := filepath.EvalSymlinks(mountDiskSymlink)
+	if err != nil {
+		return "", fmt.Errorf("symlink could not be resolved with error: %v", err)
+	}
+	return symlinkRealPath, nil
 }

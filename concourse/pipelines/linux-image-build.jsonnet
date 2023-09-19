@@ -32,7 +32,34 @@ local imagetesttask = {
       '-project=gcp-guest',
       '-zone=us-central1-a',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storageperf)|(networkperf)',
+      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)',
+      '-images=' + task.images,
+    ] + task.extra_args,
+  },
+};
+
+local prepublishtesttask = {
+  local task = self,
+
+  images:: error 'must set images in prepublishtesttask',
+  extra_args:: [],
+
+  // Start of task
+  platform: 'linux',
+  serial_groups: ['shapevalidation'],
+  image_resource: {
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+  },
+  run: {
+    path: '/manager',
+    args: [
+      '-project=gcp-guest',
+      '-zone=us-central1-a',
+      '-test_projects=compute-image-test-pool-005',
+      // Run tests not ran in publish-to-testing
+      // TODO enable oslogin
+      '-filter=(shapevalidation)|(hotattach)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
@@ -277,7 +304,23 @@ local imgpublishjob = {
             load_var: 'publish-version',
             file: 'publish-version/version',
           },
-          // Prod releases use a different final publish step that invokes ARLE.
+          // Run prepublish tests in prod
+          if tl.env == 'prod' then
+          {
+            task: 'prepublish-test-' + tl.image,
+            config: prepublishtesttask {
+              images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+              // Special case ARM for now.
+              extra_args: if
+                std.endsWith(tl.image_prefix, '-arm64')
+              then
+                ['-machine_type=t2a-standard-2']
+              else [],
+            },
+            attempts: 3,
+          }
+          else
+         // Prod releases use a different final publish step that invokes ARLE.
           if tl.env == 'prod' then
             {
               task: 'publish-' + tl.image,
