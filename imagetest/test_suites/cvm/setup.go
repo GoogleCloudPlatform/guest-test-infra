@@ -17,7 +17,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if strings.Contains(t.Image, "arm64") || strings.Contains(t.Image, "aarch64") {
 		t.Skip("CVM is not supported on arm")
 	}
-	if strings.Contains(t.Image, "windows") || strings.Contains(t.Image, "rhel-7") || strings.Contains(t.Image, "centos-7") || strings.Contains(t.Image, "debian-10") {
+	if strings.Contains(t.Image, "windows") || strings.Contains(t.Image, "rhel-7") || strings.Contains(t.Image, "centos-7") || strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-8-1-sap") || strings.Contains(t.Image, "rhel-8-2-sap") {
 		t.Skip(fmt.Sprintf("%v does not support CVM", t.Image))
 	}
 
