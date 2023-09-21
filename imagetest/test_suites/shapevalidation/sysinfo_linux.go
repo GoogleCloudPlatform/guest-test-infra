@@ -5,8 +5,10 @@
 package shapevalidation
 
 import (
+	"fmt"
 	"os"
-	"regexp"
+	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -24,31 +26,45 @@ func memTotal() (uint64, error) {
 }
 
 func numCpus() (int, error) {
-	var cpulist = make(map[string]any)
-	possibleCpu, err := os.ReadDir("/sys/devices/system/cpu")
+	cpus, err := os.ReadFile("/sys/devices/system/cpu/online")
 	if err != nil {
 		return 0, err
 	}
-	re := regexp.MustCompile("cpu[0-9]+")
-	for _, c := range possibleCpu {
-		if re.MatchString(c.Name()) {
-			cpulist[c.Name()] = struct{}{}
-		}
-	}
-	return (len(cpulist)), nil
+	return countKernelList(string(cpus))
 }
 
 func numNumaNodes() (uint8, error) {
-	var nodelist = make(map[string]any)
-	possibleNodes, err := os.ReadDir("/sys/devices/system/node")
+	nodes, err := os.ReadFile("/sys/devices/system/node/online")
 	if err != nil {
 		return 0, err
 	}
-	re := regexp.MustCompile("node[0-9]+")
-	for _, n := range possibleNodes {
-		if re.MatchString(n.Name()) {
-			nodelist[n.Name()] = struct{}{}
+	c, err := countKernelList(string(nodes))
+	return uint8(c), err
+}
+
+// Parse a list of things such as nodes, cpus, etc from the kernel in the format "0-4,6"
+// and return the count of items in the list.
+func countKernelList(list string) (int, error) {
+	var count int
+	for _, item := range strings.Split(strings.TrimSpace(list), ",") {
+		pair := strings.Split(item, "-")
+		if len(pair) == 1 {
+			count++
+			continue
 		}
+		if len(pair) == 2 {
+			i0, err := strconv.Atoi(pair[0])
+			if err != nil {
+				return 0, err
+			}
+			i1, err := strconv.Atoi(pair[1])
+			if err != nil {
+				return 0, err
+			}
+			count = count + (i1 - i0) + 1
+			continue
+		}
+		return 0, fmt.Errorf("malformed list %q", list)
 	}
-	return uint8(len(nodelist)), nil
+	return count, nil
 }
