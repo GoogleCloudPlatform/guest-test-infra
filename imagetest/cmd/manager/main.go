@@ -119,8 +119,8 @@ func main() {
 
 	if *machineType != "" {
 		log.Printf("The -machine_type flag is deprecated, please use -x86_shape and -arm64_shape instead. Retaining legacy behavior while this is set.")
-		*x86_shape = *machineType
-		*arm64_shape = *machineType
+		*x86Shape = *machineType
+		*arm64Shape = *machineType
 	}
 
 	// Setup tests.
@@ -271,7 +271,7 @@ func main() {
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
