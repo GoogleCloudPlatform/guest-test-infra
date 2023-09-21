@@ -39,7 +39,7 @@ func TestNetworkPerformance(t *testing.T) {
 		t.Logf("%v not supported in this test", machineTypeName)
 		return
 	}
-	expected := 0.85*float64(target)
+	expected := 0.85 * float64(target)
 
 	// Find actual performance..
 	var result_perf float64
