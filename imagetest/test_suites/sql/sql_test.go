@@ -100,7 +100,7 @@ func TestRemoteConnectivity(t *testing.T) {
 
 	resultStr := strings.TrimSpace(output.Stdout)
 	result, err := strconv.Atoi(resultStr)
-	if result > 0 {
-		t.Fatalf("Test output returned invalid rows; got %d, expected >0", result)
+	if 1 > result {
+		t.Fatalf("Test output returned invalid rows; got %d, expected > 0", result)
 	}
 }
