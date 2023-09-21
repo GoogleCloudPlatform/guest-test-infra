@@ -39,6 +39,7 @@ func TestNetworkPerformance(t *testing.T) {
 		t.Logf("%v not supported in this test", machineTypeName)
 		return
 	}
+	expected := 0.85 * float64(target)
 
 	// Find actual performance..
 	var result_perf float64
@@ -49,8 +50,8 @@ func TestNetworkPerformance(t *testing.T) {
 	}
 
 	// Check if it matches the target.
-	if result_perf < 0.85*float64(target) {
-		t.Fatalf("Error: Did not meet performance expectation. Expected: %v Gbits/s, Actual: %v Gbits/s", 0.85*float64(target), result_perf)
+	if result_perf < expected {
+		t.Fatalf("Error: Did not meet performance expectation. Expected: %v Gbits/s, Actual: %v Gbits/s", expected, result_perf)
 	}
-	t.Logf("Machine type: %v, Expected: %v Gbits/s, Actual: %v Gbits/s", machineTypeName, target, result_perf)
+	t.Logf("Machine type: %v, Expected: %v Gbits/s, Actual: %v Gbits/s", machineTypeName, expected, result_perf)
 }
