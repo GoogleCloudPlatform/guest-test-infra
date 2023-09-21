@@ -90,18 +90,17 @@ func TestRemoteConnectivity(t *testing.T) {
 	$result = $SqlAdapter.Fill($DataSet)
 	$SqlConnection.Close()
 	
-	Invoke-RestMethod -Method Put -Body $result -Headers @{'Metadata-Flavor' = 'Google'} -Uri 'http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/result' -ContentType "application/json; charset=utf-8" -UseBasicParsing`
+	Write-Output $result`
 
 	command := fmt.Sprintf(connectionCmd)
-	errorMsg := "Unable to query server database."
-	utils.FailOnPowershellFail(command, errorMsg, t)
-
-	data, err := utils.GetMetadataGuestAttribute("testing/result")
+	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
-		t.Fatalf("Failed to get test result from metadata: %v", err)
+		t.Fatalf("Unable to query server database: %v", err)
 	}
 
-	if strconv.Atoi(data) > 0 {
-		t.Fatalf("Test failed: query returned %s rows, expected > 0.", data)
+	resultStr := strings.TrimSpace(output.Stdout)
+	result, err := strconv.Atoi(resultStr)
+	if result > 0 {
+		t.Fatalf("Test output returned invalid rows; got %d, expected >0", result)
 	}
 }
