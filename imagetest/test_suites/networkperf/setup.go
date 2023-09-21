@@ -24,16 +24,19 @@ var jfClientConfig = InstanceConfig{name: "jf-client-vm", ip: "192.168.1.5"}
 var tier1ServerConfig = InstanceConfig{name: "tier1-server-vm", ip: "192.168.0.6"}
 var tier1ClientConfig = InstanceConfig{name: "tier1-client-vm", ip: "192.168.0.7"}
 
-//go:embed *
+//go:embed startupscripts/*
 var scripts embed.FS
+
+//go:embed targets/*
+var targets embed.FS
 
 const (
 	serverStartupScriptURL        = "startupscripts/netserver_startup.sh"
 	clientStartupScriptURL        = "startupscripts/netclient_startup.sh"
 	windowsServerStartupScriptURL = "startupscripts/windows_serverstartup.ps1"
 	windowsClientStartupScriptURL = "startupscripts/windows_clientstartup.ps1"
-	targetsURL                    = "targets.txt"
-	tier1TargetsURL               = "tier1_targets.txt"
+	targetsURL                    = "targets/default_targets.txt"
+	tier1TargetsURL               = "targets/tier1_targets.txt"
 )
 
 // TestSetup sets up the test workflow.
@@ -71,11 +74,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
 	// Get the targets.
-	defaultPerfTargets, err := scripts.ReadFile(targetsURL)
+	defaultPerfTargets, err := targets.ReadFile(targetsURL)
 	if err != nil {
 		return err
 	}
-	tier1PerfTargets, err := scripts.ReadFile(tier1TargetsURL)
+	tier1PerfTargets, err := targets.ReadFile(tier1TargetsURL)
 	if err != nil {
 		return err
 	}
