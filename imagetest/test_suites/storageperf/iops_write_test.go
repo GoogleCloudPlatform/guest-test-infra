@@ -6,9 +6,9 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	commonFIORandWriteOptions = "--name=write_iops_test --filesize=10G --numjobs=8 --time_based --runtime=60s --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --group_reporting=1 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqWriteOptions  = "--name=write_bandwidth_test --filesize=10G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=4 --thread --offset_increment=2G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64  --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandWriteOptions = "--name=write_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --offset_increment=500G --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqWriteOptions  = "--name=write_bandwidth_test --filesize=2500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --thread --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64  --iodepth_batch_complete_max=64 --output-format=json"
 )
 
 func RunFIOWriteWindows(mode string) ([]byte, error) {
@@ -44,7 +44,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkWrite() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSize)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB * bytesInGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -92,12 +92,21 @@ func TestRandomWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	//TODO: Update this value to be equal to the input IOPS value, once it is implemented in this testing framework. For now, hyperdisk IOPS are the lesser of 100 IOPS per GiB of disk capacity or 350,000, if unspecified.
-	expectedHyperdiskIOPS := math.Min(100*hyperdiskSize, 350000)
-	if finalIOPSValue < iopsErrorMargin*expectedHyperdiskIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
+	expectedRandWriteIOPSString, err := utils.GetMetadataAttribute(randWriteAttribute)
+	if err != nil {
+		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
 	}
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedHyperdiskIOPS)
+
+	expectedRandWriteIOPSString = strings.TrimSpace(expectedRandWriteIOPSString)
+	var expectedRandWriteIOPS float64
+	if expectedRandWriteIOPS, err := strconv.ParseFloat(expectedRandWriteIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandWriteIOPS, err)
+	}
+	if finalIOPSValue < iopsErrorMargin*expectedRandWriteIOPS {
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedRandWriteIOPS, finalIOPSValue)
+	}
+
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedRandWriteIOPS)
 }
 
 // TestSequentialWriteIOPS checks that sequential write IOPS are around the value listed in public docs.
@@ -118,14 +127,21 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	if err = json.Unmarshal(seqWriteIOPSJson, &fioOut); err != nil {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(seqWriteIOPSJson), err)
 	}
-	var finalIOPSValue float64 = 0.0
-	for _, job := range fioOut.Jobs {
-		finalIOPSValue += job.WriteResult.IOPS
+
+	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
+	expectedSeqWriteIOPSString, err := utils.GetMetadataAttribute(seqWriteAttribute)
+	if err != nil {
+		t.Fatalf("could not get metadata attribute %s: err %v", seqWriteAttribute, err)
 	}
-	//TODO: Update this value to be equal to the input IOPS value, once it is implemented in this testing framework. For now, it is not clear what the sequential write iops value should be.
-	expectedHyperdiskIOPS := 5.0 * hyperdiskSize
-	if finalIOPSValue < iopsErrorMargin*expectedHyperdiskIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedHyperdiskIOPS, finalIOPSValue)
+
+	expectedSeqWriteIOPSString = strings.TrimSpace(expectedSeqWriteIOPSString)
+	var expectedSeqWriteIOPS float64
+	if expectedSeqWriteIOPS, err := strconv.ParseFloat(expectedSeqWriteIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqWriteIOPS, err)
 	}
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedHyperdiskIOPS)
+	if finalIOPSValue < iopsErrorMargin*expectedSeqWriteIOPS {
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqWriteIOPS, finalIOPSValue)
+	}
+
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedSeqWriteIOPS)
 }

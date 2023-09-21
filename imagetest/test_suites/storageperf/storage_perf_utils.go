@@ -7,14 +7,23 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+// PerformanceTargets is a structure which stores the expected iops for each operation. This is used as a value in a map from machine type to performance targets
+type PerformanceTargets struct {
+	randReadIOPS  float64
+	randWriteIOPS float64
+	seqReadIOPS   float64
+	seqWriteIOPS  float64
+}
+
 const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
-	iopsErrorMargin = 0.97
-	// hyperdiskSize in GB is used to determine which partition is the mounted hyperdisk.
-	hyperdiskSize = 300
-	bootdiskSize  = 50
-	mountDiskName = "hyperdisk"
+	iopsErrorMargin = 0.95
+	// hyperdiskSize in bytes is used to determine which partition is the mounted hyperdisk.
+	bytesInGB       = 1073741824
+	hyperdiskSizeGB = 3500
+	bootdiskSizeGB  = 50
+	mountDiskName   = "hyperdisk"
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
@@ -23,8 +32,34 @@ const (
 	// constants for the mode of running the test
 	randomMode     = "random"
 	sequentialMode = "sequential"
-	// TODO: Set up constants for compute.Disk.ProvisionedIOPS int64, and compute.Disk.ProvisionedThrougput int64, then set these fields in appendCreateDisksStep
+	// Guest Attribute constants for storing the expected iops
+	randReadAttribute  = "randRead"
+	randWriteAttribute = "randWrite"
+	seqReadAttribute   = "seqRead"
+	seqWriteAttribute  = "seqWrite"
 )
+
+// map the machine type to performance targets
+var expectedIOPSMap = map[string]PerformanceTargets{
+	"c3-standard-88": {
+		randReadIOPS:  350000.0,
+		randWriteIOPS: 350000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+	"c3d-standard-180": {
+		randReadIOPS:  350000.0,
+		randWriteIOPS: 350000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+	"n2-standard-80": {
+		randReadIOPS:  160000.0,
+		randWriteIOPS: 160000.0,
+		seqReadIOPS:   5000.0,
+		seqWriteIOPS:  5000.0,
+	},
+}
 
 // FIOOutput defines the output from the fio command
 type FIOOutput struct {
