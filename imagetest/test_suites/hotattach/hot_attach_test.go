@@ -43,7 +43,7 @@ func getProjectAndZone() (string, string, error) {
 
 func getLinuxMountPath(mountDiskSizeGB int, mountDiskName string) (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGB * bytesInGB)
+	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {

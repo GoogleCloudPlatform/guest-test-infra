@@ -44,7 +44,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkRead() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB * bytesInGB)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {

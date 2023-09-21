@@ -14,7 +14,6 @@ const (
 	diskName     = "hotattachMount"
 	instanceName = "hotattachvm"
 
-	bytesInGB       = 1073741824
 	bootDiskSizeGB  = 10
 	mountDiskSizeGB = 30
 
