@@ -102,10 +102,10 @@ func TestRandomReadIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandReadIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedRandReadIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedRandReadIOPS, finalIOPSValue)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedRandReadIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedRandReadIOPS)
 }
 
 // TestSequentialReadIOPS checks that sequential read IOPS are around the value listed in public docs.
@@ -139,8 +139,8 @@ func TestSequentialReadIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqReadIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedSeqReadIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedSeqReadIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalIOPSValue)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedSeqReadIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedSeqReadIOPS)
 }

@@ -103,10 +103,10 @@ func TestRandomWriteIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandWriteIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedRandWriteIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedRandWriteIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedRandWriteIOPS, finalIOPSValue)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedRandWriteIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedRandWriteIOPS)
 }
 
 // TestSequentialWriteIOPS checks that sequential write IOPS are around the value listed in public docs.
@@ -140,8 +140,8 @@ func TestSequentialWriteIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqWriteIOPS, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedSeqWriteIOPS {
-		t.Fatalf("iops average was too low: expected close to %f, got  %f", expectedSeqWriteIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqWriteIOPS, finalIOPSValue)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f", finalIOPSValue, expectedSeqWriteIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedSeqWriteIOPS)
 }
