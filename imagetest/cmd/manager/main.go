@@ -34,7 +34,7 @@ import (
 var (
 	project       = flag.String("project", "", "project to use for test runner")
 	testProjects  = flag.String("test_projects", "", "comma separated list of projects to be used for tests. defaults to the test runner project")
-	zone          = flag.String("zone", "", "zone to be used for tests")
+	zone          = flag.String("zone", "us-central1-a", "zone to be used for tests")
 	printwf       = flag.Bool("print", false, "print out the parsed test workflows and exit")
 	validate      = flag.Bool("validate", false, "validate all the test workflows and exit")
 	outPath       = flag.String("out_path", "junit.xml", "junit xml path")
@@ -44,7 +44,9 @@ var (
 	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
 	filter        = flag.String("filter", "", "only run tests matching filter")
 	exclude       = flag.String("exclude", "", "skip tests matching filter")
-	machineType   = flag.String("machine_type", "", "machine type to use for test instances, overridable by individual tests")
+	machineType   = flag.String("machine_type", "", "deprecated, use -x86_shape and/or -arm64_shape instead")
+	x86Shape      = flag.String("x86_shape", "n1-standard-1", "default x86(-32 and -64) vm shape for tests not requiring a specific shape")
+	arm64Shape    = flag.String("arm64_shape", "t2a-standard-1", "default arm64 vm shape for tests not requiring a specific shape")
 )
 
 var (
@@ -113,6 +115,12 @@ func main() {
 			log.Fatal("-exclude flag not valid:", err)
 		}
 		log.Printf("using -exclude %s", *exclude)
+	}
+
+	if *machineType != "" {
+		log.Printf("The -machine_type flag is deprecated, please use -x86_shape and -arm64_shape instead. Retaining legacy behavior while this is set.")
+		*x86Shape = *machineType
+		*arm64Shape = *machineType
 	}
 
 	// Setup tests.
@@ -258,18 +266,18 @@ func main() {
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType)
+		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *machineType, *parallelCount, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape, *parallelCount, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}
