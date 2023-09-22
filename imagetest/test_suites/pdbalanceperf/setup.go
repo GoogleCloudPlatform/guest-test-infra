@@ -34,9 +34,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			machineType = machineTypeParam
 		}
 		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
+		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.PdBalanced, SizeGb: mountdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
+		mountDisk.Zone = paramMap["zone"]
 
-		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk}, paramMap)
+		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, paramMap)
 		if err != nil {
 			return err
 		}

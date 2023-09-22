@@ -16,12 +16,14 @@ type PerformanceTargets struct {
 }
 
 const (
-	vmName = "vm"
+	vmName        = "vm"
+	mountDiskName = "mountDisk"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.95
 	bwErrorMargin   = 0.95
 	bytesInMB       = 1048576
-	bootdiskSizeGB  = 3500
+	bootdiskSizeGB  = 100
+	mountdiskSizeGB = 3500
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.

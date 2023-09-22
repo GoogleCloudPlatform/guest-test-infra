@@ -22,7 +22,7 @@ const (
 
 func RunFIOWriteWindows(mode string) ([]byte, error) {
 	// there is no mounted disk, so always assume the drive is the C drive
-	physicalDrive := "\\\\.\\PhysicalDrive0"
+	testdiskDrive := windowsDriveLetter + ":\\"
 	writeIopsFile := "C:\\fio-write-iops.txt"
 	var writeOptions string
 	if mode == sequentialMode {
@@ -30,7 +30,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 	} else {
 		writeOptions = commonFIORandWriteOptions
 	}
-	fioWriteOptionsWindows := " -ArgumentList \"" + writeOptions + " --filename=" + physicalDrive + " --output=" + writeIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -wait"
+	fioWriteOptionsWindows := " -ArgumentList \"" + writeOptions + " --output=" + writeIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioWriteOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -45,7 +45,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkWrite() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(bootdiskSizeGB)
+	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -78,7 +78,9 @@ func TestRandomWriteIOPS(t *testing.T) {
 	var randWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		t.Skip("windows does not provide write permissions for a single disk")
+		if randWriteIOPSJson, err = RunFIOWriteWindows(randomMode); err != nil {
+			t.Fatalf("windows fio rand write failed with error: %v", err)
+		}
 	} else {
 		if randWriteIOPSJson, err = RunFIOWriteLinux(randomMode); err != nil {
 			t.Fatalf("linux fio rand write failed with error: %v", err)
@@ -113,7 +115,9 @@ func TestSequentialWriteBW(t *testing.T) {
 	var seqWriteBWJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		t.Skip("windows does not provide write permissions for a single disk")
+		if seqWriteBWJson, err = RunFIOWriteWindows(sequentialMode); err != nil {
+			t.Fatalf("windows fio seq write failed with error: %v", err)
+		}
 	} else {
 		if seqWriteBWJson, err = RunFIOWriteLinux(sequentialMode); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)

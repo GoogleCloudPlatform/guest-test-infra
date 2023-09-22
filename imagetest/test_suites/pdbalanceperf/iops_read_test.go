@@ -22,7 +22,7 @@ const (
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
 	// there is no mounted disk so always assume the C drive
-	physicalDrive := "\\\\.\\PhysicalDrive0"
+	testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
 	var readOptions string
 	if mode == sequentialMode {
@@ -30,7 +30,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 	} else {
 		readOptions = commonFIORandReadOptions
 	}
-	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --filename=" + physicalDrive + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -wait"
+	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -45,7 +45,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkRead() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(bootdiskSizeGB)
+	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
