@@ -19,8 +19,6 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.95
-	// hyperdiskSize in bytes is used to determine which partition is the mounted hyperdisk.
-	bytesInGB       = 1073741824
 	hyperdiskSizeGB = 3500
 	bootdiskSizeGB  = 50
 	mountDiskName   = "hyperdisk"

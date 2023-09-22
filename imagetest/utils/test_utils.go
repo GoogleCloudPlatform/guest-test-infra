@@ -23,7 +23,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+const (
+	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
+	bytesInGB         = 1073741824
+)
 
 var windowsClientImagePatterns = []string{
 	"windows-7-",
@@ -40,7 +43,7 @@ type BlockDeviceList struct {
 // BlockDevice defines information about a single partition or disk in the output of lsblk.
 type BlockDevice struct {
 	Name string `json:"name,omitempty"`
-	Size int    `json:"size,omitempty"`
+	Size int64  `json:"size,omitempty"`
 	Type string `json:"type,omitempty"`
 	// Other fields are not currently used.
 	X map[string]interface{} `json:"-"`
@@ -399,7 +402,8 @@ func FailOnPowershellFail(command string, errorMsg string, t *testing.T) {
 
 // GetMountDiskPartition runs lsblk to get the partition of the mount disk on linux, assuming the
 // size of the mount disk is diskExpectedSizeGb.
-func GetMountDiskPartition(diskExpectedSizeBytes int) (string, error) {
+func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
+	var diskExpectedSizeBytes int64 = int64(diskExpectedSizeGB) * int64(bytesInGB)
 	lsblkCmd := "lsblk"
 	if !CheckLinuxCmdExists(lsblkCmd) {
 		return "", fmt.Errorf("could not find lsblk")
@@ -422,7 +426,7 @@ func GetMountDiskPartition(diskExpectedSizeBytes int) (string, error) {
 			}
 			// we should have a slice of length 3, with fields name, size, type
 			var blkname, blksize, blktype = linetokens[0], linetokens[1], linetokens[2]
-			blksizeInt, err := strconv.Atoi(blksize)
+			blksizeInt, err := strconv.ParseInt(blksize, 10, 64)
 			if err != nil {
 				return "", fmt.Errorf("did not find int in output of lsblk: string %s error %v", blksize, err)
 			}

@@ -44,7 +44,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkWrite() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB * bytesInGB)
+	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
