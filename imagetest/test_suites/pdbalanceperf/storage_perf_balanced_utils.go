@@ -20,7 +20,6 @@ const (
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.95
 	bwErrorMargin   = 0.95
-	bytesInGB       = 1073741824
 	bytesInMB       = 1048576
 	bootdiskSizeGB  = 3500
 	// The fixed gcs location where fio.exe is stored.

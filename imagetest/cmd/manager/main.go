@@ -21,6 +21,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/pdbalanceperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/shapevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
@@ -163,6 +164,10 @@ func main() {
 		{
 			shapevalidation.Name,
 			shapevalidation.TestSetup,
+		},
+		{
+			pdbalanceperf.Name,
+			pdbalanceperf.TestSetup,
 		},
 		{
 			storageperf.Name,

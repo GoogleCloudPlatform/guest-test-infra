@@ -4,6 +4,6 @@ try {
 	Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter $windowsDriveLetter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Perf-Test' -Confirm:$false
 }
 catch {
-	Write-Output "failed to initialize disk"
+	Write-Output "failed to initialize disk or copy fio.exe"
 	Write-Output $_
 }

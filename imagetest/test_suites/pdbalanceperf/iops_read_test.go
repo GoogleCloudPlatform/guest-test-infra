@@ -22,7 +22,7 @@ const (
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
 	// there is no mounted disk so always assume the C drive
-	testdiskDrive := "C:\\"
+	physicalDrive := "\\\\.\\PhysicalDrive0"
 	readIopsFile := "C:\\fio-read-iops.txt"
 	var readOptions string
 	if mode == sequentialMode {
@@ -30,7 +30,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 	} else {
 		readOptions = commonFIORandReadOptions
 	}
-	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
+	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --filename=" + physicalDrive + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)

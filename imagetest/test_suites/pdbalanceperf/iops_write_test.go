@@ -22,7 +22,7 @@ const (
 
 func RunFIOWriteWindows(mode string) ([]byte, error) {
 	// there is no mounted disk, so always assume the drive is the C drive
-	testdiskDrive := "C:\\"
+	physicalDrive := "\\\\.\\PhysicalDrive0"
 	writeIopsFile := "C:\\fio-write-iops.txt"
 	var writeOptions string
 	if mode == sequentialMode {
@@ -30,7 +30,7 @@ func RunFIOWriteWindows(mode string) ([]byte, error) {
 	} else {
 		writeOptions = commonFIORandWriteOptions
 	}
-	fioWriteOptionsWindows := " -ArgumentList \"" + writeOptions + " --output=" + writeIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
+	fioWriteOptionsWindows := " -ArgumentList \"" + writeOptions + " --filename=" + physicalDrive + " --output=" + writeIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioWriteOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -78,9 +78,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 	var randWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randWriteIOPSJson, err = RunFIOWriteWindows(randomMode); err != nil {
-			t.Fatalf("windows fio rand write failed with error: %v", err)
-		}
+		t.Skip("windows does not provide write permissions for a single disk")
 	} else {
 		if randWriteIOPSJson, err = RunFIOWriteLinux(randomMode); err != nil {
 			t.Fatalf("linux fio rand write failed with error: %v", err)
@@ -115,9 +113,7 @@ func TestSequentialWriteBW(t *testing.T) {
 	var seqWriteBWJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqWriteBWJson, err = RunFIOWriteWindows(sequentialMode); err != nil {
-			t.Fatalf("windows fio seq write failed with error: %v", err)
-		}
+		t.Skip("windows does not provide write permissions for a single disk")
 	} else {
 		if seqWriteBWJson, err = RunFIOWriteLinux(sequentialMode); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)
