@@ -37,6 +37,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if machineTypeParam, foundKey := paramMap["machineType"]; foundKey {
 			machineType = machineTypeParam
 		}
+		if strings.HasPrefix(machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")) {
+			continue
+		}
 		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
 		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
