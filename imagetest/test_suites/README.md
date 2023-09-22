@@ -13,6 +13,11 @@ Tests are broken down by suite below:
 
 ## Test suites ##
 
+### Test suite: cvm ###
+
+#### TestCVMEnabled ####
+Validate that CVM is enabled.
+
 ### Test suite: disk ###
 
 #### TestDiskResize ####
@@ -243,6 +248,25 @@ Test logic
 Identify the primary network interface using metadata, and confirm it has the
 correct MTU using the golang 'net' package, which uses the netlink interface on
 Linux (same as the `ip` command).
+
+### Test suite: networkperf ###
+
+#### TestNetworkPerformance ####
+Validate the network performance of an image reaches at least 85% of advertised
+speeds.
+
+Background
+
+Reaching advertised speeds is important, as failing to reach them means that
+there are problems with the image or its drivers. The 85% number is chosen as
+that is the baseline that the performance tests generally can match or exceed.
+Reaching 100% of the advertised speeds is unrealistic in real scenarios.
+
+Test logic
+
+Launch a server VM and client VM, then run an iperf test between the two to test
+network speeds. This test launches up to 3 sets of servers and clients: default
+network, jumbo frames network, and tier1 networking tier.
 
 ### Test suite: security ###
 
