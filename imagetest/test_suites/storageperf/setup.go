@@ -22,14 +22,17 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if bootdiskSizeGB == hyperdiskSizeGB {
+	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	// initialize vm with the hard coded machine type and platform corresponding to the index
 	paramMaps := []map[string]string{
-		{"machineType": "c3-standard-88"},
-		{"machineType": "c3d-standard-180", "zone": "us-east4-c"},
-		{"machineType": "n2-standard-80"},
+		{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme},
+		// temporarily disable c3d hyperdisk until the api allows it again
+		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme},
+		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme},
+		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
+		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, paramMap := range paramMaps {
@@ -37,11 +40,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if machineTypeParam, foundKey := paramMap["machineType"]; foundKey {
 			machineType = machineTypeParam
 		}
+		// this is the type of the disk where performance is tested
+		diskType := imagetest.PdBalanced
+		if diskTypeParam, foundKey := paramMap["diskType"]; foundKey {
+			diskType = diskTypeParam
+		}
 		if strings.HasPrefix(machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")) {
 			continue
 		}
-		bootDisk := compute.Disk{Name: vmName + machineType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
-		mountDisk := compute.Disk{Name: mountDiskName + machineType, Type: imagetest.HyperdiskExtreme, SizeGb: hyperdiskSizeGB}
+		bootDisk := compute.Disk{Name: vmName + machineType + diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
+		mountDisk := compute.Disk{Name: mountDiskName + machineType + diskType, Type: diskType, SizeGb: mountdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
 		mountDisk.Zone = paramMap["zone"]
 
@@ -52,9 +60,15 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		vm.AddMetadata("enable-guest-attributes", "TRUE")
 		// set the expected performance values
-		vmPerformanceTargets, foundKey := expectedIOPSMap[machineType]
+		var vmPerformanceTargets PerformanceTargets
+		var foundKey bool = false
+		if diskType == imagetest.HyperdiskExtreme {
+			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[machineType]
+		} else if diskType == imagetest.PdBalanced {
+			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[machineType]
+		}
 		if !foundKey {
-			return fmt.Errorf("expected performance for machine type %s not found", machineType)
+			return fmt.Errorf("expected performance for machine type %s and disk type %s not found", machineType, diskType)
 		}
 		vm.AddMetadata(randReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randReadIOPS))
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
