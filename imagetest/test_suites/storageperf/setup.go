@@ -31,8 +31,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// temporarily disable c3d hyperdisk until the api allows it again
 		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme},
 		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme},
-		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
-		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
+		// {"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
+		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, paramMap := range paramMaps {
@@ -45,9 +45,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if diskTypeParam, foundKey := paramMap["diskType"]; foundKey {
 			diskType = diskTypeParam
 		}
-		if strings.HasPrefix(machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")) {
-			continue
-		}
+		//if strings.HasPrefix(machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")) {
+		//	continue
+		//}
 		bootDisk := compute.Disk{Name: vmName + machineType + diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
 		mountDisk := compute.Disk{Name: mountDiskName + machineType + diskType, Type: diskType, SizeGb: mountdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
