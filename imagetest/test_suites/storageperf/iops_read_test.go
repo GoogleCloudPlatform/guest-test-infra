@@ -17,11 +17,11 @@ import (
 
 const (
 	commonFIORandReadOptions = "--name=read_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqReadOptions  = "--name=read_bandwidth_test --filesize=2500G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --thread --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64  --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIOSeqReadOptions  = "--name=read_bandwidth_test --filesize=2500G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 )
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
-	testdiskDrive := windowsDriveLetter + ":\\"
+	//testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
 	var readOptions string
 	if mode == sequentialMode {
@@ -29,7 +29,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 	} else {
 		readOptions = commonFIORandReadOptions
 	}
-	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --output=" + readIopsFile + " --ioengine=windowsaio" + " --thread\"" + " -WorkingDirectory " + testdiskDrive + " -wait"
+	fioReadOptionsWindows := " -ArgumentList \"" + readOptions + " --output=" + readIopsFile + " --filename=\\\\.\\PhysicalDrive1" + " --ioengine=windowsaio" + " --thread\"" + " -wait"
 	// fioWindowsLocalPath is defined within storage_perf_utils.go
 	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioReadOptionsWindows); err != nil {
 		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
@@ -44,7 +44,7 @@ func RunFIOReadWindows(mode string) ([]byte, error) {
 
 func getLinuxSymlinkRead() (string, error) {
 	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(hyperdiskSizeGB)
+	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
 	} else {
@@ -127,7 +127,13 @@ func TestSequentialReadIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(seqReadIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
+	// bytes is listed in bytes per second in the fio output
+	finalBandwidthBytesPerSecond := 0
+	for _, job := range fioOut.Jobs {
+		finalBandwidthBytesPerSecond += job.ReadResult.BandwidthBytes
+	}
+	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
+
 	expectedSeqReadIOPSString, err := utils.GetMetadataAttribute(seqReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", seqReadAttribute, err)
@@ -138,9 +144,9 @@ func TestSequentialReadIOPS(t *testing.T) {
 	if expectedSeqReadIOPS, err := strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqReadIOPS, err)
 	}
-	if finalIOPSValue < iopsErrorMargin*expectedSeqReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalIOPSValue)
+	if finalBandwidthMBps < iopsErrorMargin*expectedSeqReadIOPS {
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalBandwidthMBps)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedSeqReadIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalBandwidthMBps, iopsErrorMargin, expectedSeqReadIOPS)
 }
