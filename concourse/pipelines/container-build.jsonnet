@@ -121,6 +121,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     BuildContainerImage('jsonnet-go'),
     BuildContainerImage('fly-validate-pipelines') { passed: 'build-jsonnet-go' },
     BuildContainerImage('pytest'),
+    BuildContainerImage('citpresubmit'),
 
     // Non-standard dockerfile location and public image.
     BuildContainerImage('registry-image-forked') {
