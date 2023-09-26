@@ -11,8 +11,8 @@ import (
 type PerformanceTargets struct {
 	randReadIOPS  float64
 	randWriteIOPS float64
-	seqReadIOPS   float64
-	seqWriteIOPS  float64
+	seqReadBW     float64
+	seqWriteBW    float64
 }
 
 const (
@@ -21,6 +21,7 @@ const (
 	iopsErrorMargin = 0.95
 	mountdiskSizeGB = 3500
 	bootdiskSizeGB  = 50
+	bytesInMB       = 1048576
 	mountDiskName   = "hyperdisk"
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
@@ -42,20 +43,20 @@ var hyperdiskIOPSMap = map[string]PerformanceTargets{
 	"c3-standard-88": {
 		randReadIOPS:  350000.0,
 		randWriteIOPS: 350000.0,
-		seqReadIOPS:   5000.0,
-		seqWriteIOPS:  5000.0,
+		seqReadBW:     5000.0,
+		seqWriteBW:    5000.0,
 	},
 	"c3d-standard-180": {
 		randReadIOPS:  350000.0,
 		randWriteIOPS: 350000.0,
-		seqReadIOPS:   5000.0,
-		seqWriteIOPS:  5000.0,
+		seqReadBW:     5000.0,
+		seqWriteBW:    5000.0,
 	},
 	"n2-standard-80": {
 		randReadIOPS:  160000.0,
 		randWriteIOPS: 160000.0,
-		seqReadIOPS:   5000.0,
-		seqWriteIOPS:  5000.0,
+		seqReadBW:     5000.0,
+		seqWriteBW:    5000.0,
 	},
 }
 
@@ -63,14 +64,14 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 	"c3-standard-88": {
 		randReadIOPS:  80000.0,
 		randWriteIOPS: 80000.0,
-		seqReadIOPS:   1200.0,
-		seqWriteIOPS:  1200.0,
+		seqReadBW:     1200.0,
+		seqWriteBW:    1200.0,
 	},
 	"c3d-standard-180": {
 		randReadIOPS:  80000.0,
 		randWriteIOPS: 80000.0,
-		seqReadIOPS:   2200.0,
-		seqWriteIOPS:  2200.0,
+		seqReadBW:     2200.0,
+		seqWriteBW:    2200.0,
 	},
 }
 
@@ -89,9 +90,9 @@ type FIOJob struct {
 
 // FIOStatistics give information about FIO performance.
 type FIOStatistics struct {
-	IOPS      float64                `json:iops,omitempty"`
-	Bandwidth float64                `json:bw_mean,omitempty"`
-	X         map[string]interface{} `json:"-"`
+	IOPS           float64                `json:iops,omitempty"`
+	BandwidthBytes int                    `json:bw_bytes,omitempty"`
+	X              map[string]interface{} `json:"-"`
 }
 
 // installFioWindows copies the fio.exe file onto the VM instance.

@@ -31,7 +31,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// temporarily disable c3d hyperdisk until the api allows it again
 		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme},
 		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme},
-		// {"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
+		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
 		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
 	}
 	testVMs := []*imagetest.TestVM{}
@@ -72,8 +72,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		vm.AddMetadata(randReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randReadIOPS))
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
-		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadIOPS))
-		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteIOPS))
+		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
+		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
 		if strings.Contains(t.Image, "windows") {
 			vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)

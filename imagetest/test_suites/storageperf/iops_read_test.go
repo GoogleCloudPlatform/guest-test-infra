@@ -127,7 +127,13 @@ func TestSequentialReadIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(seqReadIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
+	// bytes is listed in bytes per second in the fio output
+	finalBandwidthBytesPerSecond := 0
+	for _, job := range fioOut.Jobs {
+		finalBandwidthBytesPerSecond += job.ReadResult.BandwidthBytes
+	}
+	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
+
 	expectedSeqReadIOPSString, err := utils.GetMetadataAttribute(seqReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", seqReadAttribute, err)
@@ -138,9 +144,9 @@ func TestSequentialReadIOPS(t *testing.T) {
 	if expectedSeqReadIOPS, err := strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
 		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqReadIOPS, err)
 	}
-	if finalIOPSValue < iopsErrorMargin*expectedSeqReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalIOPSValue)
+	if finalBandwidthMBps < iopsErrorMargin*expectedSeqReadIOPS {
+		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalBandwidthMBps)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedSeqReadIOPS)
+	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalBandwidthMBps, iopsErrorMargin, expectedSeqReadIOPS)
 }
