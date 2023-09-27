@@ -261,7 +261,7 @@ func (t *TestVM) SetWindowsStartupScript(script string) {
 // SetNetworkPerformanceTier sets the performance tier of the VM.
 // The tier must be one of "DEFAULT" or "TIER_1"
 func (t *TestVM) SetNetworkPerformanceTier(tier string) error {
-	if tier != "DEFAULT" || tier != "TIER_1" {
+	if tier != "DEFAULT" && tier != "TIER_1" {
 		return fmt.Errorf("Error: %v not one of DEFAULT or TIER_1", tier)
 	}
 	if t.instance.NetworkPerformanceConfig == nil {
