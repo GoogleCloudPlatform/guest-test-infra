@@ -436,7 +436,7 @@ func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
 				return blkname, nil
 			}
 		}
-		return "", fmt.Errorf("failed to find disk partition with expected size %s", diskExpectedSizeBytes)
+		return "", fmt.Errorf("failed to find disk partition with expected size %d", diskExpectedSizeBytes)
 	}
 
 	var blockDevices BlockDeviceList
