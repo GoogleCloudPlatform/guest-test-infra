@@ -415,7 +415,7 @@ func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
 	if err != nil {
 		errorString := err.Error()
 		// execute lsblk without json as a backup
-		lsblkout, err = exec.Command(lsblkCmd, "-b", "-o", "-name,size,type").CombinedOutput()
+		lsblkout, err = exec.Command(lsblkCmd, "-b", "-o", "name,size,type").CombinedOutput()
 		if err != nil {
 			errorString += err.Error()
 			return "", fmt.Errorf("failed to execute lsblk with and without json: %s", errorString)
