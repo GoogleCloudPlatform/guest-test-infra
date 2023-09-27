@@ -447,7 +447,7 @@ func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
 		// deal with the case where the unmarshalled size field can be a number with or without quotes on different operating systems.
 		blockDevSizeInt, err := blockDev.Size.Int64()
 		if err != nil {
-			return "", fmt.Errorf("block dev size %v was not an int: error %v", blockDev.Size, err)
+			return "", fmt.Errorf("block dev size %s was not an int: error %v", blockDev.Size.String(), err)
 		}
 		if strings.ToLower(blockDev.Type) == diskType && blockDevSizeInt == diskExpectedSizeBytes {
 			return blockDev.Name, nil
