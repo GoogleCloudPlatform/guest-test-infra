@@ -43,8 +43,10 @@ type BlockDeviceList struct {
 // BlockDevice defines information about a single partition or disk in the output of lsblk.
 type BlockDevice struct {
 	Name string `json:"name,omitempty"`
-	Size int64  `json:"size,omitempty"`
-	Type string `json:"type,omitempty"`
+	// on some OSes, size is a string, and on some OSes, size is a number.
+	// This allows both to be parsed
+	Size json.Number `json:"size,omitempty"`
+	Type string      `json:"type,omitempty"`
 	// Other fields are not currently used.
 	X map[string]interface{} `json:"-"`
 }
@@ -439,10 +441,15 @@ func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
 
 	var blockDevices BlockDeviceList
 	if err := json.Unmarshal(lsblkout, &blockDevices); err != nil {
-		return "", fmt.Errorf("failed to unmarshal lsblk output with error: %v", err)
+		return "", fmt.Errorf("failed to unmarshal lsblk output %s with error: %v", lsblkout, err)
 	}
 	for _, blockDev := range blockDevices.BlockDevices {
-		if strings.ToLower(blockDev.Type) == diskType && blockDev.Size == diskExpectedSizeBytes {
+		// deal with the case where the unmarshalled size field can be a number with or without quotes on different operating systems.
+		blockDevSizeInt, err := blockDev.Size.Int64()
+		if err != nil {
+			return "", fmt.Errorf("block dev size %s was not an int: error %v", blockDev.Size.String(), err)
+		}
+		if strings.ToLower(blockDev.Type) == diskType && blockDevSizeInt == diskExpectedSizeBytes {
 			return blockDev.Name, nil
 		}
 	}
