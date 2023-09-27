@@ -16,8 +16,9 @@
 set -xe
 
 BUILD_DIR=$1
-[[ -n $BUILD_DIR ]] && cd $BUILD_DIR/imagetest
+[[ -n $BUILD_DIR ]] && cd $BUILD_DIR
 
+cd imagetest/
 RET=0
 
 GOARCH=amd64
@@ -27,6 +28,7 @@ GO111MODULE=on
 go mod download || RET=$?
 
 go vet --structtag=false ./... || RET=$?
+
 
 # Test the testworkflow package and generate code coverage
 go test -v -coverprofile=/tmp/coverage.out . >${ARTIFACTS}/go-test.txt || RET=$?
