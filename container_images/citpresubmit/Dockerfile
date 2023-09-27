@@ -13,7 +13,7 @@
 # limitations under the License.
 FROM golang:bullseye
 
-RUN apt-get update && apt-get install -y git && \
+RUN apt-get update && apt-get install -y bash ca-certificates curl git libssl-dev wget && \
     rm -rf /var/cache/apt/archives
 
 # Go test junit xml output
