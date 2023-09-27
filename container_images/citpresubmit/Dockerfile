@@ -16,6 +16,9 @@ FROM golang:bullseye
 RUN apt-get update && apt-get install -y git && \
     rm -rf /var/cache/apt/archives
 
+# Go test junit xml output
+RUN go install github.com/jstemmer/go-junit-report@latest
+
 # Copy this Dockerfile for debugging.
 COPY Dockerfile Dockerfile
 COPY main.sh main.sh
