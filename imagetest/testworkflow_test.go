@@ -22,7 +22,7 @@ import (
 )
 
 func TestAddStartStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestAddStartStep(t *testing.T) {
 }
 
 func TestAddStopStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestAddStopStep(t *testing.T) {
 }
 
 func TestAddWaitStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestAddWaitStep(t *testing.T) {
 }
 
 func TestAddWaitStoppedStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 }
 
 func TestAppendCreateDisksStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestAppendCreateDisksStep(t *testing.T) {
 }
 
 func TestAppendCreateVMStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -232,7 +232,7 @@ func TestAppendCreateVMStep(t *testing.T) {
 }
 
 func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -268,7 +268,7 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 }
 
 func TestAppendCreateVMStepCustomHostname(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -299,7 +299,7 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 }
 
 func TestNewTestWorkflow(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -312,7 +312,7 @@ func TestNewTestWorkflow(t *testing.T) {
 }
 
 func TestGetLastStepForVM(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -332,7 +332,7 @@ func TestGetLastStepForVM(t *testing.T) {
 }
 
 func TestGetLastStepForVMWhenReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -356,7 +356,7 @@ func TestGetLastStepForVMWhenReboot(t *testing.T) {
 }
 
 func TestGetLastStepForVMWhenMultipleReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}

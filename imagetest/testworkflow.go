@@ -62,6 +62,10 @@ type TestWorkflow struct {
 	Image string
 	// ShortImage will be only the final component of Image, used for naming.
 	ShortImage string
+	// MachineType is the machine type to be used for the test. This can be overridden by individual test suites.
+	MachineType string
+	// ShortMachineType wil be only the final component of MachineType, used for naming.
+	ShortMachineType string
 	// destination for workflow outputs in GCS.
 	gcsPath        string
 	skipped        bool
@@ -340,7 +344,7 @@ func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, g
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix, x86Shape, arm64Shape string) error {
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
 	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 	for _, twf := range tests {
 		if twf.wf == nil {
@@ -355,20 +359,13 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		arch := "amd64"
-		if strings.Contains(twf.Image, "arm64") || strings.Contains(twf.Image, "aarch64") {
-			arch = "arm64"
-		}
-
 		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
 		if ok {
 			for _, vm := range createVMsStep.CreateInstances.Instances {
 				if vm.MachineType != "" {
 					log.Printf("VM %s machine type set to %s for test %s\n", vm.Name, vm.MachineType, twf.Name)
-				} else if arch == "amd64" {
-					vm.MachineType = x86Shape
 				} else {
-					vm.MachineType = arm64Shape
+					vm.MachineType = twf.MachineType
 				}
 				if vm.Zone != "" && vm.Zone != twf.wf.Zone {
 					log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
@@ -384,6 +381,10 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, archBits)
 			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, archBits)
 		} else {
+			arch := "amd64"
+			if strings.Contains(twf.Image, "arm64") || strings.Contains(twf.Image, "aarch64") {
+				arch = "arm64"
+			}
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
 			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
 		}
@@ -436,11 +437,18 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
+func NewTestWorkflow(name, image, timeout string, x86Shape string, arm64Shape string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
 	t.Image = image
+	if strings.Contains(image, "arm64") || strings.Contains(image, "aarch64") {
+		t.MachineType = arm64Shape
+	} else {
+		t.MachineType = x86Shape
+	}
+	machineTypeSplit := strings.Split(t.MachineType, "/")
+	t.ShortMachineType = machineTypeSplit[len(machineTypeSplit) - 1]
 
 	parts := strings.Split(image, "/")
 	t.ShortImage = parts[len(parts)-1]
@@ -457,13 +465,13 @@ func NewTestWorkflow(name, image, timeout string) (*TestWorkflow, error) {
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, x86Shape, arm64Shape string) {
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		log.Printf("Error determining GCS prefix: %v", err)
 		gcsPrefix = ""
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, x86Shape, arm64Shape); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
 		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
@@ -476,12 +484,12 @@ func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflow
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, x86Shape, arm64Shape string) error {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return err
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, x86Shape, arm64Shape); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
@@ -516,13 +524,13 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, x86Shape, arm64Shape string, parallelCount int, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return nil, err
 	}
 
-	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, x86Shape, arm64Shape)
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
