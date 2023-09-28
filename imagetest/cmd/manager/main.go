@@ -241,7 +241,7 @@ func main() {
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout)
+			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout, *x86Shape, *arm64Shape)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}
@@ -266,18 +266,18 @@ func main() {
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape)
+		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape); err != nil {
+		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *x86Shape, *arm64Shape, *parallelCount, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

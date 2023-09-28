@@ -488,26 +488,11 @@ func (t *TestWorkflow) CreateNetwork(networkName string, autoCreateSubnetworks b
 	return &Network{networkName, t, network}, nil
 }
 
-// CreateNetworkWithMTU creates a custom network with the specified MTU.
-func (t *TestWorkflow) CreateNetworkWithMTU(networkName string, mtu int, autoCreateSubnetworks bool) (*Network, error) {
-	// Check if the MTU is a valid MTU.
-	if mtu != DefaultMTU && mtu != JumboFramesMTU {
-		return nil, fmt.Errorf("Invalid MTU: %v not one of [%v, %v]", mtu, DefaultMTU, JumboFramesMTU)
+// SetMTU sets the MTU of the network. The MTU must be between 1460 and 8896, inclusively.
+func (n *Network) SetMTU(mtu int) {
+	if mtu >= DefaultMTU && mtu <= JumboFramesMTU {
+		n.network.Mtu = int64(mtu)
 	}
-
-	createNetworkStep, network, err := t.appendCreateNetworkStep(networkName, mtu, autoCreateSubnetworks)
-	if err != nil {
-		return nil, err
-	}
-
-	createVMsStep, ok := t.wf.Steps[createVMsStepName]
-	if ok {
-		if err := t.wf.AddDependency(createVMsStep, createNetworkStep); err != nil {
-			return nil, err
-		}
-	}
-
-	return &Network{networkName, t, network}, nil
 }
 
 // CreateSubnetwork creates custom subnetwork. Using AddCustomNetwork method

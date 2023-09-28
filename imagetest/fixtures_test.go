@@ -10,7 +10,7 @@ import (
 // TestAddMetadata tests that *TestVM.AddMetadata succeeds and that it
 // populates the instance.Metadata map.
 func TestAddMetadata(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestAddMetadata(t *testing.T) {
 // TestReboot tests that *TestVM.Reboot succeeds and that the appropriate stop
 // and new final wait steps are created in the workflow.
 func TestReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestReboot(t *testing.T) {
 // TestCreateVMMultipleDisks tests that after creating a VM with multiple disks,
 // the correct step dependencies are in place.
 func TestCreateVMMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 // TestRebootMultipleDisks creates a VM using multiple disks, and then runs
 // the same tests as TestReboot.
 func TestRebootMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -183,7 +183,7 @@ func TestRebootMultipleDisks(t *testing.T) {
 // that the appropriate resize and new final wait steps are created in the
 // workflow.
 func TestResizeDiskAndReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestResizeDiskAndReboot(t *testing.T) {
 // TestEnableSecureBoot tests that *TestVM.EnableSecureBoot succeeds and
 // populates the ShieldedInstanceConfig struct.
 func TestEnableSecureBoot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -232,7 +232,7 @@ func TestEnableSecureBoot(t *testing.T) {
 // TestUseGVNIC tests that *TestVM.UseGVNIC succeeds and
 // populates the Network Interface with a NIC type of GVNIC.
 func TestUseGVNIC(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -252,7 +252,7 @@ func TestUseGVNIC(t *testing.T) {
 // TestAddAliasIPRanges tests that *TestVM.AddAliasIPRanges succeeds and that
 // it fails if *TestVM.AddCustomNetwork hasn't been called first.
 func TestAddAliasIPRanges(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -281,7 +281,7 @@ func TestAddAliasIPRanges(t *testing.T) {
 // TestSetCustomNetwork tests that *TestVM.AddCustomNetwork succeeds and that
 // it fails if testworkflow.CreateNetwork has not been called first.
 func TestSetCustomNetwork(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -302,7 +302,7 @@ func TestSetCustomNetwork(t *testing.T) {
 // succeeds with a subnet argument and that it fails if
 // *Network.CreateSubnetwork has not been called first.
 func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -329,7 +329,7 @@ func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
 // TestAddSecondaryRange tests that AddSecondaryRange populates the
 // subnet.SecondaryIpRanges struct.
 func TestAddSecondaryRange(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -353,7 +353,7 @@ func TestAddSecondaryRange(t *testing.T) {
 // TestCreateNetworkDependenciesReverse tests that the create-vms step depends
 // on the create-networks step if they are created in order.
 func TestCreateNetworkDependencies(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -385,7 +385,7 @@ func TestCreateNetworkDependencies(t *testing.T) {
 // TestCreateNetworkDependenciesReverse tests that the create-vms step depends
 // on the create-networks step if they are created in reverse.
 func TestCreateNetworkDependenciesReverse(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -415,7 +415,7 @@ func TestCreateNetworkDependenciesReverse(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -441,7 +441,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestForceMachineType(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
@@ -459,7 +459,7 @@ func TestForceMachineType(t *testing.T) {
 }
 
 func TestForceZone(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m")
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
 	if err != nil {
 		t.Errorf("failed to create test workflow: %v", err)
 	}

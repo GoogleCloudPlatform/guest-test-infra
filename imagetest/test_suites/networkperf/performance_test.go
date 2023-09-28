@@ -4,7 +4,6 @@
 package networkperf
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
 	"testing"
@@ -20,26 +19,23 @@ func TestNetworkPerformance(t *testing.T) {
 	}
 
 	// Get the performance target.
-	var targetMap map[string]int
-	targetMapString, err := utils.GetMetadataAttribute("perfmap")
+	expectedPerfString, err := utils.GetMetadataAttribute("expectedperf")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
-	if err := json.Unmarshal([]byte(targetMapString), &targetMap); err != nil {
+	expectedPerf, err := strconv.Atoi(expectedPerfString)
+	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
+	expected := 0.85 * float64(expectedPerf)
+
+	// Get machine type name for logging.
 	machineType, err := utils.GetMetadata("machine-type")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 	machineTypeSplit := strings.Split(machineType, "/")
 	machineTypeName := machineTypeSplit[len(machineTypeSplit)-1]
-	target, found := targetMap[machineTypeName]
-	if !found {
-		t.Logf("%v not supported in this test", machineTypeName)
-		return
-	}
-	expected := 0.85 * float64(target)
 
 	// Find actual performance..
 	var result_perf float64
