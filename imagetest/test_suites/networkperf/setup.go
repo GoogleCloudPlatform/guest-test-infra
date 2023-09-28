@@ -226,16 +226,15 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// Must be N2, N2D, C2, C2D, C3, C3D, or M3 machine types.
 		fmt.Printf("%v: Skipping tier1 tests - %v not supported\n", t.ShortImage, mt)
 		return nil
-	} else {
-		numCPUs, err := strconv.Atoi(strings.Split(mt, "-")[2])
-		if err != nil {
-			return err
-		}
-		if numCPUs < 30 {
-			// Must have at least 30 vCPUs.
-			fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
-			return nil
-		}
+	}
+	numCPUs, err := strconv.Atoi(strings.Split(mt, "-")[2])
+	if err != nil {
+		return err
+	}
+	if numCPUs < 30 {
+		// Must have at least 30 vCPUs.
+		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
+		return nil
 	}
 
 	// Get Tier1 targets.
