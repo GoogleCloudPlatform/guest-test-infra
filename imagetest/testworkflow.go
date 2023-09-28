@@ -448,7 +448,7 @@ func NewTestWorkflow(name, image, timeout string, x86Shape string, arm64Shape st
 		t.MachineType = x86Shape
 	}
 	machineTypeSplit := strings.Split(t.MachineType, "/")
-	t.ShortMachineType = machineTypeSplit[len(machineTypeSplit) - 1]
+	t.ShortMachineType = machineTypeSplit[len(machineTypeSplit)-1]
 
 	parts := strings.Split(image, "/")
 	t.ShortImage = parts[len(parts)-1]
