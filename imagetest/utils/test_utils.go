@@ -426,11 +426,11 @@ func GetMountDiskPartition(diskExpectedSizeGB int) (string, error) {
 			if len(linetokens) != 3 {
 				continue
 			}
-			// we should have a slice of length 3, with fields name, size, type
+			// we should have a slice of length 3, with fields name, size, type. Search for the line with the partition of the correct size.
 			var blkname, blksize, blktype = linetokens[0], linetokens[1], linetokens[2]
 			blksizeInt, err := strconv.ParseInt(blksize, 10, 64)
 			if err != nil {
-				return "", fmt.Errorf("did not find int in output of lsblk: string %s error %v", blksize, err)
+				continue
 			}
 			if blktype == diskType && blksizeInt == diskExpectedSizeBytes {
 				return blkname, nil
