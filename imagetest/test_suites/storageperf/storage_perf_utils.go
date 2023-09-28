@@ -73,6 +73,25 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 		seqReadBW:     2200.0,
 		seqWriteBW:    2200.0,
 	},
+	"n2d-standard-64": {
+		randReadIOPS:  80000.0,
+		randWriteIOPS: 80000.0,
+		seqReadBW:     1200.0,
+		seqWriteBW:    1200.0,
+	},
+	// this machine type should use Intel Skylake
+	"n1-standard-64": {
+		randReadIOPS:  80000.0,
+		randWriteIOPS: 80000.0,
+		seqReadBW:     1200.0,
+		seqWriteBW:    1200.0,
+	},
+	"h3-standard-88": {
+		randReadIOPS:  15000.0,
+		randWriteIOPS: 15000.0,
+		seqReadBW:     240.0,
+		seqWriteBW:    240.0,
+	},
 }
 
 // FIOOutput defines the output from the fio command
