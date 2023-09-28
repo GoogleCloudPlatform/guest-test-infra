@@ -35,6 +35,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
 		{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced},
 		{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake"},
+		// zone for h3 is a temporary measure while h3 is pre-GA
 		{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced},
 	}
 	testVMs := []*imagetest.TestVM{}
