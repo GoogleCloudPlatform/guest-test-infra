@@ -21,7 +21,6 @@ const (
 )
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
-	//testdiskDrive := windowsDriveLetter + ":\\"
 	readIopsFile := "C:\\fio-read-iops.txt"
 	var readOptions string
 	if mode == sequentialMode {

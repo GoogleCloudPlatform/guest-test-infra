@@ -27,7 +27,6 @@ const (
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
 	fioWindowsLocalPath = "C:\\fio.exe"
-	windowsDriveLetter  = "F"
 	// constants for the mode of running the test
 	randomMode     = "random"
 	sequentialMode = "sequential"

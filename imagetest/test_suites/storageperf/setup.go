@@ -78,7 +78,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
 		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
 		if strings.Contains(t.Image, "windows") {
-			vm.AddMetadata("windowsDriveLetter", windowsDriveLetter)
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 			if err != nil {
 				return err

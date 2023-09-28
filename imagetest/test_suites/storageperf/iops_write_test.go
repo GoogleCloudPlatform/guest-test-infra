@@ -21,7 +21,6 @@ const (
 )
 
 func RunFIOWriteWindows(mode string) ([]byte, error) {
-	//testdiskDrive := windowsDriveLetter + ":\\"
 	writeIopsFile := "C:\\fio-write-iops.txt"
 	var writeOptions string
 	if mode == sequentialMode {
