@@ -11,7 +11,7 @@ import (
 var Name = "hotattach"
 
 const (
-	diskName     = "hotattachMount"
+	diskName     = "hotattachmount"
 	instanceName = "hotattachvm"
 
 	bootDiskSizeGB  = 10

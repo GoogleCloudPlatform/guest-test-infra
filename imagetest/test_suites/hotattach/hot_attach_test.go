@@ -70,7 +70,7 @@ func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
 		return fmt.Errorf("could not format mount disk: %s cmd not found", mkfsCmd)
 	}
 	if !isReattach {
-		mkfsFullCmd := exec.Command(mkfsCmd, "-m", "0", "-E", "lazy_itable_init=0,lazy_journal_init=0,discard", mountDiskPath)
+		mkfsFullCmd := exec.Command(mkfsCmd, "-m", "0", "-E", "lazy_itable_init=0,lazy_journal_init=0,discard", "-F", mountDiskPath)
 		if stdout, err := mkfsFullCmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("mkfs cmd failed to complete: %v %v", stdout, err)
 		}
