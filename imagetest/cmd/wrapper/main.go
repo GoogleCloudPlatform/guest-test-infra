@@ -20,6 +20,9 @@ func main() {
 	// These are placeholders until daisy supports guest attributes.
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
+		if err := utils.PutMetadataGuestAttribute(utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey); err != nil {
+			log.Printf("failed to put test completed key in guest attribute namespace")
+		}
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)

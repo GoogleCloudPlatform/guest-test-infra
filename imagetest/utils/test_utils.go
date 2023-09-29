@@ -24,8 +24,10 @@ import (
 )
 
 const (
-	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
-	bytesInGB         = 1073741824
+	metadataURLPrefix           = "http://metadata.google.internal/computeMetadata/v1/instance/"
+	bytesInGB                   = 1073741824
+	GuestAttributeTestNamespace = "citTest"
+	GuestAttributeTestKey       = "test-complete"
 )
 
 var windowsClientImagePatterns = []string{
@@ -93,6 +95,38 @@ func GetMetadata(path string) (string, error) {
 // GetMetadataHTTPResponse returns http response for the specified key without checking status code.
 func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// PutMetadataGuestAttribute sets the guest attribute in the namespace, and returns an error if this operation fails.
+func PutMetadataGuestAttribute(namespace, attribute string) error {
+	return PutMetadata("guest-attributes/" + namespace + "/" + attribute)
+}
+
+// PutMetadata returns a metadata value for the specified key if it is present, and error if not.
+func PutMetadata(path string) error {
+	resp, err := PutMetadataHTTPResponse(path)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("http response code is %v", resp.StatusCode)
+	}
+	return nil
+}
+
+// PutMetadataHTTPResponse returns http response for the specified key without checking status code.
+func PutMetadataHTTPResponse(path string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
 	if err != nil {
 		return nil, err
 	}

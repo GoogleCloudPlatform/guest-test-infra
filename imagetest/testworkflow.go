@@ -216,9 +216,14 @@ func (t *TestWorkflow) addWaitStep(stepname, vmname string, stopped bool) (*dais
 	instanceSignal.Name = vmname
 	instanceSignal.Stopped = stopped
 
+	guestAttribute := &daisy.GuestAttribute{}
+	guestAttribute.Namespace = utils.GuestAttributeTestNamespace
+	guestAttribute.KeyName = utils.GuestAttributeTestKey
+
 	// Waiting for stop and waiting for success match are mutually exclusive.
 	if !stopped {
 		instanceSignal.SerialOutput = serialOutput
+		instanceSignal.GuestAttribute = guestAttribute
 	}
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
