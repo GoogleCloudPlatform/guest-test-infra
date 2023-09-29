@@ -126,7 +126,7 @@ func PutMetadata(path string) error {
 
 // PutMetadataHTTPResponse returns http response for the specified key without checking status code.
 func PutMetadataHTTPResponse(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
 	if err != nil {
 		return nil, err
 	}
