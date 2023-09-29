@@ -26,7 +26,7 @@ import (
 const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 	bytesInGB         = 1073741824
-	// GuestAttrbuteTestNamespace is the namespace for the guest attribute in the daisy "wait for instance" step for CIT.
+	// GuestAttributeTestNamespace is the namespace for the guest attribute in the daisy "wait for instance" step for CIT.
 	GuestAttributeTestNamespace = "citTest"
 	// GuestAttributeTestKey is the key for the guest attribute in the edaisy "wait for instance" step for CIT.
 	GuestAttributeTestKey = "test-complete"
