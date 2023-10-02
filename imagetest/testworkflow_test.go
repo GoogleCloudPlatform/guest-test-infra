@@ -81,7 +81,7 @@ func TestAddWaitStep(t *testing.T) {
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
-	step, err := twf.addWaitStep("stepname", "vmname", false)
+	step, err := twf.addWaitStep("stepname", "vmname")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
-	step, err := twf.addWaitStep("stepname", "vmname", true)
+	step, err := twf.addWaitStoppedStep("stepname", "vmname")
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -134,7 +134,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 	if !instancesSignal[0].Stopped {
 		t.Error("waitInstances step is malformed")
 	}
-	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
+	if stepFromWF, ok := twf.wf.Steps["wait-stopped-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
 }

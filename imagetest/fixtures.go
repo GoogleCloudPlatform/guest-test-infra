@@ -101,7 +101,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	waitStep, err := t.addWaitStep(vmname, vmname, false)
+	waitStep, err := t.addWaitStep(vmname, vmname)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 		}
 	}
 
-	waitStep, err := t.addWaitStep(vmname, vmname, false)
+	waitStep, err := t.addWaitStep(vmname, vmname)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (t *TestVM) Reboot() error {
 		return err
 	}
 
-	waitStopStep, err := t.testWorkflow.addWaitStep("stopped-"+stepSuffix, t.name, true)
+	waitStopStep, err := t.testWorkflow.addWaitStoppedStep("stopped-"+stepSuffix, t.name)
 	if err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func (t *TestVM) Reboot() error {
 		return err
 	}
 
-	waitStartedStep, err := t.testWorkflow.addWaitStep("started-"+stepSuffix, t.name, false)
+	waitStartedStep, err := t.testWorkflow.addWaitStep("started-"+stepSuffix, t.name)
 	if err != nil {
 		return err
 	}

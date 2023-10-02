@@ -26,6 +26,10 @@ import (
 const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
 	bytesInGB         = 1073741824
+	// GuestAttributeTestNamespace is the namespace for the guest attribute in the daisy "wait for instance" step for CIT.
+	GuestAttributeTestNamespace = "citTest"
+	// GuestAttributeTestKey is the key for the guest attribute in the edaisy "wait for instance" step for CIT.
+	GuestAttributeTestKey = "test-complete"
 )
 
 var windowsClientImagePatterns = []string{
@@ -103,6 +107,37 @@ func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 		return nil, err
 	}
 	return resp, nil
+}
+
+// PutMetadataGuestAttribute sets the guest attribute in the namespace, and returns an error if this operation fails.
+func PutMetadataGuestAttribute(ctx context.Context, namespace, attribute string) error {
+	path, err := url.JoinPath(metadataURLPrefix, "guest-attributes", namespace, attribute)
+	if err != nil {
+		return err
+	}
+	err = PutMetadataHTTPResponse(ctx, path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// PutMetadataHTTPResponse returns http response for the specified key without checking status code.
+func PutMetadataHTTPResponse(ctx context.Context, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("http response code is %v", resp.StatusCode)
+	}
+	return nil
 }
 
 // DownloadGCSObject downloads a GCS object.
