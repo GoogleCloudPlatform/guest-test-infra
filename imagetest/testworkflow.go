@@ -207,24 +207,37 @@ func (t *TestWorkflow) appendCreateMountDisksStep(diskParams *compute.Disk) (*da
 	return createDisksStep, nil
 }
 
-func (t *TestWorkflow) addWaitStep(stepname, vmname string, stopped bool) (*daisy.Step, error) {
+func (t *TestWorkflow) addWaitStoppedStep(stepname, vmname string) (*daisy.Step, error) {
+	instanceSignal := &daisy.InstanceSignal{}
+	instanceSignal.Name = vmname
+	instanceSignal.Stopped = true
+
+	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
+
+	waitStep, err := t.wf.NewStep("wait-stopped-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	waitStep.WaitForInstancesSignal = waitForInstances
+
+	return waitStep, nil
+}
+
+func (t *TestWorkflow) addWaitStep(stepname, vmname string) (*daisy.Step, error) {
 	serialOutput := &daisy.SerialOutput{}
 	serialOutput.Port = 1
 	serialOutput.SuccessMatch = successMatch
 
 	instanceSignal := &daisy.InstanceSignal{}
 	instanceSignal.Name = vmname
-	instanceSignal.Stopped = stopped
+	instanceSignal.Stopped = false
 
 	guestAttribute := &daisy.GuestAttribute{}
 	guestAttribute.Namespace = utils.GuestAttributeTestNamespace
 	guestAttribute.KeyName = utils.GuestAttributeTestKey
 
-	// Waiting for stop and waiting for success match are mutually exclusive.
-	if !stopped {
-		instanceSignal.SerialOutput = serialOutput
-		instanceSignal.GuestAttribute = guestAttribute
-	}
+	instanceSignal.SerialOutput = serialOutput
+	instanceSignal.GuestAttribute = guestAttribute
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 
