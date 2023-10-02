@@ -17,10 +17,14 @@ import (
 )
 
 func main() {
-	// These are placeholders until daisy supports guest attributes.
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("failed to create cloud storage client: %v", err)
+	}
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
-		if err := utils.PutMetadataGuestAttribute(utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey); err != nil {
+		if err := utils.PutMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey); err != nil {
 			log.Printf("failed to put test completed key in guest attribute namespace")
 		}
 		for f := 0; f < 5; f++ {
@@ -28,12 +32,6 @@ func main() {
 			time.Sleep(1 * time.Second)
 		}
 	}()
-
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		log.Fatalf("failed to create cloud storage client: %v", err)
-	}
 
 	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {

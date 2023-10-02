@@ -110,13 +110,24 @@ func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 }
 
 // PutMetadataGuestAttribute sets the guest attribute in the namespace, and returns an error if this operation fails.
-func PutMetadataGuestAttribute(namespace, attribute string) error {
-	return PutMetadata("guest-attributes/" + namespace + "/" + attribute)
+func PutMetadataGuestAttribute(ctx context.Context, namespace, attribute string) error {
+	path := "guest-attributes/" + namespace + "/" + attribute
+	err := PutMetadataHTTPResponse(ctx, path)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// PutMetadata returns a metadata value for the specified key if it is present, and error if not.
-func PutMetadata(path string) error {
-	resp, err := PutMetadataHTTPResponse(path)
+// PutMetadataHTTPResponse returns http response for the specified key without checking status code.
+func PutMetadataHTTPResponse(ctx context.Context, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -124,21 +135,6 @@ func PutMetadata(path string) error {
 		return fmt.Errorf("http response code is %v", resp.StatusCode)
 	}
 	return nil
-}
-
-// PutMetadataHTTPResponse returns http response for the specified key without checking status code.
-func PutMetadataHTTPResponse(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
 }
 
 // DownloadGCSObject downloads a GCS object.
