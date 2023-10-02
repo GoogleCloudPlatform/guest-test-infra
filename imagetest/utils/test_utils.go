@@ -111,8 +111,11 @@ func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 
 // PutMetadataGuestAttribute sets the guest attribute in the namespace, and returns an error if this operation fails.
 func PutMetadataGuestAttribute(ctx context.Context, namespace, attribute string) error {
-	path := "guest-attributes/" + namespace + "/" + attribute
-	err := PutMetadataHTTPResponse(ctx, path)
+	path, err := url.JoinPath(metadataURLPrefix, "guest-attributes", namespace, attribute)
+	if err != nil {
+		return err
+	}
+	err = PutMetadataHTTPResponse(ctx, path)
 	if err != nil {
 		return err
 	}
@@ -121,7 +124,7 @@ func PutMetadataGuestAttribute(ctx context.Context, namespace, attribute string)
 
 // PutMetadataHTTPResponse returns http response for the specified key without checking status code.
 func PutMetadataHTTPResponse(ctx context.Context, path string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, nil)
 	if err != nil {
 		return err
 	}
