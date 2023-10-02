@@ -27,6 +27,7 @@ func main() {
 		if err := utils.PutMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey); err != nil {
 			log.Printf("failed to put test completed key in guest attribute namespace")
 		}
+		log.Printf("successfully placed guest attribute for test completion")
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)
