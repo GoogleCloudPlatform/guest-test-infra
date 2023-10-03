@@ -49,9 +49,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if diskTypeParam, foundKey := paramMap["diskType"]; foundKey {
 			diskType = diskTypeParam
 		}
-		if strings.HasPrefix(machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")) {
+		if skipMachineTypeImage(machineType, t.Image) {
 			continue
 		}
+
 		bootDisk := compute.Disk{Name: vmName + machineType + diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
 		mountDisk := compute.Disk{Name: mountDiskName + machineType + diskType, Type: diskType, SizeGb: mountdiskSizeGB}
 		bootDisk.Zone = paramMap["zone"]
@@ -97,4 +98,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
 	}
 	return nil
+}
+
+// Due to compatability issues or other one off errors, some combinations of machine types and images must be skipped. This function returns true for those combinations.
+func skipMachineTypeImage(machineType, image string) bool {
+	if strings.HasPrefix(machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+		return true
+	}
+
+	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(machineType, "c3-") {
+		return true
+	}
+
+	return false
 }

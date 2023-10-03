@@ -62,10 +62,19 @@ func RunFIOReadLinux(mode string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	// ubuntu 16.04 has a different option name due to an old fio version
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		return []byte{}, fmt.Errorf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "ubuntu-pro-1604") {
+		readOptions = strings.Replace(readOptions, "iodepth_batch_complete_max", "iodepth_batch_complete", 1)
+	}
+
 	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
 	readIOPSJson, err := exec.Command("fio", fioReadOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
-		return []byte{}, fmt.Errorf("fio command failed with error: %v", err)
+		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
 	}
 	return readIOPSJson, nil
 }
