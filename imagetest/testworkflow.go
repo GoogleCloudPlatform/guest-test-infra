@@ -213,7 +213,6 @@ func (t *TestWorkflow) addWaitStoppedStep(stepname, vmname string) (*daisy.Step,
 	instanceSignal.Stopped = true
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
-
 	waitStep, err := t.wf.NewStep("wait-stopped-" + stepname)
 	if err != nil {
 		return nil, err
@@ -232,12 +231,7 @@ func (t *TestWorkflow) addWaitStep(stepname, vmname string) (*daisy.Step, error)
 	instanceSignal.Name = vmname
 	instanceSignal.Stopped = false
 
-	guestAttribute := &daisy.GuestAttribute{}
-	guestAttribute.Namespace = utils.GuestAttributeTestNamespace
-	guestAttribute.KeyName = utils.GuestAttributeTestKey
-
 	instanceSignal.SerialOutput = serialOutput
-	instanceSignal.GuestAttribute = guestAttribute
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 
