@@ -59,7 +59,7 @@ local prepublishtesttask = {
       '-test_projects=compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
       // TODO enable oslogin
-      '-filter=(shapevalidation)|(hotattach)',
+      '-filter=(shapevalidation)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
@@ -319,6 +319,10 @@ local imgpublishjob = {
             },
             attempts: 3,
           }
+          else
+          {
+          },
+          if tl.env == 'prod' then
           // Prod releases use a different final publish step that invokes ARLE.
           {
             task: 'publish-' + tl.image,
