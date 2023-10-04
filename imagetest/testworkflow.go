@@ -371,8 +371,23 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
+		vmquotaStep, vmquotaStepOk := twf.wf.Steps[waitForVMQuotaStepName]
+		if vmquotaStepOk {
+			for _, q := range vmquotaStep.WaitForAvailableQuotas.Quotas {
+				// Populate empty regions with best guess from the zone
+				if q.Region == "" {
+					q.Region = twf.wf.Zone[:len(twf.wf.Zone)-2]
+				}
+			}
+		}
+
 		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
 		if ok {
+			if vmquotaStepOk {
+				if err := twf.wf.AddDependency(createVMsStep, vmquotaStep); err != nil {
+					return err
+				}
+			}
 			for _, vm := range createVMsStep.CreateInstances.Instances {
 				if vm.MachineType != "" {
 					log.Printf("VM %s machine type set to %s for test %s\n", vm.Name, vm.MachineType, twf.Name)
@@ -536,8 +551,12 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
+	if err != nil {
+		return nil, err
+	}
+	stagger, err := time.ParseDuration(parallelStagger)
 	if err != nil {
 		return nil, err
 	}
@@ -565,6 +584,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
+			time.Sleep(time.Duration(int64(id) * int64(stagger)))
 			for test := range testchan {
 				if test.lockProject {
 					// This will block until an exclusive project is available.

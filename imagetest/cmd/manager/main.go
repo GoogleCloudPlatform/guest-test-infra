@@ -32,21 +32,22 @@ import (
 )
 
 var (
-	project       = flag.String("project", "", "project to use for test runner")
-	testProjects  = flag.String("test_projects", "", "comma separated list of projects to be used for tests. defaults to the test runner project")
-	zone          = flag.String("zone", "us-central1-a", "zone to be used for tests")
-	printwf       = flag.Bool("print", false, "print out the parsed test workflows and exit")
-	validate      = flag.Bool("validate", false, "validate all the test workflows and exit")
-	outPath       = flag.String("out_path", "junit.xml", "junit xml path")
-	gcsPath       = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
-	images        = flag.String("images", "", "comma separated list of images to test")
-	timeout       = flag.String("timeout", "45m", "timeout for the test suite")
-	parallelCount = flag.Int("parallel_count", 5, "TestParallelCount")
-	filter        = flag.String("filter", "", "only run tests matching filter")
-	exclude       = flag.String("exclude", "", "skip tests matching filter")
-	machineType   = flag.String("machine_type", "", "deprecated, use -x86_shape and/or -arm64_shape instead")
-	x86Shape      = flag.String("x86_shape", "n1-standard-1", "default x86(-32 and -64) vm shape for tests not requiring a specific shape")
-	arm64Shape    = flag.String("arm64_shape", "t2a-standard-1", "default arm64 vm shape for tests not requiring a specific shape")
+	project         = flag.String("project", "", "project to use for test runner")
+	testProjects    = flag.String("test_projects", "", "comma separated list of projects to be used for tests. defaults to the test runner project")
+	zone            = flag.String("zone", "us-central1-a", "zone to be used for tests")
+	printwf         = flag.Bool("print", false, "print out the parsed test workflows and exit")
+	validate        = flag.Bool("validate", false, "validate all the test workflows and exit")
+	outPath         = flag.String("out_path", "junit.xml", "junit xml path")
+	gcsPath         = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
+	images          = flag.String("images", "", "comma separated list of images to test")
+	timeout         = flag.String("timeout", "45m", "timeout for the test suite")
+	parallelCount   = flag.Int("parallel_count", 5, "TestParallelCount")
+	parallelStagger = flag.String("parallel_stagger", "60s", "parseable time.Duration to stagger each parallel test")
+	filter          = flag.String("filter", "", "only run tests matching filter")
+	exclude         = flag.String("exclude", "", "skip tests matching filter")
+	machineType     = flag.String("machine_type", "", "deprecated, use -x86_shape and/or -arm64_shape instead")
+	x86Shape        = flag.String("x86_shape", "n1-standard-1", "default x86(-32 and -64) vm shape for tests not requiring a specific shape")
+	arm64Shape      = flag.String("arm64_shape", "t2a-standard-1", "default arm64 vm shape for tests not requiring a specific shape")
 )
 
 var (
@@ -277,7 +278,7 @@ func main() {
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, *parallelStagger, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

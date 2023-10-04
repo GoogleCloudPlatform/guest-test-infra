@@ -3,8 +3,11 @@ package storageperf
 import (
 	"embed"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"google.golang.org/api/compute/v1"
 )
@@ -27,16 +30,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	// initialize vm with the hard coded machine type and platform corresponding to the index
 	paramMaps := []map[string]string{
-		{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme},
+		{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme, "metric": "C3_CPUS"},
 		// temporarily disable c3d hyperdisk until the api allows it again
-		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme},
-		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme},
-		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced},
-		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced},
-		{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced},
-		{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake"},
+		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme, "metric": "CPUS"}, // No public metric for this yet but the CPU count will work because they're so large
+		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme, "metric": "N2_CPUS"},
+		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced, "metric": "C3_CPUS"},
+		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced, "metric": "CPUS"},
+		{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced, "metric": "N2D_CPUS"},
+		{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake", "metric": "CPUS"}, // N1 CPUS aren't measured separately
 		// zone for h3 is a temporary measure while h3 is pre-GA
-		{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced},
+		{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced, "metric": "CPUS"}, // No public metric
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, paramMap := range paramMaps {
@@ -51,6 +54,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		if skipMachineTypeImage(machineType, t.Image) {
 			continue
+		}
+
+		quota := &daisy.QuotaAvailable{Metric: paramMap["metric"], Region: paramMap["zone"]}
+		if len(quota.Region) > 2 {
+			quota.Region = quota.Region[:len(quota.Region)-2]
+		}
+		i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(machineType)[1:], 64)
+		if err != nil {
+			return err
+		}
+		quota.Units = i
+		if err := t.WaitForVMQuota(quota); err != nil {
+			return err
 		}
 
 		bootDisk := compute.Disk{Name: vmName + machineType + diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
