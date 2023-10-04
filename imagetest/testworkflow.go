@@ -237,6 +237,7 @@ func (t *TestWorkflow) addWaitStep(stepname, vmname string) (*daisy.Step, error)
 
 	instanceSignal.SerialOutput = serialOutput
 	instanceSignal.GuestAttribute = guestAttribute
+	instanceSignal.Interval = "8s"
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 
