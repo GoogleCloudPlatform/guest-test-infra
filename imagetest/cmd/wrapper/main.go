@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 	log.Printf("FINISHED-BOOTING")
-	defer func() {
+	defer func(ctx context.Context) {
 		if err := utils.PutMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey); err != nil {
 			log.Printf("failed to put test completed key in guest attribute namespace")
 		}
@@ -32,7 +32,7 @@ func main() {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)
 		}
-	}()
+	}(ctx)
 
 	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {
