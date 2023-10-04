@@ -584,7 +584,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			time.Sleep(time.Duration(int64(id) * int64(stagger)))
+			time.Sleep(time.Duration(id) * stagger)
 			for test := range testchan {
 				if test.lockProject {
 					// This will block until an exclusive project is available.
