@@ -56,7 +56,7 @@ local prepublishtesttask = {
     args: [
       '-project=gcp-guest',
       '-zone=us-central1-a',
-      '-test_projects=compute-image-test-pool-005',
+      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
       // TODO enable oslogin
       '-filter=(shapevalidation)|(hotattach)',
@@ -304,8 +304,10 @@ local imgpublishjob = {
             load_var: 'publish-version',
             file: 'publish-version/version',
           },
-          // Run prepublish tests in prod
-          if tl.env == 'prod' then
+        ] +
+        // Run prepublish tests and invoke ARLE in prod
+        if tl.env == 'prod' then
+        [
           {
             task: 'prepublish-test-' + tl.image,
             config: prepublishtesttask {
@@ -318,8 +320,7 @@ local imgpublishjob = {
               else [],
             },
             attempts: 3,
-          }
-          // Prod releases use a different final publish step that invokes ARLE.
+          },
           {
             task: 'publish-' + tl.image,
             config: arle.arlepublishtask {
@@ -330,9 +331,11 @@ local imgpublishjob = {
               wf: tl.workflow,
               image_name: underscore(tl.image),
             },
-          }
-          // Other releases use gce_image_publish directly.
-          else
+          },
+        ]
+        // Other releases use gce_image_publish directly.
+        else
+        [
             {
               task: if tl.env == 'testing' then
                 'publish-' + tl.image
@@ -346,7 +349,8 @@ local imgpublishjob = {
                 environment: if tl.env == 'testing' then 'test' else tl.env,
               },
             },
-        ] +
+        ]
+		+
         // Run post-publish tests in 'publish-to-testing-' jobs.
         if tl.runtests then
           [
