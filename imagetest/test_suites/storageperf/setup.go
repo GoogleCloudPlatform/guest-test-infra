@@ -110,5 +110,14 @@ func skipMachineTypeImage(machineType, image string) bool {
 		return true
 	}
 
+	gvnicMachineTypes := []string{"c3-", "c3d-", "h3-"}
+	// skip debian-10 on gen 3 machine types
+	if strings.Contains(image, "debian-10") {
+		for _, excludedType := range gvnicMachineTypes {
+			if strings.Contains(machineType, excludedType) {
+				return true
+			}
+		}
+	}
 	return false
 }

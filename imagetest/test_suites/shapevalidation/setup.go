@@ -25,12 +25,13 @@ type shape struct {
 // Map of family name to the shape that should be tested in that family.
 var x86shapes = map[string]*shape{
 	"C3": {
-		name:  "c3-highmem-176",
-		cpu:   176,
-		mem:   1408,
-		numa:  4,
-		disks: []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
-		zone:  "us-east1-b",
+		name:       "c3-highmem-176",
+		cpu:        176,
+		mem:        1408,
+		numa:       4,
+		disks:      []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
+		zone:       "us-east1-b",
+		exceptions: []*regexp.Regexp{regexp.MustCompile("debian-10")},
 	},
 	"C3D": {
 		name:       "c3d-highmem-360",
@@ -39,7 +40,7 @@ var x86shapes = map[string]*shape{
 		numa:       2,
 		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
 		zone:       "us-east4-c",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("windows")},
+		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10")},
 	},
 	"E2": {
 		name:  "e2-standard-32",
