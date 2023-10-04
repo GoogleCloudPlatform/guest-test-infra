@@ -319,20 +319,18 @@ local imgpublishjob = {
             },
             attempts: 3,
           }
-          else
-         // Prod releases use a different final publish step that invokes ARLE.
-          if tl.env == 'prod' then
-            {
-              task: 'publish-' + tl.image,
-              config: arle.arlepublishtask {
-                gcs_image_path: tl.gcs,
-                gcs_sbom_path: '((.:sbom-destination))',
-                source_version: 'v((.:source-version))',
-                publish_version: '((.:publish-version))',
-                wf: tl.workflow,
-                image_name: underscore(tl.image),
-              },
-            }
+          // Prod releases use a different final publish step that invokes ARLE.
+          {
+            task: 'publish-' + tl.image,
+            config: arle.arlepublishtask {
+              gcs_image_path: tl.gcs,
+              gcs_sbom_path: '((.:sbom-destination))',
+              source_version: 'v((.:source-version))',
+              publish_version: '((.:publish-version))',
+              wf: tl.workflow,
+              image_name: underscore(tl.image),
+            },
+          }
           // Other releases use gce_image_publish directly.
           else
             {
