@@ -84,7 +84,8 @@ func (t *TestWorkflow) LockProject() {
 func (t *TestWorkflow) WaitForVMQuota(qa *daisy.QuotaAvailable) error {
 	step, ok := t.wf.Steps[waitForVMQuotaStepName]
 	if !ok {
-		step, err := t.wf.NewStep(waitForVMQuotaStepName)
+		var err error
+		step, err = t.wf.NewStep(waitForVMQuotaStepName)
 		if err != nil {
 			return err
 		}
