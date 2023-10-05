@@ -119,8 +119,10 @@ Familyloop:
 				continue Familyloop
 			}
 		}
-		if err := t.WaitForVMQuota(shape.quota); shape.quota != nil && err != nil {
-			return err
+		if shape.quota != nil {
+			if err := t.WaitForVMQuota(shape.quota); err != nil {
+				return err
+			}
 		}
 		vm, err := t.CreateTestVMMultipleDisks(shape.disks, map[string]string{})
 		if err != nil {

@@ -82,11 +82,6 @@ func (t *TestWorkflow) LockProject() {
 
 // WaitForVMQuota appends a list of quotas to the wait for vm quota step. Quotas with a blank region will be populated with the region corresponding to the workflow zone.
 func (t *TestWorkflow) WaitForVMQuota(qa ...*daisy.QuotaAvailable) error {
-	for _, q := range qa {
-		if q == nil {
-			return fmt.Errorf("not append a nil pointer to quota")
-		}
-	}
 	step, ok := t.wf.Steps[waitForVMQuotaStepName]
 	if !ok {
 		step, err := t.wf.NewStep(waitForVMQuotaStepName)
