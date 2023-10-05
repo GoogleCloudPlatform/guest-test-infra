@@ -229,6 +229,27 @@ func TestEnableSecureBoot(t *testing.T) {
 	}
 }
 
+// TestWaitForVMQuota tests that WaitForVMQuota successfully appends a quota to
+// the wait for vm quota step.
+func TestWaitForVMQuota(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	quota := &daisy.QuotaAvailable{Metric: "test", Units: 1, Region: "us-central1"}
+	err = twf.WaitForVMQuota(quota)
+	if err != nil {
+		t.Errorf("failed to append quota: %v", err)
+	}
+	quotaStep, ok := twf.wf.Steps[waitForVMQuotaStepName]
+	if !ok {
+		t.Errorf("Could not find wait for vm quota step")
+	}
+	if quotaStep.WaitForAvailableQuotas.Quotas[0] != quota {
+		t.Errorf("An unexpected quota was appended")
+	}
+}
+
 // TestUseGVNIC tests that *TestVM.UseGVNIC succeeds and
 // populates the Network Interface with a NIC type of GVNIC.
 func TestUseGVNIC(t *testing.T) {
