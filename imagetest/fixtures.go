@@ -81,7 +81,7 @@ func (t *TestWorkflow) LockProject() {
 }
 
 // WaitForVMQuota appends a list of quotas to the wait for vm quota step. Quotas with a blank region will be populated with the region corresponding to the workflow zone.
-func (t *TestWorkflow) WaitForVMQuota(qa ...*daisy.QuotaAvailable) error {
+func (t *TestWorkflow) WaitForVMQuota(qa *daisy.QuotaAvailable) error {
 	step, ok := t.wf.Steps[waitForVMQuotaStepName]
 	if !ok {
 		step, err := t.wf.NewStep(waitForVMQuotaStepName)
@@ -90,7 +90,7 @@ func (t *TestWorkflow) WaitForVMQuota(qa ...*daisy.QuotaAvailable) error {
 		}
 		step.WaitForAvailableQuotas = &daisy.WaitForAvailableQuotas{}
 	}
-	step.WaitForAvailableQuotas.Quotas = append(step.WaitForAvailableQuotas.Quotas, qa...)
+	step.WaitForAvailableQuotas.Quotas = append(step.WaitForAvailableQuotas.Quotas, qa)
 	return nil
 }
 
