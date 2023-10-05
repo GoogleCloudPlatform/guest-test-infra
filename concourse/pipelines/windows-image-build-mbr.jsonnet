@@ -276,7 +276,7 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
-  local images = [
+  local windows_2012_images = [
     'windows-server-2012-r2-dc-mbr',
   ],
   local windows_2016_images = [
@@ -289,6 +289,8 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2022-dc-mbr',
   ],
 
+  local images = windows_2012_images + windows_2016_images + windows_2019_images
+               + windows_2022_images,
 
   resource_types: [
     {
