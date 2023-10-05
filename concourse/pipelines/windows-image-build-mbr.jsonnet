@@ -276,25 +276,13 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
-  local windows_2012_images = [
+  local images = [
     'windows-server-2012-r2-dc-mbr',
     'windows-server-2012-r2-dc-core-mbr',
-  ],
-  local windows_2016_images = [
     'windows-server-2016-dc-mbr',
-    'windows-server-2016-dc-core-mbr',
-  ],
-  local windows_2019_images = [
     'windows-server-2019-dc-mbr',
-    'windows-server-2019-dc-core-mbr',
-  ],
-  local windows_2022_images = [
     'windows-server-2022-dc-mbr',
-    'windows-server-2022-dc-core-mbr',
   ],
-
-  local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
-                              + windows_2022_images,
 
   resource_types: [
     {
@@ -314,11 +302,11 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-bios')
-               for image in windows_server_images
+               for image in images
              ] +
              [
                common.GcsSbomResource(image, 'windows-server')
-               for image in windows_server_images
+               for image in images
              ],
   jobs: [
           ImgBuildJob('windows-server-2022-dc-mbr', 'win2022-64', 'windows_gcs_updates_server2022'),
@@ -333,14 +321,11 @@ local ImgGroup(name, images, environments) = {
 
         [
           ImgPublishJob(image, env, 'windows', 'windows-bios')
-          for image in windows_server_images
+          for image in images
           for env in envs
         ],
 
   groups: [
-    ImgGroup('windows-2012-mbr', windows_2012_images, envs),
-    ImgGroup('windows-2016-mbr', windows_2016_images, envs),
-    ImgGroup('windows-2019-mbr', windows_2019_images, envs),
-    ImgGroup('windows-2022-mbr', windows_2022_images, envs),
+    ImgGroup('windows-mbr', images, envs),
   ],
 }
