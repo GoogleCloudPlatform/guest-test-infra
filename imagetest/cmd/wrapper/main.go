@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"os/exec"
 	"strings"
@@ -23,12 +24,21 @@ func main() {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 	log.Printf("FINISHED-BOOTING")
-	defer func() {
+	defer func(ctx context.Context) {
+		if err := utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey, http.MethodPut); err != nil {
+			log.Printf("failed to put test completed key in guest attribute namespace")
+		}
+		log.Printf("successfully placed guest attribute for test completion")
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)
 		}
-	}()
+		time.Sleep(10 * time.Second)
+		if err := utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey, http.MethodDelete); err != nil {
+			log.Printf("failed to delete completed key in guest attribute namespace")
+		}
+		log.Printf("successfuilly deleted guest attribute")
+	}(ctx)
 
 	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {
