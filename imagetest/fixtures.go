@@ -27,6 +27,7 @@ import (
 )
 
 const (
+	waitForVMQuotaStepName   = "wait-for-vm-quota"
 	createVMsStepName        = "create-vms"
 	createDisksStepName      = "create-disks"
 	createNetworkStepName    = "create-networks"
@@ -77,6 +78,20 @@ func (t *TestWorkflow) SkippedMessage() string {
 // exclusive use of the project.
 func (t *TestWorkflow) LockProject() {
 	t.lockProject = true
+}
+
+// WaitForVMQuota appends a list of quotas to the wait for vm quota step. Quotas with a blank region will be populated with the region corresponding to the workflow zone.
+func (t *TestWorkflow) WaitForVMQuota(qa *daisy.QuotaAvailable) error {
+	step, ok := t.wf.Steps[waitForVMQuotaStepName]
+	if !ok {
+		step, err := t.wf.NewStep(waitForVMQuotaStepName)
+		if err != nil {
+			return err
+		}
+		step.WaitForAvailableQuotas = &daisy.WaitForAvailableQuotas{}
+	}
+	step.WaitForAvailableQuotas.Quotas = append(step.WaitForAvailableQuotas.Quotas, qa)
+	return nil
 }
 
 // CreateTestVM adds the necessary steps to create a VM with the specified

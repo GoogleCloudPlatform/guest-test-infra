@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cloud.google.com/go/storage v1.31.0
-	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230630215637-031fb762c645
+	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f
 	github.com/go-ping/ping v1.1.0
 	github.com/google/uuid v1.3.0
 	github.com/jstemmer/go-junit-report v1.0.0

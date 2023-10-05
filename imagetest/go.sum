@@ -21,6 +21,8 @@ cloud.google.com/go/storage v1.31.0/go.mod h1:81ams1PrhW16L4kF7qg+4mTq7SRs5HsbDT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230630215637-031fb762c645 h1:wUeW0BetFkhINHcxtAt/5HkYKfsyyD5mcNVOKzzhwHQ=
 github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230630215637-031fb762c645/go.mod h1:zr7ug08Bz1pQZzWmiKYTHuF/+KbbuSFiP74D2pPukGE=
+github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f h1:fHLga6U5ibwILQYGom/Fta6xJpn8DJ/XbIRmVaySLjA=
+github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f/go.mod h1:zr7ug08Bz1pQZzWmiKYTHuF/+KbbuSFiP74D2pPukGE=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
