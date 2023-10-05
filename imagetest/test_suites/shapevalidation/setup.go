@@ -31,7 +31,7 @@ var x86shapes = map[string]*shape{
 		numa:       4,
 		disks:      []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
 		zone:       "us-east1-b",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("debian-10")},
+		exceptions: []*regexp.Regexp{regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`)},
 	},
 	"C3D": {
 		name:       "c3d-highmem-360",
@@ -40,7 +40,7 @@ var x86shapes = map[string]*shape{
 		numa:       2,
 		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
 		zone:       "us-east4-c",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10")},
+		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`)},
 	},
 	"E2": {
 		name:  "e2-standard-32",
