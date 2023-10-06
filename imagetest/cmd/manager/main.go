@@ -266,7 +266,6 @@ func main() {
 
 	log.Println("Done with setup")
 
-
 	storageclient, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to set up storage client: %v", err)

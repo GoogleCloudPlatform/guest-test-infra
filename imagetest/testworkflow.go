@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
@@ -67,8 +67,8 @@ type TestWorkflow struct {
 	ImageURL string
 	// MachineType is the machine type to be used for the test. This can be overridden by individual test suites.
 	MachineType *compute.MachineType
-	Project *compute.Project
-	Zone *compute.Zone
+	Project     *compute.Project
+	Zone        *compute.Zone
 	// destination for workflow outputs in GCS.
 	gcsPath        string
 	skipped        bool
@@ -383,7 +383,6 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 				}
 			}
 		}
-
 
 		// Assume amd64 when arch is not set.
 		arch := "amd64"

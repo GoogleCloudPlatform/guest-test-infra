@@ -19,8 +19,8 @@ import (
 	"net/http"
 	"testing"
 
-	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -292,58 +292,58 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 }
 
 func TestNewTestWorkflow(t *testing.T) {
-	testcases := []struct{
-		name string
-		arch string
-		image string
-		imagename string
-		project string
-		zone string
-		x86Shape string
-		arm64Shape string
-		timeout string
+	testcases := []struct {
+		name                string
+		arch                string
+		image               string
+		imagename           string
+		project             string
+		zone                string
+		x86Shape            string
+		arm64Shape          string
+		timeout             string
 		expectedMachineType string
 	}{
 		{
-			name: "arm",
-			arch: "ARM64",
-			image: "projects/fake-cloud/global/images/fakeos-v1",
-			imagename: "fakeos-v1",
-			project: "gcp-guest",
-			zone: "us-central1-a",
-			x86Shape: "n1-stanard-1",
-			arm64Shape: "t2a-standard-1",
-			timeout: "30m",
+			name:                "arm",
+			arch:                "ARM64",
+			image:               "projects/fake-cloud/global/images/fakeos-v1",
+			imagename:           "fakeos-v1",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-stanard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "30m",
 			expectedMachineType: "t2a-standard-1",
 		},
 		{
-			name: "x86",
-			arch: "X86_64",
-			image: "projects/fake-cloud/global/images/family/fakeos",
-			imagename: "fakeos",
-			project: "gcp-guest",
-			zone: "us-central1-a",
-			x86Shape: "n1-standard-1",
-			arm64Shape: "t2a-standard-1",
-			timeout: "20m",
+			name:                "x86",
+			arch:                "X86_64",
+			image:               "projects/fake-cloud/global/images/family/fakeos",
+			imagename:           "fakeos",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-standard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "20m",
 			expectedMachineType: "n1-standard-1",
 		},
 		{
-			name: "unspecified arch",
-			arch: "",
-			image: "projects/fake-cloud/global/images/family/fakeos",
-			imagename: "fakeos",
-			project: "gcp-guest",
-			zone: "us-central1-a",
-			x86Shape: "n1-standard-1",
-			arm64Shape: "t2a-standard-1",
-			timeout: "20m",
+			name:                "unspecified arch",
+			arch:                "",
+			image:               "projects/fake-cloud/global/images/family/fakeos",
+			imagename:           "fakeos",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-standard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "20m",
 			expectedMachineType: "n1-standard-1",
 		},
 	}
 	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T){
-			srv, client, err := daisycompute.NewTestClient(http.HandlerFunc(func (w http.ResponseWriter, r *http.Request){
+		t.Run(tc.name, func(t *testing.T) {
+			srv, client, err := daisycompute.NewTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s?alt=json&prettyPrint=false", tc.project) {
 					fmt.Fprintf(w, `{"Name":"%s"}`, tc.project)
 				} else if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s/zones/%s?alt=json&prettyPrint=false", tc.project, tc.zone) {

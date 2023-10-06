@@ -13,41 +13,41 @@ import (
 var Name = "shapevalidation"
 
 type shape struct {
-	name       string                // Full shape name
+	name string // Full shape name
 	// TODO use the compute API to fetch cpu and memory amounts instead of
 	// hardcoding a list.
-	cpu        int                   // Expected number of vCPUs
-	mem        uint64                // Expected memory in GB
-	numa       uint8                 // Expected number of vNUMA nodes
-	disks      []*compute.Disk       // Disk configuration for created instances
-	zone       string                // If set, force the VM to run in this zone
-	requireFeatures []string // Features necessary for testing this shape
-	excludeFeatures []string // Features which prevent testing this shape
-	quota      *daisy.QuotaAvailable // Quota necessary to run the test
+	cpu             int                   // Expected number of vCPUs
+	mem             uint64                // Expected memory in GB
+	numa            uint8                 // Expected number of vNUMA nodes
+	disks           []*compute.Disk       // Disk configuration for created instances
+	zone            string                // If set, force the VM to run in this zone
+	requireFeatures []string              // Features necessary for testing this shape
+	excludeFeatures []string              // Features which prevent testing this shape
+	quota           *daisy.QuotaAvailable // Quota necessary to run the test
 }
 
 // Map of family name to the shape that should be tested in that family.
 var x86shapes = map[string]*shape{
 	"C3": {
-		name:       "c3-highmem-176",
-		cpu:        176,
-		mem:        1408,
-		numa:       4,
-		disks:      []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
-		zone:       "us-east1-b",
+		name:            "c3-highmem-176",
+		cpu:             176,
+		mem:             1408,
+		numa:            4,
+		disks:           []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
+		zone:            "us-east1-b",
 		requireFeatures: []string{"GVNIC"},
-		quota:      &daisy.QuotaAvailable{Metric: "C3_CPUS", Units: 176, Region: "us-east1"},
+		quota:           &daisy.QuotaAvailable{Metric: "C3_CPUS", Units: 176, Region: "us-east1"},
 	},
 	"C3D": {
-		name:       "c3d-highmem-360",
-		cpu:        360,
-		mem:        2880,
-		numa:       2,
-		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
-		zone:       "us-east4-c",
+		name:            "c3d-highmem-360",
+		cpu:             360,
+		mem:             2880,
+		numa:            2,
+		disks:           []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
+		zone:            "us-east4-c",
 		requireFeatures: []string{"GVNIC"},
 		excludeFeatures: []string{"WINDOWS"},
-		quota:      &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
 	},
 	"E2": {
 		name:  "e2-standard-32",

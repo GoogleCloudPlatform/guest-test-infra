@@ -127,11 +127,11 @@ func skipMachineTypeImage(machineType string, image *compute.Image) bool {
 		return true
 	}
 
-    // Fetching the MachineType won't help us, they don't have any architecture
-    // property yet.
-    if image.Architecture == "ARM64" && !strings.HasPrefix(machineType, "t2a") {
+	// Fetching the MachineType won't help us, they don't have any architecture
+	// property yet.
+	if image.Architecture == "ARM64" && !strings.HasPrefix(machineType, "t2a") {
 		return true
-    }
+	}
 
 	// The only way to determine what kind of network a machine type will have is
 	// to create an instance of it and inspect the NICs, so we can't get a list of
