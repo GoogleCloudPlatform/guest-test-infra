@@ -277,16 +277,16 @@ local ImgGroup(name, images, environments) = {
 // Start of output.
 {
   local windows_2012_images = [
-    'windows-server-2012-r2-dc-mbr',
+    'windows-server-2012-r2-dc',
   ],
   local windows_2016_images = [
-    'windows-server-2016-dc-mbr',
+    'windows-server-2016-dc',
   ],
   local windows_2019_images = [
-    'windows-server-2019-dc-mbr',
+    'windows-server-2019-dc',
   ],
   local windows_2022_images = [
-    'windows-server-2022-dc-mbr',
+    'windows-server-2022-dc',
   ],
 
   local images = windows_2012_images + windows_2016_images + windows_2019_images
@@ -317,10 +317,10 @@ local ImgGroup(name, images, environments) = {
                for image in images
              ],
   jobs: [
-          ImgBuildJob('windows-server-2022-dc-mbr', 'win2022-64', 'windows_gcs_updates_server2022'),
-          ImgBuildJob('windows-server-2019-dc-mbr', 'win2019-64', 'windows_gcs_updates_server2019'),
-          ImgBuildJob('windows-server-2016-dc-mbr', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2012-r2-dc-mbr', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
+          ImgBuildJob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
+          ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
+          ImgBuildJob('windows-server-2012-r2-dc', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
         ] +
 
         [
