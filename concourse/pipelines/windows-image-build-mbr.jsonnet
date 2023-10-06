@@ -251,7 +251,7 @@ local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
   image: image,
   iso_secret: iso_secret,
   updates_secret: updates_secret,
-  workflow: 'windows/%s-bios.wf.json' % image,
+  workflow: 'windows/%s.wf.json' % image,
 };
 
 local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
@@ -277,16 +277,16 @@ local ImgGroup(name, images, environments) = {
 // Start of output.
 {
   local windows_2012_images = [
-    'windows-server-2012-r2-dc',
+    'windows-server-2012-r2-dc-bios',
   ],
   local windows_2016_images = [
-    'windows-server-2016-dc',
+    'windows-server-2016-dc-bios',
   ],
   local windows_2019_images = [
-    'windows-server-2019-dc',
+    'windows-server-2019-dc-bios',
   ],
   local windows_2022_images = [
-    'windows-server-2022-dc',
+    'windows-server-2022-dc-bios',
   ],
 
   local images = windows_2012_images + windows_2016_images + windows_2019_images
@@ -313,7 +313,7 @@ local ImgGroup(name, images, environments) = {
                for image in images
              ] +
              [
-               common.GcsSbomResource(image, 'windows-server')
+               common.GcsSbomResource(image, 'windows-server-bios')
                for image in images
              ],
   jobs: [
