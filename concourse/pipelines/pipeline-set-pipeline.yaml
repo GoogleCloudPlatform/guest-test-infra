@@ -40,6 +40,8 @@ jobs:
     file: rendered/windows-image-build.json
   - set_pipeline: windows-image-build-staging
     file: rendered/windows-image-build-staging.json
+  - set_pipeline: windows-image-build-standard
+    file: rendered/windows-image-build-standard.json
   - set_pipeline: windows-image-build-mbr
     file: rendered/windows-image-build-mbr.json
   - set_pipeline: container-build
