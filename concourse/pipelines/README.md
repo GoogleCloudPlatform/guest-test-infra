@@ -17,7 +17,7 @@ where the resulting pipeline has the entire configuration included. It also
 resulted in a 10x reduction in config file length.
 
 Within templates, we follow some basic patterns. The main repeatable elements in
-Concourse Pipelines are Jobs and Tasks. We generall try to use templates
+Concourse Pipelines are Jobs and Tasks. We generally try to use templates
 directly rather than functions, and write as much directly as possible (i.e. not
 try to maximize the amount that is templated).
 
@@ -32,7 +32,6 @@ involves gcloud commands to publish PubSub messages.
 
 Builds container images using [Kaniko], and publishes them to private & public
 [Container Registry] registries.
-
 [Kaniko]: [https:/github.com/GoogleContainerTools/kaniko](https://github.com/GoogleContainerTools/kaniko)
 
 ### debian-worker-image-build.yaml
