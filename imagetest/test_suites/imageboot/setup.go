@@ -47,7 +47,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm3.RunTests("TestStartTime|TestBootTime")
 
 	for _, r := range sbUnsupported {
-		if r.MatchString(t.Image) {
+		if r.MatchString(t.Image.Name) {
 			return nil
 		}
 	}

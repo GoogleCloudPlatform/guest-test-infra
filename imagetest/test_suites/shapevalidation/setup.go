@@ -2,11 +2,10 @@ package shapevalidation
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -15,12 +14,15 @@ var Name = "shapevalidation"
 
 type shape struct {
 	name       string                // Full shape name
+	// TODO use the compute API to fetch cpu and memory amounts instead of
+	// hardcoding a list.
 	cpu        int                   // Expected number of vCPUs
 	mem        uint64                // Expected memory in GB
 	numa       uint8                 // Expected number of vNUMA nodes
 	disks      []*compute.Disk       // Disk configuration for created instances
 	zone       string                // If set, force the VM to run in this zone
-	exceptions []*regexp.Regexp      // Regexp matches for image names to skip testing this family on
+	requireFeatures []string // Features necessary for testing this shape
+	excludeFeatures []string // Features which prevent testing this shape
 	quota      *daisy.QuotaAvailable // Quota necessary to run the test
 }
 
@@ -33,7 +35,7 @@ var x86shapes = map[string]*shape{
 		numa:       4,
 		disks:      []*compute.Disk{{Name: "C3", Type: imagetest.PdBalanced, Zone: "us-east1-b"}},
 		zone:       "us-east1-b",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`)},
+		requireFeatures: []string{"GVNIC"},
 		quota:      &daisy.QuotaAvailable{Metric: "C3_CPUS", Units: 176, Region: "us-east1"},
 	},
 	"C3D": {
@@ -43,7 +45,8 @@ var x86shapes = map[string]*shape{
 		numa:       2,
 		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
 		zone:       "us-east4-c",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`)},
+		requireFeatures: []string{"GVNIC"},
+		excludeFeatures: []string{"WINDOWS"},
 		quota:      &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
 	},
 	"E2": {
@@ -102,7 +105,7 @@ var armshapes = map[string]*shape{
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if strings.Contains(t.Image, "arm") || strings.Contains(t.Image, "aarch") {
+	if t.Image.Architecture == "ARM64" {
 		return testFamily(t, armshapes)
 	}
 	return testFamily(t, x86shapes)
@@ -114,8 +117,13 @@ func testFamily(t *imagetest.TestWorkflow, families map[string]*shape) error {
 	t.LockProject()
 Familyloop:
 	for family, shape := range families {
-		for _, e := range shape.exceptions {
-			if e.MatchString(t.Image) {
+		for _, feat := range shape.requireFeatures {
+			if !utils.HasFeature(t.Image, feat) {
+				continue Familyloop
+			}
+		}
+		for _, feat := range shape.excludeFeatures {
+			if utils.HasFeature(t.Image, feat) {
 				continue Familyloop
 			}
 		}

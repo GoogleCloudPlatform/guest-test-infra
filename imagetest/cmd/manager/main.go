@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/cvm"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
@@ -199,6 +200,12 @@ func main() {
 		},
 	}
 
+	ctx := context.Background()
+	computeclient, err := compute.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("Could not create compute client:%v", err)
+	}
+
 	var testWorkflows []*imagetest.TestWorkflow
 	for _, testPackage := range testPackages {
 		if filterRegex != nil && !filterRegex.MatchString(testPackage.name) {
@@ -242,7 +249,7 @@ func main() {
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout, *x86Shape, *arm64Shape)
+			test, err := imagetest.NewTestWorkflow(computeclient, testPackage.name, image, *timeout, *project, *zone, *x86Shape, *arm64Shape)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}
@@ -259,26 +266,25 @@ func main() {
 
 	log.Println("Done with setup")
 
-	ctx := context.Background()
 
-	client, err := storage.NewClient(ctx)
+	storageclient, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to set up storage client: %v", err)
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, *parallelStagger, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *parallelCount, *parallelStagger, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

@@ -9,6 +9,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -95,7 +96,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
 		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
 		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
-		if strings.Contains(t.Image, "windows") {
+		if utils.HasFeature(t.Image, "WINDOWS") {
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 			if err != nil {
 				return err
@@ -117,18 +118,27 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 }
 
 // Due to compatability issues or other one off errors, some combinations of machine types and images must be skipped. This function returns true for those combinations.
-func skipMachineTypeImage(machineType, image string) bool {
-	if strings.HasPrefix(machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+func skipMachineTypeImage(machineType string, image *compute.Image) bool {
+	if strings.HasPrefix(machineType, "c3d") && (strings.Contains(image.Name, "windows-2012") || strings.Contains(image.Name, "windows-2016")) {
 		return true
 	}
 
-	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(machineType, "c3-") {
+	if strings.Contains(image.Name, "ubuntu-pro-1604") && strings.HasPrefix(machineType, "c3-") {
 		return true
 	}
 
+    // Fetching the MachineType won't help us, they don't have any architecture
+    // property yet.
+    if image.Architecture == "ARM64" && !strings.HasPrefix(machineType, "t2a") {
+		return true
+    }
+
+	// The only way to determine what kind of network a machine type will have is
+	// to create an instance of it and inspect the NICs, so we can't get a list of
+	// machine types with GVNIC from the API.
 	gvnicMachineTypes := []string{"c3-", "c3d-", "h3-"}
-	// skip debian-10 on gen 3 machine types
-	if strings.Contains(image, "debian-10") {
+	// skip images that don't support GVNIC on gen 3 machine types
+	if !utils.HasFeature(image, "GVNIC") {
 		for _, excludedType := range gvnicMachineTypes {
 			if strings.Contains(machineType, excludedType) {
 				return true

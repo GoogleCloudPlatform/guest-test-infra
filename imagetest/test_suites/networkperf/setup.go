@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -73,12 +74,9 @@ func getExpectedPerf(targetMap map[string]int, machineType string) (int, error) 
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// gVNIC not supported on certain images.
-		t.Skip(fmt.Sprintf("%v does not support gVNIC", t.Image))
-		return nil
+	if !utils.HasFeature(t.Image, "GVNIC") {
+		t.Skip(fmt.Sprintf("%s does not support GVNIC", t.Image.Name))
 	}
-
 	// Default network.
 	defaultNetwork, err := t.CreateNetwork("default-network", false)
 	if err != nil {
@@ -115,7 +113,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := json.Unmarshal(defaultPerfTargetsString, &defaultPerfTargets); err != nil {
 		return err
 	}
-	defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, t.ShortMachineType)
+	defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, t.MachineType.Name)
 	if err != nil {
 		return err
 	}
@@ -176,7 +174,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	// Set startup scripts.
 	var serverStartup string
 	var clientStartup string
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
 		if err != nil {
 			return err
@@ -221,10 +219,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 
 	// Check if machine type is valid for tier1 testing.
-	mt := t.ShortMachineType
+	mt := t.MachineType.Name
 	if !strings.Contains(mt, "n2") && !strings.Contains(mt, "c2") && !strings.Contains(mt, "c3") && !strings.Contains(mt, "m3") {
 		// Must be N2, N2D, C2, C2D, C3, C3D, or M3 machine types.
-		fmt.Printf("%v: Skipping tier1 tests - %v not supported\n", t.ShortImage, mt)
+		fmt.Printf("%v: Skipping tier1 tests - %v not supported\n", t.Image.Name, mt)
 		return nil
 	}
 	numCPUs, err := strconv.Atoi(strings.Split(mt, "-")[2])
@@ -233,7 +231,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	if numCPUs < 30 {
 		// Must have at least 30 vCPUs.
-		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
+		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, numCPUs)
 		return nil
 	}
 
@@ -246,7 +244,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := json.Unmarshal(tier1PerfTargetsString, &tier1PerfTargets); err != nil {
 		return err
 	}
-	tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, t.ShortMachineType)
+	tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, t.MachineType.Name)
 	if err != nil {
 		return err
 	}
@@ -280,7 +278,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
 
 	// Set startup scripts.
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		tier1ServerVM.SetWindowsStartupScript(serverStartup)
 		tier1ClientVM.SetWindowsStartupScript(clientStartup)
 	} else {

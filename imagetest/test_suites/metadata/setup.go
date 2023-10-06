@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -97,7 +98,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	var timeByteArr []byte
 
 	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		startupByteArr, err = scripts.ReadFile(startupScriptWindowsURL)
 		if err != nil {
 			return err
