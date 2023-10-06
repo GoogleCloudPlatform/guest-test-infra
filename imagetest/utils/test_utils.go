@@ -109,19 +109,6 @@ func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 	return resp, nil
 }
 
-// QueryMetadataAttribute queries the attribute using the given http method, and returns an error if this operation fails.
-func QueryMetadataAttribute(ctx context.Context, attribute, httpMethod string) error {
-	path, err := url.JoinPath(metadataURLPrefix, attribute)
-	if err != nil {
-		return err
-	}
-	err = QueryMetadataHTTPResponse(ctx, path, httpMethod)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // QueryMetadataGuestAttribute queries the guest attribute in the namespace using the given http method, and returns an error if this operation fails.
 func QueryMetadataGuestAttribute(ctx context.Context, namespace, attribute, httpMethod string) error {
 	path, err := url.JoinPath(metadataURLPrefix, "guest-attributes", namespace, attribute)

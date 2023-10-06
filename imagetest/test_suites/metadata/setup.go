@@ -37,14 +37,14 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVMAndReboot("vm2")
 	if err != nil {
 		return err
 	}
 	vm2.AddMetadata("enable-guest-attributes", "TRUE")
-	if err := vm2.Reboot(); err != nil {
-		return err
-	}
+	//if err := vm2.Reboot(); err != nil {
+	//	return err
+	//}
 
 	vm3, err := t.CreateTestVM("vm3")
 	if err != nil {

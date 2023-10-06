@@ -22,17 +22,23 @@ func main() {
 	log.Printf("FINISHED-BOOTING")
 	ctx := context.Background()
 	skipOnBootAttributeKey := "skipOnBoot"
+	rebootedNamespace := "reboot"
+	rebootedKey := "rebooted"
+	log.Printf("checking skipboot case")
 	// Special case where we want to boot twice but skip running the wrapper on the first boot
 	skipOnBoot, err := utils.GetMetadataAttribute(skipOnBootAttributeKey)
 	if err != nil {
-		log.Printf("did not find skip on boot metadata key")
+		log.Printf("did not find skip on boot metadata key %v", err)
 	}
-	if skipOnBoot == "true" {
-		if err = utils.QueryMetadataAttribute(ctx, skipOnBootAttributeKey, http.MethodDelete); err != nil {
-			log.Fatalf("could not delete skipOnBoot metadata attribute")
+	err = utils.QueryMetadataGuestAttribute(ctx, rebootedNamespace, rebootedKey, http.MethodGet)
+	log.Printf("rebooted error was %v", err)
+	if skipOnBoot == "true" && err != nil {
+		if err = utils.QueryMetadataGuestAttribute(ctx, rebootedNamespace, rebootedKey, http.MethodPut); err != nil {
+			log.Printf("could not place guest attribute rebooted key")
 		}
 		os.Exit(0)
 	}
+	log.Printf("continuing past skipboot")
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create cloud storage client: %v", err)
