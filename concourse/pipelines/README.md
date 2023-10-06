@@ -32,8 +32,7 @@ involves gcloud commands to publish PubSub messages.
 
 Builds container images using [Kaniko], and publishes them to private & public
 [Container Registry] registries.
-
-[Kaniko]: https://github.com/GoogleContainerTools/kaniko
+[Kaniko]: [https:/github.com/GoogleContainerTools/kaniko](https://github.com/GoogleContainerTools/kaniko)
 
 ### debian-worker-image-build.yaml
 
