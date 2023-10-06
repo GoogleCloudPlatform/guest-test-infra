@@ -122,6 +122,11 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	}
 
 	instance.Metadata = make(map[string]string)
+	// skipOnBoot should be set to any string if this is the first boot and we want to skip
+	// running the test until the reboot
+	if skipOnBoot, foundKey := instanceParams["skipOnBoot"]; foundKey {
+		instance.Metadata["skipOnBoot"] = skipOnBoot
+	}
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)

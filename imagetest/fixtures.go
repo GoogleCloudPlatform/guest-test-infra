@@ -288,6 +288,80 @@ func (t *TestVM) SetNetworkPerformanceTier(tier string) error {
 	return nil
 }
 
+// CreateTestVM adds the necessary steps to create a VM with the specified
+// name to the workflow.
+func (t *TestWorkflow) CreateTestVMAndReboot(name string) (*TestVM, error) {
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	bootDisk := &compute.Disk{Name: vmname}
+	createDisksStep, err := t.appendCreateDisksStep(bootDisk)
+	if err != nil {
+		return nil, err
+	}
+
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, map[string]string{"hostname": name, "skipOnBoot": "true"})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	stepSuffix := fmt.Sprintf("%s-%d", vmname, t.counter)
+	stopInstancesStep, err := t.addStopStep(stepSuffix, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(stopInstancesStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	waitStopStep, err := t.addWaitStoppedStep("stopped-"+stepSuffix, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStopStep, stopInstancesStep); err != nil {
+		return nil, err
+	}
+
+	startInstancesStep, err := t.addStartStep(stepSuffix, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(startInstancesStep, waitStopStep); err != nil {
+		return nil, err
+	}
+
+	waitStartedStep, err := t.addWaitStep("started-"+stepSuffix, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStartedStep, startInstancesStep); err != nil {
+		return nil, err
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
+}
+
 // Reboot stops the VM, waits for it to shutdown, then starts it again. Your
 // test package must handle being run twice.
 func (t *TestVM) Reboot() error {

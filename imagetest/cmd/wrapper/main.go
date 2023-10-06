@@ -7,7 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -17,12 +19,24 @@ import (
 )
 
 func main() {
+	log.Printf("FINISHED-BOOTING")
 	ctx := context.Background()
+	skipOnBootAttributeKey := "skipOnBoot"
+	// Special case where we want to boot twice but skip running the wrapper on the first boot
+	skipOnBoot, err := utils.GetMetadataAttribute(skipOnBootAttributeKey)
+	if err != nil {
+		log.Printf("did not find skip on boot metadata key")
+	}
+	if skipOnBoot == "true" {
+		if err = utils.QueryMetadataAttribute(ctx, skipOnBootAttributeKey, http.MethodDelete); err != nil {
+			log.Fatalf("could not delete skipOnBoot metadata attribute")
+		}
+		os.Exit(0)
+	}
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
-	log.Printf("FINISHED-BOOTING")
 	defer func() {
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
