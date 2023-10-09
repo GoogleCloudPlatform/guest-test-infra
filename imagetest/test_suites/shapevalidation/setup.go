@@ -84,7 +84,7 @@ var x86shapes = map[string]*shape{
 		mem:   624,
 		numa:  2,
 		disks: []*compute.Disk{{Name: "N1", Type: imagetest.PdStandard}},
-		quota: &daisy.QuotaAvailable{Metric: "N1_CPUS", Units: 96},
+		quota: &daisy.QuotaAvailable{Metric: "CPUS", Units: 96},
 	},
 }
 
