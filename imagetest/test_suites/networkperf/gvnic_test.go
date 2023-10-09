@@ -26,8 +26,8 @@ func CheckGVNICPresent(interfaceName string) error {
 	}
 	s := strings.Split(data, "/")
 	driver := s[len(s)-1]
-	if driver != "gvnic" {
-		errMsg := fmt.Sprintf("Driver set as %v want gvnic", driver)
+	if driver != "gvnic" && driver != "gve" {
+		errMsg := fmt.Sprintf("Driver set as %v want gvnic or gve", driver)
 		return errors.New(errMsg)
 	}
 	return nil
