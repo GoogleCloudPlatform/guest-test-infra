@@ -225,13 +225,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		fmt.Printf("%v: Skipping tier1 tests - %v not supported\n", t.Image.Name, mt)
 		return nil
 	}
-	numCPUs, err := strconv.Atoi(strings.Split(mt, "-")[2])
-	if err != nil {
-		return err
-	}
-	if numCPUs < 30 {
+	if t.MachineType.GuestCpus < 30 {
 		// Must have at least 30 vCPUs.
-		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, numCPUs)
+		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, t.MachineType.GuestCpus)
 		return nil
 	}
 
