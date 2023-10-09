@@ -145,7 +145,7 @@ func TestFileHotAttach(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get metadata for project or zone: %v", err)
 	}
-	instNameString := strings.TrimSpace(string(instName))
+	instNameString, _, _ := strings.Cut(strings.TrimSpace(string(instName)), ".")
 	// the instanceGetCall retrieves the attached disk, which is used to reattach the disk.
 	instancesGetCall := instancesService.Get(projectNumber, instanceZone, instNameString)
 	instancesGetCall = instancesGetCall.Context(ctx)
