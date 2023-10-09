@@ -29,17 +29,24 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	// initialize vm with the hard coded machine type and platform corresponding to the index
-	paramMaps := []map[string]string{
-		{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme, "metric": "C3_CPUS"},
-		// temporarily disable c3d hyperdisk until the api allows it again
-		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme, "metric": "CPUS"}, // No public metric for this yet but the CPU count will work because they're so large
-		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme, "metric": "N2_CPUS"},
-		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced, "metric": "C3_CPUS"},
-		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced, "metric": "CPUS"},
-		{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced, "metric": "N2D_CPUS"},
-		{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake", "metric": "CPUS"}, // N1 CPUS aren't measured separately
-		// zone for h3 is a temporary measure while h3 is pre-GA
-		{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced, "metric": "CPUS"}, // No public metric
+	var paramMaps []map[string]string
+	if strings.Contains(t.Image, "arm64") {
+		paramMaps = []map[string]string{
+			{"machineType": "t2a-standard-48", "zone": "us-central1-a", "diskType": imagetest.PdBalanced, "metric": "T2A_CPUS"},
+		}
+	} else {
+		paramMaps = []map[string]string{
+			{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme, "metric": "C3_CPUS"},
+			// temporarily disable c3d hyperdisk until the api allows it again
+			// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme, "metric": "CPUS"}, // No public metric for this yet but the CPU count will work because they're so large
+			{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme, "metric": "N2_CPUS"},
+			{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced, "metric": "C3_CPUS"},
+			{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced, "metric": "CPUS"},
+			{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced, "metric": "N2D_CPUS"},
+			{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake", "metric": "CPUS"}, // N1 CPUS aren't measured separately
+			// zone for h3 is a temporary measure while h3 is pre-GA
+			{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced, "metric": "CPUS"}, // No public metric
+		}
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, paramMap := range paramMaps {

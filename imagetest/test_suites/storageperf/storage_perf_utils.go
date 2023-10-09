@@ -91,6 +91,12 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 		seqReadBW:     240.0,
 		seqWriteBW:    240.0,
 	},
+	"t2a-standard-48": {
+		randReadIOPS:  80000.0,
+		randWriteIOPS: 80000.0,
+		seqReadBW:     1800.0,
+		seqWriteBW:    1800.0,
+	},
 }
 
 // FIOOutput defines the output from the fio command
