@@ -34,6 +34,9 @@ const (
 	createFirewallStepName   = "create-firewalls"
 	createSubnetworkStepName = "create-sub-networks"
 	successMatch             = "FINISHED-TEST"
+	// ShouldRebootDuringTest is a local map key to indicate that the
+	// test will reboot and relies on results from the second boot.
+	ShouldRebootDuringTest = "shouldRebootDuringTest"
 	// DefaultSourceRange is the RFC-1918 range used in default rules.
 	DefaultSourceRange = "10.128.0.0/9"
 
@@ -181,7 +184,15 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 		}
 	}
 
-	waitStep, err := t.addWaitStep(vmname, vmname)
+	// In a follow-up, guest attribute support will be added.
+	// If this is the first boot before a reboot, this should use a
+	// different guest attribute when waiting for the instance signal.
+	var waitStep *daisy.Step
+	if _, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
+		waitStep, err = t.addWaitRebootGAStep(vmname, vmname)
+	} else {
+		waitStep, err = t.addWaitStep(vmname, vmname)
+	}
 	if err != nil {
 		return nil, err
 	}

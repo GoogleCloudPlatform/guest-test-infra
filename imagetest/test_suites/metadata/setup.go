@@ -6,6 +6,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -38,7 +39,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm2, err := t.CreateTestVM("vm2")
+	shutdownScriptParams := map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm2"}}, shutdownScriptParams)
 	if err != nil {
 		return err
 	}
@@ -47,7 +49,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm3, err := t.CreateTestVM("vm3")
+	vm3, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm3"}}, shutdownScriptParams)
 	if err != nil {
 		return err
 	}
@@ -56,7 +58,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm4, err := t.CreateTestVM("vm4")
+	vm4, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm4"}}, shutdownScriptParams)
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm5, err := t.CreateTestVM("vm5")
+	vm5, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm5"}}, shutdownScriptParams)
 	if err != nil {
 		return err
 	}

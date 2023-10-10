@@ -125,6 +125,10 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	}
 
 	instance.Metadata = make(map[string]string)
+	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
+	if shouldRebootDuringTest, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
+		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
+	}
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
@@ -226,6 +230,29 @@ func (t *TestWorkflow) addWaitStoppedStep(stepname, vmname string) (*daisy.Step,
 }
 
 func (t *TestWorkflow) addWaitStep(stepname, vmname string) (*daisy.Step, error) {
+	serialOutput := &daisy.SerialOutput{}
+	serialOutput.Port = 1
+	serialOutput.SuccessMatch = successMatch
+
+	instanceSignal := &daisy.InstanceSignal{}
+	instanceSignal.Name = vmname
+	instanceSignal.Stopped = false
+
+	instanceSignal.SerialOutput = serialOutput
+
+	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
+
+	waitStep, err := t.wf.NewStep("wait-" + stepname)
+	if err != nil {
+		return nil, err
+	}
+	waitStep.WaitForInstancesSignal = waitForInstances
+
+	return waitStep, nil
+}
+
+// after guest attributes for instance wait step matching are implemented, this step will wait for a different guest attribute key than addWaitStep
+func (t *TestWorkflow) addWaitRebootGAStep(stepname, vmname string) (*daisy.Step, error) {
 	serialOutput := &daisy.SerialOutput{}
 	serialOutput.Port = 1
 	serialOutput.SuccessMatch = successMatch

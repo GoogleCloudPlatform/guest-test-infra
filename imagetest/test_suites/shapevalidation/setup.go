@@ -2,6 +2,7 @@ package shapevalidation
 
 import (
 	"fmt"
+  "regexp"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -23,6 +24,7 @@ type shape struct {
 	zone            string                // If set, force the VM to run in this zone
 	requireFeatures []string              // Features necessary for testing this shape
 	excludeFeatures []string              // Features which prevent testing this shape
+  exceptions      []*regexp.Regexp      // Regexp matches for image names to exempt
 	quota           *daisy.QuotaAvailable // Quota necessary to run the test
 }
 
@@ -47,6 +49,7 @@ var x86shapes = map[string]*shape{
 		zone:            "us-east4-c",
 		requireFeatures: []string{"GVNIC"},
 		excludeFeatures: []string{"WINDOWS"},
+    exceptions:      []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("(rhel|centos|almalinux|rocky-linux)-7")},
 		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
 	},
 	"E2": {
