@@ -28,8 +28,10 @@ const (
 	bytesInGB         = 1073741824
 	// GuestAttributeTestNamespace is the namespace for the guest attribute in the daisy "wait for instance" step for CIT.
 	GuestAttributeTestNamespace = "citTest"
-	// GuestAttributeTestKey is the key for the guest attribute in the edaisy "wait for instance" step for CIT.
+	// GuestAttributeTestKey is the key for the guest attribute in the daisy "wait for instance" step for CIT in the common case.
 	GuestAttributeTestKey = "test-complete"
+	// FirstBootGAKey is the key for guest attribute in the daisy "wait for instance" step in the case where it is the first boot, and we still want to wait for results from a subsequent reboot.
+	FirstBootGAKey = "first-boot-key"
 )
 
 var windowsClientImagePatterns = []string{
@@ -109,22 +111,24 @@ func GetMetadataHTTPResponse(path string) (*http.Response, error) {
 	return resp, nil
 }
 
-// PutMetadataGuestAttribute sets the guest attribute in the namespace, and returns an error if this operation fails.
-func PutMetadataGuestAttribute(ctx context.Context, namespace, attribute string) error {
+// QueryMetadataGuestAttribute sets the guest attribute in the namespace
+// using the given method, and returns an error if this operation fails.
+func QueryMetadataGuestAttribute(ctx context.Context, namespace, attribute, httpMethod string) error {
 	path, err := url.JoinPath(metadataURLPrefix, "guest-attributes", namespace, attribute)
 	if err != nil {
 		return err
 	}
-	err = PutMetadataHTTPResponse(ctx, path)
+	err = QueryMetadataHTTPResponse(ctx, path, httpMethod)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// PutMetadataHTTPResponse returns http response for the specified key without checking status code.
-func PutMetadataHTTPResponse(ctx context.Context, path string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, nil)
+// QueryMetadataHTTPResponse returns http response for the specified key
+// using a http request with the given method without checking status code.
+func QueryMetadataHTTPResponse(ctx context.Context, path, httpMethod string) error {
+	req, err := http.NewRequestWithContext(ctx, httpMethod, path, nil)
 	if err != nil {
 		return err
 	}

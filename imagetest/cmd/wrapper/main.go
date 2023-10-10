@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"os/exec"
 	"strings"
@@ -24,6 +25,23 @@ func main() {
 	}
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
+		firstBootIgnoreTest := false
+		if shouldRebootDuringTest, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err != nil {
+			foundKey := utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey, http.MethodGet)
+			if foundKey != nil {
+				firstBootIgnoreTest = true
+			}
+		}
+		var err error
+		if firstBootIgnoreTest {
+			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey, http.MethodPut)
+		} else {
+			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey, http.MethodPut)
+		}
+
+		if err != nil {
+			log.Printf("could not place guest attribute key to end test")
+		}
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)
