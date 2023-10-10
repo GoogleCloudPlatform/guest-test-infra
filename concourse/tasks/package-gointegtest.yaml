@@ -11,8 +11,8 @@ inputs:
 run:
   path: /daisy
   args:
-  - -project=gcp-guest
-  - -zone=us-west1-b
+  - -project=compute-image-test-pool-001
+  - -zone=us-central1-c
   - -var:repo_name=((repo-name))
   - -var:repo_owner=GoogleCloudPlatform
   - -var:git_ref=master
