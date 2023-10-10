@@ -16,7 +16,7 @@ FROM gcr.io/gcp-guest/gotest
 # gcsfuse install instructions:
 #  https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -q -y qemu-utils gnupg ca-certificates \
-  && echo "deb http://packages.cloud.google.com/apt gcsfuse-buster main" > /etc/apt/sources.list.d/gcsfuse.list \
+  && echo "deb https://packages.cloud.google.com/apt gcsfuse-bullseye main" > /etc/apt/sources.list.d/gcsfuse.list \
   && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -q -y gcsfuse \
