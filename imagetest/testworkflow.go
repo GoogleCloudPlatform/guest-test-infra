@@ -371,23 +371,41 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 
 		twf.wf.Zone = zone
 
-		vmquotaStep, vmquotaStepOk := twf.wf.Steps[waitForVMQuotaStepName]
-		if vmquotaStepOk {
-			for _, q := range vmquotaStep.WaitForAvailableQuotas.Quotas {
+		// Process quota steps and associated creation steps.
+		for quotaStepName, createStepName := range map[string]string{
+			waitForVMQuotaStepName:    createVMsStepName,
+			waitForDisksQuotaStepName: createDisksStepName,
+		} {
+			quotaStep, ok := twf.wf.Steps[quotaStepName]
+			if !ok {
+				continue
+			}
+			for _, q := range quotaStep.WaitForAvailableQuotas.Quotas {
 				// Populate empty regions with best guess from the zone
 				if q.Region == "" {
 					q.Region = twf.wf.Zone[:len(twf.wf.Zone)-2]
 				}
 			}
+			createStep, ok := twf.wf.Steps[createStepName]
+			if !ok {
+				continue
+			}
+			// Fix dependencies. Create steps should depend on the quota step, and quota steps should inherit all other dependencies.
+			for _, dep := range twf.wf.Dependencies[createStepName] {
+				dStep, ok := twf.wf.Steps[dep]
+				if ok {
+					if err := twf.wf.AddDependency(quotaStep, dStep); err != nil {
+						return err
+					}
+				}
+			}
+			if err := twf.wf.AddDependency(createStep, quotaStep); err != nil {
+				return err
+			}
 		}
 
 		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
 		if ok {
-			if vmquotaStepOk {
-				if err := twf.wf.AddDependency(createVMsStep, vmquotaStep); err != nil {
-					return err
-				}
-			}
 			for _, vm := range createVMsStep.CreateInstances.Instances {
 				if vm.MachineType != "" {
 					log.Printf("VM %s machine type set to %s for test %s\n", vm.Name, vm.MachineType, twf.Name)

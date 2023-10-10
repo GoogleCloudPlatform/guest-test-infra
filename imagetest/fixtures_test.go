@@ -229,24 +229,66 @@ func TestEnableSecureBoot(t *testing.T) {
 	}
 }
 
-// TestWaitForVMQuota tests that WaitForVMQuota successfully appends a quota to
-// the wait for vm quota step.
-func TestWaitForVMQuota(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
+// TestWaitForQuotaStep tests that quotas are successfully appended to the wait
+// step.
+func TestWaitForQuotaStep(t *testing.T) {
+	testcases := []struct {
+		name   string
+		input  []*daisy.QuotaAvailable
+		output []*daisy.QuotaAvailable
+	}{
+		{
+			name:   "single quota",
+			input:  []*daisy.QuotaAvailable{{Metric: "test", Units: 1, Region: "us-central1"}},
+			output: []*daisy.QuotaAvailable{{Metric: "test", Units: 1, Region: "us-central1"}},
+		},
+		{
+			name:   "two independent quotas",
+			input:  []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test1", Units: 1, Region: "us-west1"}},
+			output: []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test1", Units: 1, Region: "us-west1"}},
+		},
+		{
+			name:   "two quotas same region",
+			input:  []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test1", Units: 1, Region: "us-central1"}},
+			output: []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test1", Units: 1, Region: "us-central1"}},
+		},
+		{
+			name:   "two quotas same metric",
+			input:  []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test2", Units: 1, Region: "us-west1"}},
+			output: []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test2", Units: 1, Region: "us-west1"}},
+		},
+		{
+			name:   "two identical quotas",
+			input:  []*daisy.QuotaAvailable{{Metric: "test2", Units: 2, Region: "us-central1"}, {Metric: "test2", Units: 1, Region: "us-central1"}},
+			output: []*daisy.QuotaAvailable{{Metric: "test2", Units: 3, Region: "us-central1"}},
+		},
 	}
-	quota := &daisy.QuotaAvailable{Metric: "test", Units: 1, Region: "us-central1"}
-	err = twf.WaitForVMQuota(quota)
-	if err != nil {
-		t.Errorf("failed to append quota: %v", err)
-	}
-	quotaStep, ok := twf.wf.Steps[waitForVMQuotaStepName]
-	if !ok {
-		t.Errorf("Could not find wait for vm quota step")
-	}
-	if quotaStep.WaitForAvailableQuotas.Quotas[0] != quota {
-		t.Errorf("An unexpected quota was appended")
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
+			if err != nil {
+				t.Errorf("failed to create test workflow: %v", err)
+			}
+			for _, quota := range tc.input {
+				err = twf.waitForQuotaStep(quota, tc.name)
+				if err != nil {
+					t.Errorf("failed to append quota: %v", err)
+				}
+			}
+			quotaStep, ok := twf.wf.Steps[tc.name]
+			if !ok {
+				t.Errorf("Could not find wait for vm quota step")
+			}
+			if len(quotaStep.WaitForAvailableQuotas.Quotas) != len(tc.output) {
+				t.Errorf("unexpected output length from WaitForVMQuota, got %d want %d", len(quotaStep.WaitForAvailableQuotas.Quotas), len(tc.output))
+			}
+			for i := range tc.output {
+				q := quotaStep.WaitForAvailableQuotas.Quotas[i]
+				if q.Metric != tc.output[i].Metric || q.Units != tc.output[i].Units || q.Region != tc.output[i].Region {
+					t.Errorf("unexpected quota at position %d\ngot %v\nwant %v", i, *q, *tc.output[i])
+				}
+			}
+		})
 	}
 }
 

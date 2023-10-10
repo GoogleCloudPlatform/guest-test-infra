@@ -56,16 +56,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			continue
 		}
 
-		quota := &daisy.QuotaAvailable{Metric: paramMap["metric"], Region: paramMap["zone"]}
-		if len(quota.Region) > 2 {
-			quota.Region = quota.Region[:len(quota.Region)-2]
+		var region string
+		if len(paramMap["zone"]) > 2 {
+			region = paramMap["zone"][:len(paramMap["zone"])-2]
 		}
-		i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(machineType)[1:], 64)
+		cpus, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(machineType)[1:], 64)
 		if err != nil {
 			return err
 		}
-		quota.Units = i
-		if err := t.WaitForVMQuota(quota); err != nil {
+		if err := t.WaitForVMQuota(&daisy.QuotaAvailable{Metric: paramMap["metric"], Units: cpus, Region: region}); err != nil {
+			return err
+		}
+		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
 			return err
 		}
 
