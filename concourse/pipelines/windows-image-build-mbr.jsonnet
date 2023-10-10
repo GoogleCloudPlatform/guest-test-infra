@@ -21,7 +21,7 @@ local imgbuildjob = {
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -30,7 +30,7 @@ local imgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -190,7 +190,7 @@ local imgpublishjob = {
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -199,7 +199,7 @@ local imgpublishjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -251,7 +251,7 @@ local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
   image: image,
   iso_secret: iso_secret,
   updates_secret: updates_secret,
-  workflow: 'windows/%s.wf.json' % image,
+  workflow: 'windows/%s-bios.wf.json' % image,
 };
 
 local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
@@ -317,10 +317,10 @@ local ImgGroup(name, images, environments) = {
                for image in images
              ],
   jobs: [
-          ImgBuildJob('windows-server-2022-dc-bios', 'win2022-64', 'windows_gcs_updates_server2022'),
-          ImgBuildJob('windows-server-2019-dc-bios', 'win2019-64', 'windows_gcs_updates_server2019'),
-          ImgBuildJob('windows-server-2016-dc-bios', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2012-r2-dc-bios', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
+          ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
+          ImgBuildJob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
+          ImgBuildJob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
+          ImgBuildJob('windows-server-2012-r2-dc', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
         ] +
 
         [
