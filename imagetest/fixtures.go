@@ -89,7 +89,7 @@ func (t *TestWorkflow) WaitForVMQuota(qa *daisy.QuotaAvailable) error {
 		if err != nil {
 			return err
 		}
-		step.WaitForAvailableQuotas = &daisy.WaitForAvailableQuotas{}
+		step.WaitForAvailableQuotas = &daisy.WaitForAvailableQuotas{Interval: "90s"}
 	}
 	step.WaitForAvailableQuotas.Quotas = append(step.WaitForAvailableQuotas.Quotas, qa)
 	return nil
