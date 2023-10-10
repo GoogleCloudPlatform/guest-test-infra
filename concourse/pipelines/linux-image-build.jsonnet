@@ -32,7 +32,7 @@ local imagetesttask = {
       '-project=gcp-guest',
       '-zone=us-central1-a',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)',
+      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
@@ -59,7 +59,7 @@ local prepublishtesttask = {
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
       // TODO enable oslogin
-      '-filter=(shapevalidation)|(hotattach)',
+      '-filter=(shapevalidation)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
