@@ -24,7 +24,7 @@ type shape struct {
 	zone            string                // If set, force the VM to run in this zone
 	requireFeatures []string              // Features necessary for testing this shape
 	excludeFeatures []string              // Features which prevent testing this shape
-  exceptions      []*regexp.Regexp      // Regexp matches for image names to exempt
+	exceptions      []*regexp.Regexp      // Regexp matches for image names to exempt
 	quota           *daisy.QuotaAvailable // Quota necessary to run the test
 }
 
@@ -49,7 +49,7 @@ var x86shapes = map[string]*shape{
 		zone:            "us-east4-c",
 		requireFeatures: []string{"GVNIC"},
 		excludeFeatures: []string{"WINDOWS"},
-    exceptions:      []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("(rhel|centos|almalinux|rocky-linux)-7")},
+		exceptions:      []*regexp.Regexp{regexp.MustCompile("(rhel|centos|almalinux|rocky-linux)-7")},
 		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
 	},
 	"E2": {
@@ -128,6 +128,11 @@ Familyloop:
 		for _, feat := range shape.excludeFeatures {
 			if utils.HasFeature(t.Image, feat) {
 				continue Familyloop
+			}
+		}
+		for _, r := range shape.exceptions {
+			it r.MatchString(t.Image.Name) {
+				continue FamilyLoop
 			}
 		}
 		if shape.quota != nil {
