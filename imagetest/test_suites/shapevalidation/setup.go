@@ -43,7 +43,7 @@ var x86shapes = map[string]*shape{
 		numa:       2,
 		disks:      []*compute.Disk{{Name: "C3D", Type: imagetest.PdBalanced, Zone: "us-east4-c"}},
 		zone:       "us-east4-c",
-		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`)},
+		exceptions: []*regexp.Regexp{regexp.MustCompile("windows"), regexp.MustCompile("debian-10"), regexp.MustCompile(`rhel-((7\-7)|(8\-1))-sap`), regexp.MustCompile("(rhel|centos|almalinux|rocky-linux)-7")},
 		quota:      &daisy.QuotaAvailable{Metric: "CPUS", Units: 176, Region: "us-east4"}, // No public C3D metric yet
 	},
 	"E2": {
