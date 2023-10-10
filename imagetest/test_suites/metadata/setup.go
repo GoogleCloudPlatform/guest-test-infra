@@ -37,7 +37,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVMWithReboot("vm2")
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm3, err := t.CreateTestVM("vm3")
+	vm3, err := t.CreateTestVMWithReboot("vm3")
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm4, err := t.CreateTestVM("vm4")
+	vm4, err := t.CreateTestVMWithReboot("vm4")
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm5, err := t.CreateTestVM("vm5")
+	vm5, err := t.CreateTestVMWithReboot("vm5")
 	if err != nil {
 		return err
 	}

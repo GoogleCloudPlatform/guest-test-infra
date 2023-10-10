@@ -141,6 +141,56 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
 }
 
+// CreateTestVMWithReboot adds the necessary steps to create a VM with the
+// specified name to the workflow, while expecting that it will be rebooted.
+// This should only be used in cases where there is a special interaction
+// with the wrapper binary, such as in the shutdown script tests.
+func (t *TestWorkflow) CreateTestVMWithReboot(name string) (*TestVM, error) {
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	bootDisk := &compute.Disk{Name: vmname}
+	createDisksStep, err := t.appendCreateDisksStep(bootDisk)
+	if err != nil {
+		return nil, err
+	}
+
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, map[string]string{"hostname": name, "shouldRebootDuringTest": "true"})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	// this wait step will wait for a special guest attribute to indicate 
+	// that it is the first boot before a reboot.
+	waitStep, err := t.addWaitRebootGAStep(vmname, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
+}
+
 // CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
 // name to the workflow.
 func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instanceParams map[string]string) (*TestVM, error) {
