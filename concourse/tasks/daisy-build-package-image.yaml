@@ -12,8 +12,8 @@ inputs:
 run:
   path: /daisy
   args:
-  - -project=gcp-guest
-  - -zone=us-central1-a
+  - -project=compute-image-test-pool-001
+  - -zone=us-central1-c
   - -DefaultTimeout=20m
   - -var:source_image=((source-image))
   - -var:gcs_package_path=((gcs-package-path))
