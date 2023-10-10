@@ -165,7 +165,7 @@ func (t *TestWorkflow) CreateTestVMWithReboot(name string) (*TestVM, error) {
 		return nil, err
 	}
 
-	// this wait step will wait for a special guest attribute to indicate 
+	// this wait step will wait for a special guest attribute to indicate
 	// that it is the first boot before a reboot.
 	waitStep, err := t.addWaitRebootGAStep(vmname, vmname)
 	if err != nil {

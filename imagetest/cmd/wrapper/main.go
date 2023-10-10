@@ -25,7 +25,7 @@ func main() {
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
 		if willRebootDuringTest, err := utils.GetMetadataAttribute("willRebootDuringTest"); err != nil {
-			log.Printf("found reboot metadata key")
+			log.Printf("found reboot metadata key %s", willRebootDuringTest)
 		}
 		for f := 0; f < 5; f++ {
 			log.Printf("FINISHED-TEST")
