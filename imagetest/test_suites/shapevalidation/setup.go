@@ -2,7 +2,7 @@ package shapevalidation
 
 import (
 	"fmt"
-  "regexp"
+	"regexp"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -131,8 +131,8 @@ Familyloop:
 			}
 		}
 		for _, r := range shape.exceptions {
-			it r.MatchString(t.Image.Name) {
-				continue FamilyLoop
+			if r.MatchString(t.Image.Name) {
+				continue Familyloop
 			}
 		}
 		if shape.quota != nil {
