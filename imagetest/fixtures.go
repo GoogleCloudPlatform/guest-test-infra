@@ -27,7 +27,6 @@ import (
 )
 
 const (
-
 	waitForVMQuotaStepName    = "wait-for-vm-quota"
 	createVMsStepName         = "create-vms"
 	createDisksStepName       = "create-disks"
@@ -39,7 +38,6 @@ const (
 	// ShouldRebootDuringTest is a local map key to indicate that the
 	// test will reboot and relies on results from the second boot.
 	ShouldRebootDuringTest = "shouldRebootDuringTest"
-
 	// DefaultSourceRange is the RFC-1918 range used in default rules.
 	DefaultSourceRange = "10.128.0.0/9"
 
