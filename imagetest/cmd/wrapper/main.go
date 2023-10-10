@@ -31,6 +31,7 @@ func main() {
 			if foundKey != nil {
 				firstBootIgnoreTest = true
 			}
+			log.Printf("found should boot variable %s and foundkey %v and boot bool %t", shouldRebootDuringTest, foundKey, firstBootIgnoreTest)
 		}
 		var err error
 		if firstBootIgnoreTest {
