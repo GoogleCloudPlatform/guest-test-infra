@@ -123,8 +123,8 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 
 	instance.Metadata = make(map[string]string)
 	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
-	if willRebootDuringTest, foundKey := instanceParams["willRebootDuringTest"]; foundKey {
-		instance.Metadata["willRebootDuringTest"] = willRebootDuringTest
+	if shouldRebootDuringTest, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
+		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
 	}
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
