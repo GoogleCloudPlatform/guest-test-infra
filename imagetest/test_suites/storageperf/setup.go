@@ -19,27 +19,26 @@ var Name = "storageperf"
 var scripts embed.FS
 
 type storagePerfTest struct {
-	machineType string
-	arch string
-	diskType string
-	cpuMetric string
-	minCpuPlatform string
-	zone string
+	machineType    string
+	arch           string
+	diskType       string
+	cpuMetric      string
+	minCPUPlatform string
+	zone           string
 }
-
 
 const (
 	linuxInstallFioScriptURL   = "startupscripts/install_fio.sh"
 	windowsInstallFioScriptURL = "startupscripts/install_fio.ps1"
 )
 
-var	storagePerfTestConfig = []storagePerfTest{
+var storagePerfTestConfig = []storagePerfTest{
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "h3-standard-88",
-		zone: "us-central1-a",
-		diskType: imagetest.PdBalanced,
-		cpuMetric: "CPUS",
+		zone:        "us-central1-a",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "CPUS",
 	},
 	/* temporarily disable c3d hyperdisk until the api allows it again
 	{
@@ -50,49 +49,49 @@ var	storagePerfTestConfig = []storagePerfTest{
 		cpuMetric: "CPUS", // No public metric for this yet but the CPU count will work because they're so large
 	},*/
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "c3d-standard-180",
-		zone: "us-east4-c",
-		diskType: imagetest.PdBalanced,
-		cpuMetric: "CPUS",
+		zone:        "us-east4-c",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "CPUS",
 	},
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "c3-standard-88",
-		diskType: imagetest.HyperdiskExtreme,
-		cpuMetric: "C3_CPUS",
+		diskType:    imagetest.HyperdiskExtreme,
+		cpuMetric:   "C3_CPUS",
 	},
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "c3-standard-88",
-		diskType: imagetest.PdBalanced,
-		cpuMetric: "C3_CPUS",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "C3_CPUS",
 	},
 	{
-		arch: "ARM64",
+		arch:        "ARM64",
 		machineType: "t2a-standard-48",
-		zone: "us-central1-a",
-		diskType: imagetest.PdBalanced,
-		cpuMetric: "T2A_CPUS",
+		zone:        "us-central1-a",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "T2A_CPUS",
 	},
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "n2-standard-80",
-		diskType: imagetest.HyperdiskExtreme,
-		cpuMetric: "N2_CPUS",
+		diskType:    imagetest.HyperdiskExtreme,
+		cpuMetric:   "N2_CPUS",
 	},
 	{
-		arch: "X86_64",
+		arch:        "X86_64",
 		machineType: "n2d-standard-64",
-		diskType: imagetest.PdBalanced,
-		cpuMetric: "N2D_CPUS",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "N2D_CPUS",
 	},
 	{
-		arch: "X86_64",
-		machineType: "n1-standard-64",
-		diskType: imagetest.PdBalanced,
-		minCpuPlatform: "Intel Skylake",
-		cpuMetric: "CPUS",
+		arch:           "X86_64",
+		machineType:    "n1-standard-64",
+		diskType:       imagetest.PdBalanced,
+		minCPUPlatform: "Intel Skylake",
+		cpuMetric:      "CPUS",
 	},
 }
 
@@ -103,13 +102,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, tc := range storagePerfTestConfig {
-		switch {
-		case
-			tc.arch == "ARM64" && !strings.Contains(t.Image, "arm64"),
-			strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(t.Image, "windows-2012") || strings.Contains(t.Image, "windows-2016")), // Skip c3d on older windows
-			strings.Contains(t.Image, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-"), // Skip c3 on older ubuntu
-			(strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && strings.Contains(t.Image, "debian-10"): // Skip debian 10 on gen 3 machine types.
-		continue
+		if skipTest(tc, t.Image) {
+			continue
 		}
 
 		if tc.cpuMetric != "" {
@@ -132,7 +126,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		vm, err := t.CreateTestVMMultipleDisks(
 			[]*compute.Disk{&bootDisk, &mountDisk},
-			map[string]string{ "machineType": tc.machineType, "minCpuPlatform": tc.minCpuPlatform },
+			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform},
 		)
 		if err != nil {
 			return err
@@ -175,3 +169,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	return nil
 }
 
+func skipTest(tc storagePerfTest, image string) bool {
+	if tc.arch == "ARM64" && !strings.Contains(image, "arm64") {
+		return true
+	}
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+		return true // Skip c3d on older windows
+	}
+	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
+		return true // Skip c3 on older ubuntu
+	}
+	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && strings.Contains(image, "debian-10") {
+		return true // Skip debian 10 on gen 3 machine types.
+	}
+	return false
+}
