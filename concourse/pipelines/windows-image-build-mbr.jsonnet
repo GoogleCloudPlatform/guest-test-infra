@@ -18,24 +18,6 @@ local imgbuildjob = {
 
   // Start of job.
   name: 'build-' + job.image,
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
   plan: [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
@@ -187,24 +169,6 @@ local imgpublishjob = {
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
   plan: [
     { get: 'guest-test-infra' },
     { get: 'compute-image-tools' },
