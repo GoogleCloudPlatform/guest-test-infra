@@ -17,6 +17,19 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+// In special cases such as the shutdown script, the guest attribute match
+// on the first boot must have a different name than the usual guest attribute.
+func checkFirstBootSpecialGA() bool {
+	if _, err := utils.GetMetadataAttribute("shouldRebootDuringATest"); err == nil {
+		_, foundFirstBootGA := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" + utils.FirstBootGAKey)
+		// if the special attribute to match the first boot of the shutdown script test is already set, foundFirstBootGA will be nil and we should use the regular guest attribute.
+		if foundFirstBootGA != nil {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
@@ -24,20 +37,11 @@ func main() {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 	log.Printf("FINISHED-BOOTING")
-	defer func() {
-		firstBootIgnoreTest := false
-		if shouldRebootDuringTest, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err == nil {
-			firstbootval, foundKey := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" +  utils.FirstBootGAKey)
-			// if first boot and the attribute is not found
-			if foundKey != nil {
-				firstBootIgnoreTest = true
-			}
-			log.Printf("found should boot variables %s %s and foundkey %v and boot bool %t", shouldRebootDuringTest, firstbootval, foundKey, firstBootIgnoreTest)
-		} else {
-			log.Printf("did not find the metadata")
-		}
+	firstBootSpecialAttribute := checkFirstBootSpecialGA()
+	// firstBootSpecialGA should be true if we need to match a different guest attribute than the usual guest attribute
+	defer func(ctx context.Context, firstBootSpecialGA bool) {
 		var err error
-		if firstBootIgnoreTest {
+		if firstBootSpecialGA {
 			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey, http.MethodPut)
 		} else {
 			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey, http.MethodPut)
@@ -50,7 +54,7 @@ func main() {
 			log.Printf("FINISHED-TEST")
 			time.Sleep(1 * time.Second)
 		}
-	}()
+	}(ctx, firstBootSpecialAttribute)
 
 	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
 	if err != nil {
