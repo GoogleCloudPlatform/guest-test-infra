@@ -21,7 +21,7 @@ local imgbuildjob = {
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -30,7 +30,7 @@ local imgbuildjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'windows-image-build',
+      pipeline: 'windows-image-build-mbr',
       job: job.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
