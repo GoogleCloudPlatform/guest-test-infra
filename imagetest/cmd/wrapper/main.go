@@ -26,7 +26,7 @@ func main() {
 	log.Printf("FINISHED-BOOTING")
 	defer func() {
 		firstBootIgnoreTest := false
-		if shouldRebootDuringTest, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err != nil {
+		if shouldRebootDuringTest, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err == nil {
 			firstbootval, foundKey := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" +  utils.FirstBootGAKey)
 			// if first boot and the attribute is not found
 			if foundKey != nil {
