@@ -27,11 +27,14 @@ func main() {
 	defer func() {
 		firstBootIgnoreTest := false
 		if shouldRebootDuringTest, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err != nil {
-			foundKey := utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey, http.MethodGet)
+			firstbootval, foundKey := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" +  utils.FirstBootGAKey)
+			// if first boot and the attribute is not found
 			if foundKey != nil {
 				firstBootIgnoreTest = true
 			}
-			log.Printf("found should boot variable %s and foundkey %v and boot bool %t", shouldRebootDuringTest, foundKey, firstBootIgnoreTest)
+			log.Printf("found should boot variables %s %s and foundkey %v and boot bool %t", shouldRebootDuringTest, firstbootval, foundKey, firstBootIgnoreTest)
+		} else {
+			log.Printf("did not find the metadata")
 		}
 		var err error
 		if firstBootIgnoreTest {
