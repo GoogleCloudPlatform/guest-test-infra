@@ -20,7 +20,7 @@ import (
 // In special cases such as the shutdown script, the guest attribute match
 // on the first boot must have a different name than the usual guest attribute.
 func checkFirstBootSpecialGA() bool {
-	if _, err := utils.GetMetadataAttribute("shouldRebootDuringATest"); err == nil {
+	if _, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err == nil {
 		_, foundFirstBootGA := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" + utils.FirstBootGAKey)
 		// if the special attribute to match the first boot of the shutdown script test is already set, foundFirstBootGA will be nil and we should use the regular guest attribute.
 		if foundFirstBootGA != nil {
