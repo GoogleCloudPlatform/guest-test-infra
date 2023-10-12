@@ -632,6 +632,18 @@ local ImgGroup(name, images) = {
                for image in windows_client_images + windows_server_images + container_images
              ] +
              [
+               common.GcsSbomResource(image, 'windows-client')
+               for image in windows_client_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'windows-server')
+               for image in windows_server_images
+             ] +
+             [
+               common.GcsSbomResource(image, 'sql')
+               for image in sql_images
+             ] +
+             [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
              ] +
