@@ -67,9 +67,11 @@
     iso_path_2022:: error 'must set iso_path_2022 in daisy image task',
     iso_path_2019:: error 'must set iso_path_2019 in daisy image task',
     iso_path_2016:: error 'must set iso_path_2016 in daisy image task',
+    iso_path_2012r2:: error 'must set iso_path_2012r2 in daisy image task',
     updates_path_2022:: error 'must set updates_path_2022 in daisy image task',
     updates_path_2019:: error 'must set updates_path_2019 in daisy image task',
     updates_path_2016:: error 'must set updates_path_2016 in daisy image task',
+    updates_path_2012r2:: error 'must set updates_path_2012r2 in daisy image task',
 
     workflow_prefix+: 'build-publish/',
     vars+: [
@@ -81,9 +83,11 @@
       'iso_path_2022=' + task.iso_path_2022,
       'iso_path_2019=' + task.iso_path_2019,
       'iso_path_2016=' + task.iso_path_2016,
+      'iso_path_2012r2=' + task.iso_path_2012r2,
       'updates_path_2022=' + task.updates_path_2022,
       'updates_path_2019=' + task.updates_path_2019,
       'updates_path_2016=' + task.updates_path_2016,
+      'updates_path_2012r2=' + task.updates_path_2012r2,
     ],
   },
 }

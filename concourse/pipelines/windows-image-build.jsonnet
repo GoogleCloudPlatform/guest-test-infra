@@ -553,6 +553,14 @@ local windowsinstallmediaimgbuildjob = {
       file: 'gcp-secret-manager/win2016-64',
     },
     {
+      task: 'get-secret-iso-path-2012r2',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2012-r2-64' },
+    },
+    {
+      load_var: 'iso_path_2012r2',
+      file: 'gcp-secret-manager/win2012-r2-64',
+    },
+    {
        task: 'get-secret-updates-path-2022',
        config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2022' },
      },
@@ -575,6 +583,14 @@ local windowsinstallmediaimgbuildjob = {
      {
        load_var: 'updates_path_2016',
        file: 'gcp-secret-manager/windows_gcs_updates_server2016',
+     },
+    {
+       task: 'get-secret-updates-path-2012r2',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2012r2' },
+     },
+     {
+       load_var: 'updates_path_2012r2',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2012r2',
      },
      {
       task: 'daisy-build',
