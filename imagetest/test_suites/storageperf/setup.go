@@ -18,63 +18,116 @@ var Name = "storageperf"
 //go:embed startupscripts/*
 var scripts embed.FS
 
+type storagePerfTest struct {
+	machineType    string
+	arch           string
+	diskType       string
+	cpuMetric      string
+	minCPUPlatform string
+	zone           string
+}
+
 const (
 	linuxInstallFioScriptURL   = "startupscripts/install_fio.sh"
 	windowsInstallFioScriptURL = "startupscripts/install_fio.ps1"
 )
+
+var storagePerfTestConfig = []storagePerfTest{
+	{
+		arch:        "X86_64",
+		machineType: "h3-standard-88",
+		zone:        "us-central1-a",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "CPUS",
+	},
+	/* temporarily disable c3d hyperdisk until the api allows it again
+	{
+		arch: "X86_64",
+		machineType: "c3d-standard-180",
+		zone: "us-east4-c",
+		diskType: imagetest.HyperdiskExtreme,
+		cpuMetric: "CPUS", // No public metric for this yet but the CPU count will work because they're so large
+	},*/
+	{
+		arch:        "X86_64",
+		machineType: "c3d-standard-180",
+		zone:        "us-east4-c",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "CPUS",
+	},
+	{
+		arch:        "X86_64",
+		machineType: "c3-standard-88",
+		diskType:    imagetest.HyperdiskExtreme,
+		cpuMetric:   "C3_CPUS",
+	},
+	{
+		arch:        "X86_64",
+		machineType: "c3-standard-88",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "C3_CPUS",
+	},
+	{
+		arch:        "ARM64",
+		machineType: "t2a-standard-48",
+		zone:        "us-central1-a",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "T2A_CPUS",
+	},
+	{
+		arch:        "X86_64",
+		machineType: "n2-standard-80",
+		diskType:    imagetest.HyperdiskExtreme,
+		cpuMetric:   "N2_CPUS",
+	},
+	{
+		arch:        "X86_64",
+		machineType: "n2d-standard-64",
+		diskType:    imagetest.PdBalanced,
+		cpuMetric:   "N2D_CPUS",
+	},
+	{
+		arch:           "X86_64",
+		machineType:    "n1-standard-64",
+		diskType:       imagetest.PdBalanced,
+		minCPUPlatform: "Intel Skylake",
+		cpuMetric:      "CPUS",
+	},
+}
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
-	// initialize vm with the hard coded machine type and platform corresponding to the index
-	paramMaps := []map[string]string{
-		{"machineType": "c3-standard-88", "diskType": imagetest.HyperdiskExtreme, "metric": "C3_CPUS"},
-		// temporarily disable c3d hyperdisk until the api allows it again
-		// {"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.HyperdiskExtreme, "metric": "CPUS"}, // No public metric for this yet but the CPU count will work because they're so large
-		{"machineType": "n2-standard-80", "diskType": imagetest.HyperdiskExtreme, "metric": "N2_CPUS"},
-		{"machineType": "c3-standard-88", "diskType": imagetest.PdBalanced, "metric": "C3_CPUS"},
-		{"machineType": "c3d-standard-180", "zone": "us-east4-c", "diskType": imagetest.PdBalanced, "metric": "CPUS"},
-		{"machineType": "n2d-standard-64", "diskType": imagetest.PdBalanced, "metric": "N2D_CPUS"},
-		{"machineType": "n1-standard-64", "diskType": imagetest.PdBalanced, "minCpuPlatform": "Intel Skylake", "metric": "CPUS"}, // N1 CPUS aren't measured separately
-		// zone for h3 is a temporary measure while h3 is pre-GA
-		{"machineType": "h3-standard-88", "zone": "us-central1-a", "diskType": imagetest.PdBalanced, "metric": "CPUS"}, // No public metric
-	}
 	testVMs := []*imagetest.TestVM{}
-	for _, paramMap := range paramMaps {
-		machineType := "n1-standard-1"
-		if machineTypeParam, foundKey := paramMap["machineType"]; foundKey {
-			machineType = machineTypeParam
-		}
-		// this is the type of the disk where performance is tested
-		diskType := imagetest.PdBalanced
-		if diskTypeParam, foundKey := paramMap["diskType"]; foundKey {
-			diskType = diskTypeParam
-		}
-		if skipMachineTypeImage(machineType, t.Image) {
+	for _, tc := range storagePerfTestConfig {
+		if skipTest(tc, t.Image) {
 			continue
 		}
 
-		quota := &daisy.QuotaAvailable{Metric: paramMap["metric"], Region: paramMap["zone"]}
-		if len(quota.Region) > 2 {
-			quota.Region = quota.Region[:len(quota.Region)-2]
-		}
-		i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(machineType)[1:], 64)
-		if err != nil {
-			return err
-		}
-		quota.Units = i
-		if err := t.WaitForVMQuota(quota); err != nil {
-			return err
+		if tc.cpuMetric != "" {
+			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: tc.zone}
+			if len(quota.Region) > 2 {
+				quota.Region = quota.Region[:len(quota.Region)-2]
+			}
+			i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
+			if err != nil {
+				return err
+			}
+			quota.Units = i
+			if err := t.WaitForVMQuota(quota); err != nil {
+				return err
+			}
 		}
 
-		bootDisk := compute.Disk{Name: vmName + machineType + diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB}
-		mountDisk := compute.Disk{Name: mountDiskName + machineType + diskType, Type: diskType, SizeGb: mountdiskSizeGB}
-		bootDisk.Zone = paramMap["zone"]
-		mountDisk.Zone = paramMap["zone"]
+		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
+		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
 
-		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, paramMap)
+		vm, err := t.CreateTestVMMultipleDisks(
+			[]*compute.Disk{&bootDisk, &mountDisk},
+			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform},
+		)
 		if err != nil {
 			return err
 		}
@@ -83,13 +136,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// set the expected performance values
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false
-		if diskType == imagetest.HyperdiskExtreme {
-			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[machineType]
-		} else if diskType == imagetest.PdBalanced {
-			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[machineType]
+		if tc.diskType == imagetest.HyperdiskExtreme {
+			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[tc.machineType]
+		} else if tc.diskType == imagetest.PdBalanced {
+			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
 		}
 		if !foundKey {
-			return fmt.Errorf("expected performance for machine type %s and disk type %s not found", machineType, diskType)
+			return fmt.Errorf("expected performance for machine type %s and disk type %s not found", tc.machineType, tc.diskType)
 		}
 		vm.AddMetadata(randReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randReadIOPS))
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
@@ -116,24 +169,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	return nil
 }
 
-// Due to compatability issues or other one off errors, some combinations of machine types and images must be skipped. This function returns true for those combinations.
-func skipMachineTypeImage(machineType, image string) bool {
-	if strings.HasPrefix(machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+func skipTest(tc storagePerfTest, image string) bool {
+	if tc.arch == "ARM64" && !strings.Contains(image, "arm64") {
 		return true
 	}
-
-	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(machineType, "c3-") {
-		return true
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+		return true // Skip c3d on older windows
 	}
-
-	gvnicMachineTypes := []string{"c3-", "c3d-", "h3-"}
-	// skip debian-10 on gen 3 machine types
-	if strings.Contains(image, "debian-10") {
-		for _, excludedType := range gvnicMachineTypes {
-			if strings.Contains(machineType, excludedType) {
-				return true
-			}
-		}
+	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
+		return true // Skip c3 on older ubuntu
+	}
+	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && strings.Contains(image, "debian-10") {
+		return true // Skip debian 10 on gen 3 machine types.
 	}
 	return false
 }
