@@ -50,6 +50,24 @@ local imgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-sbom',
+      params: {
+        file: 'build-id-dir-sbom/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -99,9 +117,18 @@ local imgbuildjob = {
       file: 'gcp-secret-manager/windows_gcs_dotnet48',
     },
     {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'sbom-util-secret' },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/sbom-util-secret',
+    },
+    {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
+        sbom_destination: '((.:sbom-destination))',
         workflow: job.workflow,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
@@ -110,6 +137,7 @@ local imgbuildjob = {
           'pwsh=((.:windows-gcs-pwsh))',
           'updates=((.:windows-updates))',
           'google_cloud_repo=staging',
+          'sbom_util_gcs_root=((.:sbom-util-secret))',
         ],
       },
     },
@@ -158,6 +186,24 @@ local sqlimgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
+      task: 'generate-build-id-sbom',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-sbom.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-sbom',
+      params: {
+        file: 'build-id-dir-sbom/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sbom-destination',
+      file: '%s-sbom/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -182,15 +228,25 @@ local sqlimgbuildjob = {
       file: 'gcp-secret-manager/' + job.ssms_version,
     },
     {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'sbom-util-secret' },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/sbom-util-secret',
+    },
+    {
       task: 'daisy-build',
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
+        sbom_destination: '((.:sbom-destination))',
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
           'sql_server_media=((.:sql-server-media))',
           'ssms_exe=((.:ssms-version))',
           'timeout=4h',
+          'sbom_util_gcs_root=((.:sbom-util-secret))',
         ],
       },
     },
