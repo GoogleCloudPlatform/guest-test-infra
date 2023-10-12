@@ -28,10 +28,9 @@ local prepublishtesttask = {
     args: [
       '-project=gcp-guest',
       '-zone=us-central1-a',
-      '-test_projects=compute-image-test-pool-005',
+      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
-      // TODO enable oslogin
-      '-filter=(shapevalidation)|(hotattach)',
+      '-filter=(shapevalidation)',
       '-images=' + task.images,
     ] + task.extra_args,
   },
@@ -472,29 +471,31 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-    // Run prepublish tests in prod
-    if job.env == 'prod' then
+  ] +
+  // Run prepublish tests in prod
+  if job.env == 'prod' then
+  [
     {
       task: 'prepublish-test-' + job.image,
       config: prepublishtesttask {
         images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
       },
       attempts: 3,
-    }
-    else
+    },
     // Different publish step in prod
-    if job.env == 'prod' then
-      {
-        task: 'arle-publish-' + job.image,
-        config: arle.arlepublishtask {
-          gcs_image_path: job.gcs,
-          source_version: 'v((.:source-version))',
-          publish_version: '((.:publish-version))',
-          wf: job.workflow,
-          image_name: job.image,
-        },
-      }
-    else
+    {
+      task: 'arle-publish-' + job.image,
+      config: arle.arlepublishtask {
+        gcs_image_path: job.gcs,
+        source_version: 'v((.:source-version))',
+        publish_version: '((.:publish-version))',
+        wf: job.workflow,
+        image_name: job.image,
+      },
+    }
+  ]
+  else
+  [
       {
         task: 'gce-image-publish-' + job.image,
         config: arle.gcepublishtask {
