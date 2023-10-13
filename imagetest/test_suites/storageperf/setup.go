@@ -115,7 +115,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 		if tc.cpuMetric != "" {
 			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
-			
+
 			i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
 			if err != nil {
 				return err
