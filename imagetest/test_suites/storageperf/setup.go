@@ -106,11 +106,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			continue
 		}
 
+		region := tc.zone
+		if len(region) > 2 {
+			region = region[:len(region)-2]
+		}
+		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
+			return err
+		}
 		if tc.cpuMetric != "" {
-			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: tc.zone}
-			if len(quota.Region) > 2 {
-				quota.Region = quota.Region[:len(quota.Region)-2]
-			}
+			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
+
 			i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
 			if err != nil {
 				return err
