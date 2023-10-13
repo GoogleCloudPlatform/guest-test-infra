@@ -238,7 +238,13 @@ func (t *TestWorkflow) addWaitStep(stepname, vmname string) (*daisy.Step, error)
 	instanceSignal.Name = vmname
 	instanceSignal.Stopped = false
 
+	guestAttribute := &daisy.GuestAttribute{}
+	guestAttribute.Namespace = utils.GuestAttributeTestNamespace
+	guestAttribute.KeyName = utils.GuestAttributeTestKey
+
 	instanceSignal.SerialOutput = serialOutput
+	instanceSignal.GuestAttribute = guestAttribute
+	instanceSignal.Interval = "8s"
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 
@@ -261,7 +267,15 @@ func (t *TestWorkflow) addWaitRebootGAStep(stepname, vmname string) (*daisy.Step
 	instanceSignal.Name = vmname
 	instanceSignal.Stopped = false
 
+	guestAttribute := &daisy.GuestAttribute{}
+	guestAttribute.Namespace = utils.GuestAttributeTestNamespace
+	// specifically wait for a different guest attribute if this is the
+	// first boot before a reboot, and we want test results from a reboot.
+	guestAttribute.KeyName = utils.FirstBootGAKey
+
 	instanceSignal.SerialOutput = serialOutput
+	instanceSignal.GuestAttribute = guestAttribute
+	instanceSignal.Interval = "8s"
 
 	waitForInstances := &daisy.WaitForInstancesSignal{instanceSignal}
 
