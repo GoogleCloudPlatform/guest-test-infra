@@ -246,9 +246,7 @@ local imgpublishjob = {
         attempts: 3,
       },
     ]
-  else 
-  [
-  ],
+  else [],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
