@@ -226,8 +226,6 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-  ] +
-  [
     {
       task: 'gce-image-publish-' + job.image,
       config: arle.gcepublishtask {
