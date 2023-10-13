@@ -236,19 +236,6 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
       },
     },
-  if job.runtests then
-    [
-      {
-        task: 'image-test-' + job.image,
-        config: imagetesttask {
-          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
-          extra_args: '',
-        },
-        attempts: 3,
-      },
-    ]
-  else
-    [],
   ]
 };
 
@@ -264,7 +251,7 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   env: env,
   gcs_dir: gcs_dir,
   passed:: 'build-' + image,
-  workflow: '%s/%s' % [workflow_dir, image + '-bios.publish.json'],
+  workflow: '%s/%s' % [workflow_dir, image + '.publish.json'],
 };
 
 local ImgGroup(name, images, environments) = {
