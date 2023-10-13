@@ -139,12 +139,12 @@ func waitDetachDiskComplete(ctx context.Context, deviceName, projectNumber, inst
 	}
 	op, err := c.DetachDisk(ctx, req)
 	if err != nil {
-		return fmt.Errorf("attach disk failed: err %v", err)
+		return fmt.Errorf("detach disk failed: err %v", err)
 	}
 
 	err = op.Wait(ctx)
 	if err != nil {
-		return fmt.Errorf("attach disk wait failed: err %v", err)
+		return fmt.Errorf("detach disk wait failed: err %v", err)
 	}
 	return nil
 }
@@ -152,7 +152,7 @@ func waitDetachDiskComplete(ctx context.Context, deviceName, projectNumber, inst
 func waitGetMountDisk(ctx context.Context, projectNumber, instanceNameString, instanceZone string) (*computepb.AttachedDisk, error) {
 	c, err := compute.NewInstancesRESTClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("faile to create rest client: err %v", err)
+		return nil, fmt.Errorf("failed to create rest client: err %v", err)
 	}
 	defer c.Close()
 
