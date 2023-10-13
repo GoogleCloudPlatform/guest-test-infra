@@ -11,7 +11,6 @@ local imagetesttask = {
   local task = self,
 
   images:: error 'must set images in imagetesttask',
-  extra_args:: [],
 
   // Start of task
   platform: 'windows',
@@ -27,7 +26,7 @@ local imagetesttask = {
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
       '-images=' + task.images,
-    ] + task.extra_args,
+    ]
   },
 };
 
@@ -236,7 +235,20 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
       },
     },
-  ]
+  ] +
+  if job.runtests then
+    [
+      {
+        task: 'image-test-' + job.image,
+        config: imagetesttask {
+          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
+        },
+        attempts: 3,
+      },
+    ]
+  else 
+  [
+  ],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
