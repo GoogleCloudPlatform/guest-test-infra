@@ -12,8 +12,9 @@ import (
 	"strings"
 	"testing"
 
+	compute "cloud.google.com/go/compute/apiv1"
+	computepb "cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"google.golang.org/api/compute/v1"
 )
 
 func getProjectAndZone() (string, string, error) {
@@ -98,6 +99,80 @@ func unmountLinuxDisk() error {
 	return nil
 }
 
+func waitAttachDiskComplete(ctx context.Context, attachedDiskResource *computepb.AttachedDisk, projectNumber, instanceNameString, instanceZone string) error {
+	c, err := compute.NewInstancesRESTClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create rest client: err %v", err)
+	}
+	defer c.Close()
+
+	req := &computepb.AttachDiskInstanceRequest{
+		AttachedDiskResource: attachedDiskResource,
+		Project:              projectNumber,
+		Instance:             instanceNameString,
+		Zone:                 instanceZone,
+	}
+	op, err := c.AttachDisk(ctx, req)
+	if err != nil {
+		return fmt.Errorf("attach disk failed: err %v", err)
+	}
+
+	err = op.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("attach disk wait failed: err %v", err)
+	}
+	return nil
+}
+
+func waitDetachDiskComplete(ctx context.Context, deviceName, projectNumber, instanceNameString, instanceZone string) error {
+	c, err := compute.NewInstancesRESTClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create rest client: err %v", err)
+	}
+	defer c.Close()
+
+	req := &computepb.DetachDiskInstanceRequest{
+		DeviceName: deviceName,
+		Project:    projectNumber,
+		Instance:   instanceNameString,
+		Zone:       instanceZone,
+	}
+	op, err := c.DetachDisk(ctx, req)
+	if err != nil {
+		return fmt.Errorf("attach disk failed: err %v", err)
+	}
+
+	err = op.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("attach disk wait failed: err %v", err)
+	}
+	return nil
+}
+
+func waitGetMountDisk(ctx context.Context, projectNumber, instanceNameString, instanceZone string) (*computepb.AttachedDisk, error) {
+	c, err := compute.NewInstancesRESTClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("faile to create rest client: err %v", err)
+	}
+	defer c.Close()
+
+	req := &computepb.GetInstanceRequest{
+		Instance: instanceNameString,
+		Project:  projectNumber,
+		Zone:     instanceZone,
+	}
+	computepbInstance, err := c.Get(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("instances get call failed with error %v", err)
+	}
+	// return the mounted disk
+	attachedDisks := computepbInstance.Disks
+	if len(attachedDisks) < 2 {
+		return nil, fmt.Errorf("failed to find second disk on instance: num disks %d", len(attachedDisks))
+	}
+	return attachedDisks[1], nil
+}
+
 // TestFileHotAttach is a test which checks that a file on a disk is usable, even after the disk was detached and reattached.
 func TestFileHotAttach(t *testing.T) {
 	fileName := "hotattach.txt"
@@ -130,12 +205,6 @@ func TestFileHotAttach(t *testing.T) {
 			t.Fatalf("unmount failed on linux: %v", err)
 		}
 	}
-	ctx := context.Background()
-	service, err := compute.NewService(ctx)
-	if err != nil {
-		t.Fatalf("failed to create service: %v", err)
-	}
-	instancesService := compute.NewInstancesService(service)
 	instName, err := exec.Command("hostname").Output()
 	if err != nil {
 		t.Fatalf("failed to get hostname: %v %v", instName, err)
@@ -146,31 +215,21 @@ func TestFileHotAttach(t *testing.T) {
 		t.Fatalf("failed to get metadata for project or zone: %v", err)
 	}
 	instNameString, _, _ := strings.Cut(strings.TrimSpace(string(instName)), ".")
-	// the instanceGetCall retrieves the attached disk, which is used to reattach the disk.
-	instancesGetCall := instancesService.Get(projectNumber, instanceZone, instNameString)
-	instancesGetCall = instancesGetCall.Context(ctx)
-	testVMInstance, err := instancesGetCall.Do()
+	ctx := context.Background()
+	mountDiskResource, err := waitGetMountDisk(ctx, projectNumber, instNameString, instanceZone)
 	if err != nil {
-		t.Fatalf("instances get call failed with error: %v", err)
-	}
-	if len(testVMInstance.Disks) < 2 {
-		t.Fatalf("failed to find second disk on instance: num disks %d", len(testVMInstance.Disks))
-	}
-	attachedDisk := testVMInstance.Disks[1]
-
-	instancesDetachCall := instancesService.DetachDisk(projectNumber, instanceZone, instNameString, diskName)
-	instancesDetachCall = instancesDetachCall.Context(ctx)
-	_, err = instancesDetachCall.Do()
-	if err != nil {
-		t.Fatalf("detach failed with error: %v", err)
+		t.Fatalf("get mount disk fail: %v", err)
 	}
 
-	instancesAttachCall := instancesService.AttachDisk(projectNumber, instanceZone, instNameString, attachedDisk)
-	instancesAttachCall = instancesAttachCall.Context(ctx)
-	_, err = instancesAttachCall.Do()
-	if err != nil {
-		t.Fatalf("attach failed with error: %v", err)
+	diskDeviceName := mountDiskResource.DeviceName
+	if err = waitDetachDiskComplete(ctx, *diskDeviceName, projectNumber, instNameString, instanceZone); err != nil {
+		t.Fatalf("detach disk fail: %v", err)
 	}
+
+	if err = waitAttachDiskComplete(ctx, mountDiskResource, projectNumber, instNameString, instanceZone); err != nil {
+		t.Fatalf("detach disk fail: %v", err)
+	}
+
 	// mount again, then read from the file
 	if runtime.GOOS == "windows" {
 		t.Log("windows disk was successfully reattached")
