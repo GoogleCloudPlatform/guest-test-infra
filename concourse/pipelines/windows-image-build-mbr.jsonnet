@@ -7,6 +7,30 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
+local imagetesttask = {
+  local task = self,
+
+  images:: error 'must set images in imagetesttask',
+  extra_args:: [],
+
+  // Start of task
+  platform: 'windows',
+  image_resource: {
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+  },
+  run: {
+    path: '/manager',
+    args: [
+      '-project=gcp-guest',
+      '-zone=us-central1-a',
+      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+      '-images=' + task.images,
+    ] + task.extra_args,
+  },
+};
+
 // Templates.
 local imgbuildjob = {
   local job = self,
@@ -156,6 +180,7 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
+  image_prefix:: self.image,
 
   // Publish can proceed if build passes.
   passed:: if job.env == 'testing' then
@@ -165,6 +190,9 @@ local imgpublishjob = {
 
   // Builds are automatically pushed to testing.
   trigger:: if job.env == 'testing' then true
+    else false,
+  
+  runtests:: if job.env == 'testing' then true
     else false,
 
   // Start of job.
@@ -198,16 +226,30 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
+  ] +
+  [
     {
       task: 'gce-image-publish-' + job.image,
       config: arle.gcepublishtask {
         source_gcs_path: job.gcs,
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
-        wf: job.workflow,
-        environment: if job.env == 'testing' then 'test' else job.env,
+          wf: job.workflow,
+          environment: if job.env == 'testing' then 'test' else job.env,
       },
     },
+  if job.runtests then
+    [
+      {
+        task: 'image-test-' + job.image,
+        config: imagetesttask {
+          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
+        },
+        attempts: 3,
+      },
+    ]
+  else
+    [],
   ],
 };
 
