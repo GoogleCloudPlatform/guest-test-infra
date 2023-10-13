@@ -250,7 +250,7 @@ local imgpublishjob = {
     ]
   else
     [],
-  ],
+  ]
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
