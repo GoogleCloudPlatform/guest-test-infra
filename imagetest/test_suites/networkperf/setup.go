@@ -7,64 +7,64 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "networkperf"
 
 type networkPerfTest struct {
-	machineType string // Machinetype used for test
-	zone string // (optional) zone required for machinetype
-	arch string // arch required for machinetype
-	networks []string // Networks to test (TIER_1 and/or DEFAULT)
-	quota *daisy.QuotaAvailable
+	machineType string   // Machinetype used for test
+	zone        string   // (optional) zone required for machinetype
+	arch        string   // arch required for machinetype
+	networks    []string // Networks to test (TIER_1 and/or DEFAULT)
+	quota       *daisy.QuotaAvailable
 }
 
 var networkPerfTestConfig = []networkPerfTest{
 	{
 		machineType: "n1-standard-2",
-		arch: "X86_84",
-		networks: []string{"DEFAULT"},
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
 	},
 	{
 		machineType: "n2-standard-2",
-		arch: "X86_84",
-		networks: []string{"DEFAULT"},
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
 	},
 	{
 		machineType: "n2d-standard-2",
-		arch: "X86_84",
-		networks: []string{"DEFAULT"},
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
 	},
 	{
 		machineType: "e2-standard-2",
-		arch: "X86_84",
-		networks: []string{"DEFAULT"},
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
 	},
 	{
 		machineType: "t2d-standard-1",
-		arch: "X86_84",
-		networks: []string{"DEFAULT"},
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
 	},
 	{
 		machineType: "t2a-standard-1",
-		arch: "ARM64",
-		networks: []string{"DEFAULT"},
-		zone: "us-central1-a",
+		arch:        "ARM64",
+		networks:    []string{"DEFAULT"},
+		zone:        "us-central1-a",
 	},
 	{
 		machineType: "n2-standard-32",
-		arch: "X86_64",
-		networks: []string{"DEFAULT", "TIER_1"},
-		quota: &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 32},
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT", "TIER_1"},
+		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 32},
 	},
 	{
 		machineType: "n2d-standard-48",
-		arch: "X86_64",
-		networks: []string{"DEFAULT", "TIER_1"},
-		quota: &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 48},
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT", "TIER_1"},
+		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 48},
 	},
 }
 
@@ -213,7 +213,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
 
 				// Default VMs.
-				serverVM, err := t.CreateTestVM(serverConfig.name+"-"+tc.machineType)
+				serverVM, err := t.CreateTestVM(serverConfig.name + "-" + tc.machineType)
 				if err != nil {
 					return err
 				}
@@ -226,7 +226,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				clientVM, err := t.CreateTestVM(clientConfig.name+"-"+tc.machineType)
+				clientVM, err := t.CreateTestVM(clientConfig.name + "-" + tc.machineType)
 				if err != nil {
 					return err
 				}
@@ -243,7 +243,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
 				// Jumbo frames VMs.
-				jfServerVM, err := t.CreateTestVM(jfServerConfig.name+"-"+tc.machineType)
+				jfServerVM, err := t.CreateTestVM(jfServerConfig.name + "-" + tc.machineType)
 				if err != nil {
 					return err
 				}
@@ -256,7 +256,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				jfClientVM, err := t.CreateTestVM(jfClientConfig.name+"-"+tc.machineType)
+				jfClientVM, err := t.CreateTestVM(jfClientConfig.name + "-" + tc.machineType)
 				jfClientVM.ForceMachineType(tc.machineType)
 				jfClientVM.ForceZone(tc.zone)
 				if err != nil {
@@ -321,7 +321,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
 
 				// Tier 1 VMs.
-				tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name+"-"+tc.machineType)
+				tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name + "-" + tc.machineType)
 				if err != nil {
 					return err
 				}
@@ -335,7 +335,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				}
 				tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
 
-				tier1ClientVM, err := t.CreateTestVM(tier1ClientConfig.name+"-"+tc.machineType)
+				tier1ClientVM, err := t.CreateTestVM(tier1ClientConfig.name + "-" + tc.machineType)
 				if err != nil {
 					return err
 				}
