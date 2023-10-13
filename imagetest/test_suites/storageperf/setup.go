@@ -126,7 +126,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		vm, err := t.CreateTestVMMultipleDisks(
 			[]*compute.Disk{&bootDisk, &mountDisk},
-			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform},
+			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform, "zone": tc.zone},
 		)
 		if err != nil {
 			return err
@@ -170,7 +170,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 }
 
 func skipTest(tc storagePerfTest, image string) bool {
-	if tc.arch == "ARM64" && !strings.Contains(image, "arm64") {
+	if (strings.Contains(image, "arm64") && tc.arch != "ARM64") || (!strings.Contains(image, "arm64") && tc.arch == "ARM64") {
 		return true
 	}
 	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
