@@ -7,11 +7,66 @@ import (
 	"strconv"
 	"strings"
 
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "networkperf"
+
+type networkPerfTest struct {
+	machineType string   // Machinetype used for test
+	zone        string   // (optional) zone required for machinetype
+	arch        string   // arch required for machinetype
+	networks    []string // Networks to test (TIER_1 and/or DEFAULT)
+	quota       *daisy.QuotaAvailable
+}
+
+var networkPerfTestConfig = []networkPerfTest{
+	{
+		machineType: "n1-standard-2",
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
+	},
+	{
+		machineType: "n2-standard-2",
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
+	},
+	{
+		machineType: "n2d-standard-2",
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
+	},
+	{
+		machineType: "e2-standard-2",
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
+	},
+	{
+		machineType: "t2d-standard-1",
+		arch:        "X86_84",
+		networks:    []string{"DEFAULT"},
+	},
+	{
+		machineType: "t2a-standard-1",
+		arch:        "ARM64",
+		networks:    []string{"DEFAULT"},
+		zone:        "us-central1-a",
+	},
+	{
+		machineType: "n2-standard-32",
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT", "TIER_1"},
+		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 32},
+	},
+	{
+		machineType: "n2d-standard-48",
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT", "TIER_1"},
+		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 48},
+	},
+}
 
 // InstanceConfig for setting up test VMs.
 type InstanceConfig struct {
@@ -78,220 +133,239 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		t.Skip(fmt.Sprintf("%v does not support gVNIC", t.Image))
 		return nil
 	}
+	for _, tc := range networkPerfTestConfig {
+		if tc.arch == "ARM64" && !strings.Contains(t.Image, "arm64") || tc.arch != "ARM64" && strings.Contains(t.Image, "arm64") {
+			continue
+		}
 
-	// Default network.
-	defaultNetwork, err := t.CreateNetwork("default-network", false)
-	if err != nil {
-		return err
-	}
-	defaultSubnetwork, err := defaultNetwork.CreateSubnetwork("default-subnetwork", "192.168.0.0/24")
-	if err != nil {
-		return err
-	}
-	if err := defaultNetwork.CreateFirewallRule("default-allow-tcp", "tcp", []string{"5001"}, []string{"192.168.0.0/24"}); err != nil {
-		return err
-	}
+		if tc.quota != nil {
+			t.WaitForVMQuota(tc.quota)
+		}
 
-	// Jumbo frames network.
-	jfNetwork, err := t.CreateNetwork("jf-network", false)
-	if err != nil {
-		return err
-	}
-	jfSubnetwork, err := jfNetwork.CreateSubnetwork("jf-subnetwork", "192.168.1.0/24")
-	if err != nil {
-		return err
-	}
-	if err := jfNetwork.CreateFirewallRule("jf-allow-tcp", "tcp", []string{"5001"}, []string{"192.168.1.0/24"}); err != nil {
-		return err
-	}
-	jfNetwork.SetMTU(imagetest.JumboFramesMTU)
-
-	// Get the targets.
-	var defaultPerfTargets map[string]int
-	defaultPerfTargetsString, err := targets.ReadFile(targetsURL)
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(defaultPerfTargetsString, &defaultPerfTargets); err != nil {
-		return err
-	}
-	defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, t.ShortMachineType)
-	if err != nil {
-		return err
-	}
-	defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
-
-	// Default VMs.
-	serverVM, err := t.CreateTestVM(serverConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := serverVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
-		return err
-	}
-	if err := serverVM.SetPrivateIP(defaultNetwork, serverConfig.ip); err != nil {
-		return err
-	}
-
-	clientVM, err := t.CreateTestVM(clientConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := clientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
-		return err
-	}
-	if err := clientVM.SetPrivateIP(defaultNetwork, clientConfig.ip); err != nil {
-		return err
-	}
-	clientVM.AddMetadata("enable-guest-attributes", "TRUE")
-	clientVM.AddMetadata("iperftarget", serverConfig.ip)
-	clientVM.AddMetadata("expectedperf", defaultPerfTarget)
-
-	// Jumbo frames VMs.
-	jfServerVM, err := t.CreateTestVM(jfServerConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := jfServerVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
-		return err
-	}
-	if err := jfServerVM.SetPrivateIP(jfNetwork, jfServerConfig.ip); err != nil {
-		return err
-	}
-
-	jfClientVM, err := t.CreateTestVM(jfClientConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := jfClientVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
-		return err
-	}
-	if err := jfClientVM.SetPrivateIP(jfNetwork, jfClientConfig.ip); err != nil {
-		return err
-	}
-	jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
-	jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
-	jfClientVM.AddMetadata("expectedperf", defaultPerfTarget)
-
-	// Set startup scripts.
-	var serverStartup string
-	var clientStartup string
-	if strings.Contains(t.Image, "windows") {
-		serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
+		// Create network containing everything
+		defaultNetwork, err := t.CreateNetwork("default-network-"+tc.machineType, false)
 		if err != nil {
 			return err
 		}
-		clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURL)
+		defaultSubnetwork, err := defaultNetwork.CreateSubnetwork("default-subnetwork-"+tc.machineType, "192.168.0.0/24")
 		if err != nil {
 			return err
 		}
-		serverStartup := string(serverStartupByteArr)
-		clientStartup := string(clientStartupByteArr)
-
-		serverVM.SetWindowsStartupScript(serverStartup)
-		clientVM.SetWindowsStartupScript(clientStartup)
-		jfServerVM.SetWindowsStartupScript(serverStartup)
-		jfClientVM.SetWindowsStartupScript(clientStartup)
-	} else {
-		serverStartupByteArr, err := scripts.ReadFile(serverStartupScriptURL)
+		if err := defaultNetwork.CreateFirewallRule("default-allow-tcp-"+tc.machineType, "tcp", []string{"5001"}, []string{"192.168.0.0/24"}); err != nil {
+			return err
+		}
+		// Jumbo frames network.
+		jfNetwork, err := t.CreateNetwork("jf-network-"+tc.machineType, false)
 		if err != nil {
 			return err
 		}
-		clientStartupByteArr, err := scripts.ReadFile(clientStartupScriptURL)
+		jfSubnetwork, err := jfNetwork.CreateSubnetwork("jf-subnetwork-"+tc.machineType, "192.168.1.0/24")
 		if err != nil {
 			return err
 		}
-		serverStartup := string(serverStartupByteArr)
-		clientStartup := string(clientStartupByteArr)
+		if err := jfNetwork.CreateFirewallRule("jf-allow-tcp-"+tc.machineType, "tcp", []string{"5001"}, []string{"192.168.1.0/24"}); err != nil {
+			return err
+		}
+		jfNetwork.SetMTU(imagetest.JumboFramesMTU)
 
-		serverVM.SetStartupScript(serverStartup)
-		clientVM.SetStartupScript(clientStartup)
-		jfServerVM.SetStartupScript(serverStartup)
-		jfClientVM.SetStartupScript(clientStartup)
-	}
-	clientVM.UseGVNIC()
-	serverVM.UseGVNIC()
-	jfClientVM.UseGVNIC()
-	jfServerVM.UseGVNIC()
+		// Read startup scripts
+		var serverStartup string
+		var clientStartup string
+		if strings.Contains(t.Image, "windows") {
+			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
+			if err != nil {
+				return err
+			}
+			clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURL)
+			if err != nil {
+				return err
+			}
+			serverStartup = string(serverStartupByteArr)
+			clientStartup = string(clientStartupByteArr)
+		} else {
+			serverStartupByteArr, err := scripts.ReadFile(serverStartupScriptURL)
+			if err != nil {
+				return err
+			}
+			clientStartupByteArr, err := scripts.ReadFile(clientStartupScriptURL)
+			if err != nil {
+				return err
+			}
+			serverStartup = string(serverStartupByteArr)
+			clientStartup = string(clientStartupByteArr)
+		}
+		for _, net := range tc.networks {
+			switch net {
+			case "DEFAULT":
+				// Get the targets.
+				var defaultPerfTargets map[string]int
+				defaultPerfTargetsString, err := targets.ReadFile(targetsURL)
+				if err != nil {
+					return err
+				}
+				if err := json.Unmarshal(defaultPerfTargetsString, &defaultPerfTargets); err != nil {
+					return err
+				}
+				defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, tc.machineType)
+				if err != nil {
+					return fmt.Errorf("could not get default perf target: %v", err)
+				}
+				defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
 
-	// Run default tests.
-	serverVM.RunTests("TestGVNICExists")
-	clientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
-	jfServerVM.RunTests("TestGVNICExists")
-	jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
+				// Default VMs.
+				serverVM, err := t.CreateTestVM(serverConfig.name + "-" + tc.machineType)
+				if err != nil {
+					return err
+				}
+				serverVM.ForceMachineType(tc.machineType)
+				serverVM.ForceZone(tc.zone)
+				if err := serverVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+					return err
+				}
+				if err := serverVM.SetPrivateIP(defaultNetwork, serverConfig.ip); err != nil {
+					return err
+				}
 
-	// Check if machine type is valid for tier1 testing.
-	mt := t.ShortMachineType
-	if !strings.Contains(mt, "n2") && !strings.Contains(mt, "c2") && !strings.Contains(mt, "c3") && !strings.Contains(mt, "m3") {
-		// Must be N2, N2D, C2, C2D, C3, C3D, or M3 machine types.
-		fmt.Printf("%v: Skipping tier1 tests - %v not supported\n", t.ShortImage, mt)
-		return nil
-	}
-	numCPUs, err := strconv.Atoi(strings.Split(mt, "-")[2])
-	if err != nil {
-		return err
-	}
-	if numCPUs < 30 {
-		// Must have at least 30 vCPUs.
-		fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
-		return nil
-	}
+				clientVM, err := t.CreateTestVM(clientConfig.name + "-" + tc.machineType)
+				if err != nil {
+					return err
+				}
+				clientVM.ForceMachineType(tc.machineType)
+				clientVM.ForceZone(tc.zone)
+				if err := clientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+					return err
+				}
+				if err := clientVM.SetPrivateIP(defaultNetwork, clientConfig.ip); err != nil {
+					return err
+				}
+				clientVM.AddMetadata("enable-guest-attributes", "TRUE")
+				clientVM.AddMetadata("iperftarget", serverConfig.ip)
+				clientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
-	// Get Tier1 targets.
-	var tier1PerfTargets map[string]int
-	tier1PerfTargetsString, err := targets.ReadFile(tier1TargetsURL)
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(tier1PerfTargetsString, &tier1PerfTargets); err != nil {
-		return err
-	}
-	tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, t.ShortMachineType)
-	if err != nil {
-		return err
-	}
-	tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
+				// Jumbo frames VMs.
+				jfServerVM, err := t.CreateTestVM(jfServerConfig.name + "-" + tc.machineType)
+				if err != nil {
+					return err
+				}
+				jfServerVM.ForceMachineType(tc.machineType)
+				jfServerVM.ForceZone(tc.zone)
+				if err := jfServerVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+					return err
+				}
+				if err := jfServerVM.SetPrivateIP(jfNetwork, jfServerConfig.ip); err != nil {
+					return err
+				}
 
-	// Tier 1 VMs.
-	tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := tier1ServerVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
-		return err
-	}
-	if err := tier1ServerVM.SetPrivateIP(defaultNetwork, tier1ServerConfig.ip); err != nil {
-		return err
-	}
-	tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
+				jfClientVM, err := t.CreateTestVM(jfClientConfig.name + "-" + tc.machineType)
+				jfClientVM.ForceMachineType(tc.machineType)
+				jfClientVM.ForceZone(tc.zone)
+				if err != nil {
+					return err
+				}
+				if err := jfClientVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
+					return err
+				}
+				if err := jfClientVM.SetPrivateIP(jfNetwork, jfClientConfig.ip); err != nil {
+					return err
+				}
+				jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
+				jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
+				jfClientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
-	tier1ClientVM, err := t.CreateTestVM(tier1ClientConfig.name)
-	if err != nil {
-		return err
-	}
-	if err := tier1ClientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
-		return err
-	}
-	if err := tier1ClientVM.SetPrivateIP(defaultNetwork, tier1ClientConfig.ip); err != nil {
-		return err
-	}
-	tier1ClientVM.AddMetadata("enable-guest-attributes", "TRUE")
-	tier1ClientVM.AddMetadata("iperftarget", tier1ServerConfig.ip)
-	tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
+				// Set startup scripts.
+				if strings.Contains(t.Image, "windows") {
+					serverVM.SetWindowsStartupScript(serverStartup)
+					clientVM.SetWindowsStartupScript(clientStartup)
+					jfServerVM.SetWindowsStartupScript(serverStartup)
+					jfClientVM.SetWindowsStartupScript(clientStartup)
+				} else {
+					serverVM.SetStartupScript(serverStartup)
+					clientVM.SetStartupScript(clientStartup)
+					jfServerVM.SetStartupScript(serverStartup)
+					jfClientVM.SetStartupScript(clientStartup)
+				}
+				clientVM.UseGVNIC()
+				serverVM.UseGVNIC()
+				jfClientVM.UseGVNIC()
+				jfServerVM.UseGVNIC()
 
-	// Set startup scripts.
-	if strings.Contains(t.Image, "windows") {
-		tier1ServerVM.SetWindowsStartupScript(serverStartup)
-		tier1ClientVM.SetWindowsStartupScript(clientStartup)
-	} else {
-		tier1ServerVM.SetStartupScript(serverStartup)
-		tier1ClientVM.SetStartupScript(clientStartup)
+				// Run default tests.
+				serverVM.RunTests("TestGVNICExists")
+				clientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
+				jfServerVM.RunTests("TestGVNICExists")
+				jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
+			case "TIER_1":
+				numCPUs, err := strconv.Atoi(strings.Split(tc.machineType, "-")[2])
+				if err != nil {
+					return err
+				}
+				if numCPUs < 30 {
+					// Must have at least 30 vCPUs.
+					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
+					return nil
+				}
+
+				// Get Tier1 targets.
+				var tier1PerfTargets map[string]int
+				tier1PerfTargetsString, err := targets.ReadFile(tier1TargetsURL)
+				if err != nil {
+					return err
+				}
+				if err := json.Unmarshal(tier1PerfTargetsString, &tier1PerfTargets); err != nil {
+					return err
+				}
+				tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, tc.machineType)
+				if err != nil {
+					return fmt.Errorf("could not get tier 1 perf target: %v", err)
+				}
+				tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
+
+				// Tier 1 VMs.
+				tier1ServerVM, err := t.CreateTestVM(tier1ServerConfig.name + "-" + tc.machineType)
+				if err != nil {
+					return err
+				}
+				tier1ServerVM.ForceMachineType(tc.machineType)
+				tier1ServerVM.ForceZone(tc.zone)
+				if err := tier1ServerVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+					return err
+				}
+				if err := tier1ServerVM.SetPrivateIP(defaultNetwork, tier1ServerConfig.ip); err != nil {
+					return err
+				}
+				tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
+
+				tier1ClientVM, err := t.CreateTestVM(tier1ClientConfig.name + "-" + tc.machineType)
+				if err != nil {
+					return err
+				}
+				tier1ClientVM.ForceMachineType(tc.machineType)
+				tier1ClientVM.ForceZone(tc.zone)
+				if err := tier1ClientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
+					return err
+				}
+				if err := tier1ClientVM.SetPrivateIP(defaultNetwork, tier1ClientConfig.ip); err != nil {
+					return err
+				}
+				tier1ClientVM.AddMetadata("enable-guest-attributes", "TRUE")
+				tier1ClientVM.AddMetadata("iperftarget", tier1ServerConfig.ip)
+				tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
+
+				// Set startup scripts.
+				if strings.Contains(t.Image, "windows") {
+					tier1ServerVM.SetWindowsStartupScript(serverStartup)
+					tier1ClientVM.SetWindowsStartupScript(clientStartup)
+				} else {
+					tier1ServerVM.SetStartupScript(serverStartup)
+					tier1ClientVM.SetStartupScript(clientStartup)
+				}
+				tier1ClientVM.UseGVNIC()
+				tier1ServerVM.UseGVNIC()
+
+				tier1ServerVM.RunTests("TestGVNICExists")
+				tier1ClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
+			}
+		}
 	}
-	tier1ClientVM.UseGVNIC()
-	tier1ServerVM.UseGVNIC()
-
-	tier1ServerVM.RunTests("TestGVNICExists")
-	tier1ClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
-
 	return nil
 }
