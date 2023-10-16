@@ -32,7 +32,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	// The extra scope is required to call detachDisk and attachDisk.
 	hotattachParams := map[string]string{"extraScopes": "https://www.googleapis.com/auth/cloud-platform"}
 	if strings.Contains(t.Image, "arm64") {
-		t.Skip("t2a nvme udev rules aren't triggering correctly on reattach")
 		hotattachParams["machineType"] = "t2a-standard-8"
 	} else {
 		hotattachParams["machineType"] = "n2-standard-8"
