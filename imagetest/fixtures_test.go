@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -133,7 +134,125 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 	if lastStep.WaitForInstancesSignal == nil {
 		t.Error("not wait step")
 	}
+	waitForInstancesSignalSlice := (*lastStep.WaitForInstancesSignal)
+	if len(waitForInstancesSignalSlice) == 0 {
+		t.Error("waitForInstancesSignal has no elements in slice")
+	}
+	waitGuestAttribute := waitForInstancesSignalSlice[0].GuestAttribute
+	if waitGuestAttribute == nil {
+		t.Error("could not find guest attribute wait step")
+	}
+	gaNameSpace, gaKeyName := waitGuestAttribute.Namespace, waitGuestAttribute.KeyName
+	if gaNameSpace != utils.GuestAttributeTestNamespace || gaKeyName != utils.GuestAttributeTestKey {
+		t.Errorf("wrong guest attribute: got namespace, keyname as %s, %s but expected %s, %s", gaNameSpace, gaKeyName, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey)
+	}
 	if step, ok := twf.wf.Steps["wait-started-vm-1"]; !ok || step != lastStep {
+		t.Error("not wait-started-vm-1 step")
+	}
+}
+
+// TestCreateVMRebootGA tests that after creating a VM with multiple disks, if the vm
+// is expected to reboot during the test, a special guest attribute is used as the wait signal.
+func TestCreateVMRebootGA(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
+	rebootGAParams := map[string]string{ShouldRebootDuringTest: "true"}
+	tvm, err := twf.CreateTestVMMultipleDisks(disks, rebootGAParams)
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	// once found, expect createInstancesStep.CreateInstances != nil
+	// once found, expect createDisksStep.CreateDisks != nil
+	var createInstancesStep, createDisksStep *daisy.Step
+	for _, step := range twf.wf.Steps {
+		// there should only be one create instance step
+		if step.CreateInstances != nil {
+			if createInstancesStep == nil {
+				createInstancesStep = step
+			} else {
+				t.Errorf("workflow has multiple create instance steps when it should not")
+			}
+		}
+
+		if step.CreateDisks != nil {
+			if createDisksStep == nil {
+				createDisksStep = step
+			} else {
+				t.Errorf("workflow has multiple create disk steps when it should not")
+			}
+		}
+	}
+
+	if createInstancesStep == nil || createInstancesStep.CreateInstances == nil {
+		t.Errorf("failed to find create instances step when creating multiple disks")
+	}
+
+	if createDisksStep == nil || createDisksStep.CreateDisks == nil {
+		t.Errorf("failed to find create disks step when creating multiple disks")
+	}
+
+	daisyStepDisksSlice := *(createDisksStep.CreateDisks)
+	if len(disks) != len(daisyStepDisksSlice) {
+		t.Errorf("found incorrect number of disks in create disk step: expected %d, got %d",
+			len(disks), len(daisyStepDisksSlice))
+	}
+
+	if twf.counter != 0 {
+		t.Errorf("step counter not starting at 0")
+	}
+	// check for wait step before reboot
+	lastStepBeforeReboot, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if lastStepBeforeReboot.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	waitForInstancesSignalSlice := (*lastStepBeforeReboot.WaitForInstancesSignal)
+	if len(waitForInstancesSignalSlice) == 0 {
+		t.Error("waitForInstancesSignal has no elements in slice")
+	}
+	waitGuestAttribute := waitForInstancesSignalSlice[0].GuestAttribute
+	if waitGuestAttribute == nil {
+		t.Error("could not find guest attribute wait step")
+	}
+	gaNameSpace, gaKeyName := waitGuestAttribute.Namespace, waitGuestAttribute.KeyName
+	if gaNameSpace != utils.GuestAttributeTestNamespace || gaKeyName != utils.FirstBootGAKey {
+		t.Errorf("wrong guest attribute: got namespace, keyname as %s, %s but expected %s, %s", gaNameSpace, gaKeyName, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey)
+	}
+	if err := tvm.Reboot(); err != nil {
+		t.Errorf("failed to reboot: %v", err)
+	}
+	if twf.counter != 1 {
+		t.Errorf("step counter not incremented")
+	}
+	if _, ok := twf.wf.Steps["stop-vm-1"]; !ok {
+		t.Errorf("wait-vm-1 step missing")
+	}
+	// check for wait step after reboot
+	lastStepAfterReboot, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if lastStepAfterReboot.WaitForInstancesSignal == nil {
+		t.Error("not wait step")
+	}
+	waitForInstancesSignalSlice = (*lastStepAfterReboot.WaitForInstancesSignal)
+	if len(waitForInstancesSignalSlice) == 0 {
+		t.Error("waitForInstancesSignal has no elements in slice")
+	}
+	waitGuestAttribute = waitForInstancesSignalSlice[0].GuestAttribute
+	if waitGuestAttribute == nil {
+		t.Error("could not find guest attribute wait step")
+	}
+	gaNameSpace, gaKeyName = waitGuestAttribute.Namespace, waitGuestAttribute.KeyName
+	if gaNameSpace != utils.GuestAttributeTestNamespace || gaKeyName != utils.GuestAttributeTestKey {
+		t.Errorf("wrong guest attribute: got namespace, keyname as %s, %s but expected %s, %s", gaNameSpace, gaKeyName, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey)
+	}
+	if step, ok := twf.wf.Steps["wait-started-vm-1"]; !ok || step != lastStepAfterReboot {
 		t.Error("not wait-started-vm-1 step")
 	}
 }
