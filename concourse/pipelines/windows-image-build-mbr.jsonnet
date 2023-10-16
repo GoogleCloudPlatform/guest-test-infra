@@ -13,7 +13,7 @@ local imagetesttask = {
   images:: error 'must set images in imagetesttask',
 
   // Start of task
-  platform: 'windows',
+  platform: 'linux',
   image_resource: {
     type: 'registry-image',
     source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
