@@ -39,6 +39,9 @@ local imgbuildjob = {
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
+    runtests:: if job.env == 'testing' then true
+    else false,
+
   // Start of job.
   name: 'build-' + job.image,
   plan: [
@@ -149,23 +152,20 @@ local imgbuildjob = {
       load_var: 'sbom-util-secret',
       file: 'gcp-secret-manager/sbom-util-secret',
     },
-    {
-      task: 'daisy-build',
-      config: daisy.daisyimagetask {
-        gcs_url: '((.:gcs-url))',
-        sbom_destination: '((.:sbom-destination))',
-        workflow: job.workflow,
-        vars+: [
-          'cloudsdk=((.:windows-cloud-sdk))',
-          'dotnet48=((.:windows-gcs-dotnet48))',
-          'media=((.:windows-iso))',
-          'pwsh=((.:windows-gcs-pwsh))',
-          'updates=((.:windows-updates))',
-          'google_cloud_repo=stable',
-          'sbom_util_gcs_root=((.:sbom-util-secret))',
-        ],
+  ] +
+  [
+     +
+  if job.runtests then
+    [
+      {
+        task: 'image-test-' + job.image,
+        config: imagetesttask {
+          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
+        },
+        attempts: 3,
       },
-    },
+    ]
+  else [],
   ],
 };
 
@@ -189,9 +189,6 @@ local imgpublishjob = {
 
   // Builds are automatically pushed to testing.
   trigger:: if job.env == 'testing' then true
-    else false,
-  
-  runtests:: if job.env == 'testing' then true
     else false,
 
   // Start of job.
@@ -235,18 +232,7 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
       },
     },
-  ] +
-  if job.runtests then
-    [
-      {
-        task: 'image-test-' + job.image,
-        config: imagetesttask {
-          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
-        },
-        attempts: 3,
-      },
-    ]
-  else [],
+  ],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
