@@ -124,7 +124,7 @@ Familyloop:
 				return err
 			}
 		}
-		vm, err := t.CreateTestVMMultipleDisks(shape.disks, map[string]string{})
+		vm, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: shape.disks})
 		if err != nil {
 			return err
 		}

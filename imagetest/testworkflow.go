@@ -77,8 +77,9 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams map[string]string) (*daisy.Step, *daisy.Instance, error) {
-	if len(disks) == 0 || disks[0].Name == "" {
+func (t *TestWorkflow) appendCreateVMStep(instanceParams *TestVMParams) (*daisy.Step, *daisy.Instance, error) {
+	disks := instanceParams.Disks
+	if disks == nil || len(disks) == 0 || disks[0].Name == "" {
 		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
 	}
 	// The boot disk is the first disk, and the VM name comes from that
@@ -94,37 +95,40 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 	// An additional IAM scope may be passed in, such as for detachDisk and attachDisk calls.
-	if extraScopes, foundKey := instanceParams["extraScopes"]; foundKey {
-		instance.Scopes = append(instance.Scopes, extraScopes)
+	if instanceParams.ExtraScopes != nil {
+		for _, extraScope := range instanceParams.ExtraScopes {
+			instance.Scopes = append(instance.Scopes, extraScope)
+		}
 	}
 
-	hostname, foundKey := instanceParams["hostname"]
-	if !foundKey {
-		hostname = ""
-	}
+	hostname := instanceParams.Hostname
 	if hostname != "" && name != hostname {
 		instance.Hostname = hostname
 	}
 
-	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
-		instance.MinCpuPlatform = minCPUPlatform
-	}
-	if machineType, foundKey := instanceParams["machineType"]; foundKey {
-		instance.MachineType = machineType
+	if instanceParams.MinCpuPlatform != "" {
+		instance.MinCpuPlatform = instanceParams.MinCpuPlatform
 	}
 
-	if zone, foundKey := instanceParams["zone"]; foundKey {
-		instance.Zone = zone
+	if instanceParams.MachineType != "" {
+		instance.MachineType = instanceParams.MachineType
 	}
 
-	for _, disk := range disks {
+	if instanceParams.Zone != "" {
+		instance.Zone = instanceParams.Zone
+	}
+
+	if len(instanceParams.Disks) < 1 {
+		return nil, nil, fmt.Errorf("insufficient disks to create testvm")
+	}
+	for _, disk := range instanceParams.Disks {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
 	}
 
 	instance.Metadata = make(map[string]string)
 	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
-	if shouldRebootDuringTest, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
-		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
+	if instanceParams.VmRebootsDuringTest != nil && (*instanceParams.VmRebootsDuringTest) {
+		instance.Metadata[ShouldRebootDuringTest] = "true"
 	}
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
