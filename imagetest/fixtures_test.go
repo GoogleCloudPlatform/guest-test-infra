@@ -75,7 +75,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 		t.Errorf("failed to create test workflow: %v", err)
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
-	tvm, err := twf.CreateTestVMWithParams(TestVMParams{Disks: disks})
+	tvm, err := twf.CreateTestVMWithParams(&TestVMParams{Disks: disks})
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
@@ -160,7 +160,7 @@ func TestCreateVMRebootGA(t *testing.T) {
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	rebootGAParam := true
-	tvm, err := twf.CreateTestVMWithParams(TestVMParams{Disks: disks, VMRebootsDuringTest: &rebootGAParam})
+	tvm, err := twf.CreateTestVMWithParams(&TestVMParams{Disks: disks, VmRebootsDuringTest: &rebootGAParam})
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
@@ -266,7 +266,7 @@ func TestRebootMultipleDisks(t *testing.T) {
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced, SizeGb: 100}}
 	testMachineType := "c3-standard-4"
-	tvm, err := twf.CreateTestVMWithParams(TestVMParamms{Disks: disks, MachineType: testMachineType})
+	tvm, err := twf.CreateTestVMWithParams(&TestVMParams{Disks: disks, MachineType: testMachineType})
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}

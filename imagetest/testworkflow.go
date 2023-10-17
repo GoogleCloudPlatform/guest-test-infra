@@ -77,8 +77,9 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams map[string]string) (*daisy.Step, *daisy.Instance, error) {
-	if len(disks) == 0 || disks[0].Name == "" {
+func (t *TestWorkflow) appendCreateVMStep(instanceParams *TestVMParams) (*daisy.Step, *daisy.Instance, error) {
+	disks := instanceParams.Disks
+	if disks == nil || len(disks) == 0 || disks[0].Name == "" {
 		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
 	}
 	// The boot disk is the first disk, and the VM name comes from that
@@ -96,7 +97,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	// An additional IAM scope may be passed in, such as for detachDisk and attachDisk calls.
 	if instanceParams.ExtraScopes != nil {
 		for _, extraScope := range instanceParams.ExtraScopes {
-			instance.Scopes = append(instsance.Scopes, extraScope)
+			instance.Scopes = append(instance.Scopes, extraScope)
 		}
 	}
 
@@ -127,7 +128,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.Metadata = make(map[string]string)
 	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
 	if instanceParams.VmRebootsDuringTest != nil && (*instanceParams.VmRebootsDuringTest) {
-		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
+		instance.Metadata[ShouldRebootDuringTest] = "true"
 	}
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"

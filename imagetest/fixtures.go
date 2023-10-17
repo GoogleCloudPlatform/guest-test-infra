@@ -142,7 +142,7 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	}
 
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, map[string]string{"hostname": name})
+	createVMStep, i, err := t.appendCreateVMStep(&TestVMParams{Disks: []*compute.Disk{bootDisk}, Hostname: name})
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,8 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 // CreateTestVMWithParams adds the necessary steps to create a VM with the specified
 // params to the workflow.
 func (t *TestWorkflow) CreateTestVMWithParams(instanceParams *TestVMParams) (*TestVM, error) {
-	if len(disks) == 0 || disks[0].Name == "" {
+	disks := instanceParams.Disks
+	if disks == nil || len(disks) == 0 || disks[0].Name == "" {
 		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
 	}
 
@@ -205,7 +206,7 @@ func (t *TestWorkflow) CreateTestVMWithParams(instanceParams *TestVMParams) (*Te
 
 	instanceParams.Hostname = name
 	// createDisksStep doesn't depend on any other steps.
-	createVMStep, i, err := t.appendCreateVMStep(disks, instanceParams)
+	createVMStep, i, err := t.appendCreateVMStep(instanceParams)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +220,8 @@ func (t *TestWorkflow) CreateTestVMWithParams(instanceParams *TestVMParams) (*Te
 	// If this is the first boot before a reboot, this should use a
 	// different guest attribute when waiting for the instance signal.
 	var waitStep *daisy.Step
-	if _, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
+	var vmReboots *bool = instanceParams.VmRebootsDuringTest
+	if vmReboots != nil && (*vmReboots) {
 		waitStep, err = t.addWaitRebootGAStep(vmname, vmname)
 	} else {
 		waitStep, err = t.addWaitStep(vmname, vmname)

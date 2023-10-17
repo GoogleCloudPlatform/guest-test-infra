@@ -30,7 +30,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	// The extra scope is required to call detachDisk and attachDisk.
-	hotattachParams := imagetest.TestVMParams{"extraScopes": "https://www.googleapis.com/auth/cloud-platform"}
+	hotattachParams := imagetest.TestVMParams{ExtraScopes: []string{"https://www.googleapis.com/auth/cloud-platform"}}
 
 	hotattachParams.Disks = []*compute.Disk{{Name: instanceName, Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: diskName, Type: imagetest.PdBalanced, SizeGb: mountDiskSizeGB}}
 	if strings.Contains(t.Image, "arm64") {
@@ -38,7 +38,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	} else {
 		hotattachParams.MachineType = "n2-standard-8"
 	}
-	vm, err := t.CreateTestVMWithParams(hotattachParams)
+	vm, err := t.CreateTestVMWithParams(&hotattachParams)
 	if err != nil {
 		return err
 	}
