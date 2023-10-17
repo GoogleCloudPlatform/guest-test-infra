@@ -39,8 +39,7 @@ local imgbuildjob = {
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
-    runtests:: if job.env == 'testing' then true
-    else false,
+  runtests:: true,
 
   // Start of job.
   name: 'build-' + job.image,
