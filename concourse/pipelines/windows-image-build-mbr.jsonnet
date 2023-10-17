@@ -153,7 +153,6 @@ local imgbuildjob = {
     },
   ] +
   [
-     +
   if job.runtests then
     [
       {
