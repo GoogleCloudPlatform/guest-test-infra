@@ -220,7 +220,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
 
 				// Default VMs.
-			    serverDisk := compute.Disk{Name: serverConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				serverDisk := compute.Disk{Name: serverConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				serverVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&serverDisk}, map[string]string{})
 				if err != nil {
 					return err
@@ -252,7 +252,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
 				// Jumbo frames VMs.
-				jfServerDisk := compute.Disk{Name: jfServerConfig.name +"-"+ tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				jfServerDisk := compute.Disk{Name: jfServerConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				jfServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfServerDisk}, map[string]string{})
 				if err != nil {
 					return err
@@ -266,7 +266,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				jfClientDisk := compute.Disk{Name: jfClientConfig.name +"-"+ tc.machineType , Type: imagetest.PdBalanced, Zone: tc.zone}
+				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				jfClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfClientDisk}, map[string]string{})
 				jfClientVM.ForceMachineType(tc.machineType)
 				jfClientVM.ForceZone(tc.zone)
@@ -332,7 +332,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
 
 				// Tier 1 VMs.
-				t1ServerDisk := compute.Disk{Name: tier1ServerConfig.name+"-"+ tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				t1ServerDisk := compute.Disk{Name: tier1ServerConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				tier1ServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ServerDisk}, map[string]string{})
 				if err != nil {
 					return err
@@ -347,7 +347,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				}
 				tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
 
-				t1ClientDisk := compute.Disk{Name: tier1ClientConfig.name +"-"+ tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				t1ClientDisk := compute.Disk{Name: tier1ClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				tier1ClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ClientDisk}, map[string]string{})
 				if err != nil {
 					return err
