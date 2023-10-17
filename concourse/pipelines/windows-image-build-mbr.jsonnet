@@ -40,6 +40,7 @@ local imgbuildjob = {
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
   runtests:: true,
+  image_prefix:: self.image,
 
   // Start of job.
   name: 'build-' + job.image,
@@ -177,7 +178,6 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
-  image_prefix:: self.image,
 
   // Publish can proceed if build passes.
   passed:: if job.env == 'testing' then
