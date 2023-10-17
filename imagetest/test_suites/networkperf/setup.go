@@ -28,50 +28,50 @@ var networkPerfTestConfig = []networkPerfTest{
 		machineType: "n1-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 4},
+		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8},
 	},
 	{
 		machineType: "n2-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 4},
+		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 8},
 	},
 	{
 		machineType: "n2d-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 4},
+		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 8},
 	},
 	{
 		machineType: "e2-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 4},
+		quota:       &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 8},
 	},
 	{
 		machineType: "t2d-standard-1",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "T2D_CPUS", Units: 2},
+		quota:       &daisy.QuotaAvailable{Metric: "T2D_CPUS", Units: 4},
 	},
 	{
 		machineType: "t2a-standard-1",
 		arch:        "ARM64",
 		networks:    []string{"DEFAULT"},
 		zone:        "us-central1-a",
-		quota:       &daisy.QuotaAvailable{Metric: "T2A_CPUS", Units: 2, Region: "us-central1"},
+		quota:       &daisy.QuotaAvailable{Metric: "T2A_CPUS", Units: 4, Region: "us-central1"},
 	},
 	{
 		machineType: "n2-standard-32",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
-		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 128}, // 32 cpus x 2 tiers x 2 vms per tier
+		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 192}, // 32 cpus x 2 vms per tier 1 test + 32 x 4 vms per default test
 	},
 	{
 		machineType: "n2d-standard-48",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
-		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 192},
+		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 288},
 	},
 }
 
