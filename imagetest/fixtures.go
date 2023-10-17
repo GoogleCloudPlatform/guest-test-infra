@@ -63,10 +63,10 @@ type TestVMParams struct {
 	Disks []*compute.Disk
 	// this bool pointer must be explicitly initialized to use
 	// the special guest attribute for tests which reboot
-	VmRebootsDuringTest *bool
+	VMRebootsDuringTest *bool
 	ExtraScopes         []string
 	MachineType         string
-	MinCpuPlatform      string
+	MinCPUPlatform      string
 	Hostname            string
 	Zone                string
 }
@@ -220,7 +220,7 @@ func (t *TestWorkflow) CreateTestVMWithParams(instanceParams *TestVMParams) (*Te
 	// If this is the first boot before a reboot, this should use a
 	// different guest attribute when waiting for the instance signal.
 	var waitStep *daisy.Step
-	var vmReboots *bool = instanceParams.VmRebootsDuringTest
+	var vmReboots *bool = instanceParams.VMRebootsDuringTest
 	if vmReboots != nil && (*vmReboots) {
 		waitStep, err = t.addWaitRebootGAStep(vmname, vmname)
 	} else {

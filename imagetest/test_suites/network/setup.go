@@ -62,7 +62,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	// VM2 for multiNIC
 	networkRebootParam := true
-	vm2, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: vm2Config.name}}, VmRebootsDuringTest: &networkRebootParam})
+	vm2, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: vm2Config.name}}, VMRebootsDuringTest: &networkRebootParam})
 	if err != nil {
 		return err
 	}

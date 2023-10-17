@@ -160,7 +160,7 @@ func TestCreateVMRebootGA(t *testing.T) {
 	}
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	rebootGAParam := true
-	tvm, err := twf.CreateTestVMWithParams(&TestVMParams{Disks: disks, VmRebootsDuringTest: &rebootGAParam})
+	tvm, err := twf.CreateTestVMWithParams(&TestVMParams{Disks: disks, VMRebootsDuringTest: &rebootGAParam})
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}

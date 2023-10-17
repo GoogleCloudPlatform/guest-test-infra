@@ -40,7 +40,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	// for any vm testing the shutdown script, the boolean param to wait for a different guest attribute on the first boot is true
 	shutdownScriptRebootParam := true
-	vm2, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm2"}}, VmRebootsDuringTest: &shutdownScriptRebootParam})
+	vm2, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm2"}}, VMRebootsDuringTest: &shutdownScriptRebootParam})
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm3, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm3"}}, VmRebootsDuringTest: &shutdownScriptRebootParam})
+	vm3, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm3"}}, VMRebootsDuringTest: &shutdownScriptRebootParam})
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm4, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm4"}}, VmRebootsDuringTest: &shutdownScriptRebootParam})
+	vm4, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm4"}}, VMRebootsDuringTest: &shutdownScriptRebootParam})
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm5, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm5"}}, VmRebootsDuringTest: &shutdownScriptRebootParam})
+	vm5, err := t.CreateTestVMWithParams(&imagetest.TestVMParams{Disks: []*compute.Disk{{Name: "vm5"}}, VMRebootsDuringTest: &shutdownScriptRebootParam})
 	if err != nil {
 		return err
 	}

@@ -106,8 +106,8 @@ func (t *TestWorkflow) appendCreateVMStep(instanceParams *TestVMParams) (*daisy.
 		instance.Hostname = hostname
 	}
 
-	if instanceParams.MinCpuPlatform != "" {
-		instance.MinCpuPlatform = instanceParams.MinCpuPlatform
+	if instanceParams.MinCPUPlatform != "" {
+		instance.MinCpuPlatform = instanceParams.MinCPUPlatform
 	}
 
 	if instanceParams.MachineType != "" {
@@ -127,7 +127,7 @@ func (t *TestWorkflow) appendCreateVMStep(instanceParams *TestVMParams) (*daisy.
 
 	instance.Metadata = make(map[string]string)
 	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
-	if instanceParams.VmRebootsDuringTest != nil && (*instanceParams.VmRebootsDuringTest) {
+	if instanceParams.VMRebootsDuringTest != nil && (*instanceParams.VMRebootsDuringTest) {
 		instance.Metadata[ShouldRebootDuringTest] = "true"
 	}
 	instance.Metadata["_test_vmname"] = name
