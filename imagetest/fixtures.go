@@ -129,7 +129,6 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	}
 
 	daisyInst := &daisy.Instance{}
-	daisyInst.Hostname = name
 	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep([]*compute.Disk{bootDisk}, daisyInst)
 	if err != nil {
@@ -197,7 +196,6 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 	} else {
 		daisyInst = instanceParams
 	}
-	daisyInst.Hostname = name
 	// createDisksStep doesn't depend on any other steps.
 	createVMStep, i, err := t.appendCreateVMStep(disks, daisyInst)
 	if err != nil {
