@@ -177,7 +177,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// Read startup scripts
 		var serverStartup string
 		var clientStartup string
-		if strings.Contains(t.Image, "windows") {
+		if utils.HasFeature(t.Image, "WINDOWS") {
 			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
 			if err != nil {
 				return err
@@ -263,7 +263,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				}
 				if err := jfServerVM.SetPrivateIP(jfNetwork, jfServerConfig.ip); err != nil {
 					return err
-        }
+				}
 
 				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				jfClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfClientDisk}, map[string]string{})
@@ -283,7 +283,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfClientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
 				// Set startup scripts.
-				if strings.Contains(t.Image, "windows") {
+				if utils.HasFeature(t.Image, "WINDOWS") {
 					serverVM.SetWindowsStartupScript(serverStartup)
 					clientVM.SetWindowsStartupScript(clientStartup)
 					jfServerVM.SetWindowsStartupScript(serverStartup)
@@ -304,10 +304,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 				jfServerVM.RunTests("TestGVNICExists")
 				jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
-      case "TIER_1":
+			case "TIER_1":
 				if t.MachineType.GuestCpus < 30 {
 					// Must have at least 30 vCPUs.
-					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, t.MachineType.GuestCpus)
+					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, t.MachineType.GuestCpus)
 					continue
 				}
 

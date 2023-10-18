@@ -145,10 +145,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 // TestCreateVMRebootGA tests that after creating a VM with multiple disks, if the vm
 // is expected to reboot during the test, a special guest attribute is used as the wait signal.
 func TestCreateVMRebootGA(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	rebootGAParams := map[string]string{ShouldRebootDuringTest: "true"}
 	tvm, err := twf.CreateTestVMMultipleDisks(disks, rebootGAParams)
@@ -366,9 +363,9 @@ func TestWaitForQuotaStep(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-      twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+			twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 			for _, quota := range tc.input {
-				err = twf.waitForQuotaStep(quota, tc.name)
+				err := twf.waitForQuotaStep(quota, tc.name)
 				if err != nil {
 					t.Errorf("failed to append quota: %v", err)
 				}

@@ -128,10 +128,7 @@ func TestAddWaitStep(t *testing.T) {
 // This tests that in the special case where the test reboots and we need results
 // from the second boot, the instance signal for the step is correct.
 func TestAddWaitRebootGAStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
