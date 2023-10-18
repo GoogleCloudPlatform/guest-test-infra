@@ -743,7 +743,9 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 // gets result struct and converts to a jUnit TestSuite
 func parseResult(res testResult) *testSuite {
 	ret := &testSuite{}
-	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.Image.Name)
+	// Use ImageURL instead of the name or family to display results the same way
+	// as the user entered them.
+	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, strings.Split(res.testWorkflow.ImageURL, "/")[len(strings.Split(res.testWorkflow.ImageURL, "/"))-1])
 
 	switch {
 	case res.skipped:
