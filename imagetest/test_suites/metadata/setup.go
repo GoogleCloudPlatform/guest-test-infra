@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -99,7 +100,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	var timeByteArr []byte
 
 	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		startupByteArr, err = scripts.ReadFile(startupScriptWindowsURL)
 		if err != nil {
 			return err

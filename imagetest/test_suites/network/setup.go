@@ -1,9 +1,8 @@
 package network
 
 import (
-	"strings"
-
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -85,12 +84,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// GVNIC is not supported on some older distros.
-		vm2.RunTests("TestAlias")
-	} else {
+	multinictests := "TestAlias"
+	if utils.HasFeature(t.Image, "GVNIC") {
 		vm2.UseGVNIC()
-		vm2.RunTests("TestAlias|TestGVNIC")
+		multinictests += "|TestGVNIC"
 	}
+	vm2.RunTests(multinictests)
 	return nil
 }

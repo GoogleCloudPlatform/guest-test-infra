@@ -11,10 +11,7 @@ import (
 // TestAddMetadata tests that *TestVM.AddMetadata succeeds and that it
 // populates the instance.Metadata map.
 func TestAddMetadata(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -35,10 +32,7 @@ func TestAddMetadata(t *testing.T) {
 // TestReboot tests that *TestVM.Reboot succeeds and that the appropriate stop
 // and new final wait steps are created in the workflow.
 func TestReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -70,10 +64,7 @@ func TestReboot(t *testing.T) {
 // TestCreateVMMultipleDisks tests that after creating a VM with multiple disks,
 // the correct step dependencies are in place.
 func TestCreateVMMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	tvm, err := twf.CreateTestVMMultipleDisks(disks, map[string]string{})
 	if err != nil {
@@ -154,10 +145,7 @@ func TestCreateVMMultipleDisks(t *testing.T) {
 // TestCreateVMRebootGA tests that after creating a VM with multiple disks, if the vm
 // is expected to reboot during the test, a special guest attribute is used as the wait signal.
 func TestCreateVMRebootGA(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdSsd, SizeGb: 100}}
 	rebootGAParams := map[string]string{ShouldRebootDuringTest: "true"}
 	tvm, err := twf.CreateTestVMMultipleDisks(disks, rebootGAParams)
@@ -260,10 +248,7 @@ func TestCreateVMRebootGA(t *testing.T) {
 // TestRebootMultipleDisks creates a VM using multiple disks, and then runs
 // the same tests as TestReboot.
 func TestRebootMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	disks := []*compute.Disk{{Name: "vm"}, {Name: "mountdisk", Type: PdBalanced, SizeGb: 100}}
 	testMachineType := "c3-standard-4"
 	pdBalancedParams := map[string]string{"machineType": testMachineType}
@@ -302,10 +287,7 @@ func TestRebootMultipleDisks(t *testing.T) {
 // that the appropriate resize and new final wait steps are created in the
 // workflow.
 func TestResizeDiskAndReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -331,10 +313,7 @@ func TestResizeDiskAndReboot(t *testing.T) {
 // TestEnableSecureBoot tests that *TestVM.EnableSecureBoot succeeds and
 // populates the ShieldedInstanceConfig struct.
 func TestEnableSecureBoot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -384,12 +363,9 @@ func TestWaitForQuotaStep(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-			if err != nil {
-				t.Errorf("failed to create test workflow: %v", err)
-			}
+			twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 			for _, quota := range tc.input {
-				err = twf.waitForQuotaStep(quota, tc.name)
+				err := twf.waitForQuotaStep(quota, tc.name)
 				if err != nil {
 					t.Errorf("failed to append quota: %v", err)
 				}
@@ -414,10 +390,7 @@ func TestWaitForQuotaStep(t *testing.T) {
 // TestUseGVNIC tests that *TestVM.UseGVNIC succeeds and
 // populates the Network Interface with a NIC type of GVNIC.
 func TestUseGVNIC(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -434,10 +407,7 @@ func TestUseGVNIC(t *testing.T) {
 // TestAddAliasIPRanges tests that *TestVM.AddAliasIPRanges succeeds and that
 // it fails if *TestVM.AddCustomNetwork hasn't been called first.
 func TestAddAliasIPRanges(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -463,10 +433,7 @@ func TestAddAliasIPRanges(t *testing.T) {
 // TestSetCustomNetwork tests that *TestVM.AddCustomNetwork succeeds and that
 // it fails if testworkflow.CreateNetwork has not been called first.
 func TestSetCustomNetwork(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -484,10 +451,7 @@ func TestSetCustomNetwork(t *testing.T) {
 // succeeds with a subnet argument and that it fails if
 // *Network.CreateSubnetwork has not been called first.
 func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -511,10 +475,7 @@ func TestSetCustomNetworkAndSubnetwork(t *testing.T) {
 // TestAddSecondaryRange tests that AddSecondaryRange populates the
 // subnet.SecondaryIpRanges struct.
 func TestAddSecondaryRange(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	network, err := twf.CreateNetwork("network", false)
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
@@ -535,14 +496,11 @@ func TestAddSecondaryRange(t *testing.T) {
 // TestCreateNetworkDependenciesReverse tests that the create-vms step depends
 // on the create-networks step if they are created in order.
 func TestCreateNetworkDependencies(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
-	if _, err = twf.CreateNetwork("network", false); err != nil {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if _, err := twf.CreateNetwork("network", false); err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if _, err = twf.CreateTestVM("vm"); err != nil {
+	if _, err := twf.CreateTestVM("vm"); err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
 	if _, ok := twf.wf.Dependencies[createNetworkStepName]; ok {
@@ -567,14 +525,11 @@ func TestCreateNetworkDependencies(t *testing.T) {
 // TestCreateNetworkDependenciesReverse tests that the create-vms step depends
 // on the create-networks step if they are created in reverse.
 func TestCreateNetworkDependenciesReverse(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
-	if _, err = twf.CreateTestVM("vm"); err != nil {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if _, err := twf.CreateTestVM("vm"); err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
-	if _, err = twf.CreateNetwork("network", false); err != nil {
+	if _, err := twf.CreateNetwork("network", false); err != nil {
 		t.Errorf("failed to create network: %v", err)
 	}
 	if _, ok := twf.wf.Dependencies[createNetworkStepName]; ok {
@@ -597,10 +552,7 @@ func TestCreateNetworkDependenciesReverse(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create network: %v", err)
@@ -623,10 +575,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestForceMachineType(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -641,10 +590,7 @@ func TestForceMachineType(t *testing.T) {
 }
 
 func TestForceZone(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)

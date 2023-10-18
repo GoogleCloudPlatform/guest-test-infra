@@ -9,6 +9,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -153,7 +154,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
 		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
 		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
-		if strings.Contains(t.Image, "windows") {
+		if utils.HasFeature(t.Image, "WINDOWS") {
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 			if err != nil {
 				return err
@@ -174,18 +175,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	return nil
 }
 
-func skipTest(tc storagePerfTest, image string) bool {
-	if (strings.Contains(image, "arm64") && tc.arch != "ARM64") || (!strings.Contains(image, "arm64") && tc.arch == "ARM64") {
+// Due to compatability issues or other one off errors, some combinations of machine types and images must be skipped. This function returns true for those combinations.
+func skipTest(tc storagePerfTest, image *compute.Image) bool {
+	if image.Architecture != tc.arch {
 		return true
 	}
-	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Name, "windows-2012") || strings.Contains(image.Name, "windows-2016")) {
 		return true // Skip c3d on older windows
 	}
-	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
+	if strings.Contains(image.Name, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
 		return true // Skip c3 on older ubuntu
 	}
-	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && strings.Contains(image, "debian-10") {
-		return true // Skip debian 10 on gen 3 machine types.
+	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && !utils.HasFeature(image, "GVNIC") {
+		return true // Skip images without GVNIC on gen 3 machine types.
 	}
 	return false
 }

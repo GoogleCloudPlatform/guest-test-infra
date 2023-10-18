@@ -9,6 +9,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -16,7 +17,7 @@ import (
 var Name = "networkperf"
 
 type networkPerfTest struct {
-	machineType string   // Machinetype used for test
+	machineType string   // Machinetype used for test TODO make this a compute.MachineType so it can be passed to getExpectedPerf without parsing
 	zone        string   // (optional) zone required for machinetype
 	arch        string   // arch required for machinetype
 	networks    []string // Networks to test (TIER_1 and/or DEFAULT)
@@ -135,13 +136,11 @@ func getExpectedPerf(targetMap map[string]int, machineType string) (int, error) 
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// gVNIC not supported on certain images.
-		t.Skip(fmt.Sprintf("%v does not support gVNIC", t.Image))
-		return nil
+	if !utils.HasFeature(t.Image, "GVNIC") {
+		t.Skip(fmt.Sprintf("%s does not support GVNIC", t.Image.Name))
 	}
 	for _, tc := range networkPerfTestConfig {
-		if tc.arch == "ARM64" && !strings.Contains(t.Image, "arm64") || tc.arch != "ARM64" && strings.Contains(t.Image, "arm64") {
+		if tc.arch != t.Image.Architecture {
 			continue
 		}
 
@@ -178,7 +177,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		// Read startup scripts
 		var serverStartup string
 		var clientStartup string
-		if strings.Contains(t.Image, "windows") {
+		if utils.HasFeature(t.Image, "WINDOWS") {
 			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
 			if err != nil {
 				return err
@@ -284,7 +283,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfClientVM.AddMetadata("expectedperf", defaultPerfTarget)
 
 				// Set startup scripts.
-				if strings.Contains(t.Image, "windows") {
+				if utils.HasFeature(t.Image, "WINDOWS") {
 					serverVM.SetWindowsStartupScript(serverStartup)
 					clientVM.SetWindowsStartupScript(clientStartup)
 					jfServerVM.SetWindowsStartupScript(serverStartup)
@@ -306,14 +305,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfServerVM.RunTests("TestGVNICExists")
 				jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 			case "TIER_1":
-				numCPUs, err := strconv.Atoi(strings.Split(tc.machineType, "-")[2])
-				if err != nil {
-					return err
-				}
-				if numCPUs < 30 {
+				if t.MachineType.GuestCpus < 30 {
 					// Must have at least 30 vCPUs.
-					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.ShortImage, numCPUs)
-					return nil
+					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, t.MachineType.GuestCpus)
+					continue
 				}
 
 				// Get Tier1 targets.
@@ -365,7 +360,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
 
 				// Set startup scripts.
-				if strings.Contains(t.Image, "windows") {
+				if utils.HasFeature(t.Image, "WINDOWS") {
 					tier1ServerVM.SetWindowsStartupScript(serverStartup)
 					tier1ClientVM.SetWindowsStartupScript(clientStartup)
 				} else {

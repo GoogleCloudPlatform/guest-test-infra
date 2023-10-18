@@ -114,6 +114,21 @@ checking if a Linux binary exists.
 It is suggested to start by copying an existing test package. Do not forget to add
 your test to the relevant `setup.go` file in order to add the test to the test suite.
 
+### Modifying test behavior based on image properties ###
+
+For tests that need to behave different based on whether an image is arm or x86, or linux or windows, it is preferred to use compute API properties rather than relying on image naming conventions. These properties can be found on the testworkflow Image value. The list of values can be found in the compute API documentation [here](https://pkg.go.dev/google.golang.org/api/compute/v1#Image). Some examples are in the following code snippet.
+
+```go
+func Setup(t *imagetest.Testworkflow) {
+	if t.Image.Architecture == "ARM64" {
+	//...
+	} else if utils.HasFeature(t.Image, "GVNIC") {
+	//...
+	}
+}
+```
+
+
 ## Building the container image ##
 
 From the `imagetest` directory of this repository:

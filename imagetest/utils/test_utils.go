@@ -21,6 +21,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/crypto/ssh"
+	"google.golang.org/api/compute/v1"
 )
 
 const (
@@ -505,4 +506,14 @@ func GetMountDiskPartitionSymlink(mountDiskName string) (string, error) {
 		return "", fmt.Errorf("symlink could not be resolved with error: %v", err)
 	}
 	return symlinkRealPath, nil
+}
+
+// HasFeature reports whether a compute.Image has a GuestOsFeature tag.
+func HasFeature(img *compute.Image, feature string) bool {
+	for _, f := range img.GuestOsFeatures {
+		if f.Type == feature {
+			return true
+		}
+	}
+	return false
 }
