@@ -29,13 +29,20 @@ func TestNetworkPerformance(t *testing.T) {
 	}
 	expected := 0.85 * float64(expectedPerf)
 
-	// Get machine type name for logging.
+	// Get machine type and network name for logging.
 	machineType, err := utils.GetMetadata("machine-type")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 	machineTypeSplit := strings.Split(machineType, "/")
 	machineTypeName := machineTypeSplit[len(machineTypeSplit)-1]
+
+	network, err := utils.GetMetadata("network-interfaces/0/network")
+	if err != nil {
+		t.Fatal(err)
+	}
+	networkSplit := strings.Split(network, "/")
+	networkName := networkSplit[len(networkSplit)-1]
 
 	// Find actual performance..
 	var result_perf float64
@@ -47,7 +54,7 @@ func TestNetworkPerformance(t *testing.T) {
 
 	// Check if it matches the target.
 	if result_perf < expected {
-		t.Fatalf("Error: Did not meet performance expectation. Expected: %v Gbits/s, Actual: %v Gbits/s", expected, result_perf)
+		t.Fatalf("Error: Did not meet performance expectation on machine type %s with network %s. Expected: %v Gbits/s, Actual: %v Gbits/s", machineTypeName, networkName, expected, result_perf)
 	}
 	t.Logf("Machine type: %v, Expected: %v Gbits/s, Actual: %v Gbits/s", machineTypeName, expected, result_perf)
 }

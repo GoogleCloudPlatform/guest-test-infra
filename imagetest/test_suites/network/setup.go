@@ -3,6 +3,7 @@ package network
 import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -59,10 +60,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
 	// VM2 for multiNIC
-	vm2, err := t.CreateTestVM(vm2Config.name)
+	networkRebootParams := map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootParams)
 	if err != nil {
 		return err
 	}
+	vm2.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
 		return err
 	}

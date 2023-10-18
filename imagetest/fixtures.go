@@ -27,13 +27,14 @@ import (
 )
 
 const (
-	waitForVMQuotaStepName   = "wait-for-vm-quota"
-	createVMsStepName        = "create-vms"
-	createDisksStepName      = "create-disks"
-	createNetworkStepName    = "create-networks"
-	createFirewallStepName   = "create-firewalls"
-	createSubnetworkStepName = "create-sub-networks"
-	successMatch             = "FINISHED-TEST"
+	waitForVMQuotaStepName    = "wait-for-vm-quota"
+	createVMsStepName         = "create-vms"
+	createDisksStepName       = "create-disks"
+	waitForDisksQuotaStepName = "wait-for-disk-quota"
+	createNetworkStepName     = "create-networks"
+	createFirewallStepName    = "create-firewalls"
+	createSubnetworkStepName  = "create-sub-networks"
+	successMatch              = "FINISHED-TEST"
 	// ShouldRebootDuringTest is a local map key to indicate that the
 	// test will reboot and relies on results from the second boot.
 	ShouldRebootDuringTest = "shouldRebootDuringTest"
@@ -85,14 +86,31 @@ func (t *TestWorkflow) LockProject() {
 
 // WaitForVMQuota appends a list of quotas to the wait for vm quota step. Quotas with a blank region will be populated with the region corresponding to the workflow zone.
 func (t *TestWorkflow) WaitForVMQuota(qa *daisy.QuotaAvailable) error {
-	step, ok := t.wf.Steps[waitForVMQuotaStepName]
+	return t.waitForQuotaStep(qa, waitForVMQuotaStepName)
+}
+
+// WaitForDisksQuota appends a list of quotas to the wait for disk quota step. Quotas with a blank region will be populated with the region corresponding to the workflow zone.
+func (t *TestWorkflow) WaitForDisksQuota(qa *daisy.QuotaAvailable) error {
+	return t.waitForQuotaStep(qa, waitForDisksQuotaStepName)
+}
+
+func (t *TestWorkflow) waitForQuotaStep(qa *daisy.QuotaAvailable, stepname string) error {
+	step, ok := t.wf.Steps[stepname]
 	if !ok {
 		var err error
-		step, err = t.wf.NewStep(waitForVMQuotaStepName)
+		step, err = t.wf.NewStep(stepname)
 		if err != nil {
 			return err
 		}
 		step.WaitForAvailableQuotas = &daisy.WaitForAvailableQuotas{Interval: "90s"}
+	}
+	// If the step is already waiting for this quota, add the number of units to
+	// the existing quota.
+	for _, q := range step.WaitForAvailableQuotas.Quotas {
+		if q.Metric == qa.Metric && q.Region == qa.Region {
+			q.Units = q.Units + qa.Units
+			return nil
+		}
 	}
 	step.WaitForAvailableQuotas.Quotas = append(step.WaitForAvailableQuotas.Quotas, qa)
 	return nil

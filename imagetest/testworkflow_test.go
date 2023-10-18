@@ -21,6 +21,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -108,6 +109,61 @@ func TestAddWaitStep(t *testing.T) {
 	}
 	if instancesSignal[0].Stopped {
 		t.Error("waitInstances step is malformed")
+	}
+	guestAttributeSignal := instancesSignal[0].GuestAttribute
+	if guestAttributeSignal == nil {
+		t.Error("no guest attribute wait field was set for wait step")
+	}
+	if guestAttributeSignal.Namespace != utils.GuestAttributeTestNamespace {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.Namespace, utils.GuestAttributeTestNamespace)
+	}
+	if guestAttributeSignal.KeyName != utils.GuestAttributeTestKey {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.KeyName, utils.GuestAttributeTestKey)
+	}
+	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
+		t.Error("step was not correctly added to workflow")
+	}
+}
+
+// This tests that in the special case where the test reboots and we need results
+// from the second boot, the instance signal for the step is correct.
+func TestAddWaitRebootGAStep(t *testing.T) {
+	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
+	if err != nil {
+		t.Errorf("failed to create test workflow: %v", err)
+	}
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	step, err := twf.addWaitRebootGAStep("stepname", "vmname")
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Fatal("WaitForInstancesSignal step is missing")
+	}
+	instancesSignal := []*daisy.InstanceSignal(*step.WaitForInstancesSignal)
+	if len(instancesSignal) != 1 {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].Name != "vmname" {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].SerialOutput.SuccessMatch != successMatch {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].Stopped {
+		t.Error("waitInstances step is malformed")
+	}
+	guestAttributeSignal := instancesSignal[0].GuestAttribute
+	if guestAttributeSignal == nil {
+		t.Error("no guest attribute wait field was set for wait step")
+	}
+	if guestAttributeSignal.Namespace != utils.GuestAttributeTestNamespace {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.Namespace, utils.GuestAttributeTestNamespace)
+	}
+	if guestAttributeSignal.KeyName != utils.FirstBootGAKey {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.KeyName, utils.FirstBootGAKey)
 	}
 	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
