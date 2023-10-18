@@ -80,7 +80,7 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams map[string]string) (*daisy.Step, *daisy.Instance, error) {
+func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams *daisy.Instance) (*daisy.Step, *daisy.Instance, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
 	}
@@ -92,43 +92,23 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		suffix = ".exe"
 	}
 
-	instance := &daisy.Instance{}
+	instance := instanceParams
+	if instance == nil {
+		instance = &daisy.Instance{}
+	}
+
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
-	// An additional IAM scope may be passed in, such as for detachDisk and attachDisk calls.
-	if extraScopes, foundKey := instanceParams["extraScopes"]; foundKey {
-		instance.Scopes = append(instance.Scopes, extraScopes)
-	}
-
-	hostname, foundKey := instanceParams["hostname"]
-	if !foundKey {
-		hostname = ""
-	}
-	if hostname != "" && name != hostname {
-		instance.Hostname = hostname
-	}
-
-	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
-		instance.MinCpuPlatform = minCPUPlatform
-	}
-	if machineType, foundKey := instanceParams["machineType"]; foundKey {
-		instance.MachineType = machineType
-	}
-
-	if zone, foundKey := instanceParams["zone"]; foundKey {
-		instance.Zone = zone
-	}
 
 	for _, disk := range disks {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
 	}
 
-	instance.Metadata = make(map[string]string)
-	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
-	if shouldRebootDuringTest, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
-		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
+	if instance.Metadata == nil {
+		instance.Metadata = make(map[string]string)
 	}
+
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
