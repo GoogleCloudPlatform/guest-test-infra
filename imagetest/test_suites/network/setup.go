@@ -1,6 +1,7 @@
 package network
 
 import (
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
@@ -60,8 +61,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
 	// VM2 for multiNIC
-	networkRebootParams := map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootParams)
+	networkRebootInst := &daisy.Instance{}
+	networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootInst)
 	if err != nil {
 		return err
 	}

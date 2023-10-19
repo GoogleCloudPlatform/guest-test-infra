@@ -136,10 +136,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
 
-		vm, err := t.CreateTestVMMultipleDisks(
-			[]*compute.Disk{&bootDisk, &mountDisk},
-			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform, "zone": tc.zone},
-		)
+		daisyInst := &daisy.Instance{}
+		daisyInst.MachineType = tc.machineType
+		daisyInst.MinCpuPlatform = tc.minCPUPlatform
+		daisyInst.Zone = tc.zone
+		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, daisyInst)
 		if err != nil {
 			return err
 		}

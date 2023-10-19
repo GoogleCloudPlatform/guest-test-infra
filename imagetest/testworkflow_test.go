@@ -247,8 +247,9 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-		map[string]string{"hostname": ""})
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = ""
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -266,8 +267,9 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}},
-		map[string]string{"hostname": ""})
+	daisyInst2 := &daisy.Instance{}
+	daisyInst2.Hostname = ""
+	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}}, daisyInst2)
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -291,9 +293,11 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = ""
+	daisyInst.MachineType = "n1-standard-1"
 	step, instanceFromStep, err := twf.appendCreateVMStep([]*compute.Disk{
-		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}},
-		map[string]string{"hostname": "", "machineType": "n1-standard-1"})
+		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -324,8 +328,9 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-		map[string]string{"hostname": "vmname.example.com"})
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = "vmname.example.com"
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
