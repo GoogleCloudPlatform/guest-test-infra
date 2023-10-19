@@ -20,12 +20,13 @@ var Name = "storageperf"
 var scripts embed.FS
 
 type storagePerfTest struct {
-	machineType    string
-	arch           string
-	diskType       string
-	cpuMetric      string
-	minCPUPlatform string
-	zone           string
+	machineType      string
+	arch             string
+	diskType         string
+	cpuMetric        string
+	minCPUPlatform   string
+	zone             string
+	requiredFeatures []string
 }
 
 const (
@@ -35,11 +36,12 @@ const (
 
 var storagePerfTestConfig = []storagePerfTest{
 	{
-		arch:        "X86_64",
-		machineType: "h3-standard-88",
-		zone:        "us-central1-a",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "h3-standard-88",
+		zone:             "us-central1-a",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	/* temporarily disable c3d hyperdisk until the api allows it again
 	{
@@ -48,25 +50,29 @@ var storagePerfTestConfig = []storagePerfTest{
 		zone: "us-east4-c",
 		diskType: imagetest.HyperdiskExtreme,
 		cpuMetric: "CPUS", // No public metric for this yet but the CPU count will work because they're so large
+		requiredFeatures: []string{"GVNIC"},
 	},*/
 	{
-		arch:        "X86_64",
-		machineType: "c3d-standard-180",
-		zone:        "us-east4-c",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "c3d-standard-180",
+		zone:             "us-east4-c",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.HyperdiskExtreme,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.HyperdiskExtreme,
+		cpuMetric:        "C3_CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "C3_CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
 		arch:        "ARM64",
@@ -180,14 +186,16 @@ func skipTest(tc storagePerfTest, image *compute.Image) bool {
 	if image.Architecture != tc.arch {
 		return true
 	}
-	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Name, "windows-2012") || strings.Contains(image.Name, "windows-2016")) {
+	for _, feat := range tc.requiredFeatures {
+		if !utils.HasFeature(image, feat) {
+			return true
+		}
+	}
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Family, "windows-2012") || strings.Contains(image.Family, "windows-2016")) {
 		return true // Skip c3d on older windows
 	}
 	if strings.Contains(image.Name, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
 		return true // Skip c3 on older ubuntu
-	}
-	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && !utils.HasFeature(image, "GVNIC") {
-		return true // Skip images without GVNIC on gen 3 machine types.
 	}
 	return false
 }
