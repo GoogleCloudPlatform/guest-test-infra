@@ -192,7 +192,7 @@ func skipTest(tc storagePerfTest, image *compute.Image) bool {
 			return true
 		}
 	}
-	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Family, "windows-2012") || strings.Contains(image.Family, "windows-2016")) {
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Family, "windows-server-2016") || strings.Contains(image.Family, "windows-2016")) {
 		return true // Skip c3d on older windows
 	}
 	if strings.Contains(image.Name, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
