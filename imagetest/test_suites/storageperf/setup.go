@@ -20,12 +20,12 @@ var Name = "storageperf"
 var scripts embed.FS
 
 type storagePerfTest struct {
-	machineType    string
-	arch           string
-	diskType       string
-	cpuMetric      string
-	minCPUPlatform string
-	zone           string
+	machineType      string
+	arch             string
+	diskType         string
+	cpuMetric        string
+	minCPUPlatform   string
+	zone             string
 	requiredFeatures []string
 }
 
@@ -36,11 +36,11 @@ const (
 
 var storagePerfTestConfig = []storagePerfTest{
 	{
-		arch:        "X86_64",
-		machineType: "h3-standard-88",
-		zone:        "us-central1-a",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "h3-standard-88",
+		zone:             "us-central1-a",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	/* temporarily disable c3d hyperdisk until the api allows it again
@@ -53,25 +53,25 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},*/
 	{
-		arch:        "X86_64",
-		machineType: "c3d-standard-180",
-		zone:        "us-east4-c",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "c3d-standard-180",
+		zone:             "us-east4-c",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.HyperdiskExtreme,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.HyperdiskExtreme,
+		cpuMetric:        "C3_CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "C3_CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
