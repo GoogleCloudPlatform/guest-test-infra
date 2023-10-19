@@ -4,8 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
+	"regexp"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -17,7 +16,7 @@ import (
 var Name = "networkperf"
 
 type networkPerfTest struct {
-	machineType string   // Machinetype used for test TODO make this a compute.MachineType so it can be passed to getExpectedPerf without parsing
+	machineType string   // Machinetype used for test
 	zone        string   // (optional) zone required for machinetype
 	arch        string   // arch required for machinetype
 	networks    []string // Networks to test (TIER_1 and/or DEFAULT)
@@ -107,26 +106,19 @@ const (
 // getExpectedPerf gets the expected performance of the given machine type. Since the targets map only contains breakpoints in vCPUs at which
 // each machine type's expected performance changes, find the highest breakpoint at which the expected performance would change, then return
 // the performance at said breakpoint.
-func getExpectedPerf(targetMap map[string]int, machineType string) (int, error) {
+func getExpectedPerf(targetMap map[string]int, machineType *compute.MachineType) (int, error) {
 	// Return if already at breakpoint.
-	perf, found := targetMap[machineType]
+	perf, found := targetMap[machineType.Name]
 	if found {
 		return perf, nil
 	}
 
-	machineTypeSplit := strings.Split(machineType, "-")
-	family := machineTypeSplit[0]
-	familyType := machineTypeSplit[1]
-	numCPUs, err := strconv.Atoi(machineTypeSplit[2])
-	fmt.Printf("Current cpu: %v", numCPUs)
-	if err != nil {
-		return 0, nil
-	}
+	numCPUs := machineType.GuestCpus
 
 	// Decrement numCPUs until a breakpoint is found.
 	for !found {
 		numCPUs--
-		perf, found = targetMap[strings.Join([]string{family, familyType, fmt.Sprint(numCPUs)}, "-")]
+		perf, found = targetMap[regexp.MustCompile("-[0-9]+$").ReplaceAllString(machineType.Name, fmt.Sprintf("-%d", numCPUs))]
 		if !found && numCPUs <= 1 {
 			return 0, fmt.Errorf("Error: appropriate perf target not found for %v", machineType)
 		}
@@ -146,6 +138,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		if tc.quota != nil {
 			t.WaitForVMQuota(tc.quota)
+		}
+		machine, err := t.Client.GetMachineType(t.Project.Name, t.Zone.Name, tc.machineType)
+		if err != nil {
+			return err
 		}
 
 		// Create network containing everything
@@ -212,7 +208,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				if err := json.Unmarshal(defaultPerfTargetsString, &defaultPerfTargets); err != nil {
 					return err
 				}
-				defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, tc.machineType)
+				defaultPerfTargetInt, err := getExpectedPerf(defaultPerfTargets, machine)
 				if err != nil {
 					return fmt.Errorf("could not get default perf target: %v", err)
 				}
@@ -305,9 +301,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfServerVM.RunTests("TestGVNICExists")
 				jfClientVM.RunTests("TestGVNICExists|TestNetworkPerformance")
 			case "TIER_1":
-				if t.MachineType.GuestCpus < 30 {
+				if machine.GuestCpus < 30 {
 					// Must have at least 30 vCPUs.
-					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, t.MachineType.GuestCpus)
+					fmt.Printf("%v: Skipping tier1 tests - not enough vCPUs (need at least 30, have %v)\n", t.Image.Name, machine.GuestCpus)
 					continue
 				}
 
@@ -320,7 +316,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				if err := json.Unmarshal(tier1PerfTargetsString, &tier1PerfTargets); err != nil {
 					return err
 				}
-				tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, tc.machineType)
+				tier1PerfTargetInt, err := getExpectedPerf(tier1PerfTargets, machine)
 				if err != nil {
 					return fmt.Errorf("could not get tier 1 perf target: %v", err)
 				}
