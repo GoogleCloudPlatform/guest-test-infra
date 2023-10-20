@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package imagevalidation
+package hostnamevalidation
 
 import (
 	"crypto/md5"
