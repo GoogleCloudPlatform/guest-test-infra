@@ -15,13 +15,14 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/cvm"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hostnamevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imagevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/packagevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/shapevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
@@ -139,8 +140,8 @@ func main() {
 			networkperf.TestSetup,
 		},
 		{
-			imagevalidation.Name,
-			imagevalidation.TestSetup,
+			hostnamevalidation.Name,
+			hostnamevalidation.TestSetup,
 		},
 		{
 			imageboot.Name,
@@ -165,6 +166,10 @@ func main() {
 		{
 			shapevalidation.Name,
 			shapevalidation.TestSetup,
+		},
+		{
+			packagevalidation.Name,
+			packagevalidation.TestSetup,
 		},
 		{
 			storageperf.Name,
