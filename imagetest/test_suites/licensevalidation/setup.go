@@ -1,9 +1,9 @@
-package packagevalidation
+package licensevalidation
 
 import "github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 
 // Name is the name of the test package. It must match the directory name.
-var Name = "packagevalidation"
+var Name = "licensevalidation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -11,7 +11,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm1.RunTests("TestStandardPrograms|TestGuestPackages|TestNTPService")
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		vm1.RunTests("TestWindowsActivationStatus")
+	} else {
+		vm1.RunTests("TestArePackagesLegal")
+	}
 
 	return nil
 }
