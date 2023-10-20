@@ -245,6 +245,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.AddMetadata("enable-guest-attributes", "TRUE")
 				clientVM.AddMetadata("iperftarget", serverConfig.ip)
 				clientVM.AddMetadata("expectedperf", defaultPerfTarget)
+				clientVM.AddMetadata("network-tier", net)
 
 				// Jumbo frames VMs.
 				jfServerDisk := compute.Disk{Name: jfServerConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
@@ -277,6 +278,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfClientVM.AddMetadata("enable-guest-attributes", "TRUE")
 				jfClientVM.AddMetadata("iperftarget", jfServerConfig.ip)
 				jfClientVM.AddMetadata("expectedperf", defaultPerfTarget)
+				jfClientVM.AddMetadata("network-tier", net)
 
 				// Set startup scripts.
 				if utils.HasFeature(t.Image, "WINDOWS") {
@@ -354,6 +356,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1ClientVM.AddMetadata("enable-guest-attributes", "TRUE")
 				tier1ClientVM.AddMetadata("iperftarget", tier1ServerConfig.ip)
 				tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
+				tier1ClientVM.AddMetadata("network-tier", net)
 
 				// Set startup scripts.
 				if utils.HasFeature(t.Image, "WINDOWS") {
