@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package hostnamevalidation
+package licensevalidation
 
 import (
 	"testing"

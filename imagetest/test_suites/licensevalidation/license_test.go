@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package packagevalidation
+package licensevalidation
 
 import (
 	"fmt"
@@ -201,6 +201,27 @@ func TestArePackagesLegal(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestWindowsActivationStatus(t *testing.T) {
+	image, err := utils.GetMetadata("image")
+	if err != nil {
+		t.Fatalf("Couldn't get image from metadata %v", err)
+	}
+	if utils.IsWindowsClient(image) {
+		t.Skip("Activation status only checked on server images.")
+	}
+
+	command := "cscript C:\\Windows\\system32\\slmgr.vbs /dli"
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		t.Fatalf("Error getting license status: %v", err)
+	}
+
+	if !strings.Contains(output.Stdout, "License Status: Licensed") {
+		t.Fatalf("Activation info does not contain 'Licensed': %s", output.Stdout)
+	}
+
 }
 
 func isPackageLegal(filepath string) (bool, error) {

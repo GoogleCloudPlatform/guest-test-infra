@@ -11,7 +11,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm1.RunTests("TestArePackagesLegal|TestStandardPrograms|TestGuestPackages|TestNTPService")
+	vm1.RunTests("TestStandardPrograms|TestGuestPackages|TestNTPService")
 
 	return nil
 }

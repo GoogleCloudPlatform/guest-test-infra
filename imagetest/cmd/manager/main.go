@@ -18,6 +18,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hostnamevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/licensevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
@@ -146,6 +147,10 @@ func main() {
 		{
 			imageboot.Name,
 			imageboot.TestSetup,
+		},
+		{
+			licensevalidation.Name,
+			licensevalidation.TestSetup,
 		},
 		{
 			network.Name,
