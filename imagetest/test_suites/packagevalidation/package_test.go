@@ -36,6 +36,7 @@ func TestStandardPrograms(t *testing.T) {
 }
 
 func TestGuestPackages(t *testing.T) {
+	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't determine image from metadata")

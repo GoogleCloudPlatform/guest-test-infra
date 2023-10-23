@@ -11,27 +11,19 @@ var Name = "hostnamevalidation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	// most of the tests are still linux specific for now, so skip most on windows.
-	if utils.HasFeature(t.Image, "WINDOWS") {
-		vm1, err := t.CreateTestVM("vm1")
-		if err != nil {
-			return err
-		}
-		vm1.RunTests("TestHostname")
-		return nil
-	} else {
-		vm1, err := t.CreateTestVM("vm1")
-		if err != nil {
-			return err
-		}
-		vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce|TestHostsFile")
-
+	vm1, err := t.CreateTestVM("vm1")
+	if err != nil {
+		return err
+	}
+	vm1.RunTests("TestHostname|TestFQDN|TestHostKeysGeneratedOnce|TestHostsFile")
+	// custom host name test not yet implemented for windows
+	if !utils.HasFeature(t.Image, "WINDOWS") {
 		vm2, err := t.CreateTestVM("vm2.custom.domain")
 		if err != nil {
 			return err
 		}
 		vm2.RunTests("TestCustomHostname")
-
-		return nil
 	}
+
+	return nil
 }

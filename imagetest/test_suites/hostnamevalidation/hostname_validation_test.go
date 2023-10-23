@@ -93,6 +93,7 @@ func TestCustomHostname(t *testing.T) {
 
 // TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
+	utils.LinuxOnly(t)
 	// TODO Zonal DNS is breaking this test case in EL9.
 	image, err := utils.GetMetadata("image")
 	if err != nil {
@@ -155,6 +156,7 @@ type sshKeyHash struct {
 
 // TestHostKeysGeneratedOnces checks that the guest agent only generates host keys one time.
 func TestHostKeysGeneratedOnce(t *testing.T) {
+	utils.LinuxOnly(t)
 	sshDir := "/etc/ssh/"
 	sshfiles, err := ioutil.ReadDir(sshDir)
 	if err != nil {
@@ -221,6 +223,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 }
 
 func TestHostsFile(t *testing.T) {
+	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
