@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -17,6 +18,38 @@ import (
 )
 
 const gcomment = "# Added by Google"
+
+
+func TestHostnameWindows(shortname string) error {
+	command := "[System.Net.Dns]::GetHostName()"
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return fmt.Errorf("Error getting hostname: %v", err)
+	}
+	hostname := strings.TrimSpace(output.Stdout)
+
+	if hostname != shortname {
+		return fmt.Errorf("Expected Hostname: '%s', Actual Hostname: '%s'", shortname, hostname)
+	}
+	return nil
+}
+
+func TestHostnameLinux(shortname string) error{
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("couldn't determine local hostname")
+	}
+
+	if hostname != shortname {
+		return fmt.Errorf("hostname does not match metadata. Expected: %q got: %q", shortname, hostname)
+	}
+
+	// If hostname is FQDN then lots of tools (e.g. ssh-keygen) have issues
+	if strings.Contains(hostname, ".") {
+		return fmt.Errorf("hostname contains '.'")
+	}
+	return nil
+}
 
 func TestHostname(t *testing.T) {
 	metadataHostname, err := utils.GetMetadata("hostname")
@@ -27,18 +60,14 @@ func TestHostname(t *testing.T) {
 	// 'hostname' in metadata is fully qualified domain name.
 	shortname := strings.Split(metadataHostname, ".")[0]
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		t.Fatalf("couldn't determine local hostname")
-	}
-
-	if hostname != shortname {
-		t.Errorf("hostname does not match metadata. Expected: %q got: %q", shortname, hostname)
-	}
-
-	// If hostname is FQDN then lots of tools (e.g. ssh-keygen) have issues
-	if strings.Contains(hostname, ".") {
-		t.Errorf("hostname contains '.'")
+	if runtime.GOOS == "windows" {
+		if err = TestHostnameWindows(shortname); err != nil {
+			t.Fatalf("windows hostname error: %v", err)
+		}
+	} else {
+		if err = TestHostnameLinux(shortname); err != nil {
+			t.Fatalf("linux hostname error: %v", err)
+		}
 	}
 }
 

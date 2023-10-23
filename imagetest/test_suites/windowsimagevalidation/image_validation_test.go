@@ -50,28 +50,6 @@ func TestDiskReadWrite(t *testing.T) {
 	}
 }
 
-func TestHostname(t *testing.T) {
-	metadataHostname, err := utils.GetMetadata("hostname")
-	if err != nil {
-		t.Fatalf(" still couldn't determine metadata hostname")
-	}
-
-	// 'hostname' in metadata is fully qualified domain name.
-	shortname := strings.Split(metadataHostname, ".")[0]
-
-	command := "[System.Net.Dns]::GetHostName()"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting hostname: %v", err)
-	}
-	hostname := strings.TrimSpace(output.Stdout)
-
-	if hostname != shortname {
-		t.Fatalf("Expected Hostname: '%s', Actual Hostname: '%s'", shortname, hostname)
-	}
-
-}
-
 func TestAutoUpdateEnabled(t *testing.T) {
 	command := `$au_path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
     $au = Get-Itemproperty -Path $au_path
