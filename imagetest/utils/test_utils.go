@@ -326,6 +326,13 @@ func CheckLinuxCmdExists(cmd string) bool {
 	return false
 }
 
+// LinuxOnly skips tests not on Linux.
+func LinuxOnly(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Test only run on linux.")
+	}
+}
+
 // WindowsOnly skips tests not on Windows.
 func WindowsOnly(t *testing.T) {
 	if runtime.GOOS != "windows" {

@@ -5,6 +5,9 @@ package packagevalidation
 
 import (
 	"os/exec"
+	"regexp"
+	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -21,12 +24,20 @@ const (
 	timedatectlCmd   = "timedatectl"
 )
 
-// TestNTPService Verify that ntp package exist and configuration is correct.
+func TestNTP(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		testNTPWindows(t)
+	} else {
+		testNTPServiceLinux(t)
+	}
+}
+
+// testNTPService Verify that ntp package exist and configuration is correct.
 // debian 9, ubuntu 16.04 ntp
 // debian 12 systemd-timesyncd
 // sles-12 ntpd
 // other distros chronyd
-func TestNTPService(t *testing.T) {
+func testNTPServiceLinux(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
@@ -74,5 +85,49 @@ func TestNTPService(t *testing.T) {
 	systemctlCmd := exec.Command("systemctl", "is-active", servicename)
 	if err := systemctlCmd.Run(); err != nil {
 		t.Fatalf("%s service is not running", servicename)
+	}
+}
+
+func testNTPWindows(t *testing.T) {
+	command := "w32tm /query /peers /verbose"
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		t.Fatalf("Error getting NTP information: %v", err)
+	}
+
+	expected := []string{
+		"#Peers: 1",
+		"Peer: metadata.google.internal,0x1",
+		"LastSyncErrorMsgId: 0x00000000 (Succeeded)",
+	}
+
+	for _, exp := range expected {
+		if !strings.Contains(output.Stdout, exp) {
+			t.Fatalf("Expected info %s not found in peer_info: %s", exp, output.Stdout)
+		}
+	}
+
+	// NTP can take time to get to an active state.
+	if !(strings.Contains(output.Stdout, "State: Active") || strings.Contains(output.Stdout, "State: Pending")) {
+		t.Fatalf("Expected State: Active or Pending in: %s", output.Stdout)
+	}
+
+	r, err := regexp.Compile("Time Remaining: ([0-9\\.]+)s")
+	if err != nil {
+		t.Fatalf("Error creating regexp: %v", err)
+	}
+
+	remaining := r.FindStringSubmatch(output.Stdout)[1]
+	remainingTime, err := strconv.ParseFloat(remaining, 32)
+	if err != nil {
+		t.Fatalf("Unexpected remaining time value: %s", remaining)
+	}
+
+	if remainingTime < 0.0 {
+		t.Fatalf("Invalid remaining time: %f", remainingTime)
+	}
+
+	if remainingTime > 900.0 {
+		t.Fatalf("Time remaining is longer than the 15 minute poll interval: %f", remainingTime)
 	}
 }

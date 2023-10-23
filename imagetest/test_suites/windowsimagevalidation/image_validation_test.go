@@ -5,7 +5,6 @@ package windowsimagevalidation
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -48,28 +47,6 @@ func TestDiskReadWrite(t *testing.T) {
 	if !strings.Contains(output.Stdout, content) {
 		t.Fatalf("Moved file does not contain expected content. Expected: '%s', Actual: '%s'", content, output.Stdout)
 	}
-}
-
-func TestHostname(t *testing.T) {
-	metadataHostname, err := utils.GetMetadata("hostname")
-	if err != nil {
-		t.Fatalf(" still couldn't determine metadata hostname")
-	}
-
-	// 'hostname' in metadata is fully qualified domain name.
-	shortname := strings.Split(metadataHostname, ".")[0]
-
-	command := "[System.Net.Dns]::GetHostName()"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting hostname: %v", err)
-	}
-	hostname := strings.TrimSpace(output.Stdout)
-
-	if hostname != shortname {
-		t.Fatalf("Expected Hostname: '%s', Actual Hostname: '%s'", shortname, hostname)
-	}
-
 }
 
 func TestAutoUpdateEnabled(t *testing.T) {
@@ -261,50 +238,6 @@ func TestServicesState(t *testing.T) {
 		if !strings.Contains(output.Stdout, "Running") || !strings.Contains(output.Stdout, "Automatic") {
 			t.Fatalf("'Running' or 'Automatic not found in service state for %s: %s", service, output.Stdout)
 		}
-	}
-}
-
-func TestNtp(t *testing.T) {
-	command := "w32tm /query /peers /verbose"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting NTP information: %v", err)
-	}
-
-	expected := []string{
-		"#Peers: 1",
-		"Peer: metadata.google.internal,0x1",
-		"LastSyncErrorMsgId: 0x00000000 (Succeeded)",
-	}
-
-	for _, exp := range expected {
-		if !strings.Contains(output.Stdout, exp) {
-			t.Fatalf("Expected info %s not found in peer_info: %s", exp, output.Stdout)
-		}
-	}
-
-	// NTP can take time to get to an active state.
-	if !(strings.Contains(output.Stdout, "State: Active") || strings.Contains(output.Stdout, "State: Pending")) {
-		t.Fatalf("Expected State: Active or Pending in: %s", output.Stdout)
-	}
-
-	r, err := regexp.Compile("Time Remaining: ([0-9\\.]+)s")
-	if err != nil {
-		t.Fatalf("Error creating regexp: %v", err)
-	}
-
-	remaining := r.FindStringSubmatch(output.Stdout)[1]
-	remainingTime, err := strconv.ParseFloat(remaining, 32)
-	if err != nil {
-		t.Fatalf("Unexpected remaining time value: %s", remaining)
-	}
-
-	if remainingTime < 0.0 {
-		t.Fatalf("Invalid remaining time: %f", remainingTime)
-	}
-
-	if remainingTime > 900.0 {
-		t.Fatalf("Time remaining is longer than the 15 minute poll interval: %f", remainingTime)
 	}
 }
 
