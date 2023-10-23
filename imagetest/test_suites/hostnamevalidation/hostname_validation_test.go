@@ -19,8 +19,7 @@ import (
 
 const gcomment = "# Added by Google"
 
-
-func TestHostnameWindows(shortname string) error {
+func testHostnameWindows(shortname string) error {
 	command := "[System.Net.Dns]::GetHostName()"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -34,7 +33,7 @@ func TestHostnameWindows(shortname string) error {
 	return nil
 }
 
-func TestHostnameLinux(shortname string) error{
+func testHostnameLinux(shortname string) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("couldn't determine local hostname")
@@ -61,11 +60,11 @@ func TestHostname(t *testing.T) {
 	shortname := strings.Split(metadataHostname, ".")[0]
 
 	if runtime.GOOS == "windows" {
-		if err = TestHostnameWindows(shortname); err != nil {
+		if err = testHostnameWindows(shortname); err != nil {
 			t.Fatalf("windows hostname error: %v", err)
 		}
 	} else {
-		if err = TestHostnameLinux(shortname); err != nil {
+		if err = testHostnameLinux(shortname); err != nil {
 			t.Fatalf("linux hostname error: %v", err)
 		}
 	}

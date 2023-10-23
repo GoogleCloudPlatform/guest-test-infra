@@ -5,7 +5,9 @@ package packagevalidation
 
 import (
 	"os/exec"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -24,18 +26,18 @@ const (
 
 func TestNTP(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		TestNTPWindows(t)
+		testNTPWindows(t)
 	} else {
-		TestNTPServiceLinux(t)
+		testNTPServiceLinux(t)
 	}
 }
 
-// TestNTPService Verify that ntp package exist and configuration is correct.
+// testNTPService Verify that ntp package exist and configuration is correct.
 // debian 9, ubuntu 16.04 ntp
 // debian 12 systemd-timesyncd
 // sles-12 ntpd
 // other distros chronyd
-func TestNTPServiceLinux(t *testing.T) {
+func testNTPServiceLinux(t *testing.T) {
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
@@ -86,7 +88,7 @@ func TestNTPServiceLinux(t *testing.T) {
 	}
 }
 
-func TestNTPWindows(t *testing.T) {
+func testNTPWindows(t *testing.T) {
 	command := "w32tm /query /peers /verbose"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
