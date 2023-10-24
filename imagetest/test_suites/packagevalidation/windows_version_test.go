@@ -29,27 +29,8 @@ func (v version) lessThan(check version) bool {
 
 }
 
-func TestDiskReadWrite(t *testing.T) {
-	testFile := "C:\\test.txt"
-	newTestFile := "C:\\testnew.txt"
-	content := "Test File Content"
-	command := fmt.Sprintf("Set-Content %s \"%s\"", testFile, content)
-	utils.FailOnPowershellFail(command, "Error writing file", t)
-
-	command = fmt.Sprintf("Move-Item -Force %s %s", testFile, newTestFile)
-	utils.FailOnPowershellFail(command, "Error moving file", t)
-
-	command = fmt.Sprintf("Get-Content %s", newTestFile)
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error reading file: %v", err)
-	}
-	if !strings.Contains(output.Stdout, content) {
-		t.Fatalf("Moved file does not contain expected content. Expected: '%s', Actual: '%s'", content, output.Stdout)
-	}
-}
-
 func TestAutoUpdateEnabled(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := `$au_path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
     $au = Get-Itemproperty -Path $au_path
     if ($au.NoAutoUpdate -eq 1) {exit 1}
@@ -76,6 +57,7 @@ func TestAutoUpdateEnabled(t *testing.T) {
 }
 
 func TestNetworkConnecton(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "Test-Connection www.google.com -Count 1 -ErrorAction stop -quiet"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -90,6 +72,7 @@ func TestNetworkConnecton(t *testing.T) {
 }
 
 func TestEmsEnabled(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "& bcdedit | Select-String -Quiet -Pattern \"ems * Yes\""
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -104,6 +87,7 @@ func TestEmsEnabled(t *testing.T) {
 }
 
 func TestTimeZoneUTC(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "(Get-CimInstance Win32_OperatingSystem).CurrentTimeZone"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -116,6 +100,7 @@ func TestTimeZoneUTC(t *testing.T) {
 }
 
 func TestPowershellVersion(t *testing.T) {
+	utils.WindowsOnly(t)
 	expectedVersion := version{major: 5, minor: 1}
 	var actualVersion version
 	command := "$PSVersionTable.PSVersion.Major"
@@ -147,6 +132,7 @@ func TestPowershellVersion(t *testing.T) {
 }
 
 func TestStartExe(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "Start-Process cmd -Args '/c typeperf \"\\Memory\\Available bytes\"'"
 	err := utils.CheckPowershellSuccess(command)
 	if err != nil {
@@ -184,6 +170,7 @@ func TestStartExe(t *testing.T) {
 }
 
 func TestDotNETVersion(t *testing.T) {
+	utils.WindowsOnly(t)
 	expectedVersion := version{major: 4, minor: 7}
 	command := "Get-ItemProperty \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\" -Name Version | Select-Object -ExpandProperty Version"
 
@@ -212,6 +199,7 @@ func TestDotNETVersion(t *testing.T) {
 }
 
 func TestServicesState(t *testing.T) {
+	utils.WindowsOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
@@ -242,6 +230,7 @@ func TestServicesState(t *testing.T) {
 }
 
 func TestWindowsEdition(t *testing.T) {
+	utils.WindowsOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
@@ -260,6 +249,7 @@ func TestWindowsEdition(t *testing.T) {
 }
 
 func TestWindowsCore(t *testing.T) {
+	utils.WindowsOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)

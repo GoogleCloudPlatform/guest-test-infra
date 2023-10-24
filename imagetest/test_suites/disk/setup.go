@@ -2,6 +2,7 @@ package disk
 
 import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -18,5 +19,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	return vm.ResizeDiskAndReboot(resizeDiskSize)
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		vm.RunTests(TestDiskReadWrite)
+		return nil
+	} else {
+		return vm.ResizeDiskAndReboot(resizeDiskSize)
+	}
 }

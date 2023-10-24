@@ -23,6 +23,7 @@ const (
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
+	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
