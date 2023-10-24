@@ -19,9 +19,12 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if utils.HasFeature(t.Image, "WINDOWS") {
-		vm.RunTests("TestDiskReadWrite")
-		return nil
+	// currently the Resize and Reboot disk test is only built for linux
+	if !utils.HasFeature(t.Image, "WINDOWS") {
+		if err = vm.ResizeDiskAndReboot(resizeDiskSize); err != nil {
+			return err
+		}
 	}
-	return vm.ResizeDiskAndReboot(resizeDiskSize)
+	vm.RunTests("TestDiskReadWrite|TestDiskResize")
+	return nil
 }
