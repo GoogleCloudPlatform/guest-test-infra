@@ -20,7 +20,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	if utils.HasFeature(t.Image, "WINDOWS") {
-		vm.RunTests(TestDiskReadWrite)
+		vm.RunTests("TestDiskReadWrite")
 		return nil
 	} else {
 		return vm.ResizeDiskAndReboot(resizeDiskSize)
