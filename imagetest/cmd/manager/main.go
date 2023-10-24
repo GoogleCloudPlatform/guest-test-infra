@@ -29,7 +29,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowscontainers"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowsimagevalidation"
 )
@@ -195,10 +194,6 @@ func main() {
 		{
 			oslogin.Name,
 			oslogin.TestSetup,
-		},
-		{
-			windows.Name,
-			windows.TestSetup,
 		},
 		{
 			windowscontainers.Name,

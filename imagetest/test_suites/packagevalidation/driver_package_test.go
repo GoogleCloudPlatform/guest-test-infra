@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package windows
+package packagevalidation
 
 import (
 	"fmt"
