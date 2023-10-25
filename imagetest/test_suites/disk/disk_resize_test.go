@@ -1,5 +1,5 @@
-//go:build linux && cit
-// +build linux,cit
+//go:build cit
+// +build cit
 
 package disk
 
@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"os/exec"
+	"strconv"
 	"strings"
 	"testing"
-
-	"golang.org/x/sys/unix"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -23,6 +23,8 @@ const (
 
 // TestDiskResize Validate the filesystem is resized on reboot after a disk resize.
 func TestDiskResize(t *testing.T) {
+	// TODO: test disk resizing on windows
+	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata("image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
@@ -49,13 +51,30 @@ func TestDiskResize(t *testing.T) {
 	}
 }
 
-func verifyDiskSize(expectedGb int) error {
-	var stat unix.Statfs_t
-	if err := unix.Statfs("/", &stat); err != nil {
-		return err
+func getDiskSize() (int64, error) {
+	fstatOut, err := exec.Command("df", "-B1", "--output=size", "/").CombinedOutput()
+	if err != nil {
+		return 0, fmt.Errorf("df command failed with error %v", err)
 	}
-	// Total blocks * size per block = total space in bytes
-	diskSize := stat.Blocks * uint64(stat.Bsize)
+	fstatOutString := strings.TrimSpace(string(fstatOut))
+	fstatOutLines := strings.Split(fstatOutString, "\n")
+	if len(fstatOutLines) != 2 {
+		return 0, fmt.Errorf("expected 2 lines from fstat output, got string %s", fstatOutString)
+	}
+
+	for _, fstatOutLine := range fstatOutLines {
+		if diskSize, err := strconv.ParseInt(strings.TrimSpace(fstatOutLine), 10, 64); err == nil {
+			return diskSize, nil
+		}
+	}
+	return 0, fmt.Errorf("could not find disk size in fstat output %s", fstatOutString)
+}
+
+func verifyDiskSize(expectedGb int) error {
+	diskSize, err := getDiskSize()
+	if err != nil {
+		return fmt.Errorf("could not get disk size: err %v", err)
+	}
 	expectedSize := expectedGb * gb
 	maxDiff := float64(expectedSize) * 0.1
 	if math.Abs(float64(diskSize)-float64(expectedSize)) > maxDiff {
