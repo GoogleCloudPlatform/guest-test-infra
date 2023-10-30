@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmptyTest(t *testing.T) {
-	_, err := utils.GetMetadataAttribute("ssh-keys")
+	_, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "ssh-keys")
 	if err != nil {
 		t.Fatalf("couldn't get ssh public key from metadata")
 	}
@@ -26,7 +26,7 @@ func TestSSHInstanceKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
-	pembytes, err := utils.DownloadPrivateKey(user)
+	pembytes, err := utils.DownloadPrivateKey(utils.Context(t), user)
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}

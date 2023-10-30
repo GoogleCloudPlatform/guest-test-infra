@@ -18,8 +18,8 @@ const (
 )
 
 // TestStartupScriptFailedLinux tests that a script failed execute doesn't crash the vm.
-func testStartupScriptFailedLinux() error {
-	if _, err := utils.GetMetadataAttribute("startup-script"); err != nil {
+func testStartupScriptFailedLinux(t *testing.T) error {
+	if _, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "startup-script"); err != nil {
 		return fmt.Errorf("couldn't get startup-script from metadata, %v", err)
 	}
 
@@ -27,8 +27,8 @@ func testStartupScriptFailedLinux() error {
 }
 
 // TestStartupScriptFailedWindows tests that a script failed execute doesn't crash the vm.
-func testStartupScriptFailedWindows() error {
-	if _, err := utils.GetMetadataAttribute("windows-startup-script-ps1"); err != nil {
+func testStartupScriptFailedWindows(t *testing.T) error {
+	if _, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "windows-startup-script-ps1"); err != nil {
 		return fmt.Errorf("couldn't get windows-startup-script-ps1 from metadata, %v", err)
 	}
 
@@ -72,7 +72,7 @@ func testDaemonScriptWindows() error {
 // TestStartupScripts verifies that the standard metadata script could run successfully
 // by checking the output content of the Startup script.
 func TestStartupScripts(t *testing.T) {
-	result, err := utils.GetMetadataGuestAttribute("testing/result")
+	result, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read startup script result key: %v", err)
 	}
@@ -84,11 +84,11 @@ func TestStartupScripts(t *testing.T) {
 // Determine if the OS is Windows or Linux and run the appropriate failure test.
 func TestStartupScriptsFailed(t *testing.T) {
 	if utils.IsWindows() {
-		if err := testStartupScriptFailedWindows(); err != nil {
+		if err := testStartupScriptFailedWindows(t); err != nil {
 			t.Fatalf("Startup script failure test failed with error: %v", err)
 		}
 	} else {
-		if err := testStartupScriptFailedLinux(); err != nil {
+		if err := testStartupScriptFailedLinux(t); err != nil {
 			t.Fatalf("Shutdown script failure test failed with error: %v", err)
 		}
 	}

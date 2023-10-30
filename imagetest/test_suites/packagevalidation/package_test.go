@@ -13,7 +13,7 @@ import (
 )
 
 func TestStandardPrograms(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -37,7 +37,7 @@ func TestStandardPrograms(t *testing.T) {
 
 func TestGuestPackages(t *testing.T) {
 	utils.LinuxOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't determine image from metadata")
 	}
