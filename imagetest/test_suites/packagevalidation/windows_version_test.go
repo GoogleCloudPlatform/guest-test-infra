@@ -200,7 +200,7 @@ func TestDotNETVersion(t *testing.T) {
 
 func TestServicesState(t *testing.T) {
 	utils.WindowsOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}
@@ -231,7 +231,7 @@ func TestServicesState(t *testing.T) {
 
 func TestWindowsEdition(t *testing.T) {
 	utils.WindowsOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}
@@ -250,7 +250,7 @@ func TestWindowsEdition(t *testing.T) {
 
 func TestWindowsCore(t *testing.T) {
 	utils.WindowsOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}

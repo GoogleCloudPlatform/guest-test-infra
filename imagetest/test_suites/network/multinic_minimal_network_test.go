@@ -11,11 +11,11 @@ import (
 )
 
 func TestPingVMToVM(t *testing.T) {
-	primaryIP, err := utils.GetMetadata("network-interfaces/0/ip")
+	primaryIP, err := utils.GetMetadata(utils.Context(t), "instance", "network-interfaces", "0", "ip")
 	if err != nil {
 		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
 	}
-	secondaryIP, err := utils.GetMetadata("network-interfaces/1/ip")
+	secondaryIP, err := utils.GetMetadata(utils.Context(t), "instance", "network-interfaces", "1", "ip")
 	if err != nil {
 		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
 	}

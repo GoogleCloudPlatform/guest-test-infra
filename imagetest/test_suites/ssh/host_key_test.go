@@ -21,7 +21,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
 
-	hostkeys, err := utils.GetMetadataGuestAttribute("hostkeys/")
+	hostkeys, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "hostkeys")
 	if err != nil {
 		t.Fatal(err)
 
@@ -32,7 +32,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 		if keyType == "" {
 			continue
 		}
-		keyValue, err := utils.GetMetadataGuestAttribute("hostkeys/" + keyType)
+		keyValue, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "hostkeys", keyType)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +52,7 @@ func TestHostKeysAreUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
-	pembytes, err := utils.DownloadPrivateKey(user)
+	pembytes, err := utils.DownloadPrivateKey(utils.Context(t), user)
 	if err != nil {
 		t.Fatalf("failed to download private key: %v", err)
 	}

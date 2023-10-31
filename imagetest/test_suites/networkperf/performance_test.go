@@ -13,13 +13,13 @@ import (
 
 func TestNetworkPerformance(t *testing.T) {
 	// Check performance of the driver.
-	results, err := utils.GetMetadataGuestAttribute("testing/results")
+	results, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "results")
 	if err != nil {
 		t.Fatalf("Error : Test results not found. %v", err)
 	}
 
 	// Get the performance target.
-	expectedPerfString, err := utils.GetMetadataAttribute("expectedperf")
+	expectedPerfString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "expectedperf")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -30,14 +30,14 @@ func TestNetworkPerformance(t *testing.T) {
 	expected := 0.85 * float64(expectedPerf)
 
 	// Get machine type and network name for logging.
-	machineType, err := utils.GetMetadata("machine-type")
+	machineType, err := utils.GetMetadata(utils.Context(t), "instance", "machine-type")
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 	machineTypeSplit := strings.Split(machineType, "/")
 	machineTypeName := machineTypeSplit[len(machineTypeSplit)-1]
 
-	network, err := utils.GetMetadataAttribute("network-tier")
+	network, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "network-tier")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -19,7 +20,7 @@ const (
 )
 
 func TestAliases(t *testing.T) {
-	if err := verifyIPAliases(); err != nil {
+	if err := verifyIPAliases(t); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -36,13 +37,14 @@ func TestAliasAfterReboot(t *testing.T) {
 	}
 
 	// second boot
-	if err := verifyIPAliases(); err != nil {
+	if err := verifyIPAliases(t); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func verifyIPAliases() error {
-	iface, err := utils.GetInterface(0)
+func verifyIPAliases(t *testing.T) error {
+	ctx := utils.Context(t)
+	iface, err := utils.GetInterface(ctx, 0)
 	if err != nil {
 		return fmt.Errorf("couldn't get interface: %v", err)
 	}
@@ -51,7 +53,7 @@ func verifyIPAliases() error {
 	if err != nil {
 		return err
 	}
-	if err := verifyIPExist(actualIPs); err != nil {
+	if err := verifyIPExist(ctx, actualIPs); err != nil {
 		return err
 	}
 	return nil
@@ -82,7 +84,8 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 }
 
 func TestAliasAgentRestart(t *testing.T) {
-	iface, err := utils.GetInterface(0)
+	ctx := utils.Context(t)
+	iface, err := utils.GetInterface(ctx, 0)
 	if err != nil {
 		t.Fatalf("couldn't get interface: %v", err)
 	}
@@ -103,13 +106,13 @@ func TestAliasAgentRestart(t *testing.T) {
 	if !compare(beforeRestart, afterRestart) {
 		t.Fatalf("routes are inconsistent after restart, before %v after %v", beforeRestart, afterRestart)
 	}
-	if err := verifyIPExist(afterRestart); err != nil {
+	if err := verifyIPExist(ctx, afterRestart); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func verifyIPExist(routes []string) error {
-	expected, err := utils.GetMetadata("network-interfaces/0/ip-aliases/0")
+func verifyIPExist(ctx context.Context, routes []string) error {
+	expected, err := utils.GetMetadata(ctx, "instance", "network-interfaces", "0", "ip-aliases", "0")
 	if err != nil {
 		return fmt.Errorf("couldn't get first alias IP from metadata: %v", err)
 	}
