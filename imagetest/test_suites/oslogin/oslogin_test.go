@@ -5,6 +5,7 @@ package oslogin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
@@ -35,15 +36,21 @@ func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, e
 }
 
 func isTwoFactorAuthEnabled(t *testing.T) (bool, error) {
+	var (
+		instanceFlag, projectFlag bool
+		err                       error
+	)
+
 	elem := []string{"attributes", "enable-oslogin-2fa"}
 	ctx := utils.Context(t)
-	instanceFlag, err := getTwoFactorAuth(ctx, "instance", elem...)
-	if err != nil {
+
+	instanceFlag, err = getTwoFactorAuth(ctx, "instance", elem...)
+	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
 		return false, err
 	}
 
-	projectFlag, err := getTwoFactorAuth(ctx, "project", elem...)
-	if err != nil {
+	projectFlag, err = getTwoFactorAuth(ctx, "project", elem...)
+	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
 		return false, err
 	}
 
