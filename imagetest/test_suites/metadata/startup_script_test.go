@@ -72,7 +72,7 @@ func testDaemonScriptWindows() error {
 // TestStartupScripts verifies that the standard metadata script could run successfully
 // by checking the output content of the Startup script.
 func TestStartupScripts(t *testing.T) {
-	result, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "testing", "result")
+	result, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read startup script result key: %v", err)
 	}
