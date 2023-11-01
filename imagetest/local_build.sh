@@ -5,25 +5,35 @@ outpath=.
 cmdroot=.
 # the suites to build, space separated. all suites are built by default
 suites=*
+# the script will run cd $imagetestroot/test_suites. If this script is not run from the imagetest folder, imagetestroot should be set to the path to the parent directory of test_suites.
+imagetestroot=.
 
-while getopts "o:c:s:" arg; do
+
+while getopts "o:c:s:i:" arg; do
   case $arg in 
     o) outpath=$OPTARG;;
     c) cmdroot=$OPTARG;;
     s) suites=$OPTARG;;
+    i) imagetestroot=$OPTARG;;
     *) echo "unknown arg"
   esac
 done 
+
+
 echo "outspath is $outpath"
 echo "cmdroot is $cmdroot"
 echo "suites being built are $suites"
+echo "imagetestroot is $imagetestroot"
+
 go mod download
 go build -o $outpath/wrapper.amd64 $cmdroot/cmd/wrapper/main.go
 GOARCH=arm64 go build -o $outpath/wrapper.arm64 $cmdroot/cmd/wrapper/main.go
 GOOS=windows GOARCH=amd64 go build -o $outpath/wrapp64.exe $cmdroot/cmd/wrapper/main.go
 GOOS=windows GOARCH=386 go build -o $outpath/wrapp32.exe $cmdroot/cmd/wrapper/main.go
 go build -o $outpath/manager $cmdroot/cmd/manager/main.go
-cd test_suites
+
+
+cd $imagetestroot/test_suites
 for suite in $suites; do
   [[ -d $suite ]] || continue
   cd $suite
