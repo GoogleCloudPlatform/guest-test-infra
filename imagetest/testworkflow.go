@@ -457,7 +457,7 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s/%s%s.exe", localPath, testWrapperPathWindows, archBits)
 		} else {
 			twf.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.%s.test", localPath, twf.Name, arch)
-			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s/%s.%s", localPath, testWrapperPath, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s%s.%s", localPath, testWrapperPath, arch)
 		}
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
