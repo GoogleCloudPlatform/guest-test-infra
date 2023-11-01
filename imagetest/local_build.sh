@@ -28,14 +28,14 @@ for suite in $suites; do
   [[ -d $suite ]] || continue
   cd $suite
   echo "building suite $suite"
-  go test -c -tags cit
-  ./"${suite}.test" -test.list '.*' > $outpath/"${suite}_tests.txt"
-  mv "${suite}.test" $outpath/"${suite}.amd64.test"
-  GOARCH=arm64 go test -c -tags cit
-  mv "${suite}.test" "$outpath/${suite}.arm64.test"
-  GOOS=windows GOARCH=amd64 go test -c -tags cit
-  if [ -f "${suite}.test.exe" ]; then mv "${suite}.test.exe" "$outpath/${suite}64.exe"; fi;
-  GOOS=windows GOARCH=386 go test -c -tags cit
-  if [ -f "${suite}.test.exe" ]; then mv "${suite}.test.exe" "$outpath/${suite}32.exe"; fi;
+  go test -c -tags cit || exit 1
+  ./"${suite}.test" -test.list '.*' > $outpath/"${suite}_tests.txt" || exit 1
+  mv "${suite}.test" $outpath/"${suite}.amd64.test" || exit 1
+  GOARCH=arm64 go test -c -tags cit || exit 1
+  mv "${suite}.test" "$outpath/${suite}.arm64.test" || exit 1
+  GOOS=windows GOARCH=amd64 go test -c -tags cit || exit 1
+  if [ -f "${suite}.test.exe" ]; then mv "${suite}.test.exe" "$outpath/${suite}64.exe" || exit 1; fi;
+  GOOS=windows GOARCH=386 go test -c -tags cit || exit 1
+  if [ -f "${suite}.test.exe" ]; then mv "${suite}.test.exe" "$outpath/${suite}32.exe" || exit 1; fi;
   cd ..
 done
