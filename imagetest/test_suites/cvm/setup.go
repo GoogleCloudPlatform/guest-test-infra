@@ -1,10 +1,10 @@
 package cvm
 
 import (
-	"fmt"
-
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
+	computeBeta "google.golang.org/api/compute/v0.beta"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -17,12 +17,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if t.Image.Architecture == "ARM64" {
 		t.Skip("CVM is not supported on arm")
 	}
-	var cvm_support bool
-	for _, feature := range t.Image.Features {
-		switch feature {
+	for _, feature := range t.Image.GuestOsFeatures {
+		switch feature.Type {
 		case "SEV_CAPABLE":
-			cvm_support = true
-			// TODO test live migration
 			vm, err := t.CreateTestVM(vmName+"-SEV")
 			if err != nil {
 				return err
@@ -30,33 +27,44 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.EnableConfidentialInstance()
 			vm.SetMinCPUPlatform("AMD Milan")
 			vm.ForceMachineType("n2d-standard-2")
-			vm.RunTests("TestSEVEnabled")
+			vm.RunTests("TestSEVEnabled|TestLiveMigrate")
 		case "SEV_SNP_CAPABLE":
-			cvm_support = true
-			vm, err := t.CreateTestVM(vmName+"-SEVSNP")
+			vm := &daisy.InstanceBeta{}
+			vm.Name = vmName+"-SEVSNP"
+			vm.Zone = "us-central1-a" // SEV_SNP not available in all regions
+			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
+				ConfidentialInstanceType: "SEV_SNP",
+				EnableConfidentialCompute: true,
+			}
+			vm.MachineType = "n2d-standard-2"
+			vm.MinCpuPlatform = "AMD Milan"
+			disks := []*compute.Disk{
+				&compute.Disk{Name: vmName+"-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+			}
+			tvm, err := t.CreateTestVMBeta(disks, vm)
 			if err != nil {
 				return err
 			}
-			vm.EnableConfidentialInstance() // DO NOT SUBMIT
-			// This doesn't work here, need to set confidentialInstanceConfig.ConfidentialInstanceType = SEV_SNP
-			vm.SetMinCPUPlatform("AMD Milan")
-			vm.ForceMachineType("n2d-standard-2")
-			vm.RunTests("TestSEVEnabled")
+			tvm.RunTests("TestSEVSNPEnabled")*/
 		case "TDX_CAPABLE":
-			cvm_support = true
-			vm, err := t.CreateTestVM(vmName+"-TDX")
+			vm := &daisy.InstanceBeta{}
+			vm.Name = vmName+"-TDX"
+			vm.Zone = "us-central1-a" // TDX not available in all regions
+			vm.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{
+				ConfidentialInstanceType: "TDX",
+				EnableConfidentialCompute: true,
+			}
+			vm.MachineType = "c3-standard-2"
+			vm.MinCpuPlatform = "Intel Sapphire Rapids"
+			disks := []*compute.Disk{
+				&compute.Disk{Name: vmName+"-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+			}
+			tvm, err := t.CreateTestVMBeta(disks, vm)
 			if err != nil {
 				return err
 			}
-			vm.EnableConfidentialInstance() // DO NOT SUBMIT
-			// This doesn't work here, need to set confidentialInstanceConfig.ConfidentialInstanceType = TDX
-			vm.SetMinCPUPlatform("Intel Sapphire Rapids")
-			vm.ForceMachineType("c3-standard-2")
-			vm.RunTests("TestTDXEnabled")
+			tvm.RunTests("TestTDXEnabled")*/
 		}
-	}
-	if !cvm_support {
-		t.Skip(fmt.Sprintf("%s does not support CVM", t.Image.Name))
 	}
 	return nil
 }
