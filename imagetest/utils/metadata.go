@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +11,11 @@ import (
 
 const (
 	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/"
+)
+
+var (
+	// ErrMDSEntryNotFound is an error used to report 404 status code.
+	ErrMDSEntryNotFound = errors.New("No metadata entry found: 404 error")
 )
 
 // GetMetadata does a HTTP Get request to the metadata server, the metadata entry of
@@ -67,6 +73,10 @@ func doHTTPRequest(req *http.Request) (*http.Response, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do the http request: %+v", err)
+	}
+
+	if resp.StatusCode == 404 {
+		return nil, ErrMDSEntryNotFound
 	}
 
 	if resp.StatusCode != 200 {
