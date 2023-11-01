@@ -22,7 +22,7 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 ENV GO111MODULE on
 
-RUN ./local_build.sh -o /
+RUN ./local_build.sh -o /out
 
 FROM alpine:latest
 RUN apk add --no-cache openssh-keygen
