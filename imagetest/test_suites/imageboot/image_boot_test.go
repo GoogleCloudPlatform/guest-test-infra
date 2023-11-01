@@ -99,7 +99,7 @@ func lookForGuestAgentProcessWindows() error {
 	return fmt.Errorf("Guest Agent not found.")
 }
 
-func verifyBootTime() error {
+func verifyBootTime(t *testing.T) error {
 	// Reading the system uptime once both guest agent and sshd are found in the processes
 	uptimeData, err := os.ReadFile("/proc/uptime")
 	if err != nil {
@@ -116,7 +116,7 @@ func verifyBootTime() error {
 	//Validating the uptime against the allowed threshold value
 	var maxThreshold int
 
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		return fmt.Errorf("couldn't get image from metadata")
 	}
@@ -272,7 +272,7 @@ func testWindowsGuestSecureBoot() error {
 }
 
 func TestStartTime(t *testing.T) {
-	metadata, err := utils.GetMetadataAttribute("start-time")
+	metadata, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "start-time")
 	if err != nil {
 		t.Fatalf("couldn't get start time from metadata")
 	}
@@ -311,7 +311,7 @@ func TestBootTime(t *testing.T) {
 			t.Fatalf("Failed to verify boot time: %v", err)
 		}
 	} else {
-		err := verifyBootTime()
+		err := verifyBootTime(t)
 		if err != nil {
 			t.Fatalf("Failed to verify boot time: %v", err)
 		}

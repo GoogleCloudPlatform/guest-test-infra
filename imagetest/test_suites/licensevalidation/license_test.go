@@ -176,7 +176,7 @@ func isValidLicenseText(licenseCheck string) bool {
 }
 
 func TestArePackagesLegal(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -204,7 +204,7 @@ func TestArePackagesLegal(t *testing.T) {
 }
 
 func TestWindowsActivationStatus(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}

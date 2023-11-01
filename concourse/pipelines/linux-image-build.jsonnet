@@ -390,147 +390,6 @@ local imgpublishjob = {
   },
 };
 
-local saptestjob = {
-  local tl = self,
-
-  image:: error 'must set image in saptestjob',
-
-  // Start of job.
-  name: 'sap-workload-test-' + self.image,
-  plan: [
-    {
-      get: tl.image + '-gcs',
-      passed: ['publish-to-testing-' + tl.image],
-      params: { skip_download: 'true' },
-    },
-    { get: 'guest-test-infra' },
-    {
-      task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
-    },
-    { load_var: 'id', file: 'timestamp/timestamp-ms' },
-    {
-      task: 'generate-post-script',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: {
-            repository: 'google/cloud-sdk',
-            tag: 'alpine',
-          },
-        },
-        inputs: [{ name: 'guest-test-infra' }],
-        run: {
-          path: 'sh',
-          dir: 'guest-test-infra/concourse/scripts',
-          args: [
-            '-exc',
-            |||
-              # We want to upload this actual script with the unique id
-              sed -i 's/__BUCKET__/gcp-guest-test-outputs/g' sap_post_script.sh
-              sed -i 's/__RUNID__/((.:id))/g' sap_post_script.sh
-              gsutil cp sap_post_script.sh gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/sap_post_script.sh
-            |||,
-          ],
-        },
-      },
-    },
-    {
-      task: 'terraform-init',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'hashicorp/terraform' },
-        },
-        inputs: [{ name: 'guest-test-infra' }],
-        outputs: [{ name: 'guest-test-infra' }],
-        run: {
-          path: 'terraform',
-          dir: 'guest-test-infra/concourse/scripts',
-          args: [
-            'init',
-            '-upgrade',
-          ],
-        },
-      },
-    },
-    {
-      task: 'terraform-apply',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'hashicorp/terraform' },
-        },
-        inputs: [{ name: 'guest-test-infra' }],
-        outputs: [{ name: 'guest-test-infra' }],
-        run: {
-          path: 'terraform',
-          dir: 'guest-test-infra/concourse/scripts',
-          args: [
-            'apply',
-            '-auto-approve',
-            '-var=instance_name=hana-instance-((.:id))',
-            '-var=post_deployment_script=gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/sap_post_script.sh',
-            '-var=linux_image=%(image)s-ha' % { image: tl.image },
-          ],
-        },
-      },
-    },
-    {
-      task: 'wait-for-and-check-post-script-results',
-      timeout: '30m',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: {
-            repository: 'google/cloud-sdk',
-            tag: 'alpine',
-          },
-        },
-        run: {
-          path: 'sh',
-          args: [
-            '-exc',
-            |||
-              until gsutil -q stat gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/run_result
-              do
-                echo "Waiting for results..."
-                sleep 60
-              done
-
-              gsutil cat gs://gcp-guest-test-outputs/workload-tests/sap/((.:id))/run_result | grep -q "SUCCESS"
-            |||,
-          ],
-        },
-      },
-    },
-    {
-      task: 'terraform-destroy',
-      config: {
-        platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: { repository: 'hashicorp/terraform' },
-        },
-        inputs: [{ name: 'guest-test-infra' }],
-        run: {
-          path: 'terraform',
-          dir: 'guest-test-infra/concourse/scripts',
-          args: [
-            'destroy',
-            '-auto-approve',
-            '-var=instance_name=hana-instance-((.:id))',
-          ],
-        },
-      },
-    },
-  ],
-};
-
 local imggroup = {
   local tl = self,
 
@@ -670,11 +529,6 @@ local imggroup = {
           for image in rhel_images
         ] +
         [
-          // SAP related test jobs
-          saptestjob { image: image }
-          for image in rhel_sap_images
-        ] +
-        [
           // CentOS publish jobs
           imgpublishjob {
             image: image,
@@ -712,11 +566,6 @@ local imggroup = {
     imggroup {
       name: 'rhel',
       images: rhel_images,
-      jobs+:
-        [
-          'sap-workload-test-%s' % [image]
-          for image in rhel_sap_images
-        ],
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },

@@ -138,7 +138,7 @@ func TestRepoManagement(t *testing.T) {
 
 func TestPackagesInstalled(t *testing.T) {
 	utils.WindowsOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata: %v", err)
 	}
@@ -152,7 +152,7 @@ func TestPackagesInstalled(t *testing.T) {
 
 func TestPackagesAvailable(t *testing.T) {
 	utils.WindowsOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}
@@ -167,7 +167,7 @@ func TestPackagesAvailable(t *testing.T) {
 func TestPackagesSigned(t *testing.T) {
 	utils.WindowsOnly(t)
 	utils.Skip32BitWindows(t, "Packages not signed on 32-bit client images")
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}

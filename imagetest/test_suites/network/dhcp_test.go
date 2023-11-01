@@ -47,7 +47,7 @@ func TestDHCP(t *testing.T) {
 	}
 
 	// Base dhcp case for debian 10, debian 11, ubuntu 16, etc.
-	if err = checkDHCPProcess(); err != nil {
+	if err = checkDHCPProcess(t); err != nil {
 		t.Fatalf("did not find dhcp process: %v", err)
 	}
 
@@ -120,8 +120,8 @@ func parseWickedOutput(cmd *exec.Cmd) error {
 	return fmt.Errorf("dhcpv4 or ip address not found in wicked output")
 }
 
-func checkDHCPProcess() error {
-	iface, err := utils.GetInterface(1)
+func checkDHCPProcess(t *testing.T) error {
+	iface, err := utils.GetInterface(utils.Context(t), 1)
 	if err != nil {
 		return fmt.Errorf("couldn't get secondary interface: %v", err)
 	}

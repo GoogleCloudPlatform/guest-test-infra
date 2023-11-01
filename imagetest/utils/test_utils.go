@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -18,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/crypto/ssh"
@@ -25,8 +25,7 @@ import (
 )
 
 const (
-	metadataURLPrefix = "http://metadata.google.internal/computeMetadata/v1/instance/"
-	bytesInGB         = 1073741824
+	bytesInGB = 1073741824
 	// GuestAttributeTestNamespace is the namespace for the guest attribute in the daisy "wait for instance" step for CIT.
 	GuestAttributeTestNamespace = "citTest"
 	// GuestAttributeTestKey is the key for the guest attribute in the daisy "wait for instance" step for CIT in the common case.
@@ -69,80 +68,6 @@ func GetRealVMName(name string) (string, error) {
 		return "", errors.New("hostname doesn't match scheme")
 	}
 	return strings.Join([]string{name, parts[1], parts[2]}, "-"), nil
-}
-
-// GetMetadataAttribute returns an attribute from metadata if present, and error if not.
-func GetMetadataAttribute(attribute string) (string, error) {
-	return GetMetadata("attributes/" + attribute)
-}
-
-// GetMetadataGuestAttribute returns an guest attribute from metadata if present, and error if not.
-func GetMetadataGuestAttribute(attribute string) (string, error) {
-	return GetMetadata("guest-attributes/" + attribute)
-}
-
-// GetMetadata returns a metadata value for the specified key if it is present, and error if not.
-func GetMetadata(path string) (string, error) {
-	resp, err := GetMetadataHTTPResponse(path)
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("http response code is %v", resp.StatusCode)
-	}
-	val, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(val), nil
-}
-
-// GetMetadataHTTPResponse returns http response for the specified key without checking status code.
-func GetMetadataHTTPResponse(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", metadataURLPrefix, path), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// QueryMetadataGuestAttribute sets the guest attribute in the namespace
-// using the given method, and returns an error if this operation fails.
-func QueryMetadataGuestAttribute(ctx context.Context, namespace, attribute, httpMethod string) error {
-	path, err := url.JoinPath(metadataURLPrefix, "guest-attributes", namespace, attribute)
-	if err != nil {
-		return err
-	}
-	err = QueryMetadataHTTPResponse(ctx, path, httpMethod)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// QueryMetadataHTTPResponse returns http response for the specified key
-// using a http request with the given method without checking status code.
-func QueryMetadataHTTPResponse(ctx context.Context, path, httpMethod string) error {
-	req, err := http.NewRequestWithContext(ctx, httpMethod, path, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("http response code is %v", resp.StatusCode)
-	}
-	return nil
 }
 
 // DownloadGCSObject downloads a GCS object.
@@ -195,13 +120,13 @@ func ExtractBaseImageName(image string) (string, error) {
 }
 
 // DownloadPrivateKey download private key from daisy source.
-func DownloadPrivateKey(user string) ([]byte, error) {
-	ctx := context.Background()
+func DownloadPrivateKey(ctx context.Context, user string) ([]byte, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, err
 	}
-	sourcesPath, err := GetMetadataAttribute("daisy-sources-path")
+
+	sourcesPath, err := GetMetadata(ctx, "instance", "attributes", "daisy-sources-path")
 	if err != nil {
 		return nil, err
 	}
@@ -302,8 +227,8 @@ func GetInterfaceByMAC(mac string) (net.Interface, error) {
 }
 
 // GetInterface returns the interface corresponding to the metadata interface array at the specified index.
-func GetInterface(index int) (net.Interface, error) {
-	mac, err := GetMetadata(fmt.Sprintf("network-interfaces/%d/mac", index))
+func GetInterface(ctx context.Context, index int) (net.Interface, error) {
+	mac, err := GetMetadata(ctx, "instance", "network-interfaces", fmt.Sprintf("%d", index), "mac")
 	if err != nil {
 		return net.Interface{}, err
 	}
@@ -347,7 +272,7 @@ func Is32BitWindows(image string) bool {
 
 // Skip32BitWindows skips tests on 32-bit client images.
 func Skip32BitWindows(t *testing.T, skipMsg string) {
-	image, err := GetMetadata("image")
+	image, err := GetMetadata(Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata: %v", err)
 	}
@@ -378,7 +303,7 @@ func IsWindowsClient(image string) bool {
 // WindowsContainersOnly skips tests not on Windows "for Containers" images.
 func WindowsContainersOnly(t *testing.T) {
 	WindowsOnly(t)
-	image, err := GetMetadata("image")
+	image, err := GetMetadata(Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata: %v", err)
 	}
@@ -523,4 +448,26 @@ func HasFeature(img *compute.Image, feature string) bool {
 		}
 	}
 	return false
+}
+
+// Context returns a context to be used by test implementations, it handles
+// the context cancellation based on the test's timeout(deadline), if no timeout
+// is defined (or the deadline can't be assessed) then a plain background context
+// is returned.
+func Context(t *testing.T) context.Context {
+	// If the test has a deadline defined use it as a last resort
+	// context cancelation.
+	if deadline, ok := t.Deadline(); ok {
+		ctx, cancel := context.WithCancel(context.Background())
+		timer := time.NewTimer(time.Until(deadline))
+		go func() {
+			<-timer.C
+			cancel()
+		}()
+		return ctx
+	}
+
+	// If there's not deadline defined then we just use a
+	// plain background context as we won't need to cancel it.
+	return context.Background()
 }

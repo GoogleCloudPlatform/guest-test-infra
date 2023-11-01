@@ -51,7 +51,7 @@ func testHostnameLinux(shortname string) error {
 }
 
 func TestHostname(t *testing.T) {
-	metadataHostname, err := utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata(utils.Context(t), "instance", "hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
 	}
@@ -72,7 +72,7 @@ func TestHostname(t *testing.T) {
 
 // TestCustomHostname tests the 'fully qualified domain name'.
 func TestCustomHostname(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -93,8 +93,9 @@ func TestCustomHostname(t *testing.T) {
 // TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
 	utils.LinuxOnly(t)
+	ctx := utils.Context(t)
 	// TODO Zonal DNS is breaking this test case in EL9.
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -115,7 +116,7 @@ func TestFQDN(t *testing.T) {
 		t.Skip("Broken on EL9")
 	}
 
-	metadataHostname, err := utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata(ctx, "instance", "hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
@@ -174,7 +175,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 		hashes = append(hashes, sshKeyHash{file, hash})
 	}
 
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -223,7 +224,8 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 
 func TestHostsFile(t *testing.T) {
 	utils.LinuxOnly(t)
-	image, err := utils.GetMetadata("image")
+	ctx := utils.Context(t)
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -260,11 +262,11 @@ func TestHostsFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't read /etc/hosts")
 	}
-	ip, err := utils.GetMetadata("network-interfaces/0/ip")
+	ip, err := utils.GetMetadata(ctx, "instance", "network-interfaces", "0", "ip")
 	if err != nil {
 		t.Fatalf("Couldn't get ip from metadata")
 	}
-	hostname, err := utils.GetMetadata("hostname")
+	hostname, err := utils.GetMetadata(ctx, "instance", "hostname")
 	if err != nil {
 		t.Fatalf("Couldn't get hostname from metadata")
 	}

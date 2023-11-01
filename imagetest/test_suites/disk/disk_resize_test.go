@@ -25,7 +25,7 @@ const (
 func TestDiskResize(t *testing.T) {
 	// TODO: test disk resizing on windows
 	utils.LinuxOnly(t)
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}

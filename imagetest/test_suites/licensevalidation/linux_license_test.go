@@ -47,11 +47,11 @@ var imageLicenseCodeMap = map[string]string{
 
 func TestLinuxLicense(t *testing.T) {
 	// Assume only one license exist in image
-	licenseCode, err := utils.GetMetadata("licenses/0/id")
+	licenseCode, err := utils.GetMetadata(utils.Context(t), "instance", "licenses", "0", "id")
 	if err != nil {
 		t.Fatal("Failed to get license code metadata")
 	}
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatal("Failed to get image metadata")
 	}

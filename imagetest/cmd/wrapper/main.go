@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"net/url"
 	"os/exec"
 	"strings"
@@ -19,9 +18,10 @@ import (
 
 // In special cases such as the shutdown script, the guest attribute match
 // on the first boot must have a different name than the usual guest attribute.
-func checkFirstBootSpecialGA() bool {
-	if _, err := utils.GetMetadataAttribute("shouldRebootDuringTest"); err == nil {
-		_, foundFirstBootGA := utils.GetMetadataGuestAttribute(utils.GuestAttributeTestNamespace + "/" + utils.FirstBootGAKey)
+func checkFirstBootSpecialGA(ctx context.Context) bool {
+	if _, err := utils.GetMetadata(ctx, "instance", "attributes", "shouldRebootDuringTest"); err == nil {
+		_, foundFirstBootGA := utils.GetMetadata(ctx, "instance", "guest-attributes",
+			utils.GuestAttributeTestNamespace, utils.FirstBootGAKey)
 		// if the special attribute to match the first boot of the shutdown script test is already set, foundFirstBootGA will be nil and we should use the regular guest attribute.
 		if foundFirstBootGA != nil {
 			return true
@@ -37,14 +37,16 @@ func main() {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
 	log.Printf("FINISHED-BOOTING")
-	firstBootSpecialAttribute := checkFirstBootSpecialGA()
+	firstBootSpecialAttribute := checkFirstBootSpecialGA(ctx)
 	// firstBootSpecialGA should be true if we need to match a different guest attribute than the usual guest attribute
 	defer func(ctx context.Context, firstBootSpecialGA bool) {
 		var err error
 		if firstBootSpecialGA {
-			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.FirstBootGAKey, http.MethodPut)
+			err = utils.PutMetadata(ctx, "instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+				utils.FirstBootGAKey)
 		} else {
-			err = utils.QueryMetadataGuestAttribute(ctx, utils.GuestAttributeTestNamespace, utils.GuestAttributeTestKey, http.MethodPut)
+			err = utils.PutMetadata(ctx, "instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+				utils.GuestAttributeTestKey)
 		}
 
 		if err != nil {
@@ -56,30 +58,30 @@ func main() {
 		}
 	}(ctx, firstBootSpecialAttribute)
 
-	daisyOutsPath, err := utils.GetMetadataAttribute("daisy-outs-path")
+	daisyOutsPath, err := utils.GetMetadata(ctx, "instance", "attributes", "daisy-outs-path")
 	if err != nil {
 		log.Fatalf("failed to get metadata daisy-outs-path: %v", err)
 	}
 	daisyOutsPath = daisyOutsPath + "/"
 
-	testPackageURL, err := utils.GetMetadataAttribute("_test_package_url")
+	testPackageURL, err := utils.GetMetadata(ctx, "instance", "attributes", "_test_package_url")
 	if err != nil {
 		log.Fatalf("failed to get metadata _test_package_url: %v", err)
 	}
 
-	resultsURL, err := utils.GetMetadataAttribute("_test_results_url")
+	resultsURL, err := utils.GetMetadata(ctx, "instance", "attributes", "_test_results_url")
 	if err != nil {
 		log.Fatalf("failed to get metadata _test_results_url: %v", err)
 	}
 
 	var testArguments = []string{"-test.v"}
 
-	testRun, err := utils.GetMetadataAttribute("_test_run")
+	testRun, err := utils.GetMetadata(ctx, "instance", "attributes", "_test_run")
 	if err == nil && testRun != "" {
 		testArguments = append(testArguments, "-test.run", testRun)
 	}
 
-	testPackage, err := utils.GetMetadataAttribute("_test_package_name")
+	testPackage, err := utils.GetMetadata(ctx, "instance", "attributes", "_test_package_name")
 	if err != nil {
 		log.Fatalf("failed to get metadata _test_package_name: %v", err)
 	}
