@@ -23,8 +23,8 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/google/uuid"
-	"google.golang.org/api/compute/v1"
 	computeBeta "google.golang.org/api/compute/v0.beta"
+	"google.golang.org/api/compute/v1"
 )
 
 const (
@@ -297,7 +297,7 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 
 // CreateTestVMFromInstanceBeta creates a test vm struct to run CIT suites on from
 // the given daisy instancebeta and adds it to the test workflow.
-func (t *TestWorkflow)CreateTestVMFromInstanceBeta(i *daisy.InstanceBeta, disks []*compute.Disk) (*TestVM, error) {
+func (t *TestWorkflow) CreateTestVMFromInstanceBeta(i *daisy.InstanceBeta, disks []*compute.Disk) (*TestVM, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
 	}
