@@ -135,6 +135,21 @@ From the `imagetest` directory of this repository:
 
     $ docker build -t cloud-image-tests -f Dockerfile .
 
+## Testing on a local machine ##
+
+From the `imagetest` directory of this repository, where outspath is
+the folder where test outputs are stored:
+
+    $ local_build.sh -o $outspath
+
+By default, all test suites are built. To build only one test suite:
+
+    $ local_build.sh -o $outspath -s $test_suite_name
+
+To build from a directory other than `imagetest`
+
+    $ local_build.sh -o $outspath -i $path_to_imagetest
+
 ## What is being tested ##
 
 The tests are a combination of various types - end to end tests on certain
