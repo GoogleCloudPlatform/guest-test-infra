@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.19-alpine as builder
+FROM golang:1.20-alpine as builder
 
 WORKDIR /build
 COPY . .
@@ -26,6 +26,7 @@ RUN ./local_build.sh -o /out
 
 FROM alpine:latest
 RUN apk add --no-cache openssh-keygen
+RUN apk update && apk upgrade
 COPY --from=builder /out/* /
 
 ENTRYPOINT ["/manager"]
