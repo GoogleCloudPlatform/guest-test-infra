@@ -2,6 +2,8 @@ package cvm
 
 import (
 	"context"
+	"os"
+	"path"
 	"os/exec"
 	"strings"
 	"testing"
@@ -15,8 +17,13 @@ var sevSnpMsgList = []string{"AMD Secure Encrypted Virtualization (SEV) active",
 var tdxMsgList = []string{"Memory Encryption Features active: TDX", "Memory Encryption Features active: Intel TDX"}
 
 func TestLiveMigrate(t *testing.T) {
-	ctx := context.Background()
-	// Start some long running job
+	b, err := os.ReadFile(path.Join(os.TmpDir(), "simulate-maintenance-event-started"))
+	if err == nil && string(b) == "1" {
+		t.Fatal("Rebooted during live migration")
+	} else if !os.IsNotExist(err) {
+		t.Fatal("Could not check if maintenance event was already triggered: %v", err)
+	}
+	ctx := utils.Context(t)
 	prj, err := utils.GetMetadata(ctx, "project", "project-id")
 	if err != nil {
 		t.Fatal(err)
@@ -36,15 +43,21 @@ func TestLiveMigrate(t *testing.T) {
 	}
 	is := compute.NewInstancesService(s)
 	zs := compute.NewZoneOperationsService(s)
+	err := os.WriteFile(path.Join(os.TmpDir(), "simulate-maintenance-event-started")), []byte("1"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	op, err := is.SimulateMaintenanceEvent(prj, zone, inst).Context(ctx).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = zs.Wait(prj, zone, op.Name).Context(ctx).Do()
-	if err != nil {
-		t.Fatal(err)
+	for time.Tick(time.Duration(10)*time.Second) {
+		// https://cloud.google.com/compute/docs/metadata/getting-live-migration-notice#query_the_maintenance_event_metadata_key
+		event, err := utils.GetMetadata(ctx, "instance", "maintenance-event")
+		if event == "NONE" {
+			break
+		}
 	}
-	// Check job
 }
 
 func TestSEVEnabled(t *testing.T) {
