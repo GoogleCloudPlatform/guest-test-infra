@@ -4,8 +4,8 @@ import (
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"google.golang.org/api/compute/v1"
 	computeBeta "google.golang.org/api/compute/v0.beta"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -23,17 +23,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		case "SEV_CAPABLE":
 			sevtests := "TestSEVEnabled"
 			vm := &daisy.Instance{}
-			vm.Name = vmName+"-SEV"
+			vm.Name = vmName + "-SEV"
 			// Will need to set ConfidentialIstanceType = SEV when the v1 api supports this option
-			vm.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{ EnableConfidentialCompute: true }
+			vm.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{EnableConfidentialCompute: true}
 			if utils.HasFeature(t.Image, "SEV_LIVE_MIGRATABLE") {
-				vm.Scheduling = &compute.Scheduling{ OnHostMaintenance: "MIGRATE" }
+				vm.Scheduling = &compute.Scheduling{OnHostMaintenance: "MIGRATE"}
 				sevtests += "|TestLiveMigrate"
 			}
-			vm.Scheduling = &compute.Scheduling{ OnHostMaintenance: "TERMINATE" }
+			vm.Scheduling = &compute.Scheduling{OnHostMaintenance: "TERMINATE"}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
-			disks := []*compute.Disk{&compute.Disk{Name:vmName+"-SEV", Type: imagetest.PdBalanced}}
+			disks := []*compute.Disk{&compute.Disk{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
 			tvm, err := t.CreateTestVMMultipleDisks(disks, vm)
 			if err != nil {
 				return err
@@ -41,17 +41,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			tvm.RunTests(sevtests)
 		case "SEV_SNP_CAPABLE":
 			vm := &daisy.InstanceBeta{}
-			vm.Name = vmName+"-SEVSNP"
+			vm.Name = vmName + "-SEVSNP"
 			vm.Zone = "us-central1-a" // SEV_SNP not available in all regions
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
-				ConfidentialInstanceType: "SEV_SNP",
+				ConfidentialInstanceType:  "SEV_SNP",
 				EnableConfidentialCompute: true,
 			}
-			vm.Scheduling = &computeBeta.Scheduling{ OnHostMaintenance: "TERMINATE" }
+			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
 			disks := []*compute.Disk{
-				&compute.Disk{Name: vmName+"-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				&compute.Disk{Name: vmName + "-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
@@ -60,17 +60,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			tvm.RunTests("TestSEVSNPEnabled")
 		case "TDX_CAPABLE":
 			vm := &daisy.InstanceBeta{}
-			vm.Name = vmName+"-TDX"
+			vm.Name = vmName + "-TDX"
 			vm.Zone = "us-central1-a" // TDX not available in all regions
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
-				ConfidentialInstanceType: "TDX",
+				ConfidentialInstanceType:  "TDX",
 				EnableConfidentialCompute: true,
 			}
-			vm.Scheduling = &computeBeta.Scheduling{ OnHostMaintenance: "TERMINATE" }
+			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
 			vm.MachineType = "c3-standard-2"
 			vm.MinCpuPlatform = "Intel Sapphire Rapids"
 			disks := []*compute.Disk{
-				&compute.Disk{Name: vmName+"-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				&compute.Disk{Name: vmName + "-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {

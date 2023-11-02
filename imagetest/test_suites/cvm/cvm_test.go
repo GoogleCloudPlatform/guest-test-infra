@@ -1,15 +1,15 @@
 package cvm
 
 import (
-	"context"
 	"os"
-	"path"
 	"os/exec"
+	"path"
 	"strings"
 	"testing"
+	"time"
 
-	"google.golang.org/api/compute/v1"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 var sevMsgList = []string{"AMD Secure Encrypted Virtualization (SEV) active", "AMD Memory Encryption Features active: SEV", "Memory Encryption Features active: AMD SEV"}
@@ -17,11 +17,11 @@ var sevSnpMsgList = []string{"AMD Secure Encrypted Virtualization (SEV) active",
 var tdxMsgList = []string{"Memory Encryption Features active: TDX", "Memory Encryption Features active: Intel TDX"}
 
 func TestLiveMigrate(t *testing.T) {
-	b, err := os.ReadFile(path.Join(os.TmpDir(), "simulate-maintenance-event-started"))
+	b, err := os.ReadFile(path.Join(os.TempDir(), "simulate-maintenance-event-started"))
 	if err == nil && string(b) == "1" {
 		t.Fatal("Rebooted during live migration")
 	} else if !os.IsNotExist(err) {
-		t.Fatal("Could not check if maintenance event was already triggered: %v", err)
+		t.Fatalf("Could not check if maintenance event was already triggered: %v", err)
 	}
 	ctx := utils.Context(t)
 	prj, err := utils.GetMetadata(ctx, "project", "project-id")
@@ -42,18 +42,20 @@ func TestLiveMigrate(t *testing.T) {
 		t.Fatal(err)
 	}
 	is := compute.NewInstancesService(s)
-	zs := compute.NewZoneOperationsService(s)
-	err := os.WriteFile(path.Join(os.TmpDir(), "simulate-maintenance-event-started")), []byte("1"))
+	err = os.WriteFile(path.Join(os.TempDir(), "simulate-maintenance-event-started"), []byte("1"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
-	op, err := is.SimulateMaintenanceEvent(prj, zone, inst).Context(ctx).Do()
+	_, err = is.SimulateMaintenanceEvent(prj, zone, inst).Context(ctx).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for time.Tick(time.Duration(10)*time.Second) {
+	for range time.Tick(time.Duration(10) * time.Second) {
 		// https://cloud.google.com/compute/docs/metadata/getting-live-migration-notice#query_the_maintenance_event_metadata_key
 		event, err := utils.GetMetadata(ctx, "instance", "maintenance-event")
+		if err != nil {
+			t.Fatal(err)
+		}
 		if event == "NONE" {
 			break
 		}
