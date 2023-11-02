@@ -21,7 +21,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 		t.Fatalf("failed to get host key from disk %v", err)
 	}
 
-	hostkeys, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "hostkeys")
+	hostkeys, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "hostkeys", "/")
 	if err != nil {
 		t.Fatal(err)
 
