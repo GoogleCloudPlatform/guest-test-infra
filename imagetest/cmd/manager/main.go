@@ -40,6 +40,7 @@ var (
 	validate        = flag.Bool("validate", false, "validate all the test workflows and exit")
 	outPath         = flag.String("out_path", "junit.xml", "junit xml path")
 	gcsPath         = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
+	localPath       = flag.String("local_path", "", "path where test output files are stored, can be modified for local testing")
 	images          = flag.String("images", "", "comma separated list of images to test")
 	timeout         = flag.String("timeout", "45m", "timeout for the test suite")
 	parallelCount   = flag.Int("parallel_count", 5, "TestParallelCount")
@@ -272,18 +273,18 @@ func main() {
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *parallelCount, *parallelStagger, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath, *parallelCount, *parallelStagger, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

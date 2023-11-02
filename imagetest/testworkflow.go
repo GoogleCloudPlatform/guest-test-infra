@@ -380,7 +380,7 @@ func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, g
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix, localPath string) error {
 	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 	for _, twf := range tests {
 		if twf.wf == nil {
@@ -453,11 +453,11 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			if strings.Contains(twf.ImageURL, "x86") {
 				archBits = "32"
 			}
-			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, archBits)
-			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, archBits)
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s%s.exe", localPath, twf.Name, archBits)
+			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s/%s%s.exe", localPath, testWrapperPathWindows, archBits)
 		} else {
-			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
-			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.%s.test", localPath, twf.Name, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s%s.%s", localPath, testWrapperPath, arch)
 		}
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
@@ -555,13 +555,13 @@ func NewTestWorkflow(client daisycompute.Client, name, image, timeout, project, 
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		log.Printf("Error determining GCS prefix: %v", err)
 		gcsPrefix = ""
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath); err != nil {
 		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
@@ -574,12 +574,12 @@ func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflow
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string) error {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return err
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
@@ -614,7 +614,7 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return nil, err
@@ -624,7 +624,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		return nil, err
 	}
 
-	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
@@ -672,7 +672,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 
 	var suites TestSuites
 	for i := 0; i < len(testWorkflows); i++ {
-		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults))
+		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults, localPath))
 	}
 	for _, suite := range suites.TestSuite {
 		suites.Errors += suite.Errors
@@ -721,7 +721,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 }
 
 // gets result struct and converts to a jUnit TestSuite
-func parseResult(res testResult) *testSuite {
+func parseResult(res testResult, localPath string) *testSuite {
 	ret := &testSuite{}
 	// Use ImageURL instead of the name or family to display results the same way
 	// as the user entered them.
@@ -729,7 +729,7 @@ func parseResult(res testResult) *testSuite {
 
 	switch {
 	case res.skipped:
-		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
 			tc := &testCase{}
 			tc.Classname = name
 			tc.Name = test
@@ -749,7 +749,7 @@ func parseResult(res testResult) *testSuite {
 		} else {
 			status = "Unknown status"
 		}
-		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
 			tc := &testCase{}
 			tc.Classname = name
 			tc.Name = test
@@ -765,8 +765,8 @@ func parseResult(res testResult) *testSuite {
 	return ret
 }
 
-func getTestsBySuiteName(name string) []string {
-	b, err := ioutil.ReadFile(fmt.Sprintf("/%s_tests.txt", name))
+func getTestsBySuiteName(name, localPath string) []string {
+	b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s_tests.txt", localPath, name))
 	if err != nil {
 		log.Fatalf("unable to parse tests list: %v", err)
 		return []string{} // NOT nil
