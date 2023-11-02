@@ -285,6 +285,52 @@ func TestAppendCreateVMStep(t *testing.T) {
 	}
 }
 
+func TestAppendCreateVMStepBeta(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	if _, ok := twf.wf.Steps["create-disks"]; ok {
+		t.Fatal("create-disks step already exists")
+	}
+	daisyInst := &daisy.InstanceBeta{}
+	daisyInst.Hostname = ""
+	step, _, err := twf.appendCreateVMStepBeta([]*compute.Disk{{Name: "vmname"}}, daisyInst)
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.CreateInstances == nil {
+		t.Fatal("CreateDisks step is missing")
+	}
+	instances := step.CreateInstances.InstancesBeta
+	if len(instances) != 1 {
+		t.Error("CreateInstances step is malformed")
+	}
+	if instances[0].Name != "vmname" {
+		t.Error("CreateInstances step is malformed")
+	}
+	stepFromWF, ok := twf.wf.Steps["create-vms"]
+	if !ok || step != stepFromWF {
+		t.Error("step was not correctly added to workflow")
+	}
+	daisyInst2 := &daisy.InstanceBeta{}
+	daisyInst2.Hostname = ""
+	step2, _, err := twf.appendCreateVMStepBeta([]*compute.Disk{{Name: "vmname2"}}, daisyInst2)
+	if err != nil {
+		t.Fatalf("failed to add wait step to test workflow: %v", err)
+	}
+	if step2 != stepFromWF {
+		t.Fatal("CreateDisks step was not appended")
+	}
+	instances = step.CreateInstances.InstancesBeta
+	if len(instances) != 2 {
+		t.Fatal("CreateDisks step was not appended")
+	}
+	if instances[1].Name != "vmname2" {
+		t.Error("CreateInstances step is malformed")
+	}
+}
+
 func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {

@@ -23,6 +23,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/google/uuid"
+	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -55,14 +56,22 @@ const (
 type TestVM struct {
 	name         string
 	testWorkflow *TestWorkflow
+	// The underlying instance running the test. Exactly one of these must be non-nil.
 	instance     *daisy.Instance
+	instancebeta *daisy.InstanceBeta
 }
 
 // AddUser add user public key to metadata ssh-keys.
 func (t *TestVM) AddUser(user, publicKey string) {
 	keyline := fmt.Sprintf("%s:%s", user, publicKey)
-	if keys, ok := t.instance.Metadata["ssh-keys"]; ok {
-		keyline = fmt.Sprintf("%s\n%s", keys, keyline)
+	if t.instance != nil {
+		if keys, ok := t.instance.Metadata["ssh-keys"]; ok {
+			keyline = fmt.Sprintf("%s\n%s", keys, keyline)
+		}
+	} else if t.instancebeta != nil {
+		if keys, ok := t.instancebeta.Metadata["ssh-keys"]; ok {
+			keyline = fmt.Sprintf("%s\n%s", keys, keyline)
+		}
 	}
 	t.AddMetadata("ssh-keys", keyline)
 }
@@ -163,6 +172,53 @@ func (t *TestWorkflow) CreateTestVM(name string) (*TestVM, error) {
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
 }
 
+// CreateTestVMBeta adds the necessary steps to create a VM with the specified
+// name from the compute beta API to the workflow.
+func (t *TestWorkflow) CreateTestVMBeta(name string) (*TestVM, error) {
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	bootDisk := &compute.Disk{Name: vmname}
+	createDisksStep, err := t.appendCreateDisksStep(bootDisk)
+	if err != nil {
+		return nil, err
+	}
+
+	daisyInst := &daisy.InstanceBeta{}
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, i, err := t.appendCreateVMStepBeta([]*compute.Disk{bootDisk}, daisyInst)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+		return nil, err
+	}
+
+	waitStep, err := t.addWaitStep(vmname, vmname)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instancebeta: i}, nil
+}
+
 // CreateTestVMMultipleDisks adds the necessary steps to create a VM with the specified
 // name to the workflow.
 func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instanceParams *daisy.Instance) (*TestVM, error) {
@@ -239,12 +295,86 @@ func (t *TestWorkflow) CreateTestVMMultipleDisks(disks []*compute.Disk, instance
 	return &TestVM{name: vmname, testWorkflow: t, instance: i}, nil
 }
 
+// CreateTestVMFromInstanceBeta creates a test vm struct to run CIT suites on from
+// the given daisy instancebeta and adds it to the test workflow.
+func (t *TestWorkflow) CreateTestVMFromInstanceBeta(i *daisy.InstanceBeta, disks []*compute.Disk) (*TestVM, error) {
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, fmt.Errorf("failed to create multiple disk VM with empty boot disk")
+	}
+
+	name := disks[0].Name
+	parts := strings.Split(name, ".")
+	vmname := strings.ReplaceAll(parts[0], "_", "-")
+
+	createDisksSteps := make([]*daisy.Step, len(disks))
+	for i, disk := range disks {
+		// the disk creation steps are slightly different for the boot disk and mount disks
+		var createDisksStep *daisy.Step
+		var err error
+		if i == 0 {
+			createDisksStep, err = t.appendCreateDisksStep(disk)
+		} else {
+			createDisksStep, err = t.appendCreateMountDisksStep(disk)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		createDisksSteps[i] = createDisksStep
+	}
+	// createDisksStep doesn't depend on any other steps.
+	createVMStep, i, err := t.appendCreateVMStepBeta(disks, i)
+	if err != nil {
+		return nil, err
+	}
+	for _, createDisksStep := range createDisksSteps {
+		if err := t.wf.AddDependency(createVMStep, createDisksStep); err != nil {
+			return nil, err
+		}
+	}
+
+	var waitStep *daisy.Step
+	if _, foundKey := i.Metadata[ShouldRebootDuringTest]; foundKey {
+		waitStep, err = t.addWaitRebootGAStep(vmname, vmname)
+	} else {
+		waitStep, err = t.addWaitStep(vmname, vmname)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.wf.AddDependency(waitStep, createVMStep); err != nil {
+		return nil, err
+	}
+
+	if createSubnetworkStep, ok := t.wf.Steps[createSubnetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createSubnetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	if createNetworkStep, ok := t.wf.Steps[createNetworkStepName]; ok {
+		if err := t.wf.AddDependency(createVMStep, createNetworkStep); err != nil {
+			return nil, err
+		}
+	}
+
+	return &TestVM{name: vmname, testWorkflow: t, instancebeta: i}, nil
+}
+
 // AddMetadata adds the specified key:value pair to metadata during VM creation.
 func (t *TestVM) AddMetadata(key, value string) {
-	if t.instance.Metadata == nil {
-		t.instance.Metadata = make(map[string]string)
+	if t.instance != nil {
+		if t.instance.Metadata == nil {
+			t.instance.Metadata = make(map[string]string)
+		}
+		t.instance.Metadata[key] = value
+	} else if t.instancebeta != nil {
+		if t.instancebeta.Metadata == nil {
+			t.instancebeta.Metadata = make(map[string]string)
+		}
+		t.instancebeta.Metadata[key] = value
 	}
-	t.instance.Metadata[key] = value
 }
 
 // RunTests runs only the named tests on the testVM.
@@ -314,10 +444,18 @@ func (t *TestVM) SetNetworkPerformanceTier(tier string) error {
 	if tier != "DEFAULT" && tier != "TIER_1" {
 		return fmt.Errorf("Error: %v not one of DEFAULT or TIER_1", tier)
 	}
-	if t.instance.NetworkPerformanceConfig == nil {
-		t.instance.NetworkPerformanceConfig = &compute.NetworkPerformanceConfig{TotalEgressBandwidthTier: tier}
-	} else {
-		t.instance.NetworkPerformanceConfig.TotalEgressBandwidthTier = tier
+	if t.instance != nil {
+		if t.instance.NetworkPerformanceConfig == nil {
+			t.instance.NetworkPerformanceConfig = &compute.NetworkPerformanceConfig{TotalEgressBandwidthTier: tier}
+		} else {
+			t.instance.NetworkPerformanceConfig.TotalEgressBandwidthTier = tier
+		}
+	} else if t.instancebeta != nil {
+		if t.instancebeta.NetworkPerformanceConfig == nil {
+			t.instancebeta.NetworkPerformanceConfig = &computeBeta.NetworkPerformanceConfig{TotalEgressBandwidthTier: tier}
+		} else {
+			t.instancebeta.NetworkPerformanceConfig.TotalEgressBandwidthTier = tier
+		}
 	}
 	return nil
 }
@@ -398,48 +536,93 @@ func (t *TestVM) ResizeDiskAndReboot(diskSize int) error {
 // the machine_type flag in the CIT wrapper, and should only be used when a
 // test absolutely requires a specific machine shape.
 func (t *TestVM) ForceMachineType(machinetype string) {
-	t.instance.MachineType = machinetype
+	if t.instance != nil {
+		t.instance.MachineType = machinetype
+	} else if t.instancebeta != nil {
+		t.instancebeta.MachineType = machinetype
+	}
 }
 
 // ForceZone sets the zone for the test vm. This will override the zone option
 // from the CIT wrapper and and should only be used when a test requires a specific
 // zone.
 func (t *TestVM) ForceZone(z string) {
-	t.instance.Zone = z
+	if t.instance != nil {
+		t.instance.Zone = z
+	} else if t.instancebeta != nil {
+		t.instancebeta.Zone = z
+	}
 }
 
 // EnableSecureBoot make the current test VMs in workflow with secure boot.
 func (t *TestVM) EnableSecureBoot() {
-	t.instance.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{
-		EnableSecureBoot: true,
+	if t.instance != nil {
+		if t.instance.ShieldedInstanceConfig == nil {
+			t.instance.ShieldedInstanceConfig = &compute.ShieldedInstanceConfig{}
+		}
+		t.instance.ShieldedInstanceConfig.EnableSecureBoot = true
+	} else if t.instancebeta != nil {
+		if t.instancebeta.ShieldedInstanceConfig == nil {
+			t.instancebeta.ShieldedInstanceConfig = &computeBeta.ShieldedInstanceConfig{}
+		}
+		t.instancebeta.ShieldedInstanceConfig.EnableSecureBoot = true
 	}
 }
 
 // EnableConfidentialInstance enabled CVM features for the instance.
 func (t *TestVM) EnableConfidentialInstance() {
-	t.instance.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{
-		EnableConfidentialCompute: true,
-	}
-	t.instance.Scheduling = &compute.Scheduling{
-		OnHostMaintenance: "TERMINATE",
+	if t.instance != nil {
+		if t.instance.ConfidentialInstanceConfig == nil {
+			t.instance.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{}
+		}
+		t.instance.ConfidentialInstanceConfig.EnableConfidentialCompute = true
+		if t.instance.Scheduling == nil {
+			t.instance.Scheduling = &compute.Scheduling{}
+		}
+		t.instance.Scheduling.OnHostMaintenance = "TERMINATE"
+	} else if t.instancebeta != nil {
+		if t.instancebeta.ConfidentialInstanceConfig == nil {
+			t.instancebeta.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{}
+		}
+		t.instancebeta.ConfidentialInstanceConfig.EnableConfidentialCompute = true
+		if t.instancebeta.Scheduling == nil {
+			t.instancebeta.Scheduling = &computeBeta.Scheduling{}
+		}
+		t.instancebeta.Scheduling.OnHostMaintenance = "TERMINATE"
 	}
 }
 
 // SetMinCPUPlatform sets the minimum CPU platform of the instance.
 func (t *TestVM) SetMinCPUPlatform(minCPUPlatform string) {
-	t.instance.MinCpuPlatform = minCPUPlatform
+	if t.instance != nil {
+		t.instance.MinCpuPlatform = minCPUPlatform
+	} else if t.instancebeta != nil {
+		t.instancebeta.MinCpuPlatform = minCPUPlatform
+	}
 }
 
 // UseGVNIC sets the type of vNIC to be used to GVNIC
 func (t *TestVM) UseGVNIC() {
-	if t.instance.NetworkInterfaces == nil {
-		t.instance.NetworkInterfaces = []*compute.NetworkInterface{
-			{
-				NicType: "GVNIC",
-			},
+	if t.instance != nil {
+		if t.instance.NetworkInterfaces == nil {
+			t.instance.NetworkInterfaces = []*compute.NetworkInterface{
+				{
+					NicType: "GVNIC",
+				},
+			}
+		} else {
+			t.instance.NetworkInterfaces[0].NicType = "GVNIC"
 		}
-	} else {
-		t.instance.NetworkInterfaces[0].NicType = "GVNIC"
+	} else if t.instancebeta != nil {
+		if t.instancebeta.NetworkInterfaces == nil {
+			t.instancebeta.NetworkInterfaces = []*computeBeta.NetworkInterface{
+				{
+					NicType: "GVNIC",
+				},
+			}
+		} else {
+			t.instancebeta.NetworkInterfaces[0].NicType = "GVNIC"
+		}
 	}
 }
 
@@ -457,20 +640,38 @@ func (t *TestVM) AddCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 		subnetworkName = subnetwork.name
 	}
 
-	// Add network config.
-	networkInterface := compute.NetworkInterface{
-		Network:    network.name,
-		Subnetwork: subnetworkName,
-		AccessConfigs: []*compute.AccessConfig{
-			{
-				Type: "ONE_TO_ONE_NAT",
+	if t.instance != nil {
+		// Add network config.
+		networkInterface := compute.NetworkInterface{
+			Network:    network.name,
+			Subnetwork: subnetworkName,
+			AccessConfigs: []*compute.AccessConfig{
+				{
+					Type: "ONE_TO_ONE_NAT",
+				},
 			},
-		},
-	}
-	if t.instance.NetworkInterfaces == nil {
-		t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
-	} else {
-		t.instance.NetworkInterfaces = append(t.instance.NetworkInterfaces, &networkInterface)
+		}
+		if t.instance.NetworkInterfaces == nil {
+			t.instance.NetworkInterfaces = []*compute.NetworkInterface{&networkInterface}
+		} else {
+			t.instance.NetworkInterfaces = append(t.instance.NetworkInterfaces, &networkInterface)
+		}
+	} else if t.instancebeta != nil {
+		// Add network config.
+		networkInterface := computeBeta.NetworkInterface{
+			Network:    network.name,
+			Subnetwork: subnetworkName,
+			AccessConfigs: []*computeBeta.AccessConfig{
+				{
+					Type: "ONE_TO_ONE_NAT",
+				},
+			},
+		}
+		if t.instancebeta.NetworkInterfaces == nil {
+			t.instancebeta.NetworkInterfaces = []*computeBeta.NetworkInterface{&networkInterface}
+		} else {
+			t.instancebeta.NetworkInterfaces = append(t.instancebeta.NetworkInterfaces, &networkInterface)
+		}
 	}
 
 	return nil
@@ -479,26 +680,47 @@ func (t *TestVM) AddCustomNetwork(network *Network, subnetwork *Subnetwork) erro
 // AddAliasIPRanges add alias ip range to current test VMs.
 func (t *TestVM) AddAliasIPRanges(aliasIPRange, rangeName string) error {
 	// TODO: If we haven't set any NetworkInterface struct, does it make sense to support adding alias IPs?
-	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("must call AddCustomNetwork prior to AddAliasIPRanges")
+	if t.instance != nil {
+		if t.instance.NetworkInterfaces == nil {
+			return fmt.Errorf("must call AddCustomNetwork prior to AddAliasIPRanges")
+		}
+		t.instance.NetworkInterfaces[0].AliasIpRanges = append(t.instance.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
+			IpCidrRange:         aliasIPRange,
+			SubnetworkRangeName: rangeName,
+		})
+	} else if t.instancebeta != nil {
+		if t.instancebeta.NetworkInterfaces == nil {
+			return fmt.Errorf("must call AddCustomNetwork prior to AddAliasIPRanges")
+		}
+		t.instancebeta.NetworkInterfaces[0].AliasIpRanges = append(t.instancebeta.NetworkInterfaces[0].AliasIpRanges, &computeBeta.AliasIpRange{
+			IpCidrRange:         aliasIPRange,
+			SubnetworkRangeName: rangeName,
+		})
 	}
-	t.instance.NetworkInterfaces[0].AliasIpRanges = append(t.instance.NetworkInterfaces[0].AliasIpRanges, &compute.AliasIpRange{
-		IpCidrRange:         aliasIPRange,
-		SubnetworkRangeName: rangeName,
-	})
-
 	return nil
 }
 
 // SetPrivateIP set IPv4 internal IP address for target network to the current test VMs.
 func (t *TestVM) SetPrivateIP(network *Network, networkIP string) error {
-	if t.instance.NetworkInterfaces == nil {
-		return fmt.Errorf("must call AddCustomNetwork prior to AddPrivateIP")
-	}
-	for _, nic := range t.instance.NetworkInterfaces {
-		if nic.Network == network.name {
-			nic.NetworkIP = networkIP
-			return nil
+	if t.instance != nil {
+		if t.instance.NetworkInterfaces == nil {
+			return fmt.Errorf("must call AddCustomNetwork prior to AddPrivateIP")
+		}
+		for _, nic := range t.instance.NetworkInterfaces {
+			if nic.Network == network.name {
+				nic.NetworkIP = networkIP
+				return nil
+			}
+		}
+	} else if t.instancebeta != nil {
+		if t.instancebeta.NetworkInterfaces == nil {
+			return fmt.Errorf("must call AddCustomNetwork prior to AddPrivateIP")
+		}
+		for _, nic := range t.instancebeta.NetworkInterfaces {
+			if nic.Network == network.name {
+				nic.NetworkIP = networkIP
+				return nil
+			}
 		}
 	}
 
