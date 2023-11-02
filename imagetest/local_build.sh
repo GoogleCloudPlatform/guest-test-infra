@@ -1,18 +1,15 @@
 # usage: local_build.sh -o $outspath -c $cmdroot -s $suites_to_build
 # the output path of the test files
 outpath=.
-# the root of the cmd folder, default assumes this script is run from imagetest
-cmdroot=.
 # the suites to build, space separated. all suites are built by default
 suites=*
-# the script will run cd $imagetestroot/test_suites. If this script is not run from the imagetest folder, imagetestroot should be set to the path to the parent directory of test_suites.
+# the path to the imagetest folder, default value assumes this script is run from the imagetest folder. If set, the commands cd $imagetestroot/cmd and cd $imagetestroot/test_suites should succeed.
 imagetestroot=.
 
 
-while getopts "o:c:s:i:" arg; do
+while getopts "o:s:i:" arg; do
   case $arg in 
     o) outpath=$OPTARG;;
-    c) cmdroot=$OPTARG;;
     s) suites=$OPTARG;;
     i) imagetestroot=$OPTARG;;
     *) echo "unknown arg"
@@ -21,19 +18,19 @@ done
 
 
 echo "outspath is $outpath"
-echo "cmdroot is $cmdroot"
 echo "suites being built are $suites"
 echo "imagetestroot is $imagetestroot"
 
+cd $imagetestroot
 go mod download
-go build -o $outpath/wrapper.amd64 $cmdroot/cmd/wrapper/main.go
-GOARCH=arm64 go build -o $outpath/wrapper.arm64 $cmdroot/cmd/wrapper/main.go
-GOOS=windows GOARCH=amd64 go build -o $outpath/wrapp64.exe $cmdroot/cmd/wrapper/main.go
-GOOS=windows GOARCH=386 go build -o $outpath/wrapp32.exe $cmdroot/cmd/wrapper/main.go
-go build -o $outpath/manager $cmdroot/cmd/manager/main.go
+go build -o $outpath/wrapper.amd64 ./cmd/wrapper/main.go
+GOARCH=arm64 go build -o $outpath/wrapper.arm64 ./cmd/wrapper/main.go
+GOOS=windows GOARCH=amd64 go build -o $outpath/wrapp64.exe ./cmd/wrapper/main.go
+GOOS=windows GOARCH=386 go build -o $outpath/wrapp32.exe ./cmd/wrapper/main.go
+go build -o $outpath/manager ./cmd/manager/main.go
 
 
-cd $imagetestroot/test_suites
+cd test_suites
 for suite in $suites; do
   [[ -d $suite ]] || continue
   cd $suite
