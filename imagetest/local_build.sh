@@ -1,4 +1,4 @@
-# usage: local_build.sh -o $outspath -c $cmdroot -s $suites_to_build
+# usage: local_build.sh -o $outspath -i $imagetestroot -s $suites_to_build
 # the output path of the test files
 outpath=.
 # the suites to build, space separated. all suites are built by default
