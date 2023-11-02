@@ -29,6 +29,7 @@ import (
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
+	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/iterator"
 )
 
@@ -121,6 +122,58 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	if ok {
 		// append to existing step.
 		createVMStep.CreateInstances.Instances = append(createVMStep.CreateInstances.Instances, instance)
+	} else {
+		var err error
+		createVMStep, err = t.wf.NewStep(createVMsStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+		createVMStep.CreateInstances = createInstances
+	}
+
+	return createVMStep, instance, nil
+}
+
+func (t *TestWorkflow) appendCreateVMStepBeta(disks []*compute.Disk, instance *daisy.InstanceBeta) (*daisy.Step, *daisy.InstanceBeta, error) {
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
+	}
+	// The boot disk is the first disk, and the VM name comes from that
+	name := disks[0].Name
+
+	var suffix string
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		suffix = ".exe"
+	}
+
+	if instance == nil {
+		instance = &daisy.InstanceBeta{}
+	}
+
+	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
+	instance.Name = name
+	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+
+	for _, disk := range disks {
+		instance.Disks = append(instance.Disks, &computeBeta.AttachedDisk{Source: disk.Name})
+	}
+
+	if instance.Metadata == nil {
+		instance.Metadata = make(map[string]string)
+	}
+
+	instance.Metadata["_test_vmname"] = name
+	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
+	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
+	instance.Metadata["_test_package_name"] = fmt.Sprintf("image_test%s", suffix)
+
+	createInstances := &daisy.CreateInstances{}
+	createInstances.InstancesBeta = append(createInstances.InstancesBeta, instance)
+
+	createVMStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		// append to existing step.
+		createVMStep.CreateInstances.InstancesBeta = append(createVMStep.CreateInstances.InstancesBeta, instance)
 	} else {
 		var err error
 		createVMStep, err = t.wf.NewStep(createVMsStepName)
