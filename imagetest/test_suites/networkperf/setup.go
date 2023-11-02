@@ -353,6 +353,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				if err := tier1ClientVM.SetPrivateIP(defaultNetwork, tier1ClientConfig.ip); err != nil {
 					return err
 				}
+				tier1ClientVM.SetNetworkPerformanceTier("TIER_1")
 				tier1ClientVM.AddMetadata("enable-guest-attributes", "TRUE")
 				tier1ClientVM.AddMetadata("iperftarget", tier1ServerConfig.ip)
 				tier1ClientVM.AddMetadata("expectedperf", tier1PerfTarget)
