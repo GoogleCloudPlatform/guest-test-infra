@@ -128,6 +128,10 @@ func Setup(t *imagetest.Testworkflow) {
 }
 ```
 
+### Testing features in compute beta API ###
+
+Tests that need to run against features in the beta API can do so by creating TestVMs using `CreateTestVMBeta` or `CreateTestVMFromInstanceBeta` to use the beta instance API. However, due to limitation with daisy's create instances step, if one instance in a TestWorkflow uses the beta API all instances in that workflow must use the beta API.
+
 
 ## Building the container image ##
 
