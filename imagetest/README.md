@@ -152,7 +152,7 @@ To build from a directory other than `imagetest`
 
 To run the tests, cd into $outspath, set the shell variables and run
 
-    $ manager -zone $ZONE -project $PROJECT -images $images -filter $test_suite_name -local_path $some_path
+    $ manager -zone $ZONE -project $PROJECT -images $images -filter $test_suite_name -local_path .
 
 
 ## What is being tested ##
