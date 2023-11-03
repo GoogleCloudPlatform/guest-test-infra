@@ -253,58 +253,6 @@ local sqlimgbuildjob = {
   ],
 };
 
-local containerimgbuildjob = {
-  local job = self,
-
-  image:: error 'must set image in containerimgbuildjob',
-  base_image:: error 'must set base_image in containerimgbuildjob',
-  workflow:: error 'must set workflow in containerimgbuildjob',
-
-  // Start of job.
-  name: 'build-' + job.image + '-testing',
-  plan: [
-    {
-      get: '%s-gcs' % job.base_image,
-      params: { skip_download: 'true' },
-      passed: ['publish-to-testing-' + job.base_image],
-      trigger: true,
-    },
-    { get: 'compute-image-tools' },
-    { get: 'guest-test-infra' },
-    {
-      task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
-    },
-    {
-      load_var: 'start-timestamp-ms',
-      file: 'timestamp/timestamp-ms',
-    },
-    {
-      task: 'generate-build-id',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image },
-    },
-    {
-      put: '%s-gcs' % job.image,
-      params: { file: 'build-id-dir/%s*' % job.image },
-    },
-    {
-      load_var: 'gcs-url',
-      file: '%s-gcs/url' % job.image,
-    },
-    {
-      task: 'daisy-build',
-      config: daisy.daisyimagetask {
-        gcs_url: '((.:gcs-url))',
-        workflow: job.workflow,
-        vars+: [
-          'source_image_project=bct-prod-images',
-        ],
-      },
-    },
-  ],
-};
-
 local windowsinstallmediaimgbuildjob = {
   local job = self,
 
@@ -496,12 +444,6 @@ local SQLImgBuildJob(image, base_image, sql_version, ssms_version) = sqlimgbuild
   workflow: 'sqlserver/%s.wf.json' % image,
 };
 
-local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
-  image: image,
-  base_image: base_image,
-  workflow: workflow,
-};
-
 local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
   workflow: 'windows/%s.wf.json' % image,
@@ -596,10 +538,6 @@ local ImgGroup(name, images) = {
     'sql-2022-web-windows-2019-dc',
     'sql-2022-web-windows-2022-dc',
   ],
-  local container_images = [
-    'windows-server-2019-dc-for-containers-ce',
-    'windows-server-2019-dc-core-for-containers-ce',
-  ],
   local windows_install_media_images = [
     'windows-install-media',
   ],
@@ -627,7 +565,7 @@ local ImgGroup(name, images) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_client_images + windows_server_images + container_images
+               for image in windows_client_images + windows_server_images
              ] +
              [
                common.GcsSbomResource(image, 'windows-client')
@@ -697,14 +635,6 @@ local ImgGroup(name, images) = {
           SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
 
-          // Container derivative builds
-          ContainerImgBuildJob('windows-server-2019-dc-for-containers-ce',
-                               'windows-server-2019-dc',
-                               'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
-                               'windows-server-2019-dc-core',
-                               'windows_container/windows-2019-dc-core-for-containers-ce-uefi.wf.json'),
-
           // Windows install media builds
 
           WindowsInstallMediaImgBuildJob('windows-install-media'),
@@ -725,10 +655,6 @@ local ImgGroup(name, images) = {
           for image in sql_images
         ] +
         [
-          ImgPublishJob(image, 'windows_container', 'windows-uefi')
-          for image in container_images
-        ] +
-        [
           MediaImgPublishJob(image, 'windows', 'windows-install-media')
           for image in windows_install_media_images
         ],
@@ -744,7 +670,6 @@ local ImgGroup(name, images) = {
     ImgGroup('sql-2017-testing', sql_2017_images),
     ImgGroup('sql-2019-testing', sql_2019_images),
     ImgGroup('sql-2022-testing', sql_2022_images),
-    ImgGroup('container-2019-testing', container_images),
     ImgGroup('windows-install-media-testing', windows_install_media_images),
   ],
 }
