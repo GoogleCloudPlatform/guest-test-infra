@@ -150,6 +150,11 @@ To build from a directory other than `imagetest`
 
     $ local_build.sh -o $outspath -i $path_to_imagetest
 
+To run the tests, cd into $outspath, set the shell variables and run
+
+    $ manager -zone $ZONE -project $PROJECT -images $images -filter $test_suite_name -local_path $some_path
+
+
 ## What is being tested ##
 
 The tests are a combination of various types - end to end tests on certain
