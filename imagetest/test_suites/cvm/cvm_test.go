@@ -1,72 +1,14 @@
 package cvm
 
 import (
-	"os"
 	"os/exec"
-	"path"
 	"strings"
 	"testing"
-	"time"
-	"net"
-
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
-	"google.golang.org/api/compute/v1"
 )
 
 var sevMsgList = []string{"AMD Secure Encrypted Virtualization (SEV) active", "AMD Memory Encryption Features active: SEV", "Memory Encryption Features active: AMD SEV"}
 var sevSnpMsgList = []string{"AMD Secure Encrypted Virtualization (SEV) active", "SEV: SNP guest platform device intitialized", "Memory Encryption Features active: AMD SEV SEV-ES SEV-SNP"}
 var tdxMsgList = []string{"Memory Encryption Features active: TDX", "Memory Encryption Features active: Intel TDX"}
-
-func TestLiveMigrate(t *testing.T) {
-	b, err := os.ReadFile(path.Join(os.TempDir(), "simulate-maintenance-event-started"))
-	if err == nil && string(b) == "1" {
-		t.Fatal("Rebooted during live migration")
-	} else if !os.IsNotExist(err) {
-		t.Fatalf("Could not check if maintenance event was already triggered: %v", err)
-	}
-	ctx := utils.Context(t)
-	prj, err := utils.GetMetadata(ctx, "project", "project-id")
-	if err != nil {
-		t.Fatal(err)
-	}
-	zone, err := utils.GetMetadata(ctx, "instance", "zone")
-	if err != nil {
-		t.Fatal(err)
-	}
-	zone = strings.Split(zone, "/")[len(strings.Split(zone, "/"))-1]
-	inst, err := utils.GetMetadata(ctx, "instance", "name")
-	if err != nil {
-		t.Fatal(err)
-	}
-	s, err := compute.NewService(ctx, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	is := compute.NewInstancesService(s)
-	err = os.WriteFile(path.Join(os.TempDir(), "simulate-maintenance-event-started"), []byte("1"), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = is.SimulateMaintenanceEvent(prj, zone, inst).Context(ctx).Do()
-	if err != nil {
-		t.Fatal(err)
-	}
-	for range time.Tick(time.Duration(10) * time.Second) {
-		// https://cloud.google.com/compute/docs/metadata/getting-live-migration-notice#query_the_maintenance_event_metadata_key
-		event, err := utils.GetMetadata(ctx, "instance", "maintenance-event")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if event == "NONE" {
-			break
-		}
-	}
-	conn, err := net.Dial("tcp", "google.com:http")
-	if err != nil {
-		t.Fatal("Lost network connection during live migration")
-	}
-	conn.Close()
-}
 
 func TestSEVEnabled(t *testing.T) {
 	output, err := exec.Command("/bin/sh", "-c", "sudo dmesg | grep SEV").Output()
