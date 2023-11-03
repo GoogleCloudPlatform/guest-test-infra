@@ -7,7 +7,6 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local client_envs = ['testing', 'internal', 'client'];
 local server_envs = ['testing', 'internal', 'prod'];
 local sql_envs = ['testing', 'prod'];
-local docker_ce_envs = ['testing', 'internal'];
 local prerelease_envs = ['testing'];
 local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
@@ -304,84 +303,6 @@ local sqlimgbuildjob = {
   ],
 };
 
-local dockerceimgbuildjob = {
-  local job = self,
-
-  image:: error 'must set image in dockerceimgbuildjob',
-  base_image:: error 'must set base_image in dockerceimgbuildjob',
-  workflow:: error 'must set workflow in dockerceimgbuildjob',
-
-  // Start of job.
-  name: 'build-' + job.image,
-  on_success: {
-    task: 'publish-success-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  on_failure: {
-    task: 'publish-failure-metric',
-    config: common.publishresulttask {
-      pipeline: 'windows-image-build',
-      job: job.name,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  plan: [
-    {
-      get: '%s-gcs' % job.base_image,
-      params: { skip_download: 'true' },
-      passed: ['publish-to-testing-' + job.base_image],
-      trigger: true,
-    },
-    { get: 'compute-image-tools' },
-    { get: 'guest-test-infra' },
-    {
-      task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
-    },
-    {
-      load_var: 'start-timestamp-ms',
-      file: 'timestamp/timestamp-ms',
-    },
-    {
-      task: 'generate-id',
-      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
-    },
-    {
-      load_var: 'id',
-      file: 'generate-id/id',
-    },
-    {
-      task: 'generate-build-id',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image, id: '((.:id))' },
-    },
-    {
-      put: '%s-gcs' % job.image,
-      params: { file: 'build-id-dir/%s*' % job.image },
-    },
-    {
-      load_var: 'gcs-url',
-      file: '%s-gcs/url' % job.image,
-    },
-    {
-      task: 'daisy-build',
-      config: daisy.daisyimagetask {
-        gcs_url: '((.:gcs-url))',
-        workflow: job.workflow,
-        vars+: [
-          'source_image_project=bct-prod-images',
-        ],
-      },
-    },
-  ],
-};
-
 local windowsinstallmediaimgbuildjob = {
   local job = self,
 
@@ -637,12 +558,6 @@ local SQLImgBuildJob(image, base_image, sql_version, ssms_version) = sqlimgbuild
   workflow: 'sqlserver/%s.wf.json' % image,
 };
 
-local DockerCEImgBuildJob(image, base_image, workflow) = dockerceimgbuildjob {
-  image: image,
-  base_image: base_image,
-  workflow: workflow,
-};
-
 local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
   workflow: 'windows/%s.wf.json' % image,
@@ -750,10 +665,6 @@ local ImgGroup(name, images, environments) = {
     'sql-2022-web-windows-2019-dc',
     'sql-2022-web-windows-2022-dc',
   ],
-  local docker_ce_images = [
-    'windows-server-2019-dc-for-containers-ce',
-    'windows-server-2019-dc-core-for-containers-ce',
-  ],
   local windows_install_media_images = [
     'windows-install-media',
   ],
@@ -784,7 +695,7 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_client_images + windows_server_images + docker_ce_images
+               for image in windows_client_images + windows_server_images
              ] +
              [
                common.GcsSbomResource(image, 'windows-client')
@@ -863,14 +774,6 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
 
-          // Container derivative builds
-          DockerCEImgBuildJob('windows-server-2019-dc-for-containers-ce',
-                              'windows-server-2019-dc',
-                              'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
-          DockerCEImgBuildJob('windows-server-2019-dc-core-for-containers-ce',
-                              'windows-server-2019-dc-core',
-                              'windows_container/windows-2019-dc-core-for-containers-ce-uefi.wf.json'),
-
           // Windows install media builds
 
           WindowsInstallMediaImgBuildJob('windows-install-media'),
@@ -906,15 +809,6 @@ local ImgGroup(name, images, environments) = {
           for image in prerelease_images
           for env in prerelease_envs
         ] +
-        //Docker CE images need to skip prod like client images do.
-        [
-          ImgPublishJob(image, 'testing', 'windows_container', 'windows-uefi')
-          for image in docker_ce_images
-        ] +
-        [
-          ImgPublishJob(image, 'internal', 'windows_container', 'windows-uefi') {passed:'publish-to-testing-' + image},
-          for image in docker_ce_images
-        ] +
         [
           MediaImgPublishJob(image, env, 'windows', 'windows-install-media')
           for image in windows_install_media_images
@@ -932,7 +826,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('sql-2022', sql_2022_images, sql_envs),
-    ImgGroup('container-2019-docker-ce', docker_ce_images, docker_ce_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
     ImgGroup('pre-release', prerelease_images, prerelease_envs),
   ],
