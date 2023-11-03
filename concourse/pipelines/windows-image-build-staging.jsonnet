@@ -597,8 +597,6 @@ local ImgGroup(name, images) = {
     'sql-2022-web-windows-2022-dc',
   ],
   local container_images = [
-    'windows-server-2019-dc-for-containers',
-    'windows-server-2019-dc-core-for-containers',
     'windows-server-2019-dc-for-containers-ce',
     'windows-server-2019-dc-core-for-containers-ce',
   ],
@@ -700,13 +698,6 @@ local ImgGroup(name, images) = {
           SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
 
           // Container derivative builds
-
-          ContainerImgBuildJob('windows-server-2019-dc-for-containers',
-                               'windows-server-2019-dc',
-                               'windows_container/windows-2019-dc-for-containers-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-dc-core-for-containers',
-                               'windows-server-2019-dc-core',
-                               'windows_container/windows-2019-dc-core-for-containers-uefi.wf.json'),
           ContainerImgBuildJob('windows-server-2019-dc-for-containers-ce',
                                'windows-server-2019-dc',
                                'windows_container/windows-2019-dc-for-containers-ce-uefi.wf.json'),
