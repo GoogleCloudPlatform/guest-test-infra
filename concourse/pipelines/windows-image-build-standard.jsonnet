@@ -645,8 +645,8 @@ local ImgGroup(name, images, environments) = {
     'sql-2022-web-windows-2022',
   ],
   local container_images = [
-    'windows-server-2019-for-containers',
-    'windows-server-2019-core-for-containers',
+    'windows-server-2019-for-containers-ce',
+    'windows-server-2019-core-for-containers-ce',
   ],
 
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
@@ -735,12 +735,12 @@ local ImgGroup(name, images, environments) = {
 
           // Container derivative builds
                                
-          ContainerImgBuildJob('windows-server-2019-for-containers',
+          ContainerImgBuildJob('windows-server-2019-for-containers-ce',
                                'windows-server-2019',
-                               'windows_container/windows-2019-for-containers-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-core-for-containers',
+                               'windows_container/windows-2019-for-containers-ce-uefi.wf.json'),
+          ContainerImgBuildJob('windows-server-2019-core-for-containers-ce',
                                'windows-server-2019-core',
-                               'windows_container/windows-2019-core-for-containers-uefi.wf.json'),
+                               'windows_container/windows-2019-core-for-containers-ce-uefi.wf.json'),
         ] +
 
         // Publish jobs
@@ -770,6 +770,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('sql-2022', sql_2022_images, sql_envs),
-    ImgGroup('container-2019', container_images, server_envs),
+    ImgGroup('container-ce-2019', container_images, server_envs),
   ],
 }
