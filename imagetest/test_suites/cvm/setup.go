@@ -3,7 +3,6 @@ package cvm
 import (
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
 )
@@ -22,19 +21,17 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		switch feature.Type {
 		case "SEV_CAPABLE":
 			sevtests := "TestSEVEnabled"
-			vm := &daisy.Instance{}
+			vm := &daisy.InstanceBeta{}
 			vm.Name = vmName + "-SEV"
-			// Will need to set ConfidentialIstanceType = SEV when the v1 api supports this option
-			vm.ConfidentialInstanceConfig = &compute.ConfidentialInstanceConfig{EnableConfidentialCompute: true}
-			if utils.HasFeature(t.Image, "SEV_LIVE_MIGRATABLE") {
-				vm.Scheduling = &compute.Scheduling{OnHostMaintenance: "MIGRATE"}
-				sevtests += "|TestLiveMigrate"
+			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
+				ConfidentialInstanceType: "SEV",
+				EnableConfidentialCompute: true,
 			}
-			vm.Scheduling = &compute.Scheduling{OnHostMaintenance: "TERMINATE"}
+			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
 			disks := []*compute.Disk{&compute.Disk{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
-			tvm, err := t.CreateTestVMMultipleDisks(disks, vm)
+			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
 				return err
 			}

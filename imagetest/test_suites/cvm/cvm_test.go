@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"net"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
@@ -60,6 +61,11 @@ func TestLiveMigrate(t *testing.T) {
 			break
 		}
 	}
+	conn, err := net.Dial("tcp", "google.com:http")
+	if err != nil {
+		t.Fatal("Lost network connection during live migration")
+	}
+	conn.Close()
 }
 
 func TestSEVEnabled(t *testing.T) {
