@@ -24,7 +24,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm := &daisy.InstanceBeta{}
 			vm.Name = vmName + "-SEV"
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
-				ConfidentialInstanceType: "SEV",
+				ConfidentialInstanceType:  "SEV",
 				EnableConfidentialCompute: true,
 			}
 			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
