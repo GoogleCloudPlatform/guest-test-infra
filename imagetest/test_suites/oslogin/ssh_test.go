@@ -30,8 +30,8 @@ const (
 	admin2FAUser  = "admin-2fa-user"
 
 	// 2fa keys
-	normal2FAKey  = "normal-2fa-key"
-	admin2FAKey   = "admin-2fa-key"
+	normal2FAKey = "normal-2fa-key"
+	admin2FAKey  = "admin-2fa-key"
 
 	// keys
 	normalUserSshKey = "normal-user-ssh-key"
@@ -114,10 +114,10 @@ func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, v
 	}
 
 	// Get instance info.
-	instancesGetReq := &computepb.GetInstanceRequest {
+	instancesGetReq := &computepb.GetInstanceRequest{
 		Instance: vmname,
-		Project: project,
-		Zone: zone,
+		Project:  project,
+		Zone:     zone,
 	}
 
 	instance, err := client.Get(ctx, instancesGetReq)
@@ -141,10 +141,10 @@ func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, v
 
 	// Update the metadata on the instance.
 	setMetadataReq := &computepb.SetMetadataInstanceRequest {
-		Instance: vmname,
+		Instance:         vmname,
 		MetadataResource: metadata,
-		Project: project,
-		Zone: zone,
+		Project:          project,
+		Zone:             zone,
 	}
 	_, err = client.SetMetadata(ctx, setMetadataReq)
 	if err != nil {
@@ -211,7 +211,7 @@ func TestAgent(t *testing.T) {
 	defer client.Close()
 
 	// First check if OSLogin is on.
-	if err := isOsLoginEnabled(ctx); err != nil  {
+	if err := isOsLoginEnabled(ctx); err != nil {
 		t.Fatalf("OSLogin disabled when it should be enabled: %v", err)
 	}
 	// Turn off OsLogin.
@@ -219,7 +219,7 @@ func TestAgent(t *testing.T) {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
 	// Give the API time to update.
-	time.Sleep(time.Second*5)
+	time.Sleep(time.Second * 5)
 	// Check if OSLogin is disabled.
 	err = isOsLoginEnabled(ctx)
 	if err == nil {
@@ -232,7 +232,7 @@ func TestAgent(t *testing.T) {
 	if err = changeMetadata(ctx, client, "enable-oslogin", "true"); err != nil {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
-	time.Sleep(time.Second*5)
+	time.Sleep(time.Second * 5)
 
 	// Check if OSLogin is back on.
 	if err = isOsLoginEnabled(ctx); err != nil {
