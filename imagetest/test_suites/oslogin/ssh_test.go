@@ -1,3 +1,6 @@
+//go:build cit
+// +build cit
+
 package oslogin
 
 import (
