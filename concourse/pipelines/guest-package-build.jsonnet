@@ -52,10 +52,11 @@ local generatetimestamptask = {
 };
 
 // job which builds a package - environments to build and individual upload tasks are passed in
-local buildpackagejob = {
+local base_buildpackagejob = {
   local tl = self,
 
   package:: error 'must set package in buildpackagejob',
+  repo_name:: tl.package,
   gcs_dir:: tl.package,
   builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
@@ -135,7 +136,7 @@ local buildpackagejob = {
                   '-project=gcp-guest',
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
-                  '-var:repo_name=' + tl.package,
+                  '-var:repo_name=' + tl.repo_name,
                   '-var:git_ref=((.:commit-sha))',
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
@@ -151,7 +152,13 @@ local buildpackagejob = {
       },
     },
     // Layer in any provided additional tasks after build but before upload.
-  ] + tl.extra_tasks + [
+  ] + tl.extra_tasks + tl.extended_tasks
+};
+
+local buildpackagejob = base_buildpackagejob {
+  local tl = self,
+
+  extended_tasks: [
     // Run provided upload tasks.
     {
       in_parallel: {
@@ -161,14 +168,15 @@ local buildpackagejob = {
     },
     // Put the version tag onto the repo after uploads are complete.
     {
-      put: '%s-tag' % tl.package,
+      put: '%s-tag' % tl.repo_name,
       params: {
         name: 'package-version/version',
         tag: 'package-version/version',
-        commitish: '%s/.git/ref' % tl.package,
+        commitish: '%s/.git/ref' % tl.repo_name,
       },
     },
   ],
+
   // Publish success/failure metrics.
   on_success: publishresulttask {
     result: 'success',
@@ -318,11 +326,10 @@ local buildpackageimagetask = {
   },
 };
 
-// Start of output
-{
-  jobs: [
-    buildpackagejob {
-      package: 'guest-agent',
+local build_guest_agent = buildpackagejob {
+      local tl = self,
+
+      uploads: [],
       builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       // The guest agent has additional testing steps to build derivative images then run CIT against them.
       extra_tasks: [
@@ -353,19 +360,19 @@ local buildpackageimagetask = {
                 image_name: 'debian-10',
                 source_image: 'projects/debian-cloud/global/images/family/debian-10',
                 dest_image: 'debian-10-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'debian-11',
                 source_image: 'projects/debian-cloud/global/images/family/debian-11',
                 dest_image: 'debian-11-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'debian-11-arm64',
                 source_image: 'projects/debian-cloud/global/images/family/debian-11-arm64',
                 dest_image: 'debian-11-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -373,13 +380,13 @@ local buildpackageimagetask = {
                 image_name: 'debian-12',
                 source_image: 'projects/bct-prod-images/global/images/family/debian-12',
                 dest_image: 'debian-12-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'debian-12-arm64',
                 source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
                 dest_image: 'debian-12-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -387,25 +394,25 @@ local buildpackageimagetask = {
                 image_name: 'centos-7',
                 source_image: 'projects/centos-cloud/global/images/family/centos-7',
                 dest_image: 'centos-7-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'rhel-7',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-7',
                 dest_image: 'rhel-7-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'rhel-8',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
                 dest_image: 'rhel-8-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'rocky-linux-8-optimized-gcp-arm64',
                 source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
                 dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm' % [tl.package],
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -413,13 +420,13 @@ local buildpackageimagetask = {
                 image_name: 'rhel-9',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
                 dest_image: 'rhel-9-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
               },
               buildpackageimagetask {
                 image_name: 'rhel-9-arm64',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
                 dest_image: 'rhel-9-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
@@ -431,7 +438,7 @@ local buildpackageimagetask = {
             fail_fast: true,
             steps: [
               {
-                task: 'guest-agent-image-tests-amd64',
+                task: '%s-image-tests-amd64' % [tl.package],
                 config: {
                   platform: 'linux',
                   image_resource: {
@@ -451,7 +458,7 @@ local buildpackageimagetask = {
                 },
               },
               {
-                task: 'guest-agent-image-tests-arm64',
+                task: '%s-image-tests-arm64' % [tl.package],
                 config: {
                   platform: 'linux',
                   image_resource: {
@@ -476,6 +483,9 @@ local buildpackageimagetask = {
           },
         },
       ],
+};
+
+local build_and_upload_guest_agent = build_guest_agent {
       uploads: [
         uploadpackagetask {
           package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
@@ -532,6 +542,17 @@ local buildpackageimagetask = {
           repo: 'google-compute-engine-metadata-scripts',
         },
       ],
+};
+
+// Start of output
+{
+  jobs: [
+    build_and_upload_guest_agent{
+	package: 'guest-agent',
+    },
+    build_guest_agent{
+	package: 'guest-agent-dev',
+	repo_name: 'guest-agent',
     },
     buildpackagejob {
       package: 'guest-oslogin',
@@ -983,6 +1004,15 @@ local buildpackageimagetask = {
   ],
   resources: [
     {
+      name: 'guest-agent-dev',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
+        branch: 'dev',
+        fetch_tags: false,
+      },
+    },
+    {
       name: 'guest-agent',
       type: 'git',
       source: {
@@ -1158,6 +1188,12 @@ local buildpackageimagetask = {
       name: 'guest-agent',
       jobs: [
         'build-guest-agent',
+      ],
+    },
+    {
+      name: 'guest-agent-dev',
+      jobs: [
+        'build-guest-agent-dev',
       ],
     },
     {
