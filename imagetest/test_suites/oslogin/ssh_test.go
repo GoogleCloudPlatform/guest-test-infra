@@ -140,7 +140,7 @@ func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, v
 	}
 
 	// Update the metadata on the instance.
-	setMetadataReq := &computepb.SetMetadataInstanceRequest {
+	setMetadataReq := &computepb.SetMetadataInstanceRequest{
 		Instance:         vmname,
 		MetadataResource: metadata,
 		Project:          project,
