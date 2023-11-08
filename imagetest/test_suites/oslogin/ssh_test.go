@@ -168,16 +168,6 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 		return fmt.Errorf("failed to read /etc/nsswitch.conf: %v", err)
 	}
 
-	session, err = client.NewSession()
-	if err != nil {
-		return fmt.Errorf("failed to create ssh session: %v", err)
-	}
-	data, err = session.Output("pwd")
-	if err != nil {
-		return fmt.Errorf("failed to execute pwd: %v", err)
-	}
-	fmt.Printf("working directory: %v\n", string(data))
-
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "#") {
@@ -245,7 +235,7 @@ func TestAgent(t *testing.T) {
 
 // Checks whether SSH-ing works correctly with OSLogin enabled.
 // After successfully creating an SSH connection, check whether OSLogin is enabled on the host VM.
-func TestSsh(t *testing.T) {
+func TestSSH(t *testing.T) {
 	// TODO: Come up with better way to ensure the target VMs finished their guest agent checks.
 	time.Sleep(20 * time.Second)
 	ctx := utils.Context(t)
@@ -288,7 +278,7 @@ func TestSsh(t *testing.T) {
 	}
 }
 
-func TestAdminSsh(t *testing.T) {
+func TestAdminSSH(t *testing.T) {
 	time.Sleep(20 * time.Second)
 	ctx := utils.Context(t)
 
