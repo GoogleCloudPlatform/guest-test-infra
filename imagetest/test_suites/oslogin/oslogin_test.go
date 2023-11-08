@@ -16,11 +16,11 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-//const testUsername = "sa_105020877179577573373"
-//const testUUID = "3651018652"
+// const testUsername = "sa_105020877179577573373"
+// const testUUID = "3651018652"
 const (
 	testUsername = "sa_115308896887453382826"
-	testUUID = "2260770985"
+	testUUID     = "2260770985"
 )
 
 var testUserEntry = fmt.Sprintf("%s:*:%s:%s::/home/%s:", testUsername, testUUID, testUUID, testUsername)
@@ -60,7 +60,7 @@ func isTwoFactorAuthEnabled(ctx context.Context) (bool, error) {
 	return instanceFlag || projectFlag, nil
 }
 
-func isOsLoginEnabled(ctx context.Context) (error) {
+func isOsLoginEnabled(ctx context.Context) error {
 	data, err := os.ReadFile("/etc/nsswitch.conf")
 	if err != nil {
 		return fmt.Errorf("cannot read /etc/nsswitch.conf")
