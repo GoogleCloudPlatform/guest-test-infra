@@ -176,7 +176,7 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 	if err != nil {
 		return fmt.Errorf("failed to execute pwd: %v", err)
 	}
-	fmt.Printf("working directory: %v\n", data)
+	fmt.Printf("working directory: %v\n", string(data))
 
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)

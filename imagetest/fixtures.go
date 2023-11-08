@@ -377,6 +377,11 @@ func (t *TestVM) AddMetadata(key, value string) {
 	}
 }
 
+// AddScope adds the specified auth scope to the service account on the VM.
+func (t *TestVM) AddScope(scope string) {
+	t.instance.Scopes = append(t.instance.Scopes, scope)
+}
+
 // RunTests runs only the named tests on the testVM.
 //
 // From go help test:
