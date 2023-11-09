@@ -6,8 +6,8 @@ package networkperf
 import (
 	"strconv"
 	"strings"
-	"time"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -16,8 +16,8 @@ func TestNetworkPerformance(t *testing.T) {
 	// Check performance of the driver.
 	var results string
 	var err error
-	for i:=0;i<3;i++ {
-		time.Sleep(time.Duration(i)*time.Second)
+	for i := 0; i < 3; i++ {
+		time.Sleep(time.Duration(i) * time.Second)
 		results, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "results")
 		if err == nil {
 			break
