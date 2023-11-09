@@ -316,7 +316,6 @@ func TestAdminSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get sudo file: %v", err)
 	}
-	fmt.Printf("sudo directory: %s", string(data))
 	if !strings.Contains(string(data), posix) {
 		t.Fatalf("sudoers directory does not contain user")
 	}
