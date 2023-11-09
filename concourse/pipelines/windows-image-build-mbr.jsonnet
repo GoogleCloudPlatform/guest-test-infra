@@ -251,12 +251,12 @@ local ImgGroup(name, images, environments) = {
   jobs: [
     'build-' + image
     for image in images
-  ] +
-  [
-    'publish-to-%s-%s' % [env, image]
-    for env in environments
-    for image in images
   ],
+  //[
+    //'publish-to-%s-%s' % [env, image]
+    //for env in environments
+    //for image in images
+  //],
 };
 
 // Start of output.
@@ -306,12 +306,12 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-server-2019-dc-bios', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2016-dc-bios', 'win2016-64', 'windows_gcs_updates_server2016'),
           ImgBuildJob('windows-server-2012-r2-dc-bios', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
-        ] +
-        [
-          ImgPublishJob(image, env, 'windows', 'windows-bios')
-          for image in images
-          for env in envs
         ],
+        //[
+          //ImgPublishJob(image, env, 'windows', 'windows-bios')
+          //for image in images
+          //for env in envs
+        //],
 
   groups: [
     ImgGroup('windows-2012-bios', windows_2012_images, envs),
