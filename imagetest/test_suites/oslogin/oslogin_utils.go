@@ -98,7 +98,7 @@ func isOsLoginEnabled(ctx context.Context) error {
 			continue
 		}
 		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
-			return fmt.Errorf("OS Login not enabled in /etc/nsswitch.conf.")
+			return fmt.Errorf("OS Login not enabled in /etc/nsswitch.conf")
 		}
 	}
 
@@ -119,7 +119,7 @@ func isOsLoginEnabled(ctx context.Context) error {
 	}
 
 	if !foundAuthorizedKeys {
-		return fmt.Errorf("AuthorizedKeysCommand not set up for OS Login.")
+		return fmt.Errorf("AuthorizedKeysCommand not set up for OS Login")
 	}
 
 	if err = testSSHDPamConfig(ctx); err != nil {
@@ -142,7 +142,7 @@ func testSSHDPamConfig(ctx context.Context) error {
 		}
 
 		if !strings.Contains(string(data), "pam_oslogin_login.so") {
-			return fmt.Errorf("OS Login PAM module missing from pam.d/sshd.")
+			return fmt.Errorf("OS Login PAM module missing from pam.d/sshd")
 		}
 	}
 	return nil
