@@ -127,6 +127,7 @@ func waitFIOInstalledLinux() {
 	fioCompletedInstalling := utils.CheckLinuxCmdExists(fioCmdNameLinux)
 	for !fioCompletedInstalling {
 		time.Sleep(10 * time.Second)
+		fioCompletedInstalling = utils.CheckLinuxCmdExists(fioCmdNameLinux)
 	}
 }
 
