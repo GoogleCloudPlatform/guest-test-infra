@@ -153,7 +153,6 @@ local imgbuildjob = {
       file: 'gcp-secret-manager/sbom-util-secret',
     },
   ] +
-  [
   if job.runtests then
     [
       {
@@ -165,7 +164,6 @@ local imgbuildjob = {
       },
     ]
   else [],
-  ],
 };
 
 local imgpublishjob = {
