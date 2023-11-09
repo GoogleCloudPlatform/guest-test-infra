@@ -4,6 +4,7 @@
 package hotattach
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -193,11 +194,20 @@ func TestFileHotAttach(t *testing.T) {
 	}
 	f, err := os.Create(fileFullPath)
 	if err != nil {
+		f.Close()
 		t.Fatalf("failed to create file at path %s: error %v", fileFullPath, err)
 	}
-	_, err = f.WriteString(fileContents)
+
+	w := bufio.NewWriter(f)
+	_, err = w.Write(fileContentsBytes)
 	if err != nil {
-		t.Fatalf("failed to write to file: %v", err)
+		f.Close()
+		t.Fatalf("failed to write bytes: err %v", err)
+	}
+	w.Flush()
+	f.Sync()
+	if err = f.Close(); err != nil {
+		t.Fatalf("possible race condition, file operation not completed: error %v", err)
 	}
 	// run unmount steps if linux
 	if runtime.GOOS != "windows" {
@@ -240,8 +250,10 @@ func TestFileHotAttach(t *testing.T) {
 	}
 	hotAttachFile, err := os.Open(fileFullPath)
 	if err != nil {
+		hotAttachFile.Close()
 		t.Fatalf("file after hot attach reopen could not be opened at path %s: error A%v", fileFullPath, err)
 	}
+	defer hotAttachFile.Close()
 
 	fileLength, err := hotAttachFile.Read(fileContentsBytes)
 	if fileLength == 0 {
