@@ -656,7 +656,7 @@ local buildpackageimagetask = {
                     args: [
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
-                      '-test_projects=oslogin-testing-project',
+                      '-test_projects=oslogin-cit',
                       '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-filter=oslogin',
                     ],
@@ -677,7 +677,7 @@ local buildpackageimagetask = {
                     args: [
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
-                      '-test_projects=oslogin-testing-project',
+                      '-test_projects=oslogin-cit',
                       '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-machine_type=t2a-standard-2',
                       '-filter=oslogin',
