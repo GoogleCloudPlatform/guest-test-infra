@@ -4,8 +4,10 @@
 package oslogin
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -19,7 +21,6 @@ import (
 
 const (
 	// users
-	nopermsUser   = "non-user"
 	normalUser    = "normal-user"
 	adminUser     = "admin-user"
 	normal2FAUser = "normal-2fa-user"
@@ -34,6 +35,9 @@ const (
 	adminUserSshKey  = "admin-user-ssh-key"
 	normal2FASshKey  = "normal-2fa-ssh-key"
 	admin2FASshKey   = "admin-2fa-ssh-key"
+
+	// sudo keys
+	adminUserSudo = "admin-user-sudo"
 )
 
 // Changes the given metadata key to have the given value on the given instance.. If the key does not exist,
@@ -115,15 +119,62 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 	return nil
 }
 
-func getSudoFile(client *ssh.Client) error {
-	/**
+// Checks what's in the /var/google-sudoers.d directory.
+func getSudoFile(client *ssh.Client, sudo string) (string, error) {
 	session, err := client.NewSession()
 	if err != nil {
-		return fmt.Errorf("failed to create ssh session: %v", err)
+		return "", fmt.Errorf("failed to create ssh session: %v", err)
 	}
-	data, err := session.Output("ls /var/sudoers.d")
-	*/
-	return nil
+
+	modes := ssh.TerminalModes{
+		ssh.ECHO:          0,     // disable echoing
+		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
+		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
+	}
+	if err = session.RequestPty("xterm", 80, 40, modes); err != nil {
+		return "", fmt.Errorf("failed to create pseudo terminal: %v", err)
+	}
+
+	var output []byte
+	in, err := session.StdinPipe()
+	if err != nil {
+		return "", fmt.Errorf("failed to get session stdin: %v", err)
+	}
+	out, err := session.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("failed to get session stdout: %v", err)
+	}
+
+	go func(in io.WriteCloser, out io.Reader, output *[]byte) {
+		var line string
+		r := bufio.NewReader(out)
+		for {
+			b, err := r.ReadByte()
+			if err != nil {
+				break
+			}
+
+			*output = append(*output, b)
+			if b == byte('\n') {
+				line = ""
+				continue
+			}
+			line += string(b)
+			if strings.HasPrefix(line, "[sudo] password for ") {
+				_, err = in.Write([]byte(sudo + "\n"))
+				if err != nil {
+					break
+				}
+			}
+		}
+	}(in, out, &output)
+
+	_, err = session.Output("sudo ls /var/google-sudoers.d")
+	if err != nil {
+		return "", fmt.Errorf("error getting /var/google-sudoers.d: %v", err)
+	}
+	time.Sleep(time.Second * 5)
+	return string(output), nil
 }
 
 // TestAgent checks whether the guest agent responds correctly to switching
@@ -251,5 +302,18 @@ func TestAdminSSH(t *testing.T) {
 
 	if err = sessionOSLoginEnabled(client); err != nil {
 		t.Fatalf("%v", err)
+	}
+
+	sudo, err := getSecret(ctx, secretClient, adminUserSudo)
+	if err != nil {
+		t.Fatalf("failed to get sudo: %v", err)
+	}
+	data, err := getSudoFile(client, sudo)
+	if err != nil {
+		t.Fatalf("failed to get sudo file: %v", err)
+	}
+	fmt.Printf("sudo directory: %s", string(data))
+	if !strings.Contains(string(data), posix) {
+		t.Fatalf("sudoers directory does not contain user")
 	}
 }
