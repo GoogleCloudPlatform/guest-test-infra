@@ -3,6 +3,7 @@ package storageperf
 import (
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -23,6 +24,7 @@ const (
 	bootdiskSizeGB  = 50
 	bytesInMB       = 1048576
 	mountDiskName   = "hyperdisk"
+	fioCmdNameLinux = "fio"
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
@@ -119,6 +121,15 @@ type FIOStatistics struct {
 	X              map[string]interface{} `json:"-"`
 }
 
+// In some cases, fio might take longer to install on linux than expected.
+// To ensure tests do not fail from not finding fio, wait for the install.
+func waitFIOInstalledLinux() {
+	fioCompletedInstalling := utils.CheckLinuxCmdExists(fioCmdNameLinux)
+	for !fioCompletedInstalling {
+		time.Sleep(10 * time.Second)
+	}
+}
+
 // installFioWindows copies the fio.exe file onto the VM instance.
 func installFioWindows() error {
 	if procStatus, err := utils.RunPowershellCmd("gsutil cp " + fioWindowsGCS + " " + fioWindowsLocalPath); err != nil {
@@ -135,15 +146,15 @@ func installFioLinux() error {
 		if _, err := exec.Command("apt", "-y", "update").CombinedOutput(); err != nil {
 			return fmt.Errorf("apt update failed with error: %v", err)
 		}
-		installFioCmd = exec.Command("apt", "install", "-y", "fio")
+		installFioCmd = exec.Command("apt", "install", "-y", fioCmdNameLinux)
 	} else if utils.CheckLinuxCmdExists("dnf") {
-		installFioCmd = exec.Command("dnf", "-y", "install", "fio")
+		installFioCmd = exec.Command("dnf", "-y", "install", fioCmdNameLinux)
 	} else if utils.CheckLinuxCmdExists("yum") {
-		installFioCmd = exec.Command("yum", "-y", "install", "fio")
+		installFioCmd = exec.Command("yum", "-y", "install", fioCmdNameLinux)
 	} else if utils.CheckLinuxCmdExists("zypper") {
-		installFioCmd = exec.Command("zypper", "--non-interactive", "install", "fio")
+		installFioCmd = exec.Command("zypper", "--non-interactive", "install", fioCmdNameLinux)
 	} else {
-		return fmt.Errorf("no package managers to install fio foud")
+		return fmt.Errorf("no package managers to install fio found")
 	}
 
 	if _, err := installFioCmd.CombinedOutput(); err != nil {
