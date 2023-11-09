@@ -145,6 +145,7 @@ func getSudoFile(client *ssh.Client, sudo string) (string, error) {
 		return "", fmt.Errorf("failed to get session stdout: %v", err)
 	}
 
+	// Monitor the output stream of the ssh session.
 	go func(in io.WriteCloser, out io.Reader, output *[]byte) {
 		var line string
 		r := bufio.NewReader(out)
@@ -160,6 +161,7 @@ func getSudoFile(client *ssh.Client, sudo string) (string, error) {
 				continue
 			}
 			line += string(b)
+			// If we find we need to enter a sudo password, pass in the sudo password.
 			if strings.HasPrefix(line, "[sudo] password for ") {
 				_, err = in.Write([]byte(sudo + "\n"))
 				if err != nil {
@@ -173,7 +175,9 @@ func getSudoFile(client *ssh.Client, sudo string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error getting /var/google-sudoers.d: %v", err)
 	}
-	time.Sleep(time.Second * 5)
+
+	// Give time for the command to finish and output.
+	time.Sleep(time.Second * 3)
 	return string(output), nil
 }
 
