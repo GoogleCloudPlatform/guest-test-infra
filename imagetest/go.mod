@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/compute v1.22.0
+	cloud.google.com/go/oslogin v1.10.1
 	cloud.google.com/go/secretmanager v1.11.2
 	cloud.google.com/go/storage v1.31.0
 	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f

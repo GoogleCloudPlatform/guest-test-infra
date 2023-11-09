@@ -2,6 +2,7 @@ package oslogin
 
 import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -14,6 +15,11 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		t.Skip("OSLogin not supported on windows")
+		return nil
+	}
+
 	defaultVM, err := t.CreateTestVM("default")
 	if err != nil {
 		return err

@@ -4,127 +4,18 @@
 package oslogin
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-// const testUsername = "sa_105020877179577573373"
-// const testUUID = "3651018652"
-const (
-	testUsername = "sa_115308896887453382826"
-	testUUID     = "2260770985"
-)
-
-var testUserEntry = fmt.Sprintf("%s:*:%s:%s::/home/%s:", testUsername, testUUID, testUUID, testUsername)
-
-func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, error) {
-	data, err := utils.GetMetadata(ctx, append([]string{root}, elem...)...)
-	if err != nil {
-		return false, err
-	}
-
-	flag, err := strconv.ParseBool(data)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse enable-oslogin-2fa metadata entry: %+v", err)
-	}
-
-	return flag, nil
-}
-
-func isTwoFactorAuthEnabled(ctx context.Context) (bool, error) {
-	var (
-		instanceFlag, projectFlag bool
-		err                       error
-	)
-
-	elem := []string{"attributes", "enable-oslogin-2fa"}
-
-	instanceFlag, err = getTwoFactorAuth(ctx, "instance", elem...)
-	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
-		return false, err
-	}
-
-	projectFlag, err = getTwoFactorAuth(ctx, "project", elem...)
-	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
-		return false, err
-	}
-
-	return instanceFlag || projectFlag, nil
-}
-
-func isOsLoginEnabled(ctx context.Context) error {
-	data, err := os.ReadFile("/etc/nsswitch.conf")
-	if err != nil {
-		return fmt.Errorf("cannot read /etc/nsswitch.conf")
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
-			return fmt.Errorf("OS Login not enabled in /etc/nsswitch.conf.")
-		}
-	}
-
-	// Check AuthorizedKeys Command
-	data, err = os.ReadFile("/etc/ssh/sshd_config")
-	if err != nil {
-		return fmt.Errorf("cannot read /etc/ssh/sshd_config")
-	}
-	var foundAuthorizedKeys bool
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "AuthorizedKeysCommand") && strings.Contains(line, "/usr/bin/google_authorized_keys") {
-			foundAuthorizedKeys = true
-		}
-	}
-
-	if !foundAuthorizedKeys {
-		return fmt.Errorf("AuthorizedKeysCommand not set up for OS Login.")
-	}
-
-	if err = testSSHDPamConfig(ctx); err != nil {
-		return fmt.Errorf("error checking pam config: %v", err)
-	}
-	return nil
-}
-
 func TestOsLoginEnabled(t *testing.T) {
 	if err := isOsLoginEnabled(utils.Context(t)); err != nil {
 		t.Fatalf(err.Error())
 	}
-}
-
-func testSSHDPamConfig(ctx context.Context) error {
-	twoFactorAuthEnabled, err := isTwoFactorAuthEnabled(ctx)
-	if err != nil {
-		return fmt.Errorf("Failed to query two factor authentication metadata entry: %+v", err)
-	}
-
-	if twoFactorAuthEnabled {
-		// Check Pam Modules
-		data, err := os.ReadFile("/etc/pam.d/sshd")
-		if err != nil {
-			return fmt.Errorf("cannot read /etc/pam.d/sshd: %+v", err)
-		}
-
-		if !strings.Contains(string(data), "pam_oslogin_login.so") {
-			return fmt.Errorf("OS Login PAM module missing from pam.d/sshd.")
-		}
-	}
-	return nil
 }
 
 func TestOsLoginDisabled(t *testing.T) {
@@ -164,6 +55,11 @@ func TestOsLoginDisabled(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {
+	testUsername, _, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd", testUsername)
 	out, err := cmd.Output()
 	if err != nil {
@@ -175,6 +71,11 @@ func TestGetentPasswdOsloginUser(t *testing.T) {
 }
 
 func TestGetentPasswdAllUsers(t *testing.T) {
+	_, _, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd")
 	out, err := cmd.Output()
 	if err != nil {
@@ -192,6 +93,11 @@ func TestGetentPasswdAllUsers(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUID(t *testing.T) {
+	_, testUUID, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd", testUUID)
 	out, err := cmd.Output()
 	if err != nil {
