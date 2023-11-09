@@ -9,6 +9,7 @@ import (
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -19,12 +20,13 @@ var Name = "storageperf"
 var scripts embed.FS
 
 type storagePerfTest struct {
-	machineType    string
-	arch           string
-	diskType       string
-	cpuMetric      string
-	minCPUPlatform string
-	zone           string
+	machineType      string
+	arch             string
+	diskType         string
+	cpuMetric        string
+	minCPUPlatform   string
+	zone             string
+	requiredFeatures []string
 }
 
 const (
@@ -34,11 +36,12 @@ const (
 
 var storagePerfTestConfig = []storagePerfTest{
 	{
-		arch:        "X86_64",
-		machineType: "h3-standard-88",
-		zone:        "us-central1-a",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "h3-standard-88",
+		zone:             "us-central1-a",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	/* temporarily disable c3d hyperdisk until the api allows it again
 	{
@@ -47,25 +50,29 @@ var storagePerfTestConfig = []storagePerfTest{
 		zone: "us-east4-c",
 		diskType: imagetest.HyperdiskExtreme,
 		cpuMetric: "CPUS", // No public metric for this yet but the CPU count will work because they're so large
+		requiredFeatures: []string{"GVNIC"},
 	},*/
 	{
-		arch:        "X86_64",
-		machineType: "c3d-standard-180",
-		zone:        "us-east4-c",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "CPUS",
+		arch:             "X86_64",
+		machineType:      "c3d-standard-180",
+		zone:             "us-east4-c",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.HyperdiskExtreme,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.HyperdiskExtreme,
+		cpuMetric:        "C3_CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch:        "X86_64",
-		machineType: "c3-standard-88",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88",
+		diskType:         imagetest.PdBalanced,
+		cpuMetric:        "C3_CPUS",
+		requiredFeatures: []string{"GVNIC"},
 	},
 	{
 		arch:        "ARM64",
@@ -129,10 +136,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
 
-		vm, err := t.CreateTestVMMultipleDisks(
-			[]*compute.Disk{&bootDisk, &mountDisk},
-			map[string]string{"machineType": tc.machineType, "minCpuPlatform": tc.minCPUPlatform, "zone": tc.zone},
-		)
+		daisyInst := &daisy.Instance{}
+		daisyInst.MachineType = tc.machineType
+		daisyInst.MinCpuPlatform = tc.minCPUPlatform
+		daisyInst.Zone = tc.zone
+		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, daisyInst)
 		if err != nil {
 			return err
 		}
@@ -153,7 +161,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
 		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
 		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
-		if strings.Contains(t.Image, "windows") {
+		if utils.HasFeature(t.Image, "WINDOWS") {
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 			if err != nil {
 				return err
@@ -174,18 +182,21 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	return nil
 }
 
-func skipTest(tc storagePerfTest, image string) bool {
-	if (strings.Contains(image, "arm64") && tc.arch != "ARM64") || (!strings.Contains(image, "arm64") && tc.arch == "ARM64") {
+// Due to compatability issues or other one off errors, some combinations of machine types and images must be skipped. This function returns true for those combinations.
+func skipTest(tc storagePerfTest, image *compute.Image) bool {
+	if image.Architecture != tc.arch {
 		return true
 	}
-	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image, "windows-2012") || strings.Contains(image, "windows-2016")) {
+	for _, feat := range tc.requiredFeatures {
+		if !utils.HasFeature(image, feat) {
+			return true
+		}
+	}
+	if strings.HasPrefix(tc.machineType, "c3d") && (strings.Contains(image.Family, "windows-2012") || strings.Contains(image.Family, "windows-2016")) {
 		return true // Skip c3d on older windows
 	}
-	if strings.Contains(image, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
+	if strings.Contains(image.Name, "ubuntu-pro-1604") && strings.HasPrefix(tc.machineType, "c3-") {
 		return true // Skip c3 on older ubuntu
-	}
-	if (strings.HasPrefix("c3", tc.machineType) || strings.HasPrefix("h3", tc.machineType)) && strings.Contains(image, "debian-10") {
-		return true // Skip debian 10 on gen 3 machine types.
 	}
 	return false
 }

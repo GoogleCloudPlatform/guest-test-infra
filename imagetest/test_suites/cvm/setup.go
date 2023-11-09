@@ -2,9 +2,9 @@ package cvm
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -14,13 +14,12 @@ const vmName = "vm"
 
 // TestSetup sets up test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if strings.Contains(t.Image, "arm64") || strings.Contains(t.Image, "aarch64") {
+	if t.Image.Architecture == "ARM64" {
 		t.Skip("CVM is not supported on arm")
 	}
-	if strings.Contains(t.Image, "windows") || strings.Contains(t.Image, "rhel-7") || strings.Contains(t.Image, "centos-7") || strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-8-1-sap") || strings.Contains(t.Image, "rhel-8-2-sap") {
-		t.Skip(fmt.Sprintf("%v does not support CVM", t.Image))
+	if !utils.HasFeature(t.Image, "SEV_CAPABLE") {
+		t.Skip(fmt.Sprintf("%s does not support CVM", t.Image.Name))
 	}
-
 	vm, err := t.CreateTestVM(vmName)
 	if err != nil {
 		return err
@@ -28,7 +27,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm.EnableConfidentialInstance()
 	vm.SetMinCPUPlatform("AMD Milan")
 	vm.ForceMachineType("n2d-standard-2")
-
 	vm.RunTests("TestCVMEnabled")
 	return nil
 }

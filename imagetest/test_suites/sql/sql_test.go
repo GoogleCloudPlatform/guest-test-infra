@@ -15,7 +15,7 @@ import (
 func TestSqlVersion(t *testing.T) {
 	utils.WindowsOnly(t)
 
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatal("Failed to get image metadata")
 	}

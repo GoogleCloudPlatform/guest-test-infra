@@ -52,7 +52,7 @@ func getLinuxSymlinkWrite() (string, error) {
 	return symlinkRealPath, nil
 }
 
-func RunFIOWriteLinux(mode string) ([]byte, error) {
+func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 	var writeOptions string
 	if mode == sequentialMode {
 		writeOptions = commonFIOSeqWriteOptions
@@ -64,7 +64,7 @@ func RunFIOWriteLinux(mode string) ([]byte, error) {
 		return []byte{}, err
 	}
 	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		return []byte{}, fmt.Errorf("couldn't get image from metadata")
 	}
@@ -89,7 +89,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 			t.Fatalf("windows fio rand write failed with error: %v", err)
 		}
 	} else {
-		if randWriteIOPSJson, err = RunFIOWriteLinux(randomMode); err != nil {
+		if randWriteIOPSJson, err = RunFIOWriteLinux(t, randomMode); err != nil {
 			t.Fatalf("linux fio rand write failed with error: %v", err)
 		}
 	}
@@ -100,7 +100,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
-	expectedRandWriteIOPSString, err := utils.GetMetadataAttribute(randWriteAttribute)
+	expectedRandWriteIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
 	}
@@ -126,7 +126,7 @@ func TestSequentialWriteIOPS(t *testing.T) {
 			t.Fatalf("windows fio seq write failed with error: %v", err)
 		}
 	} else {
-		if seqWriteIOPSJson, err = RunFIOWriteLinux(sequentialMode); err != nil {
+		if seqWriteIOPSJson, err = RunFIOWriteLinux(t, sequentialMode); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)
 		}
 	}
@@ -142,7 +142,7 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	}
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
 
-	expectedSeqWriteIOPSString, err := utils.GetMetadataAttribute(seqWriteAttribute)
+	expectedSeqWriteIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", seqWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", seqWriteAttribute, err)
 	}

@@ -14,7 +14,7 @@ const (
 )
 
 func TestDefaultMTU(t *testing.T) {
-	iface, err := utils.GetInterface(0)
+	iface, err := utils.GetInterface(utils.Context(t), 0)
 	if err != nil {
 		t.Fatalf("couldn't find primary NIC: %v", err)
 	}

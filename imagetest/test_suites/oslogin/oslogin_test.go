@@ -4,17 +4,58 @@
 package oslogin
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const testUsername = "sa_105020877179577573373"
 const testUUID = "3651018652"
 
 var testUserEntry = fmt.Sprintf("%s:*:%s:%s::/home/%s:", testUsername, testUUID, testUUID, testUsername)
+
+func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, error) {
+	data, err := utils.GetMetadata(ctx, append([]string{root}, elem...)...)
+	if err != nil {
+		return false, err
+	}
+
+	flag, err := strconv.ParseBool(data)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse enable-oslogin-2fa metadata entry: %+v", err)
+	}
+
+	return flag, nil
+}
+
+func isTwoFactorAuthEnabled(t *testing.T) (bool, error) {
+	var (
+		instanceFlag, projectFlag bool
+		err                       error
+	)
+
+	elem := []string{"attributes", "enable-oslogin-2fa"}
+	ctx := utils.Context(t)
+
+	instanceFlag, err = getTwoFactorAuth(ctx, "instance", elem...)
+	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
+		return false, err
+	}
+
+	projectFlag, err = getTwoFactorAuth(ctx, "project", elem...)
+	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
+		return false, err
+	}
+
+	return instanceFlag || projectFlag, nil
+}
 
 func TestOsLoginEnabled(t *testing.T) {
 	// Check OS Login enabled in /etc/nsswitch.conf
@@ -52,14 +93,27 @@ func TestOsLoginEnabled(t *testing.T) {
 		t.Errorf("AuthorizedKeysCommand not set up for OS Login.")
 	}
 
-	// Check Pam Modules
-	data, err = ioutil.ReadFile("/etc/pam.d/sshd")
+	testSSHDPamConfig(t)
+}
+
+func testSSHDPamConfig(t *testing.T) {
+	t.Helper()
+
+	twoFactorAuthEnabled, err := isTwoFactorAuthEnabled(t)
 	if err != nil {
-		t.Fatalf("cannot read /etc/pam.d/sshd")
+		t.Fatalf("Failed to query two factor authentication metadata entry: %+v", err)
 	}
-	contents := string(data)
-	if !strings.Contains(contents, "pam_oslogin_login.so") {
-		t.Errorf("OS Login PAM module missing from pam.d/sshd.")
+
+	if twoFactorAuthEnabled {
+		// Check Pam Modules
+		data, err := ioutil.ReadFile("/etc/pam.d/sshd")
+		if err != nil {
+			t.Fatalf("cannot read /etc/pam.d/sshd: %+v", err)
+		}
+
+		if !strings.Contains(string(data), "pam_oslogin_login.so") {
+			t.Errorf("OS Login PAM module missing from pam.d/sshd.")
+		}
 	}
 }
 
@@ -94,15 +148,7 @@ func TestOsLoginDisabled(t *testing.T) {
 		}
 	}
 
-	// Check Pam Modules
-	data, err = ioutil.ReadFile("/etc/pam.d/sshd")
-	if err != nil {
-		t.Fatalf("cannot read /etc/pam.d/sshd")
-	}
-	contents := string(data)
-	if strings.Contains(contents, "pam_oslogin_login.so") {
-		t.Errorf("OS Login PAM module wrongly included in pam.d/sshd when disabled.")
-	}
+	testSSHDPamConfig(t)
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {

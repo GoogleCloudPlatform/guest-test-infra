@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package imagevalidation
+package hostnamevalidation
 
 import (
 	"crypto/md5"
@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -18,8 +19,39 @@ import (
 
 const gcomment = "# Added by Google"
 
+func testHostnameWindows(shortname string) error {
+	command := "[System.Net.Dns]::GetHostName()"
+	output, err := utils.RunPowershellCmd(command)
+	if err != nil {
+		return fmt.Errorf("Error getting hostname: %v", err)
+	}
+	hostname := strings.TrimSpace(output.Stdout)
+
+	if hostname != shortname {
+		return fmt.Errorf("Expected Hostname: '%s', Actual Hostname: '%s'", shortname, hostname)
+	}
+	return nil
+}
+
+func testHostnameLinux(shortname string) error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("couldn't determine local hostname")
+	}
+
+	if hostname != shortname {
+		return fmt.Errorf("hostname does not match metadata. Expected: %q got: %q", shortname, hostname)
+	}
+
+	// If hostname is FQDN then lots of tools (e.g. ssh-keygen) have issues
+	if strings.Contains(hostname, ".") {
+		return fmt.Errorf("hostname contains '.'")
+	}
+	return nil
+}
+
 func TestHostname(t *testing.T) {
-	metadataHostname, err := utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata(utils.Context(t), "instance", "hostname")
 	if err != nil {
 		t.Fatalf(" still couldn't determine metadata hostname")
 	}
@@ -27,24 +59,20 @@ func TestHostname(t *testing.T) {
 	// 'hostname' in metadata is fully qualified domain name.
 	shortname := strings.Split(metadataHostname, ".")[0]
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		t.Fatalf("couldn't determine local hostname")
-	}
-
-	if hostname != shortname {
-		t.Errorf("hostname does not match metadata. Expected: %q got: %q", shortname, hostname)
-	}
-
-	// If hostname is FQDN then lots of tools (e.g. ssh-keygen) have issues
-	if strings.Contains(hostname, ".") {
-		t.Errorf("hostname contains '.'")
+	if runtime.GOOS == "windows" {
+		if err = testHostnameWindows(shortname); err != nil {
+			t.Fatalf("windows hostname error: %v", err)
+		}
+	} else {
+		if err = testHostnameLinux(shortname); err != nil {
+			t.Fatalf("linux hostname error: %v", err)
+		}
 	}
 }
 
 // TestCustomHostname tests the 'fully qualified domain name'.
 func TestCustomHostname(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -64,8 +92,10 @@ func TestCustomHostname(t *testing.T) {
 
 // TestFQDN tests the 'fully qualified domain name'.
 func TestFQDN(t *testing.T) {
+	utils.LinuxOnly(t)
+	ctx := utils.Context(t)
 	// TODO Zonal DNS is breaking this test case in EL9.
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -86,7 +116,7 @@ func TestFQDN(t *testing.T) {
 		t.Skip("Broken on EL9")
 	}
 
-	metadataHostname, err := utils.GetMetadata("hostname")
+	metadataHostname, err := utils.GetMetadata(ctx, "instance", "hostname")
 	if err != nil {
 		t.Fatalf("couldn't determine metadata hostname")
 	}
@@ -126,6 +156,7 @@ type sshKeyHash struct {
 
 // TestHostKeysGeneratedOnces checks that the guest agent only generates host keys one time.
 func TestHostKeysGeneratedOnce(t *testing.T) {
+	utils.LinuxOnly(t)
 	sshDir := "/etc/ssh/"
 	sshfiles, err := ioutil.ReadDir(sshDir)
 	if err != nil {
@@ -144,7 +175,7 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 		hashes = append(hashes, sshKeyHash{file, hash})
 	}
 
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata")
 	}
@@ -192,7 +223,9 @@ func TestHostKeysGeneratedOnce(t *testing.T) {
 }
 
 func TestHostsFile(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	utils.LinuxOnly(t)
+	ctx := utils.Context(t)
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -229,11 +262,11 @@ func TestHostsFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't read /etc/hosts")
 	}
-	ip, err := utils.GetMetadata("network-interfaces/0/ip")
+	ip, err := utils.GetMetadata(ctx, "instance", "network-interfaces", "0", "ip")
 	if err != nil {
 		t.Fatalf("Couldn't get ip from metadata")
 	}
-	hostname, err := utils.GetMetadata("hostname")
+	hostname, err := utils.GetMetadata(ctx, "instance", "hostname")
 	if err != nil {
 		t.Fatalf("Couldn't get hostname from metadata")
 	}
