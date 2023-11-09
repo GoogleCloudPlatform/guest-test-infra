@@ -22,7 +22,7 @@ func TestNetworkPerformance(t *testing.T) {
 		if err == nil {
 			break
 		}
-		if i == 3 {
+		if i == 2 {
 			t.Fatalf("Error : Test results not found. %v", err)
 		}
 	}
