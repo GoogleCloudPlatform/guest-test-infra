@@ -42,6 +42,14 @@ if [[ $RET -ne 0 ]]; then
   echo "'GOOS=windows go build' exited with ${GOBUILD_OUT}"
 fi
 
+echo "Building CIT"
+./imagetest/local_build.sh -o /tmp/cit -i imagetest -s $(ls imagetest/test_suites/ | xargs)
+RET=$?
+if [[ $RET -ne 0 ]]; then
+	GOBUILD_OUT=$RET
+	echo "'./imagetest/local_build.sh -i imagetest -s $(ls imagetest/test_suites/ | xargs)' exited with ${GOBUILD_OUT}"
+fi
+
 sync
 echo Done
 exit $GOBUILD_OUT

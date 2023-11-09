@@ -15,8 +15,6 @@
 
 set -x
 
-#export GOCOVPATH=/gocov.txt
-
 BUILD_DIR=$1
 if [[ -n $BUILD_DIR ]]; then
   cd $BUILD_DIR || exit 1
@@ -28,27 +26,48 @@ go get -d -t ./... || exit 1
 echo "Pulling Windows imports..."
 GOOS=windows go get -d -t ./... || exit 1
 
-go test -v -coverprofile=/coverage.out "$@" ./... >/go-test.txt
-RET=$?
-if [[ $RET -ne 0 ]]; then
-  echo "go test -coverprofile=/coverage.out $@ ./... returned ${RET}"
-fi
-cp /go-test.txt ${ARTIFACTS}/
+mkdir /tmp/tests/
+mkdir /tmp/coverage/
+
+# Run go test for all directories in each module
+for dir in $(find $(pwd) -name go.mod | xargs dirname); do
+  TESTARGS=("-C" "$dir" "-coverprofile=/tmp/coverage.out")
+  # Verbose output from registry-image-forked causes go-junit-report to output
+  # invalid utf-8 for some reason.
+  [[ $(basename $dir) == "registry-image-forked" ]] || TESTARGS+=("-v")
+  # Skip subdirectory testing in CIT because we use those for test suites
+  [[ $(basename $dir) == "imagetest" ]] || TESTARGS+=("./...")
+
+  rm -f /tmp/coverage.out
+  go test "${TESTARGS[@]}" > "/tmp/tests/$(basename $dir)"
+  R=$?
+
+  if [[ $R -ne 0 ]]; then
+	RET=$R
+    echo "go test ${TESTARGS[@]} returned ${RET}"
+  fi
+
+  # Concatenate test ouput into artifacts
+  cat "/tmp/tests/$(basename $dir)" >> ${ARTIFACTS}/go-test.txt
+
+  # Generate coverage percentage for this module
+  go tool -C $dir cover -func=/tmp/coverage.out | grep ^total | awk '{print $NF}' | cut -d'.' -f1 > "/tmp/coverage/$(basename $dir)"
+done
+
 
 # $ARTIFACTS is provided by prow decoration containers
-go tool cover -func=/coverage.out | grep ^total | awk '{print $NF}' | cut -d'.' -f1 > ${ARTIFACTS}/coverage.txt
-cat /go-test.txt | go-junit-report > ${ARTIFACTS}/junit.xml
+# Generate a junit report for all modules
+cat /tmp/tests/* | go-junit-report > ${ARTIFACTS}/junit.xml
 
-# Upload coverage results to Codecov.
-#CODEV_COV_ARGS="-v -t $(cat ${CODECOV_TOKEN}) -B master -C $(git rev-parse HEAD)"
-#
-#if [[ ! -z "${PULL_NUMBER}" ]]; then
-#  CODEV_COV_ARGS="${CODEV_COV_ARGS} -P ${PULL_NUMBER}"
-#fi
-#
-#if [[ -e ${GOCOVPATH} ]]; then
-#  bash <(curl -s https://codecov.io/bash) -f ${GOCOVPATH} -F go_unittests ${CODEV_COV_ARGS}
-#fi
+# Average module coverage and record individual values in artifacts
+nummodules="$(ls /tmp/coverage/ | wc -l)"
+sum=0
+for mod in $(ls /tmp/coverage/); do
+  modcov=$(cat /tmp/coverage/$mod)
+  echo "$mod $modcov" >> ${ARTIFACTS}/module-coverage.txt
+  sum=$(($sum + $modcov))
+done
+echo $(($sum / $nummodules)) > ${ARTIFACTS}/coverage.txt
 
 echo Done
 exit "$RET"

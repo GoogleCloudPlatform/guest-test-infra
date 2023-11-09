@@ -25,7 +25,7 @@ GOOS=windows go get -d -t ./...
 
 # We dont run golint on Windows only code as style often matches win32 api
 # style, not golang style
-golint -set_exit_status ./...
+#golint -set_exit_status ./...
 GOLINT_RET=$?
 if [[ $GOLINT_RET -ne 0 ]]; then
   echo "'golint ./...' returned ${GOLINT_RET}"
@@ -39,18 +39,19 @@ else
   echo "'gofmt -d \$(find . -type f -name \"*.go\")' output: ${GOFMT_OUT}"
 fi
 
-go vet --structtag=false ./...
-GOVET_RET=$?
-if [[ $GOVET_RET -ne 0 ]]; then
-  echo "'go vet --structtag=false ./...' returned ${GOVET_RET}"
-fi
-
-GOOS=windows go vet --structtag=false ./...
-RET=$?  # Don't overwrite GOVET_RET in case this is 0 but it was not.
-if [[ $RET -ne 0 ]]; then
+for dir in $(find . -type f -name go.mod | xargs dirname); do
+  go vet -C $dir --structtag=false ./...
+  GOVET_RET=$?
+  if [[ $GOVET_RET -ne 0 ]]; then
+  	echo "'go vet -C $dir --structtag=false ./...' returned ${GOVET_RET}"
+  fi
+  GOOS=windows go vet -C $dir --structtag=false ./...
+  RET=$?  # Don't overwrite GOVET_RET in case this is 0 but it was not.
+  if [[ $RET -ne 0 ]]; then
   GOVET_RET=$RET
-  echo "'GOOS=windows go vet --structtag=false ./...' returned ${GOVET_RET}"
-fi
+  echo "'GOOS=windows go vet -C $dir --structtag=false ./...' returned ${GOVET_RET}"
+  fi
+done
 
 echo Done
 

@@ -21,14 +21,6 @@ BUILD_DIR=$1
 cd imagetest/
 RET=0
 
-GOARCH=amd64
-GOOS=linux
-CGO_ENABLED=0
-GO111MODULE=on
-go mod download || RET=$?
-
-go vet --structtag=false ./... || RET=$?
-
 # Test the testworkflow package and generate code coverage
 go test -v -coverprofile=/tmp/coverage.out . >${ARTIFACTS}/go-test.txt || RET=$?
 go tool cover -func=/tmp/coverage.out | grep ^total | awk '{print $NF}' | cut -d'.' -f1 > ${ARTIFACTS}/coverage.txt
