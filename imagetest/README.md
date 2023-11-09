@@ -114,11 +114,50 @@ checking if a Linux binary exists.
 It is suggested to start by copying an existing test package. Do not forget to add
 your test to the relevant `setup.go` file in order to add the test to the test suite.
 
+### Modifying test behavior based on image properties ###
+
+For tests that need to behave different based on whether an image is arm or x86, or linux or windows, it is preferred to use compute API properties rather than relying on image naming conventions. These properties can be found on the testworkflow Image value. The list of values can be found in the compute API documentation [here](https://pkg.go.dev/google.golang.org/api/compute/v1#Image). Some examples are in the following code snippet.
+
+```go
+func Setup(t *imagetest.Testworkflow) {
+	if t.Image.Architecture == "ARM64" {
+	//...
+	} else if utils.HasFeature(t.Image, "GVNIC") {
+	//...
+	}
+}
+```
+
+### Testing features in compute beta API ###
+
+Tests that need to run against features in the beta API can do so by creating TestVMs using `CreateTestVMBeta` or `CreateTestVMFromInstanceBeta` to use the beta instance API. However, due to limitation with daisy's create instances step, if one instance in a TestWorkflow uses the beta API all instances in that workflow must use the beta API.
+
+
 ## Building the container image ##
 
 From the `imagetest` directory of this repository:
 
     $ docker build -t cloud-image-tests -f Dockerfile .
+
+## Testing on a local machine ##
+
+From the `imagetest` directory of this repository, where outspath is
+the folder where test outputs are stored:
+
+    $ local_build.sh -o $outspath
+
+By default, all test suites are built. To build only one test suite:
+
+    $ local_build.sh -o $outspath -s $test_suite_name
+
+To build from a directory other than `imagetest`
+
+    $ local_build.sh -o $outspath -i $path_to_imagetest
+
+To run the tests, cd into $outspath, set the shell variables and run
+
+    $ manager -zone $ZONE -project $PROJECT -images $images -filter $test_suite_name -local_path .
+
 
 ## What is being tested ##
 

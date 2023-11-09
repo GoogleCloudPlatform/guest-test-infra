@@ -235,66 +235,6 @@ local sqlimgbuildjob = {
   ],
 };
 
-local containerimgbuildjob = {
-  local job = self,
-
-  image:: error 'must set image in containerimgbuildjob',
-  base_image:: error 'must set base_image in containerimgbuildjob',
-  workflow:: error 'must set workflow in containerimgbuildjob',
-
-  // Start of job.
-  name: 'build-' + job.image,
-  plan: [
-    {
-      get: '%s-gcs' % job.base_image,
-      params: { skip_download: 'true' },
-      passed: ['publish-to-testing-' + job.base_image],
-      trigger: true,
-    },
-    { get: 'compute-image-tools' },
-    { get: 'guest-test-infra' },
-    {
-      task: 'generate-timestamp',
-      file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
-    },
-    {
-      load_var: 'start-timestamp-ms',
-      file: 'timestamp/timestamp-ms',
-    },
-    {
-      task: 'generate-id',
-      file: 'guest-test-infra/concourse/tasks/generate-id.yaml',
-    },
-    {
-      load_var: 'id',
-      file: 'generate-id/id',
-    },
-    {
-      task: 'generate-build-id',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id.yaml',
-      vars: { prefix: job.image, id: '((.:id))' },
-    },
-    {
-      put: '%s-gcs' % job.image,
-      params: { file: 'build-id-dir/%s*' % job.image },
-    },
-    {
-      load_var: 'gcs-url',
-      file: '%s-gcs/url' % job.image,
-    },
-    {
-      task: 'daisy-build',
-      config: daisy.daisyimagetask {
-        gcs_url: '((.:gcs-url))',
-        workflow: job.workflow,
-        vars+: [
-          'source_image_project=bct-prod-images',
-        ],
-      },
-    },
-  ],
-};
-
 local windowsinstallmediaimgbuildjob = {
   local job = self,
 
@@ -526,12 +466,6 @@ local SQLImgBuildJob(image, base_image, sql_version, ssms_version) = sqlimgbuild
   workflow: 'sqlserver/%s.wf.json' % image,
 };
 
-local ContainerImgBuildJob(image, base_image, workflow) = containerimgbuildjob {
-  image: image,
-  base_image: base_image,
-  workflow: workflow,
-};
-
 local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
   image: image,
   workflow: 'windows/%s.wf.json' % image,
@@ -644,10 +578,6 @@ local ImgGroup(name, images, environments) = {
     'sql-2022-web-windows-2019',
     'sql-2022-web-windows-2022',
   ],
-  local container_images = [
-    'windows-server-2019-for-containers',
-    'windows-server-2019-core-for-containers',
-  ],
 
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
                               + windows_2022_images,
@@ -671,7 +601,7 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-uefi')
-               for image in windows_server_images + container_images
+               for image in windows_server_images
              ] +
              [
                common.GcsImgResource(image, 'sqlserver-uefi')
@@ -732,15 +662,6 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2022-standard-windows-2022', 'windows-server-2022', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2019', 'windows-server-2019', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2022', 'windows-server-2022', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-
-          // Container derivative builds
-                               
-          ContainerImgBuildJob('windows-server-2019-for-containers',
-                               'windows-server-2019',
-                               'windows_container/windows-2019-for-containers-uefi.wf.json'),
-          ContainerImgBuildJob('windows-server-2019-core-for-containers',
-                               'windows-server-2019-core',
-                               'windows_container/windows-2019-core-for-containers-uefi.wf.json'),
         ] +
 
         // Publish jobs
@@ -753,11 +674,6 @@ local ImgGroup(name, images, environments) = {
           ImgPublishJob(image, env, 'sqlserver', 'sqlserver-uefi')
           for image in sql_images
           for env in sql_envs
-        ] +
-        [
-          ImgPublishJob(image, env, 'windows_container', 'windows-uefi')
-          for image in container_images
-          for env in server_envs
         ],
 
   groups: [
@@ -770,6 +686,5 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('sql-2022', sql_2022_images, sql_envs),
-    ImgGroup('container-2019', container_images, server_envs),
   ],
 }

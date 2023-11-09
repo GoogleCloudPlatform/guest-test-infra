@@ -15,17 +15,32 @@
 package imagetest
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
+// Return an empty test workflow.
+func NewTestWorkflowForUnitTest(name, image, timeout string) *TestWorkflow {
+	t := &TestWorkflow{}
+	t.Name = name
+	t.Image = &compute.Image{}
+	t.ImageURL = image
+	t.MachineType = &compute.MachineType{}
+	t.Project = &compute.Project{}
+	t.Zone = &compute.Zone{}
+	t.wf = daisy.New()
+	t.wf.DefaultTimeout = timeout
+	return t
+}
+
 func TestAddStartStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
@@ -48,10 +63,7 @@ func TestAddStartStep(t *testing.T) {
 }
 
 func TestAddStopStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
@@ -74,10 +86,7 @@ func TestAddStopStep(t *testing.T) {
 }
 
 func TestAddWaitStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
@@ -101,16 +110,65 @@ func TestAddWaitStep(t *testing.T) {
 	if instancesSignal[0].Stopped {
 		t.Error("waitInstances step is malformed")
 	}
+	guestAttributeSignal := instancesSignal[0].GuestAttribute
+	if guestAttributeSignal == nil {
+		t.Error("no guest attribute wait field was set for wait step")
+	}
+	if guestAttributeSignal.Namespace != utils.GuestAttributeTestNamespace {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.Namespace, utils.GuestAttributeTestNamespace)
+	}
+	if guestAttributeSignal.KeyName != utils.GuestAttributeTestKey {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.KeyName, utils.GuestAttributeTestKey)
+	}
+	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
+		t.Error("step was not correctly added to workflow")
+	}
+}
+
+// This tests that in the special case where the test reboots and we need results
+// from the second boot, the instance signal for the step is correct.
+func TestAddWaitRebootGAStep(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	step, err := twf.addWaitRebootGAStep("stepname", "vmname")
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.WaitForInstancesSignal == nil {
+		t.Fatal("WaitForInstancesSignal step is missing")
+	}
+	instancesSignal := []*daisy.InstanceSignal(*step.WaitForInstancesSignal)
+	if len(instancesSignal) != 1 {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].Name != "vmname" {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].SerialOutput.SuccessMatch != successMatch {
+		t.Error("waitInstances step is malformed")
+	}
+	if instancesSignal[0].Stopped {
+		t.Error("waitInstances step is malformed")
+	}
+	guestAttributeSignal := instancesSignal[0].GuestAttribute
+	if guestAttributeSignal == nil {
+		t.Error("no guest attribute wait field was set for wait step")
+	}
+	if guestAttributeSignal.Namespace != utils.GuestAttributeTestNamespace {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.Namespace, utils.GuestAttributeTestNamespace)
+	}
+	if guestAttributeSignal.KeyName != utils.FirstBootGAKey {
+		t.Errorf("wrong guest attribute namespace: got %s, expected %s", guestAttributeSignal.KeyName, utils.FirstBootGAKey)
+	}
 	if stepFromWF, ok := twf.wf.Steps["wait-stepname"]; !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
 }
 
 func TestAddWaitStoppedStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
@@ -140,10 +198,7 @@ func TestAddWaitStoppedStep(t *testing.T) {
 }
 
 func TestAppendCreateDisksStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
@@ -185,18 +240,16 @@ func TestAppendCreateDisksStep(t *testing.T) {
 }
 
 func TestAppendCreateVMStep(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-		map[string]string{"hostname": ""})
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = ""
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -214,8 +267,9 @@ func TestAppendCreateVMStep(t *testing.T) {
 	if !ok || step != stepFromWF {
 		t.Error("step was not correctly added to workflow")
 	}
-	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}},
-		map[string]string{"hostname": ""})
+	daisyInst2 := &daisy.Instance{}
+	daisyInst2.Hostname = ""
+	step2, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname2"}}, daisyInst2)
 	if err != nil {
 		t.Fatalf("failed to add wait step to test workflow: %v", err)
 	}
@@ -231,20 +285,65 @@ func TestAppendCreateVMStep(t *testing.T) {
 	}
 }
 
-func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+func TestAppendCreateVMStepBeta(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
+	daisyInst := &daisy.InstanceBeta{}
+	daisyInst.Hostname = ""
+	step, _, err := twf.appendCreateVMStepBeta([]*compute.Disk{{Name: "vmname"}}, daisyInst)
+	if err != nil {
+		t.Errorf("failed to add wait step to test workflow: %v", err)
+	}
+	if step.CreateInstances == nil {
+		t.Fatal("CreateDisks step is missing")
+	}
+	instances := step.CreateInstances.InstancesBeta
+	if len(instances) != 1 {
+		t.Error("CreateInstances step is malformed")
+	}
+	if instances[0].Name != "vmname" {
+		t.Error("CreateInstances step is malformed")
+	}
+	stepFromWF, ok := twf.wf.Steps["create-vms"]
+	if !ok || step != stepFromWF {
+		t.Error("step was not correctly added to workflow")
+	}
+	daisyInst2 := &daisy.InstanceBeta{}
+	daisyInst2.Hostname = ""
+	step2, _, err := twf.appendCreateVMStepBeta([]*compute.Disk{{Name: "vmname2"}}, daisyInst2)
+	if err != nil {
+		t.Fatalf("failed to add wait step to test workflow: %v", err)
+	}
+	if step2 != stepFromWF {
+		t.Fatal("CreateDisks step was not appended")
+	}
+	instances = step.CreateInstances.InstancesBeta
+	if len(instances) != 2 {
+		t.Fatal("CreateDisks step was not appended")
+	}
+	if instances[1].Name != "vmname2" {
+		t.Error("CreateInstances step is malformed")
+	}
+}
+
+func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if twf.wf == nil {
+		t.Fatal("test workflow is malformed")
+	}
+	if _, ok := twf.wf.Steps["create-disks"]; ok {
+		t.Fatal("create-disks step already exists")
+	}
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = ""
+	daisyInst.MachineType = "n1-standard-1"
 	step, instanceFromStep, err := twf.appendCreateVMStep([]*compute.Disk{
-		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}},
-		map[string]string{"hostname": "", "machineType": "n1-standard-1"})
+		{Name: "vmname"}, {Name: "mountdiskname", Type: PdBalanced}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -268,18 +367,16 @@ func TestAppendCreateVMStepMultipleDisks(t *testing.T) {
 }
 
 func TestAppendCreateVMStepCustomHostname(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	if twf.wf == nil {
 		t.Fatal("test workflow is malformed")
 	}
 	if _, ok := twf.wf.Steps["create-disks"]; ok {
 		t.Fatal("create-disks step already exists")
 	}
-	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}},
-		map[string]string{"hostname": "vmname.example.com"})
+	daisyInst := &daisy.Instance{}
+	daisyInst.Hostname = "vmname.example.com"
+	step, _, err := twf.appendCreateVMStep([]*compute.Disk{{Name: "vmname"}}, daisyInst)
 	if err != nil {
 		t.Errorf("failed to add wait step to test workflow: %v", err)
 	}
@@ -299,24 +396,112 @@ func TestAppendCreateVMStepCustomHostname(t *testing.T) {
 }
 
 func TestNewTestWorkflow(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
+	testcases := []struct {
+		name                string
+		arch                string
+		image               string
+		imagename           string
+		project             string
+		zone                string
+		x86Shape            string
+		arm64Shape          string
+		timeout             string
+		expectedMachineType string
+	}{
+		{
+			name:                "arm",
+			arch:                "ARM64",
+			image:               "projects/fake-cloud/global/images/fakeos-v1",
+			imagename:           "fakeos-v1",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-stanard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "30m",
+			expectedMachineType: "t2a-standard-1",
+		},
+		{
+			name:                "x86",
+			arch:                "X86_64",
+			image:               "projects/fake-cloud/global/images/family/fakeos",
+			imagename:           "fakeos",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-standard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "20m",
+			expectedMachineType: "n1-standard-1",
+		},
+		{
+			name:                "unspecified arch",
+			arch:                "",
+			image:               "projects/fake-cloud/global/images/family/fakeos",
+			imagename:           "fakeos",
+			project:             "gcp-guest",
+			zone:                "us-central1-a",
+			x86Shape:            "n1-standard-1",
+			arm64Shape:          "t2a-standard-1",
+			timeout:             "20m",
+			expectedMachineType: "n1-standard-1",
+		},
 	}
-	if twf.wf == nil {
-		t.Fatal("test workflow is malformed")
-	}
-	if len(twf.wf.Steps) != 0 {
-		t.Error("test workflow has initial steps")
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			srv, client, err := daisycompute.NewTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s?alt=json&prettyPrint=false", tc.project) {
+					fmt.Fprintf(w, `{"Name":"%s"}`, tc.project)
+				} else if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s/zones/%s?alt=json&prettyPrint=false", tc.project, tc.zone) {
+					fmt.Fprintf(w, `{"Name":"%s"}`, tc.zone)
+				} else if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s/zones/%s/machineTypes/%s?alt=json&prettyPrint=false", tc.project, tc.zone, tc.x86Shape) {
+					fmt.Fprintf(w, `{"Name":"%s"}`, tc.x86Shape)
+				} else if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/projects/%s/zones/%s/machineTypes/%s?alt=json&prettyPrint=false", tc.project, tc.zone, tc.arm64Shape) {
+					fmt.Fprintf(w, `{"Name":"%s"}`, tc.arm64Shape)
+				} else if r.Method == "GET" && r.URL.String() == fmt.Sprintf("/%s?alt=json&prettyPrint=false", tc.image) {
+					fmt.Fprintf(w, `{"Name":"%s", "Architecture":"%s"}`, tc.imagename, tc.arch)
+				} else {
+					w.WriteHeader(500)
+					fmt.Fprintln(w, "URL and Method not recognized:", r.Method, r.URL)
+				}
+			}))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer srv.Close()
+			twf, err := NewTestWorkflow(client, tc.name, tc.image, tc.timeout, tc.project, tc.zone, tc.x86Shape, tc.arm64Shape)
+			if err != nil {
+				t.Fatalf("failed to create test workflow: %v", err)
+			}
+			if twf.Name != tc.name {
+				t.Errorf("unexpected workflow name, want %s got %s", tc.name, twf.Name)
+			}
+			if twf.Image.Architecture != tc.arch {
+				t.Errorf("unexpected image architecture, want %s got %s", tc.arch, twf.Image.Architecture)
+			}
+			if twf.Image.Name != tc.imagename {
+				t.Errorf("unexpected image name, want %s got %s", tc.imagename, twf.Image.Name)
+			}
+			if twf.Project.Name != tc.project {
+				t.Errorf("unexpected project name, want %s got %s", tc.project, twf.Project.Name)
+			}
+			if twf.Zone.Name != tc.zone {
+				t.Errorf("unexpected zone name, want %s got %s", tc.zone, twf.Zone.Name)
+			}
+			if twf.MachineType.Name != tc.expectedMachineType {
+				t.Errorf("unexpected machine type, want %q got %q", twf.MachineType.Name, tc.expectedMachineType)
+			}
+			if twf.wf.DefaultTimeout != tc.timeout {
+				t.Errorf("unexpected workflow timeout, want %v got %v", tc.timeout, twf.wf.DefaultTimeout)
+			}
+			if len(twf.wf.Steps) > 0 {
+				t.Errorf("workflow has initial steps: %v", twf.wf.Steps)
+			}
+		})
 	}
 }
 
 func TestGetLastStepForVM(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
-	if _, err = twf.CreateTestVM("vm"); err != nil {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	if _, err := twf.CreateTestVM("vm"); err != nil {
 		t.Errorf("failed to create test vm: %v", err)
 	}
 	step, err := twf.getLastStepForVM("vm")
@@ -332,10 +517,7 @@ func TestGetLastStepForVM(t *testing.T) {
 }
 
 func TestGetLastStepForVMWhenReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)
@@ -356,10 +538,7 @@ func TestGetLastStepForVMWhenReboot(t *testing.T) {
 }
 
 func TestGetLastStepForVMWhenMultipleReboot(t *testing.T) {
-	twf, err := NewTestWorkflow("name", "image", "30m", "x86", "arm64")
-	if err != nil {
-		t.Errorf("failed to create test workflow: %v", err)
-	}
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
 	tvm, err := twf.CreateTestVM("vm")
 	if err != nil {
 		t.Errorf("failed to create test vm: %v", err)

@@ -4,7 +4,9 @@ import (
 	"embed"
 	"strings"
 
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -38,8 +40,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	shutdownScriptParams := map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm2"}}, shutdownScriptParams)
+	vm2Inst := &daisy.Instance{}
+	vm2Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm2"}}, vm2Inst)
 	if err != nil {
 		return err
 	}
@@ -48,7 +51,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm3, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm3"}}, shutdownScriptParams)
+	vm3Inst := &daisy.Instance{}
+	vm3Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm3, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm3"}}, vm3Inst)
 	if err != nil {
 		return err
 	}
@@ -57,7 +62,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm4, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm4"}}, shutdownScriptParams)
+	vm4Inst := &daisy.Instance{}
+	vm4Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm4, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm4"}}, vm4Inst)
 	if err != nil {
 		return err
 	}
@@ -66,7 +73,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm5, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm5"}}, shutdownScriptParams)
+	vm5Inst := &daisy.Instance{}
+	vm5Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm5, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm5"}}, vm5Inst)
 	if err != nil {
 		return err
 	}
@@ -99,7 +108,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	var timeByteArr []byte
 
 	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		startupByteArr, err = scripts.ReadFile(startupScriptWindowsURL)
 		if err != nil {
 			return err

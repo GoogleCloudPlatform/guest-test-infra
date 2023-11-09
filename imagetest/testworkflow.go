@@ -26,7 +26,9 @@ import (
 
 	"cloud.google.com/go/storage"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
+	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -58,14 +60,16 @@ const (
 // TestWorkflow defines a test workflow which creates at least one test VM.
 type TestWorkflow struct {
 	Name string
-	// Image will be the partial URL of a GCE image.
-	Image string
-	// ShortImage will be only the final component of Image, used for naming.
-	ShortImage string
+	// Client is a shared client for the compute service.
+	Client daisycompute.Client
+	// Image is the image under test
+	Image *compute.Image
+	// ImageURL will be the partial URL of a GCE image.
+	ImageURL string
 	// MachineType is the machine type to be used for the test. This can be overridden by individual test suites.
-	MachineType string
-	// ShortMachineType wil be only the final component of MachineType, used for naming.
-	ShortMachineType string
+	MachineType *compute.MachineType
+	Project     *compute.Project
+	Zone        *compute.Zone
 	// destination for workflow outputs in GCS.
 	gcsPath        string
 	skipped        bool
@@ -77,7 +81,7 @@ type TestWorkflow struct {
 	lockProject bool
 }
 
-func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams map[string]string) (*daisy.Step, *daisy.Instance, error) {
+func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams *daisy.Instance) (*daisy.Step, *daisy.Instance, error) {
 	if len(disks) == 0 || disks[0].Name == "" {
 		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
 	}
@@ -85,47 +89,27 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	name := disks[0].Name
 
 	var suffix string
-	if strings.Contains(t.Image, "windows") {
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		suffix = ".exe"
 	}
 
-	instance := &daisy.Instance{}
+	instance := instanceParams
+	if instance == nil {
+		instance = &daisy.Instance{}
+	}
+
 	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
 	instance.Name = name
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
-	// An additional IAM scope may be passed in, such as for detachDisk and attachDisk calls.
-	if extraScopes, foundKey := instanceParams["extraScopes"]; foundKey {
-		instance.Scopes = append(instance.Scopes, extraScopes)
-	}
-
-	hostname, foundKey := instanceParams["hostname"]
-	if !foundKey {
-		hostname = ""
-	}
-	if hostname != "" && name != hostname {
-		instance.Hostname = hostname
-	}
-
-	if minCPUPlatform, foundKey := instanceParams["minCpuPlatform"]; foundKey {
-		instance.MinCpuPlatform = minCPUPlatform
-	}
-	if machineType, foundKey := instanceParams["machineType"]; foundKey {
-		instance.MachineType = machineType
-	}
-
-	if zone, foundKey := instanceParams["zone"]; foundKey {
-		instance.Zone = zone
-	}
 
 	for _, disk := range disks {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
 	}
 
-	instance.Metadata = make(map[string]string)
-	// set this metadata key to indicate to the wrapper that the we are running a test with both a boot and a reboot.
-	if shouldRebootDuringTest, foundKey := instanceParams[ShouldRebootDuringTest]; foundKey {
-		instance.Metadata[ShouldRebootDuringTest] = shouldRebootDuringTest
+	if instance.Metadata == nil {
+		instance.Metadata = make(map[string]string)
 	}
+
 	instance.Metadata["_test_vmname"] = name
 	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
 	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
@@ -150,6 +134,58 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	return createVMStep, instance, nil
 }
 
+func (t *TestWorkflow) appendCreateVMStepBeta(disks []*compute.Disk, instance *daisy.InstanceBeta) (*daisy.Step, *daisy.InstanceBeta, error) {
+	if len(disks) == 0 || disks[0].Name == "" {
+		return nil, nil, fmt.Errorf("failed to create VM from empty boot disk")
+	}
+	// The boot disk is the first disk, and the VM name comes from that
+	name := disks[0].Name
+
+	var suffix string
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		suffix = ".exe"
+	}
+
+	if instance == nil {
+		instance = &daisy.InstanceBeta{}
+	}
+
+	instance.StartupScript = fmt.Sprintf("wrapper%s", suffix)
+	instance.Name = name
+	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
+
+	for _, disk := range disks {
+		instance.Disks = append(instance.Disks, &computeBeta.AttachedDisk{Source: disk.Name})
+	}
+
+	if instance.Metadata == nil {
+		instance.Metadata = make(map[string]string)
+	}
+
+	instance.Metadata["_test_vmname"] = name
+	instance.Metadata["_test_package_url"] = "${SOURCESPATH}/testpackage"
+	instance.Metadata["_test_results_url"] = fmt.Sprintf("${OUTSPATH}/%s.txt", name)
+	instance.Metadata["_test_package_name"] = fmt.Sprintf("image_test%s", suffix)
+
+	createInstances := &daisy.CreateInstances{}
+	createInstances.InstancesBeta = append(createInstances.InstancesBeta, instance)
+
+	createVMStep, ok := t.wf.Steps[createVMsStepName]
+	if ok {
+		// append to existing step.
+		createVMStep.CreateInstances.InstancesBeta = append(createVMStep.CreateInstances.InstancesBeta, instance)
+	} else {
+		var err error
+		createVMStep, err = t.wf.NewStep(createVMsStepName)
+		if err != nil {
+			return nil, nil, err
+		}
+		createVMStep.CreateInstances = createInstances
+	}
+
+	return createVMStep, instance, nil
+}
+
 // appendCreateDisksStep should be called for creating the boot disk, or first disk in a VM.
 func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.Step, error) {
 	if diskParams == nil || diskParams.Name == "" {
@@ -157,7 +193,7 @@ func (t *TestWorkflow) appendCreateDisksStep(diskParams *compute.Disk) (*daisy.S
 	}
 	bootdisk := &daisy.Disk{}
 	bootdisk.Name = diskParams.Name
-	bootdisk.SourceImage = t.Image
+	bootdisk.SourceImage = t.ImageURL
 	bootdisk.Type = diskParams.Type
 	bootdisk.Zone = diskParams.Zone
 
@@ -397,7 +433,7 @@ func getGCSPrefix(ctx context.Context, storageClient *storage.Client, project, g
 
 // finalizeWorkflows adds the final necessary data to each workflow for it to
 // be able to run, including the final copy-objects step.
-func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix string) error {
+func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPrefix, localPath string) error {
 	log.Printf("Storing artifacts and logs in %s", gcsPrefix)
 	for _, twf := range tests {
 		if twf.wf == nil {
@@ -407,7 +443,7 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 		twf.wf.StorageClient = client
 
 		// $GCS_PATH/2021-04-20T11:44:08-07:00/image_validation/debian-10
-		twf.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, twf.Name, twf.ShortImage)
+		twf.gcsPath = fmt.Sprintf("%s/%s/%s", gcsPrefix, twf.Name, twf.Image.Name)
 		twf.wf.GCSPath = twf.gcsPath
 
 		twf.wf.Zone = zone
@@ -445,13 +481,19 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			}
 		}
 
+		// Assume amd64 when arch is not set.
+		arch := "amd64"
+		if twf.Image.Architecture == "ARM64" {
+			arch = "arm64"
+		}
+
 		createVMsStep, ok := twf.wf.Steps[createVMsStepName]
 		if ok {
 			for _, vm := range createVMsStep.CreateInstances.Instances {
 				if vm.MachineType != "" {
 					log.Printf("VM %s machine type set to %s for test %s\n", vm.Name, vm.MachineType, twf.Name)
 				} else {
-					vm.MachineType = twf.MachineType
+					vm.MachineType = twf.MachineType.Name
 				}
 				if vm.Zone != "" && vm.Zone != twf.wf.Zone {
 					log.Printf("VM %s zone is set to %s, differing from workflow zone %s for test %s, not overriding\n", vm.Name, vm.Zone, twf.wf.Zone, twf.Name)
@@ -459,20 +501,16 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 			}
 		}
 
-		if strings.Contains(twf.Image, "windows") {
+		if utils.HasFeature(twf.Image, "WINDOWS") {
 			archBits := "64"
-			if strings.Contains(twf.Image, "x86") {
+			if strings.Contains(twf.ImageURL, "x86") {
 				archBits = "32"
 			}
-			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s%s.exe", twf.Name, archBits)
-			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s%s.exe", testWrapperPathWindows, archBits)
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s%s.exe", localPath, twf.Name, archBits)
+			twf.wf.Sources["wrapper.exe"] = fmt.Sprintf("%s/%s%s.exe", localPath, testWrapperPathWindows, archBits)
 		} else {
-			arch := "amd64"
-			if strings.Contains(twf.Image, "arm64") || strings.Contains(twf.Image, "aarch64") {
-				arch = "arm64"
-			}
-			twf.wf.Sources["testpackage"] = fmt.Sprintf("/%s.%s.test", twf.Name, arch)
-			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s.%s", testWrapperPath, arch)
+			twf.wf.Sources["testpackage"] = fmt.Sprintf("%s/%s.%s.test", localPath, twf.Name, arch)
+			twf.wf.Sources["wrapper"] = fmt.Sprintf("%s%s.%s", localPath, testWrapperPath, arch)
 		}
 
 		// add a final copy-objects step which copies the daisy-outs-path directory to twf.gcsPath + /outs
@@ -523,25 +561,44 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(name, image, timeout string, x86Shape string, arm64Shape string) (*TestWorkflow, error) {
+func NewTestWorkflow(client daisycompute.Client, name, image, timeout, project, zone, x86Shape string, arm64Shape string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
-	t.Image = image
-	if strings.Contains(image, "arm64") || strings.Contains(image, "aarch64") {
-		t.MachineType = arm64Shape
-	} else {
-		t.MachineType = x86Shape
-	}
-	machineTypeSplit := strings.Split(t.MachineType, "/")
-	t.ShortMachineType = machineTypeSplit[len(machineTypeSplit)-1]
+	t.ImageURL = image
+	t.Client = client
 
-	parts := strings.Split(image, "/")
-	t.ShortImage = parts[len(parts)-1]
+	var err error
+	t.Project, err = t.Client.GetProject(project)
+	if err != nil {
+		return nil, err
+	}
+	t.Zone, err = t.Client.GetZone(t.Project.Name, zone)
+	if err != nil {
+		return nil, err
+	}
+	split := strings.Split(image, "/")
+	if strings.Contains(image, "family") {
+		t.Image, err = t.Client.GetImageFromFamily(split[1], split[len(split)-1])
+	} else {
+		t.Image, err = t.Client.GetImage(split[1], split[len(split)-1])
+	}
+	if err != nil {
+		return nil, err
+	}
+	if t.Image.Architecture == "ARM64" {
+		t.MachineType, err = t.Client.GetMachineType(t.Project.Name, t.Zone.Name, arm64Shape)
+	} else {
+		t.MachineType, err = t.Client.GetMachineType(t.Project.Name, t.Zone.Name, x86Shape)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	t.wf = daisy.New()
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
+	t.wf.Zone = zone
 
 	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
@@ -551,18 +608,18 @@ func NewTestWorkflow(name, image, timeout string, x86Shape string, arm64Shape st
 }
 
 // PrintTests prints all test workflows.
-func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) {
+func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		log.Printf("Error determining GCS prefix: %v", err)
 		gcsPrefix = ""
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath); err != nil {
 		log.Printf("Error finalizing workflow: %v", err)
 	}
 	for _, test := range testWorkflows {
 		if test.wf == nil {
-			log.Printf("%s test on image %s: workflow was nil, skipping", test.Name, test.ShortImage)
+			log.Printf("%s test on image %s: workflow was nil, skipping", test.Name, test.Image.Name)
 			continue
 		}
 		test.wf.Print(ctx)
@@ -570,18 +627,18 @@ func PrintTests(ctx context.Context, storageClient *storage.Client, testWorkflow
 }
 
 // ValidateTests validates all test workflows.
-func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string) error {
+func ValidateTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string) error {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return err
 	}
-	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix); err != nil {
+	if err := finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath); err != nil {
 		return err
 	}
 	for _, test := range testWorkflows {
-		log.Printf("Validating test %s on image %s\n", test.Name, test.ShortImage)
+		log.Printf("Validating test %s on image %s\n", test.Name, test.Image.Name)
 		if test.wf == nil {
-			return fmt.Errorf("%s test on image %s: workflow was nil", test.Name, test.ShortImage)
+			return fmt.Errorf("%s test on image %s: workflow was nil", test.Name, test.Image.Name)
 		}
 		if err := test.wf.Validate(ctx); err != nil {
 			return err
@@ -610,7 +667,7 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
 		return nil, err
@@ -620,7 +677,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		return nil, err
 	}
 
-	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix)
+	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath)
 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
@@ -647,7 +704,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 			for test := range testchan {
 				if test.lockProject {
 					// This will block until an exclusive project is available.
-					log.Printf("test %s/%s requires write lock for project", test.Name, test.ShortImage)
+					log.Printf("test %s/%s requires write lock for project", test.Name, test.Image.Name)
 					test.wf.Project = <-exclusiveProjects
 				} else {
 					test.wf.Project = <-projects
@@ -668,7 +725,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 
 	var suites TestSuites
 	for i := 0; i < len(testWorkflows); i++ {
-		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults))
+		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults, localPath))
 	}
 	for _, suite := range suites.TestSuite {
 		suites.Errors += suite.Errors
@@ -697,14 +754,14 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	}
 
 	start := time.Now()
-	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project)
+	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
 	if err := test.wf.Run(ctx); err != nil {
 		res.err = err
 		return res
 	}
 
 	delta := formatTimeDelta("04m 05s", time.Now().Sub(start))
-	log.Printf("finished test %s/%s (ID %s) in project %s, time spent: %s\n", test.Name, test.ShortImage, test.wf.ID(), test.wf.Project, delta)
+	log.Printf("finished test %s/%s (ID %s) in project %s, time spent: %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project, delta)
 	results, err := getTestResults(ctx, test)
 	if err != nil {
 		res.err = err
@@ -717,13 +774,15 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 }
 
 // gets result struct and converts to a jUnit TestSuite
-func parseResult(res testResult) *testSuite {
+func parseResult(res testResult, localPath string) *testSuite {
 	ret := &testSuite{}
-	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, res.testWorkflow.ShortImage)
+	// Use ImageURL instead of the name or family to display results the same way
+	// as the user entered them.
+	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, strings.Split(res.testWorkflow.ImageURL, "/")[len(strings.Split(res.testWorkflow.ImageURL, "/"))-1])
 
 	switch {
 	case res.skipped:
-		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
 			tc := &testCase{}
 			tc.Classname = name
 			tc.Name = test
@@ -743,7 +802,7 @@ func parseResult(res testResult) *testSuite {
 		} else {
 			status = "Unknown status"
 		}
-		for _, test := range getTestsBySuiteName(res.testWorkflow.Name) {
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
 			tc := &testCase{}
 			tc.Classname = name
 			tc.Name = test
@@ -759,8 +818,8 @@ func parseResult(res testResult) *testSuite {
 	return ret
 }
 
-func getTestsBySuiteName(name string) []string {
-	b, err := ioutil.ReadFile(fmt.Sprintf("/%s_tests.txt", name))
+func getTestsBySuiteName(name, localPath string) []string {
+	b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s_tests.txt", localPath, name))
 	if err != nil {
 		log.Fatalf("unable to parse tests list: %v", err)
 		return []string{} // NOT nil

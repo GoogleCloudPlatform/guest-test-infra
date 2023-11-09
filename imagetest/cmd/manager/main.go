@@ -11,24 +11,25 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/cvm"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/disk"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hostnamevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imagevalidation"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/licensevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/packagevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/security"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/shapevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windows"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowscontainers"
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowsimagevalidation"
 )
 
 var (
@@ -39,6 +40,7 @@ var (
 	validate        = flag.Bool("validate", false, "validate all the test workflows and exit")
 	outPath         = flag.String("out_path", "junit.xml", "junit xml path")
 	gcsPath         = flag.String("gcs_path", "", "GCS Path for Daisy working directory")
+	localPath       = flag.String("local_path", "", "path where test output files are stored, can be modified for local testing")
 	images          = flag.String("images", "", "comma separated list of images to test")
 	timeout         = flag.String("timeout", "45m", "timeout for the test suite")
 	parallelCount   = flag.Int("parallel_count", 5, "TestParallelCount")
@@ -138,12 +140,16 @@ func main() {
 			networkperf.TestSetup,
 		},
 		{
-			imagevalidation.Name,
-			imagevalidation.TestSetup,
+			hostnamevalidation.Name,
+			hostnamevalidation.TestSetup,
 		},
 		{
 			imageboot.Name,
 			imageboot.TestSetup,
+		},
+		{
+			licensevalidation.Name,
+			licensevalidation.TestSetup,
 		},
 		{
 			network.Name,
@@ -166,6 +172,10 @@ func main() {
 			shapevalidation.TestSetup,
 		},
 		{
+			packagevalidation.Name,
+			packagevalidation.TestSetup,
+		},
+		{
 			storageperf.Name,
 			storageperf.TestSetup,
 		},
@@ -186,17 +196,15 @@ func main() {
 			oslogin.TestSetup,
 		},
 		{
-			windows.Name,
-			windows.TestSetup,
-		},
-		{
 			windowscontainers.Name,
 			windowscontainers.TestSetup,
 		},
-		{
-			windowsimagevalidation.Name,
-			windowsimagevalidation.TestSetup,
-		},
+	}
+
+	ctx := context.Background()
+	computeclient, err := compute.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("Could not create compute client:%v", err)
 	}
 
 	var testWorkflows []*imagetest.TestWorkflow
@@ -242,7 +250,7 @@ func main() {
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
-			test, err := imagetest.NewTestWorkflow(testPackage.name, image, *timeout, *x86Shape, *arm64Shape)
+			test, err := imagetest.NewTestWorkflow(computeclient, testPackage.name, image, *timeout, *project, *zone, *x86Shape, *arm64Shape)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}
@@ -259,26 +267,24 @@ func main() {
 
 	log.Println("Done with setup")
 
-	ctx := context.Background()
-
-	client, err := storage.NewClient(ctx)
+	storageclient, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to set up storage client: %v", err)
 	}
 
 	if *printwf {
-		imagetest.PrintTests(ctx, client, testWorkflows, *project, *zone, *gcsPath)
+		imagetest.PrintTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath)
 		return
 	}
 
 	if *validate {
-		if err := imagetest.ValidateTests(ctx, client, testWorkflows, *project, *zone, *gcsPath); err != nil {
+		if err := imagetest.ValidateTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath); err != nil {
 			log.Printf("Validate failed: %v\n", err)
 		}
 		return
 	}
 
-	suites, err := imagetest.RunTests(ctx, client, testWorkflows, *project, *zone, *gcsPath, *parallelCount, *parallelStagger, testProjectsReal)
+	suites, err := imagetest.RunTests(ctx, storageclient, testWorkflows, *project, *zone, *gcsPath, *localPath, *parallelCount, *parallelStagger, testProjectsReal)
 	if err != nil {
 		log.Fatalf("Failed to run tests: %v", err)
 	}

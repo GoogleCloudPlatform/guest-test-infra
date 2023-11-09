@@ -1,9 +1,10 @@
 package network
 
 import (
-	"strings"
-
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -60,10 +61,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 
 	// VM2 for multiNIC
-	vm2, err := t.CreateTestVM(vm2Config.name)
+	networkRebootInst := &daisy.Instance{}
+	networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootInst)
 	if err != nil {
 		return err
 	}
+	vm2.AddMetadata("enable-guest-attributes", "TRUE")
 	if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
 		return err
 	}
@@ -82,12 +86,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
-	if strings.Contains(t.Image, "debian-10") || strings.Contains(t.Image, "rhel-7-7-sap") || strings.Contains(t.Image, "rhel-8-1-sap") {
-		// GVNIC is not supported on some older distros.
-		vm2.RunTests("TestAlias")
-	} else {
+	multinictests := "TestAlias"
+	if utils.HasFeature(t.Image, "GVNIC") {
 		vm2.UseGVNIC()
-		vm2.RunTests("TestAlias|TestGVNIC")
+		multinictests += "|TestGVNIC"
 	}
+	vm2.RunTests(multinictests)
 	return nil
 }

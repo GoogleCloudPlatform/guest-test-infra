@@ -51,7 +51,7 @@ func getLinuxSymlinkRead() (string, error) {
 	}
 	return symlinkRealPath, nil
 }
-func RunFIOReadLinux(mode string) ([]byte, error) {
+func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	var readOptions string
 	if mode == sequentialMode {
 		readOptions = commonFIOSeqReadOptions
@@ -63,7 +63,7 @@ func RunFIOReadLinux(mode string) ([]byte, error) {
 		return []byte{}, err
 	}
 	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		return []byte{}, fmt.Errorf("couldn't get image from metadata")
 	}
@@ -88,7 +88,7 @@ func TestRandomReadIOPS(t *testing.T) {
 			t.Fatalf("windows fio rand read failed with error: %v", err)
 		}
 	} else {
-		if randReadIOPSJson, err = RunFIOReadLinux(randomMode); err != nil {
+		if randReadIOPSJson, err = RunFIOReadLinux(t, randomMode); err != nil {
 			t.Fatalf("linux fio rand read failed with error: %v", err)
 		}
 	}
@@ -99,7 +99,7 @@ func TestRandomReadIOPS(t *testing.T) {
 	}
 
 	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
-	expectedRandReadIOPSString, err := utils.GetMetadataAttribute(randReadAttribute)
+	expectedRandReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
 	}
@@ -125,7 +125,7 @@ func TestSequentialReadIOPS(t *testing.T) {
 			t.Fatalf("windows fio seq read failed with error: %v", err)
 		}
 	} else {
-		if seqReadIOPSJson, err = RunFIOReadLinux(sequentialMode); err != nil {
+		if seqReadIOPSJson, err = RunFIOReadLinux(t, sequentialMode); err != nil {
 			t.Fatalf("linux fio seq read failed with error: %v", err)
 		}
 	}
@@ -142,7 +142,7 @@ func TestSequentialReadIOPS(t *testing.T) {
 	}
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
 
-	expectedSeqReadIOPSString, err := utils.GetMetadataAttribute(seqReadAttribute)
+	expectedSeqReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", seqReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", seqReadAttribute, err)
 	}

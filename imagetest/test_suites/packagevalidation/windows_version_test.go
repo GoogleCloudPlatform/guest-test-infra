@@ -1,11 +1,10 @@
 //go:build cit
 // +build cit
 
-package windowsimagevalidation
+package packagevalidation
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -30,49 +29,8 @@ func (v version) lessThan(check version) bool {
 
 }
 
-func TestDiskReadWrite(t *testing.T) {
-	testFile := "C:\\test.txt"
-	newTestFile := "C:\\testnew.txt"
-	content := "Test File Content"
-	command := fmt.Sprintf("Set-Content %s \"%s\"", testFile, content)
-	utils.FailOnPowershellFail(command, "Error writing file", t)
-
-	command = fmt.Sprintf("Move-Item -Force %s %s", testFile, newTestFile)
-	utils.FailOnPowershellFail(command, "Error moving file", t)
-
-	command = fmt.Sprintf("Get-Content %s", newTestFile)
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error reading file: %v", err)
-	}
-	if !strings.Contains(output.Stdout, content) {
-		t.Fatalf("Moved file does not contain expected content. Expected: '%s', Actual: '%s'", content, output.Stdout)
-	}
-}
-
-func TestHostname(t *testing.T) {
-	metadataHostname, err := utils.GetMetadata("hostname")
-	if err != nil {
-		t.Fatalf(" still couldn't determine metadata hostname")
-	}
-
-	// 'hostname' in metadata is fully qualified domain name.
-	shortname := strings.Split(metadataHostname, ".")[0]
-
-	command := "[System.Net.Dns]::GetHostName()"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting hostname: %v", err)
-	}
-	hostname := strings.TrimSpace(output.Stdout)
-
-	if hostname != shortname {
-		t.Fatalf("Expected Hostname: '%s', Actual Hostname: '%s'", shortname, hostname)
-	}
-
-}
-
 func TestAutoUpdateEnabled(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := `$au_path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
     $au = Get-Itemproperty -Path $au_path
     if ($au.NoAutoUpdate -eq 1) {exit 1}
@@ -99,6 +57,7 @@ func TestAutoUpdateEnabled(t *testing.T) {
 }
 
 func TestNetworkConnecton(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "Test-Connection www.google.com -Count 1 -ErrorAction stop -quiet"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -113,6 +72,7 @@ func TestNetworkConnecton(t *testing.T) {
 }
 
 func TestEmsEnabled(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "& bcdedit | Select-String -Quiet -Pattern \"ems * Yes\""
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -127,6 +87,7 @@ func TestEmsEnabled(t *testing.T) {
 }
 
 func TestTimeZoneUTC(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "(Get-CimInstance Win32_OperatingSystem).CurrentTimeZone"
 	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
@@ -138,28 +99,8 @@ func TestTimeZoneUTC(t *testing.T) {
 	}
 }
 
-func TestActivationStatus(t *testing.T) {
-	image, err := utils.GetMetadata("image")
-	if err != nil {
-		t.Fatalf("Couldn't get image from metadata %v", err)
-	}
-	if utils.IsWindowsClient(image) {
-		t.Skip("Activation status only checked on server images.")
-	}
-
-	command := "cscript C:\\Windows\\system32\\slmgr.vbs /dli"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting license status: %v", err)
-	}
-
-	if !strings.Contains(output.Stdout, "License Status: Licensed") {
-		t.Fatalf("Activation info does not contain 'Licensed': %s", output.Stdout)
-	}
-
-}
-
 func TestPowershellVersion(t *testing.T) {
+	utils.WindowsOnly(t)
 	expectedVersion := version{major: 5, minor: 1}
 	var actualVersion version
 	command := "$PSVersionTable.PSVersion.Major"
@@ -191,6 +132,7 @@ func TestPowershellVersion(t *testing.T) {
 }
 
 func TestStartExe(t *testing.T) {
+	utils.WindowsOnly(t)
 	command := "Start-Process cmd -Args '/c typeperf \"\\Memory\\Available bytes\"'"
 	err := utils.CheckPowershellSuccess(command)
 	if err != nil {
@@ -228,6 +170,7 @@ func TestStartExe(t *testing.T) {
 }
 
 func TestDotNETVersion(t *testing.T) {
+	utils.WindowsOnly(t)
 	expectedVersion := version{major: 4, minor: 7}
 	command := "Get-ItemProperty \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\" -Name Version | Select-Object -ExpandProperty Version"
 
@@ -256,7 +199,8 @@ func TestDotNETVersion(t *testing.T) {
 }
 
 func TestServicesState(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	utils.WindowsOnly(t)
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}
@@ -285,52 +229,9 @@ func TestServicesState(t *testing.T) {
 	}
 }
 
-func TestNtp(t *testing.T) {
-	command := "w32tm /query /peers /verbose"
-	output, err := utils.RunPowershellCmd(command)
-	if err != nil {
-		t.Fatalf("Error getting NTP information: %v", err)
-	}
-
-	expected := []string{
-		"#Peers: 1",
-		"Peer: metadata.google.internal,0x1",
-		"LastSyncErrorMsgId: 0x00000000 (Succeeded)",
-	}
-
-	for _, exp := range expected {
-		if !strings.Contains(output.Stdout, exp) {
-			t.Fatalf("Expected info %s not found in peer_info: %s", exp, output.Stdout)
-		}
-	}
-
-	// NTP can take time to get to an active state.
-	if !(strings.Contains(output.Stdout, "State: Active") || strings.Contains(output.Stdout, "State: Pending")) {
-		t.Fatalf("Expected State: Active or Pending in: %s", output.Stdout)
-	}
-
-	r, err := regexp.Compile("Time Remaining: ([0-9\\.]+)s")
-	if err != nil {
-		t.Fatalf("Error creating regexp: %v", err)
-	}
-
-	remaining := r.FindStringSubmatch(output.Stdout)[1]
-	remainingTime, err := strconv.ParseFloat(remaining, 32)
-	if err != nil {
-		t.Fatalf("Unexpected remaining time value: %s", remaining)
-	}
-
-	if remainingTime < 0.0 {
-		t.Fatalf("Invalid remaining time: %f", remainingTime)
-	}
-
-	if remainingTime > 900.0 {
-		t.Fatalf("Time remaining is longer than the 15 minute poll interval: %f", remainingTime)
-	}
-}
-
 func TestWindowsEdition(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	utils.WindowsOnly(t)
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}
@@ -348,7 +249,8 @@ func TestWindowsEdition(t *testing.T) {
 }
 
 func TestWindowsCore(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	utils.WindowsOnly(t)
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
 	}

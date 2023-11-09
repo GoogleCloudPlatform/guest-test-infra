@@ -5,6 +5,7 @@ package security
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
@@ -74,7 +75,7 @@ func TestKernelSecuritySettings(t *testing.T) {
 
 // TestAutomaticUpdates Check automatic security updates are installed or enabled.
 func TestAutomaticUpdates(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -121,7 +122,8 @@ func TestAutomaticUpdates(t *testing.T) {
 
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
-	image, err := utils.GetMetadata("image")
+	ctx := utils.Context(t)
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
@@ -140,13 +142,13 @@ func TestPasswordSecurity(t *testing.T) {
 	}
 
 	// Root password/login is disabled.
-	if err := verifyPassword(); err != nil {
+	if err := verifyPassword(ctx); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func verifyPassword() error {
-	image, err := utils.GetMetadata("image")
+func verifyPassword(ctx context.Context) error {
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		return fmt.Errorf("couldn't get image from metadata")
 	}
@@ -409,7 +411,7 @@ func TestSockets(t *testing.T) {
 		// SSH. If we didn't match any above, test logic is faulty.
 		t.Fatalf("No listening sockets")
 	}
-	image, err := utils.GetMetadata("image")
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
