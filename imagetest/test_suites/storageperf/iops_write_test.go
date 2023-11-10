@@ -72,8 +72,13 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		writeOptions = strings.Replace(writeOptions, "iodepth_batch_complete_max", "iodepth_batch_complete", 1)
 	}
 
+	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
+		if err = installFioLinux(); err != nil {
+			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
+		}
+	}
 	fioWriteOptionsLinuxSlice := strings.Fields(writeOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	writeIOPSJson, err := exec.Command("fio", fioWriteOptionsLinuxSlice...).CombinedOutput()
+	writeIOPSJson, err := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
 	}
