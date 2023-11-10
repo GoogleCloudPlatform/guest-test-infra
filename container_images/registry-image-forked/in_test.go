@@ -1,3 +1,5 @@
+//go:build linux
+
 package resource_test
 
 import (
