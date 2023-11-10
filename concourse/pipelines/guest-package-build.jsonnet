@@ -61,6 +61,7 @@ local base_buildpackagejob = {
   builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
   extra_tasks:: [],
+  extended_tasks:: [],
   build_dir:: '',
 
   // Start of output.
