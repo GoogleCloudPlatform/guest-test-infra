@@ -554,6 +554,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     build_guest_agent{
 	package: 'guest-agent-dev',
 	repo_name: 'guest-agent',
+	extended_tasks: [],
     },
     buildpackagejob {
       package: 'guest-oslogin',
