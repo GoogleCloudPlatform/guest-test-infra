@@ -32,7 +32,7 @@ if [[ $1 == "build" ]]; then
 
 	# Test that the manager can generate a workflow for all built suites on a Linux x86 and arm64 image and a windows image.
 	# Currently non-blocking and informational only
-	/tmp/cit/manager -print -images projects/debian-cloud/global/images/family/debian-12,projects/debian-cloud/global/images/family/debian-12-arm64,projects/windows-cloud/global/images/family/windows-2022 -project gcp-guest > /dev/null || echo "Workflow generation failed"
+	/tmp/cit/manager -print -images projects/debian-cloud/global/images/family/debian-12,projects/debian-cloud/global/images/family/debian-12-arm64,projects/windows-cloud/global/images/family/windows-2022 -project gcp-guest > /dev/null || RET=$?
 fi
 
 exit $RET
