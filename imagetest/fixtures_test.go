@@ -8,6 +8,10 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
+func TestFailure(t *testing.T) {
+	t.Fatal("always fail")
+}
+
 // TestAddMetadata tests that *TestVM.AddMetadata succeeds and that it
 // populates the instance.Metadata map.
 func TestAddMetadata(t *testing.T) {
