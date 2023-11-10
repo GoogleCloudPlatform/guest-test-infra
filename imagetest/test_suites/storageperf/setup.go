@@ -161,18 +161,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
 		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
 		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
+		// for now, only use the startup script on windows because the linux startup script to install fio can take a while, leading to race conditions.
 		if utils.HasFeature(t.Image, "WINDOWS") {
 			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
 			if err != nil {
 				return err
 			}
 			vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
-		} else {
-			linuxStartup, err := scripts.ReadFile(linuxInstallFioScriptURL)
-			if err != nil {
-				return err
-			}
-			vm.SetStartupScript(string(linuxStartup))
 		}
 		testVMs = append(testVMs, vm)
 	}

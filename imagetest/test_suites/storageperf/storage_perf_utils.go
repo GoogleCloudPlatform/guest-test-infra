@@ -3,7 +3,6 @@ package storageperf
 import (
 	"fmt"
 	"os/exec"
-	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -119,16 +118,6 @@ type FIOStatistics struct {
 	IOPS           float64                `json:iops,omitempty"`
 	BandwidthBytes int                    `json:bw_bytes,omitempty"`
 	X              map[string]interface{} `json:"-"`
-}
-
-// In some cases, fio might take longer to install on linux than expected.
-// To ensure tests do not fail from not finding fio, wait for the install.
-func waitFIOInstalledLinux() {
-	fioCompletedInstalling := utils.CheckLinuxCmdExists(fioCmdNameLinux)
-	for !fioCompletedInstalling {
-		time.Sleep(10 * time.Second)
-		fioCompletedInstalling = utils.CheckLinuxCmdExists(fioCmdNameLinux)
-	}
 }
 
 // installFioWindows copies the fio.exe file onto the VM instance.
