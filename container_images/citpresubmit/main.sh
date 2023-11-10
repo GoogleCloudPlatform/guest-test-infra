@@ -21,16 +21,20 @@ BUILD_DIR=$1
 cd imagetest/
 RET=0
 
-# Test the testworkflow package and generate code coverage
-go test -v -coverprofile=/tmp/coverage.out . >${ARTIFACTS}/go-test.txt || RET=$?
-go tool cover -func=/tmp/coverage.out | grep ^total | awk '{print $NF}' | cut -d'.' -f1 > ${ARTIFACTS}/coverage.txt
-cat ${ARTIFACTS}/go-test.txt | go-junit-report > ${ARTIFACTS}/junit.xml
+if [[ $@ == "test" ]]; then
+	# Test the testworkflow package and generate code coverage
+	go test -v -coverprofile=/tmp/coverage.out . >${ARTIFACTS}/go-test.txt || RET=$?
+	go tool cover -func=/tmp/coverage.out | grep ^total | awk '{print $NF}' | cut -d'.' -f1 > ${ARTIFACTS}/coverage.txt
+	cat ${ARTIFACTS}/go-test.txt | go-junit-report > ${ARTIFACTS}/junit.xml
+fi
 
-# Build all test suites and manager
-mkdir /tmp/cit
-./local_build.sh -o /tmp/cit -s $(ls test_suites | xargs) || RET=$?
+if [[ $@ == "build" ]]; then
+	# Build all test suites and manager
+	mkdir /tmp/cit
+	./local_build.sh -o /tmp/cit -s $(ls test_suites | xargs) || RET=$?
 
-# Test that the manager can generate a workflow for all built suites on a Linux x86 and arm64 image and a windows image.
-/tmp/cit/manager -print -images projects/debian-cloud/global/images/family/debian-12,projects/debian-cloud/global/images/family/debian-12-arm64,projects/windows-cloud/global/images/family/windows-2022 -project gcp-guest > /dev/null || RET=$?
+	# Test that the manager can generate a workflow for all built suites on a Linux x86 and arm64 image and a windows image.
+	/tmp/cit/manager -print -images projects/debian-cloud/global/images/family/debian-12,projects/debian-cloud/global/images/family/debian-12-arm64,projects/windows-cloud/global/images/family/windows-2022 -project gcp-guest > /dev/null || RET=$?
+fi
 
 exit $RET
