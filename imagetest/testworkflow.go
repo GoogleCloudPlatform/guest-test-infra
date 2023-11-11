@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -682,16 +683,36 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 	testResults := make(chan testResult, len(testWorkflows))
 	testchan := make(chan *TestWorkflow, len(testWorkflows))
 
+	// Whenever we select a test project, we want to do so in a semi-random order
+	// that is unpredictable but doesn't have the ability to place all tests in a
+	// single project by chance (however small). This should randomize our usage
+	// patterns in static invocations of CIT (eg CI invocations) a bit more.
+
 	exclusiveProjects := make(chan string, len(testProjects))
-	for _, proj := range testProjects {
-		// Prefill with projects.
-		exclusiveProjects <- proj
+	// Select from testProjects in a random order, deleting afterwards to avoid
+	// selecting a duplicate.
+	nextProjects := make([]string, len(testProjects))
+	copy(nextProjects, testProjects)
+	for range testProjects {
+		i := rand.Intn(len(nextProjects))
+		exclusiveProjects <- nextProjects[i]
+		nextProjects = append(nextProjects[:i], nextProjects[i+1:]...)
 	}
 
+
 	projects := make(chan string, len(testWorkflows))
-	for idx := 0; idx < len(testWorkflows); idx++ {
-		// Stripe all test projects
-		projects <- testProjects[idx%len(testProjects)]
+	// Same technique as above, but this time we might have more workflows than
+	// projects, so anytime we delete all projects we reset to the full list.
+	nextProjects = make([]string, len(testProjects))
+	copy(nextProjects, testProjects)
+	for range testWorkflows {
+		if len(nextProjects) < 1 {
+			nextProjects = make([]string, len(testProjects))
+			copy(nextProjects, testProjects)
+		}
+		i := rand.Intn(len(nextProjects))
+		projects <- nextProjects[i]
+		nextProjects = append(nextProjects[:i], nextProjects[i+1:]...)
 	}
 	close(projects)
 
