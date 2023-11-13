@@ -98,7 +98,6 @@ func TestRandomReadIOPS(t *testing.T) {
 		}
 	}
 
-	t.Logf("rand read val: %s", string(randReadIOPSJson))
 	var fioOut FIOOutput
 	if err = json.Unmarshal(randReadIOPSJson, &fioOut); err != nil {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randReadIOPSJson), err)
@@ -111,7 +110,6 @@ func TestRandomReadIOPS(t *testing.T) {
 		t.Fatalf("iops json number %s was not a float: %v", finalIOPSValueNumber.String(), err)
 	}
 	finalIOPSValueString := fmt.Sprintf("%f", finalIOPSValue)
-	t.Logf("iops values: %f %s", finalIOPSValue, finalIOPSValueString)
 	expectedRandReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
