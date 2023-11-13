@@ -1,6 +1,7 @@
 package storageperf
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 
@@ -115,8 +116,10 @@ type FIOJob struct {
 
 // FIOStatistics give information about FIO performance.
 type FIOStatistics struct {
-	IOPS           float64                `json:iops,omitempty"`
-	BandwidthBytes int                    `json:bw_bytes,omitempty"`
+	// IOPS should be able to convert to a float64
+	IOPS json.Number `json:iops,omitempty"`
+	// BandwidthBytes should be able to convert to an int64
+	BandwidthBytes json.Number            `json:bw_bytes,omitempty"`
 	X              map[string]interface{} `json:"-"`
 }
 

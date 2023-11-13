@@ -99,14 +99,20 @@ func TestRandomWriteIOPS(t *testing.T) {
 		}
 	}
 
+	t.Logf("rand write string: %s", string(randWriteIOPSJson))
 	var fioOut FIOOutput
 	if err = json.Unmarshal(randWriteIOPSJson, &fioOut); err != nil {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randWriteIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
+	// this is a json.Number object
+	finalIOPSValueNumber := fioOut.Jobs[0].WriteResult.IOPS
+	var finalIOPSValue float64
+	if finalIOPSValue, err = finalIOPSValueNumber.Float64(); err != nil {
+		t.Fatalf("iops string %s was not a float: err %v", finalIOPSValueNumber.String(), err)
+	}
 	finalIOPSValueString := fmt.Sprintf("%f", finalIOPSValue)
-
+	t.Logf("iops values: %f %s", finalIOPSValue, finalIOPSValueString)
 	expectedRandWriteIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
@@ -143,9 +149,15 @@ func TestSequentialWriteIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(seqWriteIOPSJson), err)
 	}
 
-	finalBandwidthBytesPerSecond := 0
+	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
-		finalBandwidthBytesPerSecond += job.WriteResult.BandwidthBytes
+		// this is a json.Number object
+		bandwidthBytesNumber := job.WriteResult.BandwidthBytes
+		var bandwidthBytesInt int64
+		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth bytes %s was not an int: err %v", bandwidthBytesNumber.String(), err)
+		}
+		finalBandwidthBytesPerSecond += bandwidthBytesInt
 	}
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
 	finalBandwidthMBpsString := fmt.Sprintf("%f", finalBandwidthMBps)

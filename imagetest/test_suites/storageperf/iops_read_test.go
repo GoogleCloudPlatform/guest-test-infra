@@ -98,13 +98,20 @@ func TestRandomReadIOPS(t *testing.T) {
 		}
 	}
 
+	t.Logf("rand read val: %s", string(randReadIOPSJson))
 	var fioOut FIOOutput
 	if err = json.Unmarshal(randReadIOPSJson, &fioOut); err != nil {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randReadIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
+	// this is a json.Number object
+	finalIOPSValueNumber := fioOut.Jobs[0].ReadResult.IOPS
+	var finalIOPSValue float64
+	if finalIOPSValue, err = finalIOPSValueNumber.Float64(); err != nil {
+		t.Fatalf("iops json number %s was not a float: %v", finalIOPSValueNumber.String(), err)
+	}
 	finalIOPSValueString := fmt.Sprintf("%f", finalIOPSValue)
+	t.Logf("iops values: %f %s", finalIOPSValue, finalIOPSValueString)
 	expectedRandReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
@@ -142,9 +149,15 @@ func TestSequentialReadIOPS(t *testing.T) {
 	}
 
 	// bytes is listed in bytes per second in the fio output
-	finalBandwidthBytesPerSecond := 0
+	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
-		finalBandwidthBytesPerSecond += job.ReadResult.BandwidthBytes
+		// this is the bandwidth bytes/sec as a json.Number object
+		bandwidthBytesNumber := job.ReadResult.BandwidthBytes
+		var bandwidthBytesInt int64
+		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth bytes per second %s was not a float: err  %v", bandwidthBytesNumber.String(), err)
+		}
+		finalBandwidthBytesPerSecond += bandwidthBytesInt
 	}
 
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
