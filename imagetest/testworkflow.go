@@ -699,7 +699,6 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		nextProjects = append(nextProjects[:i], nextProjects[i+1:]...)
 	}
 
-
 	projects := make(chan string, len(testWorkflows))
 	// Same technique as above, but this time we might have more workflows than
 	// projects, so anytime we delete all projects we reset to the full list.
