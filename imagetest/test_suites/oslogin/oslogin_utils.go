@@ -111,7 +111,7 @@ func isOsLoginEnabled(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("cannot read /etc/nsswitch.conf: %v", err)
 	}
-	if err = FileContainsLine(string(data), "passwd:", "oslogin"); err != nil {
+	if err = fileContainsLine(string(data), "passwd:", "oslogin"); err != nil {
 		return fmt.Errorf("oslogin passwd entry not found in /etc/nsswitch.conf")
 	}
 
@@ -120,8 +120,8 @@ func isOsLoginEnabled(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("cannot read /etc/ssh/sshd_config: %v", err)
 	}
-	if err = FileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys"); err != nil {
-		if err = FileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys_sk"); err != nil {
+	if err = fileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys"); err != nil {
+		if err = fileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys_sk"); err != nil {
 			return fmt.Errorf("AuthorizedKeysCommand not set up for OSLogin: %v", err)
 		}
 	}
