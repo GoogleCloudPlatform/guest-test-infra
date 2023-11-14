@@ -103,7 +103,13 @@ func TestRandomReadIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randReadIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].ReadResult.IOPS
+	// this is a json.Number object
+	finalIOPSValueNumber := fioOut.Jobs[0].ReadResult.IOPS
+	var finalIOPSValue float64
+	if finalIOPSValue, err = finalIOPSValueNumber.Float64(); err != nil {
+		t.Fatalf("iops json number %s was not a float: %v", finalIOPSValueNumber.String(), err)
+	}
+	finalIOPSValueString := fmt.Sprintf("%f", finalIOPSValue)
 	expectedRandReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randReadAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribute %s: err %v", randReadAttribute, err)
@@ -111,14 +117,14 @@ func TestRandomReadIOPS(t *testing.T) {
 
 	expectedRandReadIOPSString = strings.TrimSpace(expectedRandReadIOPSString)
 	var expectedRandReadIOPS float64
-	if expectedRandReadIOPS, err := strconv.ParseFloat(expectedRandReadIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandReadIOPS, err)
+	if expectedRandReadIOPS, err = strconv.ParseFloat(expectedRandReadIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandReadIOPSString, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedRandReadIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedRandReadIOPSString, finalIOPSValueString)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedRandReadIOPS)
+	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalIOPSValueString, iopsErrorMargin, expectedRandReadIOPSString)
 }
 
 // TestSequentialReadIOPS checks that sequential read IOPS are around the value listed in public docs.
@@ -141,11 +147,19 @@ func TestSequentialReadIOPS(t *testing.T) {
 	}
 
 	// bytes is listed in bytes per second in the fio output
-	finalBandwidthBytesPerSecond := 0
+	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
-		finalBandwidthBytesPerSecond += job.ReadResult.BandwidthBytes
+		// this is the bandwidth bytes/sec as a json.Number object
+		bandwidthBytesNumber := job.ReadResult.BandwidthBytes
+		var bandwidthBytesInt int64
+		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth bytes per second %s was not a float: err  %v", bandwidthBytesNumber.String(), err)
+		}
+		finalBandwidthBytesPerSecond += bandwidthBytesInt
 	}
+
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
+	finalBandwidthMBpsString := fmt.Sprintf("%f", finalBandwidthMBps)
 
 	expectedSeqReadIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", seqReadAttribute)
 	if err != nil {
@@ -154,12 +168,12 @@ func TestSequentialReadIOPS(t *testing.T) {
 
 	expectedSeqReadIOPSString = strings.TrimSpace(expectedSeqReadIOPSString)
 	var expectedSeqReadIOPS float64
-	if expectedSeqReadIOPS, err := strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqReadIOPS, err)
+	if expectedSeqReadIOPS, err = strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %s  was not a float: err %v", expectedSeqReadIOPSString, err)
 	}
 	if finalBandwidthMBps < iopsErrorMargin*expectedSeqReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqReadIOPS, finalBandwidthMBps)
+		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedSeqReadIOPSString, finalBandwidthMBpsString)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalBandwidthMBps, iopsErrorMargin, expectedSeqReadIOPS)
+	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalBandwidthMBpsString, iopsErrorMargin, expectedSeqReadIOPSString)
 }

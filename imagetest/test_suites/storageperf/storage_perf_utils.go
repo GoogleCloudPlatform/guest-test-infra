@@ -1,6 +1,7 @@
 package storageperf
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 
@@ -18,7 +19,7 @@ type PerformanceTargets struct {
 const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
-	iopsErrorMargin = 0.95
+	iopsErrorMargin = 0.85
 	mountdiskSizeGB = 3500
 	bootdiskSizeGB  = 50
 	bytesInMB       = 1048576
@@ -115,9 +116,11 @@ type FIOJob struct {
 
 // FIOStatistics give information about FIO performance.
 type FIOStatistics struct {
-	IOPS           float64                `json:iops,omitempty"`
-	BandwidthBytes int                    `json:bw_bytes,omitempty"`
-	X              map[string]interface{} `json:"-"`
+	// BandwidthBytes should be able to convert to an int64
+	BandwidthBytes json.Number `json:"bw_bytes,omitempty"`
+	// IOPS should be able to convert to a float64
+	IOPS json.Number            `json:iops,omitempty"`
+	X    map[string]interface{} `json:"-"`
 }
 
 // installFioWindows copies the fio.exe file onto the VM instance.

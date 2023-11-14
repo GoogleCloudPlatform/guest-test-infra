@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	commonFIORandWriteOptions = "--name=write_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --offset_increment=500G --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIORandWriteOptions = "--name=write_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
 	commonFIOSeqWriteOptions  = "--name=write_bandwidth_test --filesize=2500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 )
 
@@ -104,7 +104,13 @@ func TestRandomWriteIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(randWriteIOPSJson), err)
 	}
 
-	finalIOPSValue := fioOut.Jobs[0].WriteResult.IOPS
+	// this is a json.Number object
+	finalIOPSValueNumber := fioOut.Jobs[0].WriteResult.IOPS
+	var finalIOPSValue float64
+	if finalIOPSValue, err = finalIOPSValueNumber.Float64(); err != nil {
+		t.Fatalf("iops string %s was not a float: err %v", finalIOPSValueNumber.String(), err)
+	}
+	finalIOPSValueString := fmt.Sprintf("%f", finalIOPSValue)
 	expectedRandWriteIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", randWriteAttribute)
 	if err != nil {
 		t.Fatalf("could not get metadata attribut %s: err %v", randWriteAttribute, err)
@@ -112,14 +118,14 @@ func TestRandomWriteIOPS(t *testing.T) {
 
 	expectedRandWriteIOPSString = strings.TrimSpace(expectedRandWriteIOPSString)
 	var expectedRandWriteIOPS float64
-	if expectedRandWriteIOPS, err := strconv.ParseFloat(expectedRandWriteIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedRandWriteIOPS, err)
+	if expectedRandWriteIOPS, err = strconv.ParseFloat(expectedRandWriteIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandWriteIOPSString, err)
 	}
 	if finalIOPSValue < iopsErrorMargin*expectedRandWriteIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedRandWriteIOPS, finalIOPSValue)
+		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedRandWriteIOPSString, finalIOPSValueString)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalIOPSValue, iopsErrorMargin, expectedRandWriteIOPS)
+	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalIOPSValueString, iopsErrorMargin, expectedRandWriteIOPSString)
 }
 
 // TestSequentialWriteIOPS checks that sequential write IOPS are around the value listed in public docs.
@@ -141,11 +147,18 @@ func TestSequentialWriteIOPS(t *testing.T) {
 		t.Fatalf("fio output %s could not be unmarshalled with error: %v", string(seqWriteIOPSJson), err)
 	}
 
-	finalBandwidthBytesPerSecond := 0
+	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
-		finalBandwidthBytesPerSecond += job.WriteResult.BandwidthBytes
+		// this is a json.Number object
+		bandwidthBytesNumber := job.WriteResult.BandwidthBytes
+		var bandwidthBytesInt int64
+		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth bytes %s was not an int: err %v", bandwidthBytesNumber.String(), err)
+		}
+		finalBandwidthBytesPerSecond += bandwidthBytesInt
 	}
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
+	finalBandwidthMBpsString := fmt.Sprintf("%f", finalBandwidthMBps)
 
 	expectedSeqWriteIOPSString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", seqWriteAttribute)
 	if err != nil {
@@ -154,12 +167,12 @@ func TestSequentialWriteIOPS(t *testing.T) {
 
 	expectedSeqWriteIOPSString = strings.TrimSpace(expectedSeqWriteIOPSString)
 	var expectedSeqWriteIOPS float64
-	if expectedSeqWriteIOPS, err := strconv.ParseFloat(expectedSeqWriteIOPSString, 64); err != nil {
-		t.Fatalf("benchmark iops string %f was not a float: err %v", expectedSeqWriteIOPS, err)
+	if expectedSeqWriteIOPS, err = strconv.ParseFloat(expectedSeqWriteIOPSString, 64); err != nil {
+		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedSeqWriteIOPSString, err)
 	}
 	if finalBandwidthMBps < iopsErrorMargin*expectedSeqWriteIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %f, got %f", iopsErrorMargin, expectedSeqWriteIOPS, finalBandwidthMBps)
+		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedSeqWriteIOPSString, finalBandwidthMBpsString)
 	}
 
-	t.Logf("iops test pass with %f iops, expected at least %f of target %f", finalBandwidthMBps, iopsErrorMargin, expectedSeqWriteIOPS)
+	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalBandwidthMBpsString, iopsErrorMargin, expectedSeqWriteIOPSString)
 }
