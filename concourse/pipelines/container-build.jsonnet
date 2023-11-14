@@ -97,7 +97,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
   }],
   resources: [
     common.GitResource('guest-test-infra'),
-    //common.GitResource('compute-image-tools'),
+    common.GitResource('compute-image-tools'),
     {
       name: 'compute-image-tools-trigger',
       type: 'git',
@@ -159,6 +159,13 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     //    },
 
     // Builds outside g-t-i repo.
+    buildcontainerimgjob {
+      context: 'comupte-image-tools',
+      destination: 'gcr.io/compute-image-tools-test/gce-windows-upgrade-tests',
+      dockerfile: 'gce_windows_upgrade_tests.Dockerfile',
+      image: 'gce_windows_upgrade_tests',
+      input: 'compute-image-tools',
+    },
     buildcontainerimgjob {
       context: 'compute-daisy',
       destination: 'gcr.io/compute-image-tools-test/test-runner',
