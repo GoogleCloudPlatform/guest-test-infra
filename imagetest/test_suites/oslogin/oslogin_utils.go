@@ -182,4 +182,3 @@ func getTwoFactorAuthMetadata(ctx context.Context, root string, elem ...string) 
 	}
 	return flag, nil
 }
-
