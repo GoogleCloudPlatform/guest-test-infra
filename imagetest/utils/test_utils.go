@@ -187,7 +187,7 @@ func ParseHostKey(bytes []byte) (map[string]string, error) {
 	return hostkeyMap, nil
 }
 
-// Gets the project and zone of the instance.
+// GetProjectZone gets the project and zone of the instance.
 func GetProjectZone(ctx context.Context) (string, string, error) {
 	projectZone, err := GetMetadata(ctx, "instance", "zone")
 	if err != nil {
@@ -199,7 +199,7 @@ func GetProjectZone(ctx context.Context) (string, string, error) {
 	return project, zone, nil
 }
 
-// Accesses the given secret.
+// AccessSecret accesses the given secret.
 func AccessSecret(ctx context.Context, client *secretmanager.Client, secretName string) (string, error) {
 	// Get project
 	project, _, err := GetProjectZone(ctx)
