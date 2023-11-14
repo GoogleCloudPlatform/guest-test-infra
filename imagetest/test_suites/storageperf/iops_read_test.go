@@ -120,11 +120,13 @@ func TestRandomReadIOPS(t *testing.T) {
 	if expectedRandReadIOPS, err = strconv.ParseFloat(expectedRandReadIOPSString, 64); err != nil {
 		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandReadIOPSString, err)
 	}
+
+	machineName := getVMName(utils.Context(t))
 	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedRandReadIOPSString, finalIOPSValueString)
+		t.Fatalf("iops average for vm %s was too low: expected at least %f of target %s, got %s", machineName, iopsErrorMargin, expectedRandReadIOPSString, finalIOPSValueString)
 	}
 
-	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalIOPSValueString, iopsErrorMargin, expectedRandReadIOPSString)
+	t.Logf("iops test pass for vm %s with %s iops, expected at least %f of target %s", machineName, finalIOPSValueString, iopsErrorMargin, expectedRandReadIOPSString)
 }
 
 // TestSequentialReadIOPS checks that sequential read IOPS are around the value listed in public docs.
@@ -171,9 +173,11 @@ func TestSequentialReadIOPS(t *testing.T) {
 	if expectedSeqReadIOPS, err = strconv.ParseFloat(expectedSeqReadIOPSString, 64); err != nil {
 		t.Fatalf("benchmark iops string %s  was not a float: err %v", expectedSeqReadIOPSString, err)
 	}
+
+	machineName := getVMName(utils.Context(t))
 	if finalBandwidthMBps < iopsErrorMargin*expectedSeqReadIOPS {
-		t.Fatalf("iops average was too low: expected at least %f of target %s, got %s", iopsErrorMargin, expectedSeqReadIOPSString, finalBandwidthMBpsString)
+		t.Fatalf("iops average was too low for vm %s: expected at least %f of target %s, got %s", machineName, iopsErrorMargin, expectedSeqReadIOPSString, finalBandwidthMBpsString)
 	}
 
-	t.Logf("iops test pass with %s iops, expected at least %f of target %s", finalBandwidthMBpsString, iopsErrorMargin, expectedSeqReadIOPSString)
+	t.Logf("iops test pass for vm %s with %s iops, expected at least %f of target %s", machineName, finalBandwidthMBpsString, iopsErrorMargin, expectedSeqReadIOPSString)
 }
