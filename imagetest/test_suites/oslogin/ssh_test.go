@@ -1,6 +1,20 @@
 //go:build cit
 // +build cit
 
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oslogin
 
 import (
@@ -49,7 +63,7 @@ func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, v
 	}
 
 	// Get project and zone of instance.
-	project, zone, err := getProjectZone(ctx)
+	project, zone, err := utils.GetProjectZone(ctx)
 	if err != nil {
 		return err
 	}
@@ -120,7 +134,7 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 }
 
 // Checks what's in the /var/google-sudoers.d directory.
-func getSudoFile(client *ssh.Client, sudo string) (string, error) {
+func getSudoFile(client *ssh.Client, user, sudo string) (string, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return "", fmt.Errorf("failed to create ssh session: %v", err)
@@ -171,7 +185,7 @@ func getSudoFile(client *ssh.Client, sudo string) (string, error) {
 		}
 	}(in, out, &output)
 
-	_, err = session.Output("sudo ls /var/google-sudoers.d")
+	_, err = session.Output(fmt.Sprintf("sudo cat /var/google-sudoers.d/%v", user))
 	if err != nil {
 		return "", fmt.Errorf("error getting /var/google-sudoers.d: %v", err)
 	}
@@ -237,7 +251,7 @@ func TestSSH(t *testing.T) {
 	defer secretClient.Close()
 
 	// Get user email.
-	user, err := getSecret(ctx, secretClient, normalUser)
+	user, err := utils.AccessSecret(ctx, secretClient, normalUser)
 	if err != nil {
 		t.Fatalf("failed to get user: %v", err)
 	}
@@ -250,7 +264,7 @@ func TestSSH(t *testing.T) {
 	posix := getPosix(user)
 
 	// Get Ssh keys.
-	privateSshKey, err := getSecret(ctx, secretClient, normalUserSshKey)
+	privateSshKey, err := utils.AccessSecret(ctx, secretClient, normalUserSshKey)
 	if err != nil {
 		t.Fatalf("failed to get private key: %v", err)
 	}
@@ -279,7 +293,7 @@ func TestAdminSSH(t *testing.T) {
 	defer secretClient.Close()
 
 	// Get user email.
-	user, err := getSecret(ctx, secretClient, adminUser)
+	user, err := utils.AccessSecret(ctx, secretClient, adminUser)
 	if err != nil {
 		t.Fatalf("failed to get user: %v", err)
 	}
@@ -292,7 +306,7 @@ func TestAdminSSH(t *testing.T) {
 	posix := getPosix(user)
 
 	// Get Ssh keys.
-	privateSshKey, err := getSecret(ctx, secretClient, adminUserSshKey)
+	privateSshKey, err := utils.AccessSecret(ctx, secretClient, adminUserSshKey)
 	if err != nil {
 		t.Fatalf("failed to get private key: %v", err)
 	}
@@ -308,15 +322,15 @@ func TestAdminSSH(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	sudo, err := getSecret(ctx, secretClient, adminUserSudo)
+	sudo, err := utils.AccessSecret(ctx, secretClient, adminUserSudo)
 	if err != nil {
 		t.Fatalf("failed to get sudo: %v", err)
 	}
-	data, err := getSudoFile(client, sudo)
+	data, err := getSudoFile(client, posix, sudo)
 	if err != nil {
 		t.Fatalf("failed to get sudo file: %v", err)
 	}
-	if !strings.Contains(string(data), posix) {
-		t.Fatalf("sudoers directory does not contain user")
+	if !strings.Contains(data, posix) && !strings.Contains(data, "ALL=(ALL)") || !strings.Contains(data, "NOPASSWD: ALL") {
+		t.Fatalf("sudoers file does not contain user or necessary configurations")
 	}
 }

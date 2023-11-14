@@ -1,3 +1,17 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oslogin
 
 import (
@@ -10,10 +24,27 @@ import (
 
 	oslogin "cloud.google.com/go/oslogin/apiv1"
 	osloginpb "cloud.google.com/go/oslogin/apiv1/osloginpb"
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	secretmanagerpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
+
+// From the contents of a file, check if a line contains all the provided elements.
+func FileContainsLine(data string, elem ...string) error {
+	var found bool
+	for _, line := range strings.Split(string(data), "\n") {
+		found = true
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		for _, s := range elem {
+			found = found && strings.Contains(line, s)
+		}
+		if found {
+			return nil
+		}
+	}
+	return fmt.Errorf("elements not found")
+}
 
 // Creates the posix name from the given username.
 func getPosix(user string) string {
@@ -31,18 +62,6 @@ func getInstanceName(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to get instance name: %v", err)
 	}
 	return name, nil
-}
-
-// Gets the project and zone of the instance.
-func getProjectZone(ctx context.Context) (string, string, error) {
-	projectZone, err := utils.GetMetadata(ctx, "instance", "zone")
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get instance zone: %v", err)
-	}
-	projectZoneSplit := strings.Split(string(projectZone), "/")
-	project := projectZoneSplit[1]
-	zone := projectZoneSplit[3]
-	return project, zone, nil
 }
 
 // Gets the service account currently operating on the instance.
@@ -90,40 +109,25 @@ func getTestUserEntry(ctx context.Context) (string, string, string, error) {
 func isOsLoginEnabled(ctx context.Context) error {
 	data, err := os.ReadFile("/etc/nsswitch.conf")
 	if err != nil {
-		return fmt.Errorf("cannot read /etc/nsswitch.conf")
+		return fmt.Errorf("cannot read /etc/nsswitch.conf: %v", err)
 	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
-			return fmt.Errorf("OS Login not enabled in /etc/nsswitch.conf")
-		}
+	if err = FileContainsLine(string(data), "passwd:", "oslogin"); err != nil {
+		return fmt.Errorf("oslogin passwd entry not found in /etc/nsswitch.conf")
 	}
 
 	// Check AuthorizedKeys Command
 	data, err = os.ReadFile("/etc/ssh/sshd_config")
 	if err != nil {
-		return fmt.Errorf("cannot read /etc/ssh/sshd_config")
+		return fmt.Errorf("cannot read /etc/ssh/sshd_config: %v", err)
 	}
-	var foundAuthorizedKeys bool
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
+	if err = FileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys"); err != nil {
+		if err = FileContainsLine(string(data), "AuthorizedKeysCommand", "/usr/bin/google_authorized_keys_sk"); err != nil {
+			return fmt.Errorf("AuthorizedKeysCommand not set up for OSLogin: %v", err)
 		}
-		if strings.Contains(line, "AuthorizedKeysCommand") && strings.Contains(line, "/usr/bin/google_authorized_keys") {
-			foundAuthorizedKeys = true
-		}
-	}
-
-	if !foundAuthorizedKeys {
-		return fmt.Errorf("AuthorizedKeysCommand not set up for OS Login")
 	}
 
 	if err = testSSHDPamConfig(ctx); err != nil {
-		return fmt.Errorf("error checking pam config: %v", err)
+		return err
 	}
 	return nil
 }
@@ -141,7 +145,7 @@ func testSSHDPamConfig(ctx context.Context) error {
 			return fmt.Errorf("cannot read /etc/pam.d/sshd: %+v", err)
 		}
 
-		if !strings.Contains(string(data), "pam_oslogin_login.so") {
+		if !strings.Contains(string(data), "pam_oslogin_login.so") || !strings.Contains(string(data), "") {
 			return fmt.Errorf("OS Login PAM module missing from pam.d/sshd")
 		}
 	}
@@ -156,18 +160,18 @@ func isTwoFactorAuthEnabled(ctx context.Context) (bool, error) {
 
 	elem := []string{"attributes", "enable-oslogin-2fa"}
 
-	instanceFlag, err = getTwoFactorAuth(ctx, "instance", elem...)
+	instanceFlag, err = getTwoFactorAuthMetadata(ctx, "instance", elem...)
 	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
 		return false, err
 	}
-	projectFlag, err = getTwoFactorAuth(ctx, "project", elem...)
+	projectFlag, err = getTwoFactorAuthMetadata(ctx, "project", elem...)
 	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
 		return false, err
 	}
 	return instanceFlag || projectFlag, nil
 }
 
-func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, error) {
+func getTwoFactorAuthMetadata(ctx context.Context, root string, elem ...string) (bool, error) {
 	data, err := utils.GetMetadata(ctx, append([]string{root}, elem...)...)
 	if err != nil {
 		return false, err
@@ -179,21 +183,3 @@ func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, e
 	return flag, nil
 }
 
-// Gets the given secret.
-func getSecret(ctx context.Context, client *secretmanager.Client, secretName string) (string, error) {
-	// Get project
-	project, _, err := getProjectZone(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to get project: %v", err)
-	}
-
-	// Make request call to Secret Manager.
-	req := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, secretName),
-	}
-	resp, err := client.AccessSecretVersion(ctx, req)
-	if err != nil {
-		return "", fmt.Errorf("failed to get secret: %v", err)
-	}
-	return string(resp.Payload.Data), nil
-}
