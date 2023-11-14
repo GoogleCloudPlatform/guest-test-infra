@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	commonFIORandWriteOptions = "--name=write_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --offset_increment=500G --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIORandWriteOptions = "--name=write_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
 	commonFIOSeqWriteOptions  = "--name=write_bandwidth_test --filesize=2500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 )
 
@@ -78,6 +78,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	fioWriteOptionsLinuxSlice := strings.Fields(writeOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
+	t.Logf("fio write command linux is %s", strings.Join(fioWriteOptionsLinuxSlice, " "))
 	writeIOPSJson, err := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)

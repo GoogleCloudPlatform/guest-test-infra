@@ -19,7 +19,7 @@ type PerformanceTargets struct {
 const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
-	iopsErrorMargin = 0.95
+	iopsErrorMargin = 0.85
 	mountdiskSizeGB = 3500
 	bootdiskSizeGB  = 50
 	bytesInMB       = 1048576

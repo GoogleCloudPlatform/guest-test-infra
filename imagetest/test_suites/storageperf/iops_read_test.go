@@ -77,6 +77,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
+	t.Logf("fio read command linux is %s", strings.Join(fioReadOptionsLinuxSlice, " "))
 	readIOPSJson, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
