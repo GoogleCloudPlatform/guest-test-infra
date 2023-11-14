@@ -28,7 +28,7 @@ import (
 )
 
 // From the contents of a file, check if a line contains all the provided elements.
-func FileContainsLine(data string, elem ...string) error {
+func fileContainsLine(data string, elem ...string) error {
 	var found bool
 	for _, line := range strings.Split(string(data), "\n") {
 		found = true
