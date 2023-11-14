@@ -62,6 +62,11 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	/*fill_disk_cmd := "--name=fill_disk --filesize=2500G --ioengine=libaio --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64 --iodepth_batch_complete_max=64"
+	fill_disk_cmd_exec := strings.Fields(fill_disk_cmd + " --filename=" + symlinkRealPath)
+	if err = exec.Command(fioCmdNameLinux, fill_disk_cmd_exec...).Run(); err != nil {
+		return []byte{}, fmt.Errorf("could not run fill disk cmd")
+	}*/
 	// ubuntu 16.04 has a different option name due to an old fio version
 	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
@@ -77,7 +82,6 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	t.Logf("fio read command linux is %s", strings.Join(fioReadOptionsLinuxSlice, " "))
 	readIOPSJson, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)

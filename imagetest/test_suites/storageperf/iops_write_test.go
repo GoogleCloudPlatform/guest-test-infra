@@ -78,7 +78,6 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	fioWriteOptionsLinuxSlice := strings.Fields(writeOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	t.Logf("fio write command linux is %s", strings.Join(fioWriteOptionsLinuxSlice, " "))
 	writeIOPSJson, err := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
