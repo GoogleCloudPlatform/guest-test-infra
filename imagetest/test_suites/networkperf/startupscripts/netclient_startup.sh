@@ -68,4 +68,7 @@ iperf -t 30 -c "$iperftarget" -P 12 | grep SUM | tr -s ' ' | tee -a "$outfile"
 echo "$(date +"%Y-%m-%d %T"): Test Results $results"
 echo "$(date +"%Y-%m-%d %T"): Sending results to metadata."
 results=$(cat "./$outfile")
-curl -X PUT --data "$results" http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/results -H "Metadata-Flavor: Google"
+for i in $(seq 0 2); do
+	sleep $i
+	curl -X PUT --data "$results" http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/results -H "Metadata-Flavor: Google" && break
+done

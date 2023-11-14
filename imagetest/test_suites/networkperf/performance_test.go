@@ -7,15 +7,24 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 func TestNetworkPerformance(t *testing.T) {
 	// Check performance of the driver.
-	results, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "results")
-	if err != nil {
-		t.Fatalf("Error : Test results not found. %v", err)
+	var results string
+	var err error
+	for i := 0; i < 3; i++ {
+		time.Sleep(time.Duration(i) * time.Second)
+		results, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "results")
+		if err == nil {
+			break
+		}
+		if i == 2 {
+			t.Fatalf("Error : Test results not found. %v", err)
+		}
 	}
 
 	// Get the performance target.
