@@ -162,7 +162,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     buildcontainerimgjob {
       context: 'comupte-image-tools',
       destination: 'gcr.io/compute-image-tools-test/gce-windows-upgrade-tests',
-      dockerfile: 'gce_windows_upgrade_tests.Dockerfile',
+      dockerfile: 'compute-image-tools/gce_windows_upgrade_tests.Dockerfile',
       image: 'gce_windows_upgrade_tests',
       input: 'compute-image-tools',
     },
