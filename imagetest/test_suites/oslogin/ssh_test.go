@@ -18,10 +18,8 @@
 package oslogin
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -49,9 +47,6 @@ const (
 	adminUserSshKey  = "admin-user-ssh-key"
 	normal2FASshKey  = "normal-2fa-ssh-key"
 	admin2FASshKey   = "admin-2fa-ssh-key"
-
-	// sudo keys
-	adminUserSudo = "admin-user-sudo"
 )
 
 // Changes the given metadata key to have the given value on the given instance.. If the key does not exist,
@@ -120,14 +115,8 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 		return fmt.Errorf("failed to read /etc/nsswitch.conf: %v", err)
 	}
 
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
-			return fmt.Errorf("OS Login not enabled in /etc/nsswitch.conf.")
-		}
+	if err = fileContainsLine(string(data), "passwd:", "oslogin"); err != nil {
+		return fmt.Errorf("oslogin passwd entry not found in /etc/nsswitch.conf")
 	}
 
 	return nil
@@ -140,58 +129,10 @@ func getSudoFile(client *ssh.Client, user, sudo string) (string, error) {
 		return "", fmt.Errorf("failed to create ssh session: %v", err)
 	}
 
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          0,     // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
-		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
-	}
-	if err = session.RequestPty("xterm", 80, 40, modes); err != nil {
-		return "", fmt.Errorf("failed to create pseudo terminal: %v", err)
-	}
-
-	var output []byte
-	in, err := session.StdinPipe()
+	output, err := session.Output(fmt.Sprintf("sudo cat /var/google-sudoers.d/%v", user))
 	if err != nil {
-		return "", fmt.Errorf("failed to get session stdin: %v", err)
+		return "", fmt.Errorf("error getting user's /var/google-sudoers.d file: %v", err)
 	}
-	out, err := session.StdoutPipe()
-	if err != nil {
-		return "", fmt.Errorf("failed to get session stdout: %v", err)
-	}
-
-	// Monitor the output stream of the ssh session.
-	go func(in io.WriteCloser, out io.Reader, output *[]byte) {
-		var line string
-		r := bufio.NewReader(out)
-		for {
-			b, err := r.ReadByte()
-			if err != nil {
-				break
-			}
-
-			*output = append(*output, b)
-			if b == byte('\n') {
-				line = ""
-				continue
-			}
-			line += string(b)
-			// If we find we need to enter a sudo password, pass in the sudo password.
-			if strings.HasPrefix(line, "[sudo] password for ") {
-				_, err = in.Write([]byte(sudo + "\n"))
-				if err != nil {
-					break
-				}
-			}
-		}
-	}(in, out, &output)
-
-	_, err = session.Output(fmt.Sprintf("sudo cat /var/google-sudoers.d/%v", user))
-	if err != nil {
-		return "", fmt.Errorf("error getting /var/google-sudoers.d: %v", err)
-	}
-
-	// Give time for the command to finish and output.
-	time.Sleep(time.Second * 3)
 	return string(output), nil
 }
 

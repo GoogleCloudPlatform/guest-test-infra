@@ -144,8 +144,9 @@ func testSSHDPamConfig(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("cannot read /etc/pam.d/sshd: %+v", err)
 		}
+		dataString := string(data)
 
-		if !strings.Contains(string(data), "pam_oslogin_login.so") || !strings.Contains(string(data), "") {
+		if err = fileContainsLine(dataString, "auth", "[success=done perm_denied=die default=ignore]", "pam_oslogin_login.so"); err != nil {
 			return fmt.Errorf("OS Login PAM module missing from pam.d/sshd")
 		}
 	}
