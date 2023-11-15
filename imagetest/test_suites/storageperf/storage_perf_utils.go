@@ -1,6 +1,7 @@
 package storageperf
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -154,4 +155,14 @@ func installFioLinux() error {
 		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
 	return nil
+}
+
+// this function is only for convenience: if a performance test fails,
+// the test vm name can print out the vm machine type for faster analysis.
+func getVMName(ctx context.Context) string {
+	machineName, err := utils.GetMetadata(ctx, "instance", "name")
+	if err != nil {
+		return "unknown"
+	}
+	return machineName
 }
