@@ -160,7 +160,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 
     // Builds outside g-t-i repo.
     buildcontainerimgjob {
-      context: 'comupte-image-tools',
+      context: 'compute-image-tools',
       destination: 'gcr.io/compute-image-tools-test/gce-windows-upgrade-tests',
       dockerfile: 'compute-image-tools/gce_windows_upgrade_tests.Dockerfile',
       image: 'gce_windows_upgrade_tests',
