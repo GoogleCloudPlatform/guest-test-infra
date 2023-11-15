@@ -152,12 +152,12 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
 		// this is a json.Number object
-		bandwidthBytesNumber := job.WriteResult.BandwidthBytes
-		var bandwidthBytesInt int64
-		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
-			t.Fatalf("bandwidth bytes %s was not an int: err %v", bandwidthBytesNumber.String(), err)
+		bandwidthNumber := job.WriteResult.Bandwidth
+		var bandwidthInt int64
+		if bandwidthInt, err = bandwidthNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth units per sec %s was not an int: err %v", bandwidthNumber.String(), err)
 		}
-		finalBandwidthBytesPerSecond += bandwidthBytesInt
+		finalBandwidthBytesPerSecond += bandwidthInt * fioBWToBytes
 	}
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
 	finalBandwidthMBpsString := fmt.Sprintf("%f", finalBandwidthMBps)

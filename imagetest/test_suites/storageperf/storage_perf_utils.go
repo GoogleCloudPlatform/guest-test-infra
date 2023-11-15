@@ -26,6 +26,9 @@ const (
 	bytesInMB       = 1048576
 	mountDiskName   = "hyperdisk"
 	fioCmdNameLinux = "fio"
+	// constant from the fio docs to convert bandwidth to bw_bytes:
+	// https://fio.readthedocs.io/en/latest/fio_doc.html#json-output
+	fioBWToBytes = 1024
 	// The fixed gcs location where fio.exe is stored.
 	fioWindowsGCS = "gs://gce-image-build-resources/windows/fio.exe"
 	// The local path on the test VM where fio is stored.
@@ -117,8 +120,8 @@ type FIOJob struct {
 
 // FIOStatistics give information about FIO performance.
 type FIOStatistics struct {
-	// BandwidthBytes should be able to convert to an int64
-	BandwidthBytes json.Number `json:"bw_bytes,omitempty"`
+	// Bandwidth should be able to convert to an int64
+	Bandwidth json.Number `json:"bw,omitempty"`
 	// IOPS should be able to convert to a float64
 	IOPS json.Number            `json:iops,omitempty"`
 	X    map[string]interface{} `json:"-"`

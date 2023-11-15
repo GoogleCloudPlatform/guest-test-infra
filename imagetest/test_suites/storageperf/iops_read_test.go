@@ -151,13 +151,13 @@ func TestSequentialReadIOPS(t *testing.T) {
 	// bytes is listed in bytes per second in the fio output
 	var finalBandwidthBytesPerSecond int64 = 0
 	for _, job := range fioOut.Jobs {
-		// this is the bandwidth bytes/sec as a json.Number object
-		bandwidthBytesNumber := job.ReadResult.BandwidthBytes
-		var bandwidthBytesInt int64
-		if bandwidthBytesInt, err = bandwidthBytesNumber.Int64(); err != nil {
-			t.Fatalf("bandwidth bytes per second %s was not a float: err  %v", bandwidthBytesNumber.String(), err)
+		// this is the bandwidth units/sec as a json.Number object
+		bandwidthNumber := job.ReadResult.Bandwidth
+		var bandwidthInt int64
+		if bandwidthInt, err = bandwidthNumber.Int64(); err != nil {
+			t.Fatalf("bandwidth units per second %s was not a float: err  %v", bandwidthNumber.String(), err)
 		}
-		finalBandwidthBytesPerSecond += bandwidthBytesInt
+		finalBandwidthBytesPerSecond += bandwidthInt * fioBWToBytes
 	}
 
 	var finalBandwidthMBps float64 = float64(finalBandwidthBytesPerSecond) / bytesInMB
