@@ -123,7 +123,7 @@ func sessionOSLoginEnabled(client *ssh.Client) error {
 }
 
 // Checks what's in the /var/google-sudoers.d directory.
-func getSudoFile(client *ssh.Client, user, sudo string) (string, error) {
+func getSudoFile(client *ssh.Client, user string) (string, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return "", fmt.Errorf("failed to create ssh session: %v", err)
@@ -263,11 +263,7 @@ func TestAdminSSH(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
-	sudo, err := utils.AccessSecret(ctx, secretClient, adminUserSudo)
-	if err != nil {
-		t.Fatalf("failed to get sudo: %v", err)
-	}
-	data, err := getSudoFile(client, posix, sudo)
+	data, err := getSudoFile(client, posix)
 	if err != nil {
 		t.Fatalf("failed to get sudo file: %v", err)
 	}
