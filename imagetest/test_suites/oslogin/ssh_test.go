@@ -267,7 +267,7 @@ func TestAdminSSH(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get sudo file: %v", err)
 	}
-	if !strings.Contains(data, posix) && !strings.Contains(data, "ALL=(ALL)") || !strings.Contains(data, "NOPASSWD: ALL") {
+	if !strings.Contains(data, posix) || !strings.Contains(data, "ALL=(ALL)") || !strings.Contains(data, "NOPASSWD: ALL") {
 		t.Fatalf("sudoers file does not contain user or necessary configurations")
 	}
 }
