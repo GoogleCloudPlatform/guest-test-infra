@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -50,6 +51,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if r.MatchString(t.Image.Name) {
 			return nil
 		}
+	}
+	if !utils.HasFeature(t.Image, "UEFI_COMPATIBLE") {
+		return nil
 	}
 	vm4, err := t.CreateTestVM("vm4")
 	if err != nil {
