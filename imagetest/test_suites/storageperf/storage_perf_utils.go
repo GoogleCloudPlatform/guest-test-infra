@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -154,8 +155,19 @@ func installFioLinux() error {
 		return fmt.Errorf("no package managers to install fio found")
 	}
 
-	if _, err := installFioCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("install fio command failed with errors: %v", err)
+	// retry in case setup for the machine is slow, such as for zypper on sles 12
+	fioInstallErrString := ""
+	for i := 0; i < 4; i++ {
+		_, fioInstallErr := installFioCmd.CombinedOutput()
+		if fioInstallErr == nil {
+			break
+		} else {
+			fioInstallErrString += fioInstallErr.Error() + ", "
+			time.Sleep(15 * time.Second)
+		}
+	}
+	if fioInstallErrString != "" {
+		return fmt.Errorf("install fio command failed with errors %s", fioInstallErrString)
 	}
 	return nil
 }
