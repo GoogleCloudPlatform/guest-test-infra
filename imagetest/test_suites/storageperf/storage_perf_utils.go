@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -136,7 +137,8 @@ func installFioWindows() error {
 }
 
 // installFioLinux tries to install fio on linux with any of multiple package managers, and returns an error if all the package managers were not found or failed.
-func installFioLinux() error {
+func installFioLinux(t *testing.T) error {
+	usingZypper := false
 	var installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
 		// only run update if using apt
@@ -149,12 +151,17 @@ func installFioLinux() error {
 	} else if utils.CheckLinuxCmdExists("yum") {
 		installFioCmd = exec.Command("yum", "-y", "install", fioCmdNameLinux)
 	} else if utils.CheckLinuxCmdExists("zypper") {
+		usingZypper = true
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", fioCmdNameLinux)
 	} else {
 		return fmt.Errorf("no package managers to install fio found")
 	}
 
 	if _, err := installFioCmd.CombinedOutput(); err != nil {
+		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Skip the test on the current execution shell.
+		if usingZypper {
+			t.Skipf("zypper repo temporarily unavailable: skipping current test run %v", err)
+		}
 		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
 	return nil
