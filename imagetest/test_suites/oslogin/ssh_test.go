@@ -20,6 +20,7 @@ package oslogin
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -28,6 +29,7 @@ import (
 	computepb "cloud.google.com/go/compute/apiv1/computepb"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/xlzd/gotp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -42,11 +44,14 @@ const (
 	normal2FAKey = "normal-2fa-key"
 	admin2FAKey  = "admin-2fa-key"
 
-	// keys
-	normalUserSshKey = "normal-user-ssh-key"
-	adminUserSshKey  = "admin-user-ssh-key"
-	normal2FASshKey  = "normal-2fa-ssh-key"
-	admin2FASshKey   = "admin-2fa-ssh-key"
+	// SSH keys
+	normalUserSSHKey = "normal-user-ssh-key"
+	adminUserSSHKey  = "admin-user-ssh-key"
+	normal2FASSHKey  = "normal-2fa-ssh-key"
+	admin2FASSHKey   = "admin-2fa-ssh-key"
+
+	// Time to wait for agent check
+	waitAgent = time.Second * 15
 )
 
 // Changes the given metadata key to have the given value on the given instance.. If the key does not exist,
@@ -156,7 +161,7 @@ func TestAgent(t *testing.T) {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
 	// Give the API time to update.
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 4)
 	// Check if OSLogin is disabled.
 	err = isOsLoginEnabled(ctx)
 	if err == nil {
@@ -169,7 +174,7 @@ func TestAgent(t *testing.T) {
 	if err = changeMetadata(ctx, client, "enable-oslogin", "true"); err != nil {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 4)
 
 	// Check if OSLogin is back on.
 	if err = isOsLoginEnabled(ctx); err != nil {
@@ -181,7 +186,7 @@ func TestAgent(t *testing.T) {
 // After successfully creating an SSH connection, check whether OSLogin is enabled on the host VM.
 func TestSSH(t *testing.T) {
 	// TODO: Come up with better way to ensure the target VMs finished their guest agent checks.
-	time.Sleep(20 * time.Second)
+	time.Sleep(waitAgent)
 	ctx := utils.Context(t)
 
 	// Secret Manager Client.
@@ -204,14 +209,14 @@ func TestSSH(t *testing.T) {
 	}
 	posix := getPosix(user)
 
-	// Get Ssh keys.
-	privateSshKey, err := utils.AccessSecret(ctx, secretClient, normalUserSshKey)
+	// Get SSH keys.
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, normalUserSSHKey)
 	if err != nil {
 		t.Fatalf("failed to get private key: %v", err)
 	}
 
 	// Create ssh client to target VM.
-	client, err := utils.CreateClient(posix, fmt.Sprintf("%s:22", hostname), []byte(privateSshKey))
+	client, err := utils.CreateClient(posix, fmt.Sprintf("%s:22", hostname), []byte(privateSSHKey))
 	if err != nil {
 		t.Fatalf("error creating ssh client: %v", err)
 	}
@@ -222,8 +227,8 @@ func TestSSH(t *testing.T) {
 	}
 }
 
+// Checks if an admin user can use sudo after successfully SSH-ing to an instance.
 func TestAdminSSH(t *testing.T) {
-	time.Sleep(20 * time.Second)
 	ctx := utils.Context(t)
 
 	// Secret Manager Client.
@@ -246,14 +251,14 @@ func TestAdminSSH(t *testing.T) {
 	}
 	posix := getPosix(user)
 
-	// Get Ssh keys.
-	privateSshKey, err := utils.AccessSecret(ctx, secretClient, adminUserSshKey)
+	// Get SSH keys.
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, adminUserSSHKey)
 	if err != nil {
 		t.Fatalf("failed to get private key: %v", err)
 	}
 
 	// Create ssh client to target VM.
-	client, err := utils.CreateClient(posix, fmt.Sprintf("%s:22", hostname), []byte(privateSshKey))
+	client, err := utils.CreateClient(posix, fmt.Sprintf("%s:22", hostname), []byte(privateSSHKey))
 	if err != nil {
 		t.Fatalf("error creating ssh client: %v", err)
 	}
@@ -263,6 +268,195 @@ func TestAdminSSH(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 
+	data, err := getSudoFile(client, posix)
+	if err != nil {
+		t.Fatalf("failed to get sudo file: %v", err)
+	}
+	if !strings.Contains(data, posix) || !strings.Contains(data, "ALL=(ALL)") || !strings.Contains(data, "NOPASSWD: ALL") {
+		t.Fatalf("sudoers file does not contain user or necessary configurations")
+	}
+}
+
+func Test2FASSH(t *testing.T) {
+	ctx := utils.Context(t)
+
+	// Secret manager client.
+	secretClient, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		t.Fatalf("failed to create secret manager client: %v", err)
+	}
+	defer secretClient.Close()
+
+	user, err := utils.AccessSecret(ctx, secretClient, normal2FAUser)
+	if err != nil {
+		t.Fatalf("failed to get user info: %v", err)
+	}
+	posix := getPosix(user)
+
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, normal2FASSHKey)
+	if err != nil {
+		t.Fatalf("failed to get user key: %v", err)
+	}
+
+	// Manually set up SSH.
+	vmname, err := utils.GetRealVMName("twofa")
+	if err != nil {
+		t.Fatalf("failed to get hostname: %v", err)
+	}
+	hostname := fmt.Sprintf("%s:22", vmname)
+	signer, err := ssh.ParsePrivateKey([]byte(privateSSHKey))
+	if err != nil {
+		t.Fatalf("failed to parse private key: %v", err)
+	}
+
+	cb := func(name, instruction string, questions []string, echos []bool) (answers []string, err error) {
+		if len(questions) == 0 {
+			return
+		}
+
+		answers = make([]string, 1)
+		firstQuestionRegex, err := regexp.Compile(".*Enter.*number.*")
+		if err != nil {
+			return
+		}
+		if firstQuestionRegex.MatchString(questions[0]) {
+			// 1 is the response for Authenticator OTP
+			answers[0] = "1"
+			return
+		}
+
+		// If not the first question, input code for two-factor.
+		ctx := context.Background()
+		secretClient, err := secretmanager.NewClient(ctx)
+		if err != nil {
+			return
+		}
+		defer secretClient.Close()
+
+		s, err := utils.AccessSecret(ctx, secretClient, normal2FAKey)
+		if err != nil {
+			return
+		}
+		secret := strings.ToUpper(s)
+
+		if !gotp.IsSecretValid(secret) {
+			// Avoid panic that doesn't return a useful error message for test runner
+			err = fmt.Errorf("invalid secret")
+			return
+		}
+		code := gotp.NewDefaultTOTP(secret).Now()
+		answers[0] = code
+		return
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User:            posix,
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer), ssh.KeyboardInteractive(cb)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	client, err := ssh.Dial("tcp", hostname, sshConfig)
+	if err != nil {
+		t.Fatalf("failed to create ssh client: %v", err)
+	}
+	defer client.Close()
+
+	if err = sessionOSLoginEnabled(client); err != nil {
+		t.Fatalf("%v", err)
+	}
+}
+
+func Test2FAAdminSSH(t *testing.T) {
+	ctx := utils.Context(t)
+
+	// Secret manager client.
+	secretClient, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		t.Fatalf("failed to create secret manager client: %v", err)
+	}
+	defer secretClient.Close()
+
+	user, err := utils.AccessSecret(ctx, secretClient, admin2FAUser)
+	if err != nil {
+		t.Fatalf("failed to get user info: %v", err)
+	}
+	posix := getPosix(user)
+
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, admin2FASSHKey)
+	if err != nil {
+		t.Fatalf("failed to get user key: %v", err)
+	}
+
+	// Manually set up SSH.
+	vmname, err := utils.GetRealVMName("twofa")
+	if err != nil {
+		t.Fatalf("failed to get hostname: %v", err)
+	}
+	hostname := fmt.Sprintf("%s:22", vmname)
+	signer, err := ssh.ParsePrivateKey([]byte(privateSSHKey))
+	if err != nil {
+		t.Fatalf("failed to parse private key: %v", err)
+	}
+
+	// Callback function for SSH keyboard-interactive challenges.
+	cb := func(name, instruction string, questions []string, echos []bool) (answers []string, err error) {
+		if len(questions) == 0 {
+			return
+		}
+
+		answers = make([]string, 1)
+		firstQuestionRegex, err := regexp.Compile(".*Enter.*number.*")
+		if err != nil {
+			return
+		}
+		if firstQuestionRegex.MatchString(questions[0]) {
+			// 1 is the response for Authenticator OTP
+			answers[0] = "1"
+			return
+		}
+
+		// If not the first question, input code for two-factor.
+		ctx := context.Background()
+		secretClient, err := secretmanager.NewClient(ctx)
+		if err != nil {
+			return
+		}
+		defer secretClient.Close()
+
+		s, err := utils.AccessSecret(ctx, secretClient, admin2FAKey)
+		if err != nil {
+			return
+		}
+		secret := strings.ToUpper(s)
+
+		if !gotp.IsSecretValid(secret) {
+			// Avoid panic that doesn't return a useful error message for test runner
+			err = fmt.Errorf("invalid secret")
+			return
+		}
+		code := gotp.NewDefaultTOTP(secret).Now()
+		answers[0] = code
+		return
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User:            posix,
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer), ssh.KeyboardInteractive(cb)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	client, err := ssh.Dial("tcp", hostname, sshConfig)
+	if err != nil {
+		t.Fatalf("failed to create ssh client: %v", err)
+	}
+	defer client.Close()
+
+	// Check OSLogin enabled on the server instance.
+	if err = sessionOSLoginEnabled(client); err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	// Check contents of the sudo file.
 	data, err := getSudoFile(client, posix)
 	if err != nil {
 		t.Fatalf("failed to get sudo file: %v", err)
