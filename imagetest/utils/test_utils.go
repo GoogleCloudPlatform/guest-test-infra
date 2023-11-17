@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"cloud.google.com/go/storage"
 	"golang.org/x/crypto/ssh"
 	"google.golang.org/api/compute/v1"
@@ -183,6 +185,37 @@ func ParseHostKey(bytes []byte) (map[string]string, error) {
 		hostkeyMap[keyType] = keyValue
 	}
 	return hostkeyMap, nil
+}
+
+// GetProjectZone gets the project and zone of the instance.
+func GetProjectZone(ctx context.Context) (string, string, error) {
+	projectZone, err := GetMetadata(ctx, "instance", "zone")
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get instance zone: %v", err)
+	}
+	projectZoneSplit := strings.Split(string(projectZone), "/")
+	project := projectZoneSplit[1]
+	zone := projectZoneSplit[3]
+	return project, zone, nil
+}
+
+// AccessSecret accesses the given secret.
+func AccessSecret(ctx context.Context, client *secretmanager.Client, secretName string) (string, error) {
+	// Get project
+	project, _, err := GetProjectZone(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get project: %v", err)
+	}
+
+	// Make request call to Secret Manager.
+	req := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, secretName),
+	}
+	resp, err := client.AccessSecretVersion(ctx, req)
+	if err != nil {
+		return "", fmt.Errorf("failed to get secret: %v", err)
+	}
+	return string(resp.Payload.Data), nil
 }
 
 // CreateClient create a ssh client to connect host.

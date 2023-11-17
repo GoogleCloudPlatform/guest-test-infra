@@ -1,125 +1,40 @@
 //go:build cit
 // +build cit
 
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oslogin
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const testUsername = "sa_105020877179577573373"
-const testUUID = "3651018652"
-
-var testUserEntry = fmt.Sprintf("%s:*:%s:%s::/home/%s:", testUsername, testUUID, testUUID, testUsername)
-
-func getTwoFactorAuth(ctx context.Context, root string, elem ...string) (bool, error) {
-	data, err := utils.GetMetadata(ctx, append([]string{root}, elem...)...)
-	if err != nil {
-		return false, err
-	}
-
-	flag, err := strconv.ParseBool(data)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse enable-oslogin-2fa metadata entry: %+v", err)
-	}
-
-	return flag, nil
-}
-
-func isTwoFactorAuthEnabled(t *testing.T) (bool, error) {
-	var (
-		instanceFlag, projectFlag bool
-		err                       error
-	)
-
-	elem := []string{"attributes", "enable-oslogin-2fa"}
-	ctx := utils.Context(t)
-
-	instanceFlag, err = getTwoFactorAuth(ctx, "instance", elem...)
-	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
-		return false, err
-	}
-
-	projectFlag, err = getTwoFactorAuth(ctx, "project", elem...)
-	if err != nil && !errors.Is(err, utils.ErrMDSEntryNotFound) {
-		return false, err
-	}
-
-	return instanceFlag || projectFlag, nil
-}
-
 func TestOsLoginEnabled(t *testing.T) {
-	// Check OS Login enabled in /etc/nsswitch.conf
-	data, err := ioutil.ReadFile("/etc/nsswitch.conf")
-	if err != nil {
-		t.Fatalf("cannot read /etc/nsswitch.conf")
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "passwd:") && !strings.Contains(line, "oslogin") {
-			t.Errorf("OS Login not enabled in /etc/nsswitch.conf.")
-		}
-	}
-
-	// Check AuthorizedKeys Command
-	data, err = ioutil.ReadFile("/etc/ssh/sshd_config")
-	if err != nil {
-		t.Fatalf("cannot read /etc/ssh/sshd_config")
-	}
-	var foundAuthorizedKeys bool
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.Contains(line, "AuthorizedKeysCommand") && strings.Contains(line, "/usr/bin/google_authorized_keys") {
-			foundAuthorizedKeys = true
-		}
-	}
-
-	if !foundAuthorizedKeys {
-		t.Errorf("AuthorizedKeysCommand not set up for OS Login.")
-	}
-
-	testSSHDPamConfig(t)
-}
-
-func testSSHDPamConfig(t *testing.T) {
-	t.Helper()
-
-	twoFactorAuthEnabled, err := isTwoFactorAuthEnabled(t)
-	if err != nil {
-		t.Fatalf("Failed to query two factor authentication metadata entry: %+v", err)
-	}
-
-	if twoFactorAuthEnabled {
-		// Check Pam Modules
-		data, err := ioutil.ReadFile("/etc/pam.d/sshd")
-		if err != nil {
-			t.Fatalf("cannot read /etc/pam.d/sshd: %+v", err)
-		}
-
-		if !strings.Contains(string(data), "pam_oslogin_login.so") {
-			t.Errorf("OS Login PAM module missing from pam.d/sshd.")
-		}
+	if err := isOsLoginEnabled(utils.Context(t)); err != nil {
+		t.Fatalf(err.Error())
 	}
 }
 
 func TestOsLoginDisabled(t *testing.T) {
 	// Check OS Login not enabled in /etc/nsswitch.conf
-	data, err := ioutil.ReadFile("/etc/nsswitch.conf")
+	data, err := os.ReadFile("/etc/nsswitch.conf")
 	if err != nil {
 		t.Fatalf("cannot read /etc/nsswitch.conf")
 	}
@@ -134,7 +49,7 @@ func TestOsLoginDisabled(t *testing.T) {
 	}
 
 	// Check AuthorizedKeys Command
-	data, err = ioutil.ReadFile("/etc/ssh/sshd_config")
+	data, err = os.ReadFile("/etc/ssh/sshd_config")
 	if err != nil {
 		t.Fatalf("cannot read /etc/ssh/sshd_config")
 	}
@@ -148,10 +63,17 @@ func TestOsLoginDisabled(t *testing.T) {
 		}
 	}
 
-	testSSHDPamConfig(t)
+	if err = testSSHDPamConfig(utils.Context(t)); err != nil {
+		t.Fatalf("error checking pam config: %v", err)
+	}
 }
 
 func TestGetentPasswdOsloginUser(t *testing.T) {
+	testUsername, _, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd", testUsername)
 	out, err := cmd.Output()
 	if err != nil {
@@ -163,6 +85,11 @@ func TestGetentPasswdOsloginUser(t *testing.T) {
 }
 
 func TestGetentPasswdAllUsers(t *testing.T) {
+	_, _, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd")
 	out, err := cmd.Output()
 	if err != nil {
@@ -180,6 +107,11 @@ func TestGetentPasswdAllUsers(t *testing.T) {
 }
 
 func TestGetentPasswdOsloginUID(t *testing.T) {
+	_, testUUID, testUserEntry, err := getTestUserEntry(utils.Context(t))
+	if err != nil {
+		t.Fatalf("failed to get test user entry: %v", err)
+	}
+
 	cmd := exec.Command("getent", "passwd", testUUID)
 	out, err := cmd.Output()
 	if err != nil {
