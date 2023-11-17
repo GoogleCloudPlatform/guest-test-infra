@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 // Name is the name of the test package. It must match the directory name.
