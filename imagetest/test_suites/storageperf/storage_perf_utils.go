@@ -157,10 +157,14 @@ func installFioLinux(t *testing.T) error {
 		return fmt.Errorf("no package managers to install fio found")
 	}
 
-	if _, err := installFioCmd.CombinedOutput(); err != nil {
+	if err := installFioCmd.Start(); err != nil {
+		return fmt.Errorf("install fio cmomand failed to start: err %v", err)
+	}
+
+	if err := installFioCmd.Wait(); err != nil {
 		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Skip the test on the current execution shell.
 		if usingZypper {
-			t.Skipf("zypper repo temporarily unavailable: skipping current test run %v", err)
+			checkZypperTransientError(t, err)
 		}
 		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
@@ -175,4 +179,15 @@ func getVMName(ctx context.Context) string {
 		return "unknown"
 	}
 	return machineName
+}
+
+// skip the test run if a zypper backend error is found
+func checkZypperTransientError(t *testing.T, err error) {
+	exitErr, foundErr := err.(*exec.ExitError)
+	if foundErr {
+		exitCode := exitErr.ExitCode()
+		if exitCode == 7 || exitCode == 104 || exitCode == 106 {
+			t.Skipf("zypper repo temporarily unavailable: skipping current test run %v", err)
+		}
+	}
 }
