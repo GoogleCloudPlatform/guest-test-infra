@@ -51,6 +51,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			return nil
 		}
 	}
+	if !utils.HasFeature(t.Image, "UEFI_COMPATIBLE") {
+		return nil
+	}
 	vm4, err := t.CreateTestVM("vm4")
 	if err != nil {
 		return err
