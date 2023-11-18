@@ -704,7 +704,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                       '-test_projects=oslogin-cit',
                       '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-machine_type=t2a-standard-2',
-                      'parallel_count=2',
+                      '-parallel_count=2',
                       '-filter=oslogin',
                     ],
                   },
