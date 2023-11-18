@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	commonFIORandReadOptions = "--name=read_iops_test --filesize=2500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqReadOptions  = "--name=read_bandwidth_test --filesize=2500G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandReadOptions = "--name=read_iops_test --filesize=3500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqReadOptions  = "--name=read_bandwidth_test --filesize=3500G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 )
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
