@@ -161,7 +161,7 @@ func installFioLinux() error {
 	}
 
 	if err := installFioCmd.Wait(); err != nil {
-		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Skip the test on the current execution shell.
+		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Return a more detailed error message in these cases.
 		if usingZypper {
 			return checkZypperTransientError(err)
 		}
