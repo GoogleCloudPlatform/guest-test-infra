@@ -72,7 +72,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioLinux(t); err != nil {
+		if err = installFioLinux(); err != nil {
 			return []byte{}, fmt.Errorf("linux fio installation failed: err %v", err)
 		}
 	}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -137,7 +136,7 @@ func installFioWindows() error {
 }
 
 // installFioLinux tries to install fio on linux with any of multiple package managers, and returns an error if all the package managers were not found or failed.
-func installFioLinux(t *testing.T) error {
+func installFioLinux() error {
 	usingZypper := false
 	var installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
@@ -164,7 +163,7 @@ func installFioLinux(t *testing.T) error {
 	if err := installFioCmd.Wait(); err != nil {
 		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Skip the test on the current execution shell.
 		if usingZypper {
-			checkZypperTransientError(t, err)
+			return checkZypperTransientError(err)
 		}
 		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
@@ -181,13 +180,20 @@ func getVMName(ctx context.Context) string {
 	return machineName
 }
 
-// skip the test run if a zypper backend error is found
-func checkZypperTransientError(t *testing.T, err error) {
+// check if a known zypper backend error is found
+func checkZypperTransientError(err error) error {
 	exitErr, foundErr := err.(*exec.ExitError)
 	if foundErr {
 		exitCode := exitErr.ExitCode()
-		if exitCode == 7 || exitCode == 104 || exitCode == 106 {
-			t.Skipf("zypper repo temporarily unavailable: skipping current test run %v", err)
+		errorString := "zypper repo test environment setup failed: "
+		if exitCode == 7 {
+			errorString += "zypper process already running, cannot start zypper install"
+		} else if exitCode == 104 {
+			errorString += "fio not found within known zypper repositories after setup"
+		} else if exitCode == 106 {
+			errorString += "zypper repository refresh failed on setup"
 		}
+		return fmt.Errorf("%s, exitCode %d", errorString, exitCode)
 	}
+	return err
 }
