@@ -50,11 +50,17 @@ const (
 	normal2FASSHKey  = "normal-2fa-ssh-key"
 	admin2FASSHKey   = "admin-2fa-ssh-key"
 
-	// Time to wait for agent check
-	waitAgent = time.Second * 15
+	// Time to wait for agent check. The agent check consists of 2 metadata waits
+	// and 1-2s of runtime. This allows for the agent check to finish, with extra
+	// padding for safety.
+	waitAgent    = time.Second * 15
+
+	// Waiting for 3 seconds or less causes issues with the steps of TestAgent
+	// starting before the guest agent is able to properly react to the metadata changes.
+	waitMetadata = time.Second * 4
 )
 
-// Changes the given metadata key to have the given value on the given instance.. If the key does not exist,
+// Changes the given metadata key to have the given value on the given instance. If the key does not exist,
 // then this will create the key-value pair in the instance's metadata.
 func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, value string) error {
 	vmname, err := getInstanceName(ctx)
@@ -161,7 +167,7 @@ func TestAgent(t *testing.T) {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
 	// Give the API time to update.
-	time.Sleep(time.Second * 4)
+	time.Sleep(waitMetadata)
 	// Check if OSLogin is disabled.
 	err = isOsLoginEnabled(ctx)
 	if err == nil {
@@ -174,7 +180,7 @@ func TestAgent(t *testing.T) {
 	if err = changeMetadata(ctx, client, "enable-oslogin", "true"); err != nil {
 		t.Fatalf("Error changing metadata: %v", err)
 	}
-	time.Sleep(time.Second * 4)
+	time.Sleep(waitMetadata)
 
 	// Check if OSLogin is back on.
 	if err = isOsLoginEnabled(ctx); err != nil {
@@ -186,6 +192,8 @@ func TestAgent(t *testing.T) {
 // After successfully creating an SSH connection, check whether OSLogin is enabled on the host VM.
 func TestSSH(t *testing.T) {
 	// TODO: Come up with better way to ensure the target VMs finished their guest agent checks.
+	// Since this is the first test to be run with the current setup, this is the only test method
+	// that would need to wait for the TestAgent test to finish on the target VMs.
 	time.Sleep(waitAgent)
 	ctx := utils.Context(t)
 
@@ -309,44 +317,43 @@ func Test2FASSH(t *testing.T) {
 		t.Fatalf("failed to parse private key: %v", err)
 	}
 
-	cb := func(name, instruction string, questions []string, echos []bool) (answers []string, err error) {
+	// This function handles the 2FA challenges.
+	// For this test, we use the OTP from authenticator method, after which we can input a OTP.
+	// The reason we go with this route is because there are libraries that allow us to
+	// use a 2FA secret to generate the correct OTP. The other method, which depends on text
+	// messages or phone calls, would be much harder to simulate.
+	cb := func(name, instruction string, questions []string, echos []bool) ([]string, error) {
+		var answers []string
+
 		if len(questions) == 0 {
-			return
+			return answers, nil
 		}
 
 		answers = make([]string, 1)
 		firstQuestionRegex, err := regexp.Compile(".*Enter.*number.*")
 		if err != nil {
-			return
+			return nil, err
 		}
 		if firstQuestionRegex.MatchString(questions[0]) {
 			// 1 is the response for Authenticator OTP
 			answers[0] = "1"
-			return
+			return answers, nil
 		}
 
 		// If not the first question, input code for two-factor.
-		ctx := context.Background()
-		secretClient, err := secretmanager.NewClient(ctx)
-		if err != nil {
-			return
-		}
-		defer secretClient.Close()
-
 		s, err := utils.AccessSecret(ctx, secretClient, normal2FAKey)
 		if err != nil {
-			return
+			return nil, err
 		}
 		secret := strings.ToUpper(s)
 
 		if !gotp.IsSecretValid(secret) {
 			// Avoid panic that doesn't return a useful error message for test runner
-			err = fmt.Errorf("invalid secret")
-			return
+			return nil, fmt.Errorf("invalid secret")
 		}
 		code := gotp.NewDefaultTOTP(secret).Now()
 		answers[0] = code
-		return
+		return answers, nil
 	}
 
 	sshConfig := &ssh.ClientConfig{
@@ -398,45 +405,43 @@ func Test2FAAdminSSH(t *testing.T) {
 		t.Fatalf("failed to parse private key: %v", err)
 	}
 
-	// Callback function for SSH keyboard-interactive challenges.
-	cb := func(name, instruction string, questions []string, echos []bool) (answers []string, err error) {
+	// This function handles the 2FA challenges.
+	// For this test, we use the OTP from authenticator method, after which we can input a OTP.
+	// The reason we go with this route is because there are libraries that allow us to
+	// use a 2FA secret to generate the correct OTP. The other method, which depends on text
+	// messages or phone calls, would be much harder to simulate.
+	cb := func(name, instruction string, questions []string, echos []bool) ([]string, error) {
+		var answers []string
+
 		if len(questions) == 0 {
-			return
+			return answers, nil
 		}
 
 		answers = make([]string, 1)
 		firstQuestionRegex, err := regexp.Compile(".*Enter.*number.*")
 		if err != nil {
-			return
+			return nil, err
 		}
 		if firstQuestionRegex.MatchString(questions[0]) {
 			// 1 is the response for Authenticator OTP
 			answers[0] = "1"
-			return
+			return answers, nil
 		}
 
-		// If not the first question, input code for two-factor.
-		ctx := context.Background()
-		secretClient, err := secretmanager.NewClient(ctx)
-		if err != nil {
-			return
-		}
-		defer secretClient.Close()
-
+		// If not the first question, generate and input the OTP.
 		s, err := utils.AccessSecret(ctx, secretClient, admin2FAKey)
 		if err != nil {
-			return
+			return nil, err
 		}
 		secret := strings.ToUpper(s)
 
 		if !gotp.IsSecretValid(secret) {
 			// Avoid panic that doesn't return a useful error message for test runner
-			err = fmt.Errorf("invalid secret")
-			return
+			return nil, fmt.Errorf("invalid secret")
 		}
 		code := gotp.NewDefaultTOTP(secret).Now()
 		answers[0] = code
-		return
+		return answers, nil
 	}
 
 	sshConfig := &ssh.ClientConfig{
