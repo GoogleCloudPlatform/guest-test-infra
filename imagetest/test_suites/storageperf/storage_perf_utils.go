@@ -21,11 +21,13 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.85
-	mountdiskSizeGB = 3500
-	bootdiskSizeGB  = 50
-	bytesInMB       = 1048576
-	mountDiskName   = "hyperdisk"
-	fioCmdNameLinux = "fio"
+	// fio should use the full disk size as the filesize when benchmarking
+	mountdiskSizeGBString = "3500"
+	mountdiskSizeGB       = 3500
+	bootdiskSizeGB        = 50
+	bytesInMB             = 1048576
+	mountDiskName         = "hyperdisk"
+	fioCmdNameLinux       = "fio"
 	// constant from the fio docs to convert bandwidth to bw_bytes:
 	// https://fio.readthedocs.io/en/latest/fio_doc.html#json-output
 	fioBWToBytes = 1024
