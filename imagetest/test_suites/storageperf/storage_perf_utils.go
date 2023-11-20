@@ -21,11 +21,13 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.85
-	mountdiskSizeGB = 3500
-	bootdiskSizeGB  = 50
-	bytesInMB       = 1048576
-	mountDiskName   = "hyperdisk"
-	fioCmdNameLinux = "fio"
+	// fio should use the full disk size as the filesize when benchmarking
+	mountdiskSizeGBString = "3500"
+	mountdiskSizeGB       = 3500
+	bootdiskSizeGB        = 50
+	bytesInMB             = 1048576
+	mountDiskName         = "hyperdisk"
+	fioCmdNameLinux       = "fio"
 	// constant from the fio docs to convert bandwidth to bw_bytes:
 	// https://fio.readthedocs.io/en/latest/fio_doc.html#json-output
 	fioBWToBytes = 1024
@@ -137,6 +139,7 @@ func installFioWindows() error {
 
 // installFioLinux tries to install fio on linux with any of multiple package managers, and returns an error if all the package managers were not found or failed.
 func installFioLinux() error {
+	usingZypper := false
 	var installFioCmd *exec.Cmd
 	if utils.CheckLinuxCmdExists("apt") {
 		// only run update if using apt
@@ -149,12 +152,21 @@ func installFioLinux() error {
 	} else if utils.CheckLinuxCmdExists("yum") {
 		installFioCmd = exec.Command("yum", "-y", "install", fioCmdNameLinux)
 	} else if utils.CheckLinuxCmdExists("zypper") {
+		usingZypper = true
 		installFioCmd = exec.Command("zypper", "--non-interactive", "install", fioCmdNameLinux)
 	} else {
 		return fmt.Errorf("no package managers to install fio found")
 	}
 
-	if _, err := installFioCmd.CombinedOutput(); err != nil {
+	if err := installFioCmd.Start(); err != nil {
+		return fmt.Errorf("install fio cmomand failed to start: err %v", err)
+	}
+
+	if err := installFioCmd.Wait(); err != nil {
+		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Return a more detailed error message in these cases.
+		if usingZypper {
+			return checkZypperTransientError(err)
+		}
 		return fmt.Errorf("install fio command failed with errors: %v", err)
 	}
 	return nil
@@ -168,4 +180,22 @@ func getVMName(ctx context.Context) string {
 		return "unknown"
 	}
 	return machineName
+}
+
+// check if a known zypper backend error is found
+func checkZypperTransientError(err error) error {
+	exitErr, foundErr := err.(*exec.ExitError)
+	if foundErr {
+		exitCode := exitErr.ExitCode()
+		errorString := "zypper repo test environment setup failed: "
+		if exitCode == 7 {
+			errorString += "zypper process already running, cannot start zypper install"
+		} else if exitCode == 104 {
+			errorString += "fio not found within known zypper repositories after setup"
+		} else if exitCode == 106 {
+			errorString += "zypper repository refresh failed on setup"
+		}
+		return fmt.Errorf("%s, exitCode %d", errorString, exitCode)
+	}
+	return err
 }
