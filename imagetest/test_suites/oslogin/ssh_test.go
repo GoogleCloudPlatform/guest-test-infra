@@ -53,7 +53,7 @@ const (
 	// Time to wait for agent check. The agent check consists of 2 metadata waits
 	// and 1-2s of runtime. This allows for the agent check to finish, with extra
 	// padding for safety.
-	waitAgent    = time.Second * 15
+	waitAgent = time.Second * 15
 
 	// Waiting for 3 seconds or less causes issues with the steps of TestAgent
 	// starting before the guest agent is able to properly react to the metadata changes.
