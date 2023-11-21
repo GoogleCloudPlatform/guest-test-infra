@@ -48,7 +48,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	ssh.AddScope(platformScope)
 	ssh.AddMetadata("enable-oslogin", "false")
-	ssh.RunTests("TestOsLoginDisabled|TestSSH|TestAdminSSH")
+	ssh.RunTests("TestOsLoginDisabled|TestSSH|TestAdminSSH|Test2FASSH|Test2FAAdminSSH")
 
 	twofa, err := t.CreateTestVM("twofa")
 	if err != nil {
