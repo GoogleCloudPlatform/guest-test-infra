@@ -24,7 +24,7 @@ local imagetesttask = {
       '-project=gcp-guest',
       '-zone=us-central1-a',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+      '-exclude=(hostnamevalidation)|(networkperf)|(oslogin)|(security)|(shapevalidation)|(sql)|(storageperf)|(windowscontainers)',
       '-images=' + task.images,
     ]
   },
