@@ -64,8 +64,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	networkRebootInst := &daisy.Instance{}
 	networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
 	// this vm could run out of memory and lead to race conditions on n1-standard-1, the default shape. Instead, allocate more cpus and memory.
-	networkRebootInst.MachineType = "n1-standard-16"
-	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name, SizeGb: 60}}, networkRebootInst)
+	networkRebootInst.MachineType = "n1-standard-32"
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name, SizeGb: 120}}, networkRebootInst)
 	if err != nil {
 		return err
 	}
