@@ -63,7 +63,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	// VM2 for multiNIC
 	networkRebootInst := &daisy.Instance{}
 	networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootInst)
+	// this vm could run out of memory and lead to race conditions on n1-standard-1, the default shape. Instead, allocate more cpus and memory.
+	networkRebootInst.MachineType = "n1-standard-8"
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name, SizeGb: 30}}, networkRebootInst)
 	if err != nil {
 		return err
 	}
