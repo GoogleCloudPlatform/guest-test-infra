@@ -8,6 +8,7 @@ iperftarget=$(curl http://metadata.google.internal/computeMetadata/v1/instance/a
 sleepduration=5
 maxtimeout=60
 timeout=0
+parallelthreads=12
 
 echo "MTU: "
 /sbin/ifconfig | grep mtu
@@ -46,6 +47,10 @@ elif [[ -f /usr/bin/zypper ]]; then
   echo "$(date +"%Y-%m-%d %T"): zypper found Installing iperf."
   sudo zypper --no-gpg-checks refresh
   sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm netcat
+
+  # TODO: Figure out what's causing parallel connections to fail when a high
+  # parallel connection count is set.
+  parallelthreads=4
 fi
 
 # Ensure the server is up and running.
@@ -63,12 +68,12 @@ sleep "$sleepduration"
 
 # Run iperf
 echo "$(date +"%Y-%m-%d %T"): Running iperf client with target $iperftarget"
-iperf -t 30 -c "$iperftarget" -P 12 | grep SUM | tr -s ' ' | tee -a "$outfile"
+iperf -t 30 -c "$iperftarget" -P $parallelthreads | grep SUM | tr -s ' ' | tee -a "$outfile"
 
 echo "$(date +"%Y-%m-%d %T"): Test Results $results"
 echo "$(date +"%Y-%m-%d %T"): Sending results to metadata."
 results=$(cat "./$outfile")
 for i in $(seq 0 2); do
-	sleep $i
-	curl -X PUT --data "$results" http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/results -H "Metadata-Flavor: Google" && break
+sleep $i
+curl -X PUT --data "$results" http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/results -H "Metadata-Flavor: Google" && break
 done
