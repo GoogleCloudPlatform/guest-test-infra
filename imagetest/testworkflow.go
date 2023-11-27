@@ -119,6 +119,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	createInstances := &daisy.CreateInstances{}
 	createInstances.Instances = append(createInstances.Instances, instance)
 
+
 	createVMStep, ok := t.wf.Steps[createVMsStepName]
 	if ok {
 		// append to existing step.
@@ -549,13 +550,22 @@ type testResult struct {
 
 func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 	results := []string{}
-	createVMsStep := ts.wf.Steps[createVMsStepName]
-	for _, vm := range createVMsStep.CreateInstances.Instances {
-		out, err := utils.DownloadGCSObject(ctx, client, vm.Metadata["_test_results_url"])
-		if err != nil {
-			return nil, fmt.Errorf("failed to get results for test %s vm %s: %v", ts.Name, vm.Name, err)
+	createVMsStep, ok := ts.wf.Steps[createVMsStepName]
+	if ok {
+		for _, vm := range createVMsStep.CreateInstances.Instances {
+			out, err := utils.DownloadGCSObject(ctx, client, vm.Metadata["_test_results_url"])
+			if err != nil {
+				return nil, fmt.Errorf("failed to get results for test %s vm %s: %v", ts.Name, vm.Name, err)
+			}
+			results = append(results, string(out))
 		}
-		results = append(results, string(out))
+		for _, vm := range createVMsStep.CreateInstances.InstancesBeta {
+			out, err := utils.DownloadGCSObject(ctx, client, vm.Metadata["_test_results_url"])
+			if err != nil {
+				return nil, fmt.Errorf("failed to get results for test %s vm %s: %v", ts.Name, vm.Name, err)
+			}
+			results = append(results, string(out))
+		}
 	}
 
 	return results, nil
