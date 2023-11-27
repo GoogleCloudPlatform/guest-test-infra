@@ -3,6 +3,7 @@
 # This script installs iperf on a VM and starts an iperf server for the client
 # to test the network bandwidth between the two VMs.
 timeout=60
+parallelcount=12
 
 if [[ -f /usr/bin/apt ]]; then
   echo "apt found Installing iperf."
@@ -42,8 +43,9 @@ elif [[ -f /usr/bin/zypper ]]; then
   echo "zypper found Installing iperf."
   sudo zypper --no-gpg-checks refresh
   sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm
+  parallelcount=4
 fi
 
 echo "Starting iperf server"
 iperf -s -P 1
-iperf -s -t $timeout -P 12
+iperf -s -t $timeout -P $parallelcount
