@@ -119,7 +119,6 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	createInstances := &daisy.CreateInstances{}
 	createInstances.Instances = append(createInstances.Instances, instance)
 
-
 	createVMStep, ok := t.wf.Steps[createVMsStepName]
 	if ok {
 		// append to existing step.
