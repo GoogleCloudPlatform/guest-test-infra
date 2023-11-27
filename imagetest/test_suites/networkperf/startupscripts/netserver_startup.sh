@@ -43,6 +43,9 @@ elif [[ -f /usr/bin/zypper ]]; then
   echo "zypper found Installing iperf."
   sudo zypper --no-gpg-checks refresh
   sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm
+
+  # TODO: Figure out what's causing parallel connections to fail when a high
+  # parallel connection count is set.
   parallelcount=4
 fi
 

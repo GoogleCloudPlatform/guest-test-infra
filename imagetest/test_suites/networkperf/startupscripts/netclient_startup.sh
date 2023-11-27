@@ -47,6 +47,9 @@ elif [[ -f /usr/bin/zypper ]]; then
   echo "$(date +"%Y-%m-%d %T"): zypper found Installing iperf."
   sudo zypper --no-gpg-checks refresh
   sudo zypper --no-gpg-checks --non-interactive install https://iperf.fr/download/opensuse/iperf-2.0.5-14.1.2.x86_64.rpm netcat
+
+  # TODO: Figure out what's causing parallel connections to fail when a high
+  # parallel connection count is set.
   parallelthreads=4
 fi
 
