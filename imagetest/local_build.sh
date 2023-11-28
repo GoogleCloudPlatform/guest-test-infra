@@ -17,6 +17,7 @@ while getopts "o:s:i:" arg; do
 done 
 
 
+CGO_ENABLED=0
 echo "outspath is $outpath"
 echo "suites being built are $suites"
 echo "imagetestroot is $imagetestroot"
