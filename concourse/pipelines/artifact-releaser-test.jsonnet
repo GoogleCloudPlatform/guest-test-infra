@@ -218,6 +218,7 @@ local arle_publish_images_autopush = {
   local tl = self,
   image:: error 'must set image in arle_publish_images_autopush',
   is_windows:: false,
+  is_install_media:: false,
 
   workflow_dir:: error 'must set workflow_dir in arle_publish_images_autopush',
   workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(tl.image) + if tl.is_windows then '-uefi' else ''],
@@ -239,10 +240,11 @@ local arle_publish_images_autopush = {
             trigger: true,
             params: { skip_download: 'true' },
           },
-          {
-            get: '%s-sbom' % tl.image,
-            params: { skip_download: 'true' },
-          },
+          if tl.is_install_media then {} else
+            {
+              get: '%s-sbom' % tl.image,
+              params: { skip_download: 'true' },
+            },
         ],
       },
     },
@@ -251,14 +253,15 @@ local arle_publish_images_autopush = {
     { load_var: 'source-version', file: '%s-gcs/version' % tl.image },
     { task: 'generate-version', file: 'guest-test-infra/concourse/tasks/generate-version.yaml' },
     { load_var: 'publish-version', file: 'publish-version/version' },
-    { load_var: 'sbom-destination', file: '%s-sbom/url' % tl.image },
+    if tl.is_install_media then {} else
+      { load_var: 'sbom-destination', file: '%s-sbom/url' % tl.image },
     {
       task: 'publish-autopush-%s' % tl.image,
       config: arle.arlepublishtask {
         topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush',
         image_name: tl.image,
         gcs_image_path: tl.gcs,
-        gcs_sbom_path: '((.:sbom-destination))',
+        gcs_sbom_path: if tl.is_install_media then '' else '((.:sbom-destination))',
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
         wf: tl.workflow,
@@ -394,14 +397,6 @@ local pkggroup = {
     'sql-2022-standard-windows-2022-dc',
     'sql-2022-web-windows-2019-dc',
     'sql-2022-web-windows-2022-dc',
-  ],
-  local mirantis_images = [
-    'windows-server-2019-dc-for-containers',
-    'windows-server-2019-dc-core-for-containers',
-  ],
-  local docker_ce_images = [
-    'windows-server-2019-dc-for-containers-ce',
-    'windows-server-2019-dc-core-for-containers-ce',
   ],
   local windows_install_media_images = [
     'windows-install-media',
@@ -561,7 +556,7 @@ local pkggroup = {
              [common.gcsimgresource {
                image: image,
                gcs_dir: 'windows-uefi',
-             } for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images] +
+             } for image in windows_client_images + windows_server_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'sqlserver-uefi' } for image in sql_images + prerelease_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'windows-install-media' } for image in windows_install_media_images] +
 
@@ -570,7 +565,10 @@ local pkggroup = {
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux] +
              [common.gcssbomresource { image: image, image_prefix: common.debian_image_prefixes[image], sbom_destination: 'debian' } for image in debian] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel],
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel] +
+             [common.gcssbomresource { image: image, sbom_destination: 'windows-client' } for image in windows_client_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'windows-server' } for image in windows_server_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'sql' } for image in sql_images],
 
   jobs: [
           upload_arle_autopush_staging {
@@ -714,24 +712,7 @@ local pkggroup = {
           arle_publish_images_autopush {
             image: image,
             is_windows: true,
-            gcs_dir: 'windows-uefi',
-            workflow_dir: 'windows_container',
-          }
-          for image in docker_ce_images
-        ] +
-        [
-          arle_publish_images_autopush {
-            image: image,
-            is_windows: true,
-            gcs_dir: 'windows-uefi',
-            workflow_dir: 'windows_container',
-          }
-          for image in mirantis_images
-        ] +
-        [
-          arle_publish_images_autopush {
-            image: image,
-            is_windows: true,
+            is_install_media: true,
             gcs_dir: 'windows-install-media',
             workflow_dir: 'windows',
           }
@@ -747,7 +728,6 @@ local pkggroup = {
     imggroup { name: 'windows-client', images: windows_client_images },
     imggroup { name: 'windows-server', images: windows_server_images },
     imggroup { name: 'windows-sql', images: sql_images },
-    imggroup { name: 'windows-container', images: docker_ce_images + mirantis_images },
     imggroup { name: 'windows-prerelease', images: prerelease_images },
     imggroup { name: 'windows-install-media', images: windows_install_media_images },
 
