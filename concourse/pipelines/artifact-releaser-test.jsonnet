@@ -239,6 +239,10 @@ local arle_publish_images_autopush = {
             trigger: true,
             params: { skip_download: 'true' },
           },
+          {
+            get: '%s-sbom' % tl.image,
+            params: { skip_download: 'true' },
+          },
         ],
       },
     },
@@ -247,12 +251,14 @@ local arle_publish_images_autopush = {
     { load_var: 'source-version', file: '%s-gcs/version' % tl.image },
     { task: 'generate-version', file: 'guest-test-infra/concourse/tasks/generate-version.yaml' },
     { load_var: 'publish-version', file: 'publish-version/version' },
+    { load_var: 'sbom-destination', file: '%s-sbom/url' % tl.image },
     {
       task: 'publish-autopush-%s' % tl.image,
       config: arle.arlepublishtask {
         topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush',
         image_name: tl.image,
         gcs_image_path: tl.gcs,
+        gcs_sbom_path: '((.:sbom-destination))',
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
         wf: tl.workflow,
@@ -557,7 +563,14 @@ local pkggroup = {
                gcs_dir: 'windows-uefi',
              } for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'sqlserver-uefi' } for image in sql_images + prerelease_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'windows-install-media' } for image in windows_install_media_images],
+             [common.gcsimgresource { image: image, gcs_dir: 'windows-install-media' } for image in windows_install_media_images] +
+
+             // SBOMs
+             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux] +
+             [common.gcssbomresource { image: image, image_prefix: common.debian_image_prefixes[image], sbom_destination: 'debian' } for image in debian] +
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel],
 
   jobs: [
           upload_arle_autopush_staging {
