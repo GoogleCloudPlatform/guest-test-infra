@@ -220,6 +220,14 @@ local arle_publish_images_autopush = {
   is_windows:: false,
   is_install_media:: false,
 
+  sbom_tasks:: [
+    {
+      get: '%s-sbom' % tl.image,
+      params: { skip_download: 'true' },
+    },
+    { load_var: 'sbom-destination', file: '%s-sbom/url' % tl.image },
+  ],
+
   workflow_dir:: error 'must set workflow_dir in arle_publish_images_autopush',
   workflow:: '%s/%s.publish.json' % [self.workflow_dir, underscore(tl.image) + if tl.is_windows then '-uefi' else ''],
 
@@ -240,11 +248,6 @@ local arle_publish_images_autopush = {
             trigger: true,
             params: { skip_download: 'true' },
           },
-          if tl.is_install_media then {} else
-            {
-              get: '%s-sbom' % tl.image,
-              params: { skip_download: 'true' },
-            },
         ],
       },
     },
@@ -253,21 +256,21 @@ local arle_publish_images_autopush = {
     { load_var: 'source-version', file: '%s-gcs/version' % tl.image },
     { task: 'generate-version', file: 'guest-test-infra/concourse/tasks/generate-version.yaml' },
     { load_var: 'publish-version', file: 'publish-version/version' },
-    if tl.is_install_media then {} else
-      { load_var: 'sbom-destination', file: '%s-sbom/url' % tl.image },
-    {
-      task: 'publish-autopush-%s' % tl.image,
-      config: arle.arlepublishtask {
-        topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush',
-        image_name: tl.image,
-        gcs_image_path: tl.gcs,
-        gcs_sbom_path: if tl.is_install_media then '' else '((.:sbom-destination))',
-        source_version: 'v((.:source-version))',
-        publish_version: '((.:publish-version))',
-        wf: tl.workflow,
-      },
-    },
-  ],
+  ] + if tl.is_install_media then [] else tl.sbom_tasks +
+                                          [
+                                            {
+                                              task: 'publish-autopush-%s' % tl.image,
+                                              config: arle.arlepublishtask {
+                                                topic: 'projects/artifact-releaser-autopush/topics/gcp-guest-image-release-autopush',
+                                                image_name: tl.image,
+                                                gcs_image_path: tl.gcs,
+                                                gcs_sbom_path: if tl.is_install_media then '' else '((.:sbom-destination))',
+                                                source_version: 'v((.:source-version))',
+                                                publish_version: '((.:publish-version))',
+                                                wf: tl.workflow,
+                                              },
+                                            },
+                                          ],
   on_success: publishresulttask {
     result: 'success',
     job: tl.name,
