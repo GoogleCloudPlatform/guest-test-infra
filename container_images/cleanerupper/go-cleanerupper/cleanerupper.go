@@ -82,38 +82,46 @@ type PolicyFunc func(any) bool
 func AgePolicy(t time.Time) PolicyFunc {
 	return func(resource any) bool {
 		var labels map[string]string
-		var desc string
+		var desc,name string
 		var created time.Time
 		var err error
 		switch r := resource.(type) {
 		case *osconfigv1alphapb.OSPolicyAssignment:
+			name = r.Name
 			desc = r.Description
 			created = time.Unix(r.GetRevisionCreateTime().GetSeconds(), int64(r.GetRevisionCreateTime().GetNanos()))
 		case *osconfigpb.GuestPolicy:
+			name = r.Name
 			desc = r.Description
 			created = time.Unix(r.GetCreateTime().GetSeconds(), int64(r.GetCreateTime().GetNanos()))
 		case *compute.Network:
+			name = r.Name
 			desc = r.Description
 			if r.Name == "default" || strings.Contains(r.Description, "delete") {
 				return false
 			}
 			created, err = time.Parse(time.RFC3339, r.CreationTimestamp)
 		case *compute.MachineImage:
+			name = r.Name
 			desc = r.Description
 			created, err = time.Parse(time.RFC3339, r.CreationTimestamp)
 		case *compute.Disk:
+			name = r.Name
 			desc = r.Description
 			labels = r.Labels
 			created, err = time.Parse(time.RFC3339, r.CreationTimestamp)
 		case *compute.Image:
+			name = r.Name
 			desc = r.Description
 			labels = r.Labels
 			created, err = time.Parse(time.RFC3339, r.CreationTimestamp)
 		case *compute.Snapshot:
+			name = r.Name
 			desc = r.Description
 			labels = r.Labels
 			created, err = time.Parse(time.RFC3339, r.CreationTimestamp)
 		case *compute.Instance:
+			name = r.Name
 			desc = r.Description
 			if r.DeletionProtection {
 				return false
@@ -129,7 +137,7 @@ func AgePolicy(t time.Time) PolicyFunc {
 		if _, keep := labels[keepLabel]; keep {
 			return false
 		}
-		return t.After(created) && !strings.Contains(desc, keepLabel)
+		return t.After(created) && !strings.Contains(desc, keepLabel) && !strings.Contains(name, keepLabel)
 	}
 }
 

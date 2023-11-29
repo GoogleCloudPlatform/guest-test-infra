@@ -105,6 +105,12 @@ func TestAgePolicy(t *testing.T) {
 			output:   false,
 		},
 		{
+			name:     "Keep label in name",
+			time:     time.Now(),
+			resource: &compute.Instance{CreationTimestamp: "1970-01-01T00:00:01+00:00", Name: keepLabel},
+			output:   false,
+		},
+		{
 			name:     "Deletion protection enabled",
 			time:     time.Now(),
 			resource: &compute.Instance{CreationTimestamp: "1970-01-01T00:00:01+00:00", DeletionProtection: true},
