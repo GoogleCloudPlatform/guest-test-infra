@@ -17,8 +17,8 @@ package imagetest
 import (
 	"fmt"
 	"net/http"
-	"testing"
 	"sort"
+	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
@@ -131,7 +131,7 @@ func TestCleanTestWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 	twf.Client = daisyFake
-	expect := []string{"projects/test-project/global/firewalls/test-firewall", "projects/test-project/global/networks/test-network-"+twf.wf.ID(), "projects/test-project/regions/test-region/subnetworks/test-subnetwork", "projects/test-project/zones/test-zone/disks/test-disk-"+twf.wf.ID(), "projects/test-project/zones/test-zone/instances/test-instance-"+twf.wf.ID()}
+	expect := []string{"projects/test-project/global/firewalls/test-firewall", "projects/test-project/global/networks/test-network-" + twf.wf.ID(), "projects/test-project/regions/test-region/subnetworks/test-subnetwork", "projects/test-project/zones/test-zone/disks/test-disk-" + twf.wf.ID(), "projects/test-project/zones/test-zone/instances/test-instance-" + twf.wf.ID()}
 	cleaned, errs := cleanTestWorkflow(twf)
 	for _, err := range errs {
 		t.Errorf("got error from cleanTestWorkflow: %v", err)
