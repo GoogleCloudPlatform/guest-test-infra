@@ -571,8 +571,7 @@ local pkggroup = {
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel] +
              [common.gcssbomresource { image: image, sbom_destination: 'windows-client' } for image in windows_client_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'windows-server' } for image in windows_server_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'sql' } for image in sql_images],
-
+             [common.gcssbomresource { image: image, sbom_destination: 'sql' } for image in sql_images + prerelease_images],
   jobs: [
           upload_arle_autopush_staging {
             package: 'guest-agent',
