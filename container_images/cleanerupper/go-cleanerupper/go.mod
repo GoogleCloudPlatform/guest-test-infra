@@ -1,12 +1,12 @@
-module github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper
+module github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper
 
-go 1.17
+go 1.20
 
 require (
 	cloud.google.com/go/osconfig v1.12.3
 	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f
-	github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper v0.0.0-00010101000000-000000000000
 	google.golang.org/api v0.148.0
+	google.golang.org/genproto v0.0.0-20231030173426-d783a09b4405
 )
 
 require (
@@ -28,11 +28,10 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper => ./go-cleanerupper
+replace github.com/GoogleCloudPlatform/compute-daisy => /home/acrate/guest/compute-daisy
