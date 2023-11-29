@@ -189,7 +189,7 @@ func WorkflowPolicy(id string) PolicyFunc {
 		if _, keep := labels[keepLabel]; keep {
 			return false
 		}
-		return strings.HasSuffix(name, id) && strings.Contains(desc, "created by Daisy in workflow") && !strings.Contains(desc, keepLabel)
+		return strings.HasSuffix(name, id) && strings.Contains(desc, `created by Daisy in workflow "`+id+`"`) && !strings.Contains(desc, keepLabel)
 	}
 }
 
