@@ -82,7 +82,7 @@ type PolicyFunc func(any) bool
 func AgePolicy(t time.Time) PolicyFunc {
 	return func(resource any) bool {
 		var labels map[string]string
-		var desc,name string
+		var desc, name string
 		var created time.Time
 		var err error
 		switch r := resource.(type) {
