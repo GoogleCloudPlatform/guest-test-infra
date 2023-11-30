@@ -21,7 +21,7 @@ RUN mkdir /out
 ENV GOOS linux
 ENV GO111MODULE on
 
-RUN ./local_build.sh -o /out
+RUN ./imagetest/local_build.sh -o /out -i imagetest
 
 FROM alpine:latest
 RUN apk add --no-cache openssh-keygen

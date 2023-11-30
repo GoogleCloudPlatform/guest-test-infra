@@ -135,9 +135,9 @@ Tests that need to run against features in the beta API can do so by creating Te
 
 ## Building the container image ##
 
-From the `imagetest` directory of this repository:
+From the root directory of this repository:
 
-    $ docker build -t cloud-image-tests -f Dockerfile .
+    $ docker build -t cloud-image-tests -f imagetest/Dockerfile .
 
 ## Testing on a local machine ##
 

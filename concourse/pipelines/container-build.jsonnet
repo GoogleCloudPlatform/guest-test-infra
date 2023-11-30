@@ -132,7 +132,8 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 
     // These build from the root of the repo.
     BuildContainerImage('cloud-image-tests') {
-      context: 'guest-test-infra/imagetest',
+      context: 'guest-test-infra',
+      dockerfile: 'imagetest/Dockerfile',
       // Public image.
       repo: 'gcr.io/compute-image-tools',
     },
