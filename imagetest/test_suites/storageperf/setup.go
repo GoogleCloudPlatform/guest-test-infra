@@ -107,72 +107,88 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
-	testVMs := []*imagetest.TestVM{}
-	for _, tc := range storagePerfTestConfig {
-		if skipTest(tc, t.Image) {
-			continue
-		}
+	testVMs := map[string][]*imagetest.TestVM{}
+	var readKey, writeKey string = "read", "write"
+	testTypeKeys := []string{readKey, writeKey}
+	testVMs[readKey] = []*imagetest.TestVM{}
+	testVMs[writeKey] = []*imagetest.TestVM{}
+	// the daisy instance object is unique, so these steps would need to be repeated for the read and write vm
+	for _, testTypeKey := range testTypeKeys {
+		for _, tc := range storagePerfTestConfig {
+			if skipTest(tc, t.Image) {
+				continue
+			}
 
-		region := tc.zone
-		if len(region) > 2 {
-			region = region[:len(region)-2]
-		}
-		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
-			return err
-		}
-		if tc.cpuMetric != "" {
-			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
+			region := tc.zone
+			if len(region) > 2 {
+				region = region[:len(region)-2]
+			}
+			if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
+				return err
+			}
+			if tc.cpuMetric != "" {
+				quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
 
-			i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
+				i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
+				if err != nil {
+					return err
+				}
+				quota.Units = i
+				if err := t.WaitForVMQuota(quota); err != nil {
+					return err
+				}
+			}
+
+			bootDisk := compute.Disk{Name: vmName + "-" + tc.machineType + "-" + tc.diskType + "-" + testTypeKey, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
+			mountDisk := compute.Disk{Name: mountDiskName + "-" + tc.machineType + "-" + tc.diskType + "-" + testTypeKey, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
+
+			daisyInst := &daisy.Instance{}
+			daisyInst.MachineType = tc.machineType
+			daisyInst.MinCpuPlatform = tc.minCPUPlatform
+			daisyInst.Zone = tc.zone
+			vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, daisyInst)
 			if err != nil {
 				return err
 			}
-			quota.Units = i
-			if err := t.WaitForVMQuota(quota); err != nil {
-				return err
+
+			vm.AddMetadata("enable-guest-attributes", "TRUE")
+			// set the expected performance values
+			var vmPerformanceTargets PerformanceTargets
+			var foundKey bool = false
+			if tc.diskType == imagetest.HyperdiskExtreme {
+				vmPerformanceTargets, foundKey = hyperdiskIOPSMap[tc.machineType]
+			} else if tc.diskType == imagetest.PdBalanced {
+				vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
 			}
-		}
-
-		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
-		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
-
-		daisyInst := &daisy.Instance{}
-		daisyInst.MachineType = tc.machineType
-		daisyInst.MinCpuPlatform = tc.minCPUPlatform
-		daisyInst.Zone = tc.zone
-		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, daisyInst)
-		if err != nil {
-			return err
-		}
-
-		vm.AddMetadata("enable-guest-attributes", "TRUE")
-		// set the expected performance values
-		var vmPerformanceTargets PerformanceTargets
-		var foundKey bool = false
-		if tc.diskType == imagetest.HyperdiskExtreme {
-			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[tc.machineType]
-		} else if tc.diskType == imagetest.PdBalanced {
-			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
-		}
-		if !foundKey {
-			return fmt.Errorf("expected performance for machine type %s and disk type %s not found", tc.machineType, tc.diskType)
-		}
-		vm.AddMetadata(randReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randReadIOPS))
-		vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
-		vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
-		vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
-		// for now, only use the startup script on windows because the linux startup script to install fio can take a while, leading to race conditions.
-		if utils.HasFeature(t.Image, "WINDOWS") {
-			windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
-			if err != nil {
-				return err
+			if !foundKey {
+				return fmt.Errorf("expected performance for machine type %s and disk type %s not found", tc.machineType, tc.diskType)
 			}
-			vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
+			vm.AddMetadata(randReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randReadIOPS))
+			vm.AddMetadata(randWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.randWriteIOPS))
+			vm.AddMetadata(seqReadAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqReadBW))
+			vm.AddMetadata(seqWriteAttribute, fmt.Sprintf("%f", vmPerformanceTargets.seqWriteBW))
+			// for now, only use the startup script on windows because the linux startup script to install fio can take a while, leading to race conditions.
+			if utils.HasFeature(t.Image, "WINDOWS") {
+				windowsStartup, err := scripts.ReadFile(windowsInstallFioScriptURL)
+				if err != nil {
+					return err
+				}
+				vm.AddMetadata("windows-startup-script-ps1", string(windowsStartup))
+			}
+			testVMs[testTypeKey] = append(testVMs[testTypeKey], vm)
 		}
-		testVMs = append(testVMs, vm)
 	}
-	for _, vm := range testVMs {
-		vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
+	for testTypeKey, vms := range testVMs {
+		var testsToRun string
+		if testTypeKey == readKey {
+			testsToRun = "TestRandomReadIOPS|TestSequentialReadIOPS"
+		} else if testTypeKey == writeKey {
+			testsToRun = "TestRandomWriteIOPS|TestSequentialWriteIOPS"
+		}
+
+		for _, vm := range vms {
+			vm.RunTests(testsToRun)
+		}
 	}
 	return nil
 }
