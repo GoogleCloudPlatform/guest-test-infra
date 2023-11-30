@@ -230,6 +230,12 @@ func TestWorkflowPolicy(t *testing.T) {
 			resource: &compute.Instance{Name: "network-asdf", Description: "created by Daisy in workflow \"asdf\" on behalf of root. do-not-delete"},
 			output:   false,
 		},
+		{
+			name:     "Different workflow in description",
+			wfID:     "asdf",
+			resource: &compute.Instance{Name: "network-asdf", Description: "created by Daisy in workflow \"1234\" on behalf of root."},
+			output:   false,
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

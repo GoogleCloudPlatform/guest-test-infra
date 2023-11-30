@@ -28,6 +28,7 @@ import (
 	"cloud.google.com/go/storage"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
+	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
@@ -788,9 +789,21 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		res.err = err
 		return res
 	}
-
 	delta := formatTimeDelta("04m 05s", time.Now().Sub(start))
 	log.Printf("finished test %s/%s (ID %s) in project %s, time spent: %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project, delta)
+
+	log.Printf("cleaning up after test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
+	cleaned, errs := cleanTestWorkflow(test)
+	for _, err := range errs {
+		log.Printf("error cleaning test %s/%s: %v\n", test.Name, test.Image.Name, err)
+	}
+	if len(cleaned) > 0 {
+		log.Printf("test %s/%s had %d leftover resources\n", test.Name, test.Image.Name, len(cleaned))
+	}
+	for _, c := range cleaned {
+		log.Printf("deleted resource %s from test %s/%s", c, test.Name, test.Image.Name)
+	}
+
 	results, err := getTestResults(ctx, test)
 	if err != nil {
 		res.err = err
@@ -800,6 +813,23 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	res.workflowSuccess = true
 
 	return res
+}
+
+func cleanTestWorkflow(test *TestWorkflow) (totalCleaned []string, totalErrs []error) {
+	c := cleanerupper.Clients{Daisy: test.Client}
+	policy := cleanerupper.WorkflowPolicy(test.wf.ID())
+
+	cleaned, errs := cleanerupper.CleanInstances(c, test.wf.Project, policy, false)
+	totalCleaned = append(totalCleaned, cleaned...)
+	totalErrs = append(totalErrs, errs...)
+	cleaned, errs = cleanerupper.CleanDisks(c, test.wf.Project, policy, false)
+	totalCleaned = append(totalCleaned, cleaned...)
+	totalErrs = append(totalErrs, errs...)
+	cleaned, errs = cleanerupper.CleanNetworks(c, test.wf.Project, policy, false)
+	totalCleaned = append(totalCleaned, cleaned...)
+	totalErrs = append(totalErrs, errs...)
+
+	return
 }
 
 // gets result struct and converts to a jUnit TestSuite
