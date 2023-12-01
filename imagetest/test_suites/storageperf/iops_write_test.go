@@ -4,7 +4,6 @@
 package storageperf
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -79,16 +78,9 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	fioWriteOptionsLinuxSlice := strings.Fields(writeOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-
-	// if the fio input options were wrong, print the full error message
-	fioCmdLinux := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...)
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	fioCmdLinux.Stdout = &out
-	fioCmdLinux.Stderr = &stderr
-	writeIOPSJson, err := fioCmdLinux.CombinedOutput()
+	writeIOPSJson, err := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...).CombinedOutput()
 	if err != nil {
-		return []byte{}, fmt.Errorf("fio command failed with error: stdout %s, stderr %s, %v", out.String(), stderr.String(), err)
+		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
 	}
 	return writeIOPSJson, nil
 }
