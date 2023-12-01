@@ -22,6 +22,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/licensevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/livemigrate"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/loadbalancer"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/mdsmtls"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
@@ -222,6 +223,10 @@ func main() {
 		{
 			oslogin.Name,
 			oslogin.TestSetup,
+		},
+		{
+			mdsmtls.Name,
+			mdsmtls.TestSetup,
 		},
 		{
 			windowscontainers.Name,
