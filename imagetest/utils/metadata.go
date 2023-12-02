@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"net/url"
 )
 
@@ -47,18 +48,19 @@ func GetMetadataWithHeaders(ctx context.Context, elem ...string) (string, http.H
 }
 
 // PutMetadata does a HTTP Put request to the metadata server, the metadata entry of
-// interest is provided by elem as the elements of the entry path, the following example
-// does a Put request to the entry "instance/guest-attributes":
+// interest is provided by path as the section of the path after the metadata server,
+// with the data string as the post data. The following example sets the key
+// "instance/guest-attributes/example" to "data":
 //
-// err := PutMetadata(context.Background(), "instance", "guest-attributes")
+// err := PutMetadata(context.Background(), url.JoinPath("instance", "guest-attributes"), "data")
 // ...
-func PutMetadata(ctx context.Context, elem ...string) error {
-	path, err := url.JoinPath(metadataURLPrefix, elem...)
+func PutMetadata(ctx context.Context, path string, data string) error {
+	path, err := url.JoinPath(metadataURLPrefix, path)
 	if err != nil {
 		return fmt.Errorf("failed to parse metadata url: %+v", err)
 	}
 
-	err = doHTTPPut(ctx, path)
+	err = doHTTPPut(ctx, path, data)
 	if err != nil {
 		return err
 	}
@@ -105,8 +107,8 @@ func doHTTPGet(ctx context.Context, path string) (string, http.Header, error) {
 	return string(val), resp.Header, nil
 }
 
-func doHTTPPut(ctx context.Context, path string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, nil)
+func doHTTPPut(ctx context.Context, path string, data string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, strings.NewReader(data))
 	if err != nil {
 		return fmt.Errorf("failed to create a http request with context: %+v", err)
 	}

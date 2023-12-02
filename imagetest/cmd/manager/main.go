@@ -20,6 +20,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/licensevalidation"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/guestagent"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/networkperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/oslogin"
@@ -138,6 +139,10 @@ func main() {
 		{
 			networkperf.Name,
 			networkperf.TestSetup,
+		},
+		{
+			guestagent.Name,
+			guestagent.TestSetup,
 		},
 		{
 			hostnamevalidation.Name,
