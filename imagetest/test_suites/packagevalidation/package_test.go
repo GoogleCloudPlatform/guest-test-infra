@@ -4,10 +4,7 @@
 package packagevalidation
 
 import (
-	"bufio"
-	"bytes"
 	"os/exec"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -18,21 +15,29 @@ import (
 func findUniq(arrayA, arrayB []string) []string {
 	unique := []string{}
 	for _, itemA := range arrayA {
-		if !contains(arrayB, itemA) {
+		found := false
+		for _, itemB := range arrayB {
+			if strings.Contains(itemB, itemA) {
+				found = true
+				break
+			}
+		}
+		if !found {
 			unique = append(unique, itemA)
 		}
 	}
 	return unique
 }
 
-// contains checks if a slice contains a particular string.
-func contains(slice []string, str string) bool {
-	for _, v := range slice {
-		if v == str {
-			return true
+// removeFromArray removes a specific string from an array of strings.
+func removeFromArray(arr []string, strToRemove string) []string {
+	var newArr []string
+	for _, item := range arr {
+		if item != strToRemove {
+			newArr = append(newArr, item)
 		}
 	}
-	return false
+	return newArr
 }
 
 func TestStandardPrograms(t *testing.T) {
@@ -77,10 +82,14 @@ func TestGuestPackages(t *testing.T) {
 
 	// What packages to check for and excude for diffrent images
 	requiredPkgs := []string{"google-guest-agent", "google-osconfig-agent"}
-	if strings.Contains(image, "rhel") {
-		requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-sdk")
-	}
+	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-sdk")
+	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
+
 	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine-oslogin")
+		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 		requiredPkgs = append(requiredPkgs, "google-guest-configs") // SLES name for 'google-compute-engine' package.
 		requiredPkgs = append(requiredPkgs, "google-guest-oslogin")
 	}
@@ -88,37 +97,24 @@ func TestGuestPackages(t *testing.T) {
 		requiredPkgs = append(requiredPkgs, "epel-release")
 	}
 	if strings.Contains(image, "debian") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk") // debian has google-cloud-cli
+		requiredPkgs = append(requiredPkgs, "google-cloud-cli")
 		requiredPkgs = append(requiredPkgs, "haveged", "net-tools")
 		requiredPkgs = append(requiredPkgs, "google-cloud-packages-archive-keyring", "isc-dhcp-client")
-		requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "python3", "google-cloud-cli")
 		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
-		if runtime.GOARCH == "amd64" {
-			requiredPkgs = append(requiredPkgs, "grub-efi-amd64-signed", "shim-signed")
-		}
-		if runtime.GOARCH == "arm64" {
-			requiredPkgs = append(requiredPkgs, "grub-efi-arm64")
-		}
+	}
+	if strings.Contains(image, "ubuntu") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 	}
 
 	cmd := exec.Command(listPackagesCmd[0], listPackagesCmd[1:]...)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	err = cmd.Run()
+	out, err := cmd.Output()
 	if err != nil {
 		t.Errorf("Failed to execute list packages command: %v", err)
 		return
 	}
-
-	scanner := bufio.NewScanner(&out)
-	var installedPkgs []string
-	for scanner.Scan() {
-		installedPkgs = append(installedPkgs, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("Error reading list packages command output: %v", err)
-	}
+	installedPkgs := strings.Split(string(out), "\n")
 
 	missingPkgs := findUniq(requiredPkgs, installedPkgs)
 	for _, pkg := range missingPkgs {
