@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"net/url"
+	"strings"
 )
 
 const (

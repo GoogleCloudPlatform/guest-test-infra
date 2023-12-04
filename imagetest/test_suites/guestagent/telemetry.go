@@ -16,10 +16,10 @@ package guestagent
 
 import (
 	"os/exec"
-	"testing"
-	"time"
 	"path"
 	"strings"
+	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
