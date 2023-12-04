@@ -5,6 +5,7 @@ package packagevalidation
 
 import (
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 
@@ -15,17 +16,11 @@ import (
 func findUniq(arrayA, arrayB []string) []string {
 	unique := []string{}
 	for _, itemA := range arrayA {
-		found := false
-		for _, itemB := range arrayB {
-			if strings.Contains(itemB, itemA) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(arrayB, itemA) {
 			unique = append(unique, itemA)
 		}
 	}
+
 	return unique
 }
 
@@ -81,6 +76,7 @@ func TestGuestPackages(t *testing.T) {
 	excludePkgs := []string{}
 
 	// What packages to check for and excude for diffrent images
+	// Redhat like is default
 	requiredPkgs := []string{"google-guest-agent", "google-osconfig-agent"}
 	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-sdk")
 	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
