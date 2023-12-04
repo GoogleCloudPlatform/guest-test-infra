@@ -1,9 +1,10 @@
 platform: linux
 
 image_resource:
-  type: registry-image
+  type: registry-image-private
   source:
     repository: gcr.io/gcp-guest/validate-integtest
+    google_auth: true
 
 inputs:
 - name: guest-test-infra

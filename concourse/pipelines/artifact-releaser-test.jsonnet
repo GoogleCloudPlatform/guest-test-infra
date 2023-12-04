@@ -34,8 +34,11 @@ local publishresulttask = {
   config: {
     platform: 'linux',
     image_resource: {
-      type: 'registry-image',
-      source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+      type: 'registry-image-private',
+      source: {
+        repository: 'gcr.io/gcp-guest/concourse-metrics',
+        google_auth: true,
+      },
     },
     run: {
       path: '/publish-job-result',
