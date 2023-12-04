@@ -4,22 +4,45 @@
 package packagevalidation
 
 import (
-	"bytes"
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+// findUnique returns a slice of elements that are in arrayA but not in arrayB.
+func findUniq(arrayA, arrayB []string) []string {
+	unique := []string{}
+	for _, itemA := range arrayA {
+		if !slices.Contains(arrayB, itemA) {
+			unique = append(unique, itemA)
+		}
+	}
+
+	return unique
+}
+
+// removeFromArray removes a specific string from an array of strings.
+func removeFromArray(arr []string, strToRemove string) []string {
+	var newArr []string
+	for _, item := range arr {
+		if item != strToRemove {
+			newArr = append(newArr, item)
+		}
+	}
+	return newArr
+}
+
 func TestStandardPrograms(t *testing.T) {
 	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-	if strings.Contains(image, "sles") {
-		// SLES does not have the Google Cloud SDK installed.
-		t.Skip("Not supported on SLES")
+	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		// SLES/SUSE does not have the Google Cloud SDK installed.
+		t.Skip("Cloud SDK Not supported on SLES/SUSE")
 	}
 
 	cmd := exec.Command("gcloud", "-h")
@@ -38,41 +61,66 @@ func TestStandardPrograms(t *testing.T) {
 func TestGuestPackages(t *testing.T) {
 	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+
 	if err != nil {
 		t.Fatalf("couldn't determine image from metadata")
 	}
-	cmdPrefix := []string{"rpm", "-q", "--queryformat", "'%{NAME}\n'"}
+
+	// What command to list all packages
+	listPackagesCmd := []string{"rpm", "-qa", "--queryformat", "%{NAME}\n"}
 	if strings.Contains(image, "debian") || strings.Contains(image, "ubuntu") {
-		cmdPrefix = []string{"dpkg-query", "-W", "--showformat", "'${Package}\n'"}
+		listPackagesCmd = []string{"dpkg-query", "-W", "--showformat", "${Package}\n"}
 	}
-	packages := []string{"google-guest-agent", "google-osconfig-agent"}
-	if strings.Contains(image, "sles") {
-		packages = append(packages, "google-guest-configs") // SLES name for 'google-compute-engine' package.
-		packages = append(packages, "google-guest-oslogin")
-	} else {
-		packages = append(packages, "google-compute-engine")
-		packages = append(packages, "google-compute-engine-oslogin")
+
+	// What packages to insure are not installed
+	excludePkgs := []string{}
+
+	// What packages to check for and excude for diffrent images
+	// Redhat like is default
+	requiredPkgs := []string{"google-guest-agent", "google-osconfig-agent"}
+	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-sdk")
+	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
+
+	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine-oslogin")
+		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
+		requiredPkgs = append(requiredPkgs, "google-guest-configs") // SLES name for 'google-compute-engine' package.
+		requiredPkgs = append(requiredPkgs, "google-guest-oslogin")
 	}
 	if strings.Contains(image, "centos-7") {
-		packages = append(packages, "epel-release")
+		requiredPkgs = append(requiredPkgs, "epel-release")
+	}
+	if strings.Contains(image, "debian") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk") // debian has google-cloud-cli
+		requiredPkgs = append(requiredPkgs, "google-cloud-cli")
+		requiredPkgs = append(requiredPkgs, "haveged", "net-tools")
+		requiredPkgs = append(requiredPkgs, "google-cloud-packages-archive-keyring", "isc-dhcp-client")
+		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
+	}
+	if strings.Contains(image, "ubuntu") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 	}
 
-	for _, pkg := range packages {
-		args := append(cmdPrefix[1:], pkg)
-		cmd := exec.Command(cmdPrefix[0], args...)
-		stderr := &bytes.Buffer{}
-		cmd.Stderr = stderr
-		stdout := &bytes.Buffer{}
-		cmd.Stdout = stdout
-		if err := cmd.Start(); err != nil {
-			t.Errorf("error starting check command: %v", err)
-			continue
-		}
-		if err := cmd.Wait(); err != nil {
-			t.Errorf("error running check command: %v %s %s", err, stdout, stderr)
-			continue
-		}
+	cmd := exec.Command(listPackagesCmd[0], listPackagesCmd[1:]...)
+	out, err := cmd.Output()
+	if err != nil {
+		t.Errorf("Failed to execute list packages command: %v", err)
+		return
+	}
+	installedPkgs := strings.Split(string(out), "\n")
 
+	missingPkgs := findUniq(requiredPkgs, installedPkgs)
+	for _, pkg := range missingPkgs {
+		t.Errorf("Required package not installed: %s\n", pkg)
+	}
+
+	shouldnotPkgs := findUniq(excludePkgs, installedPkgs) // find whats installed
+	shouldnotPkgs = findUniq(excludePkgs, shouldnotPkgs)  // it shouldn't be
+	for _, pkg := range shouldnotPkgs {
+		t.Errorf("Package installed but should not be: %s\n", pkg)
 	}
 
 }
