@@ -52,7 +52,7 @@ func GetMetadataWithHeaders(ctx context.Context, elem ...string) (string, http.H
 // with the data string as the post data. The following example sets the key
 // "instance/guest-attributes/example" to "data":
 //
-// err := PutMetadata(context.Background(), url.JoinPath("instance", "guest-attributes"), "data")
+// err := PutMetadata(context.Background(), path.Join("instance", "guest-attributes", "example"), "data")
 // ...
 func PutMetadata(ctx context.Context, path string, data string) error {
 	path, err := url.JoinPath(metadataURLPrefix, path)
