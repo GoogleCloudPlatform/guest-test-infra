@@ -1009,6 +1009,13 @@ local build_and_upload_guest_agent = build_guest_agent {
       build_dir: 'cli_tools/diagnostics',
     },
   ],
+  resource_types: [
+    {
+      name: 'registry-image-private',
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked', google_auth: true },
+    },
+  ],
   resources: [
     {
       name: 'guest-agent-dev',
