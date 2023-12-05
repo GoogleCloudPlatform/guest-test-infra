@@ -5,6 +5,7 @@ resource_types:
   source:
     repository: gcr.io/compute-image-tools/registry-image-forked
     tag: latest
+    debug: true
 
 resources:
 - name: guest-test-infra
