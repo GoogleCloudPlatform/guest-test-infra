@@ -1,6 +1,6 @@
 ---
 resource_types:
-- name: guest-image-private
+- name: registry-image-private
   type: registry-image
   source:
     repository: gcr.io/compute-image-tools/registry-image-forked
