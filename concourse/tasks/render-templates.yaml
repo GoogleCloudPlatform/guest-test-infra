@@ -1,13 +1,7 @@
 platform: linux
 
-resource_types:
-- name: guest-image-private
-  type: registry-image
-  source:
-    repository: gcr.io/compute-image-tools/registry-image-forked
-
 image_resource:
-  type: registry-image-private
+  type: guest-image-private
   source:
     repository: gcr.io/gcp-guest/jsonnet-go
     tag: latest
