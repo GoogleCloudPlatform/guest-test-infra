@@ -1,6 +1,7 @@
 platform: linux
 
 image_resource:
+  name: jsonnet-go-image
   type: registry-image-private
   source:
     repository: gcr.io/gcp-guest/jsonnet-go
