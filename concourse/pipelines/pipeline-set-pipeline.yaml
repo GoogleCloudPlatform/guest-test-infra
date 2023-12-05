@@ -4,6 +4,8 @@ resource_types:
   type: registry-image
   source:
     repository: gcr.io/compute-image-tools/registry-image-forked
+    tag: latest
+
 resources:
 - name: guest-test-infra
   type: git
