@@ -1013,7 +1013,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     {
       name: 'registry-image-private',
       type: 'registry-image',
-      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked', google_auth: true },
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
     },
   ],
   resources: [
