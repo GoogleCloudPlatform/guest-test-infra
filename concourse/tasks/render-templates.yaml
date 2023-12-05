@@ -4,7 +4,6 @@ image_resource:
   type: registry-image-private
   source:
     repository: gcr.io/gcp-guest/jsonnet-go
-    tag: latest
     google_auth: true
 
 inputs:
