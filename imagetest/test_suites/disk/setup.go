@@ -7,8 +7,25 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-// Name is the name of the test package. It must match the directory name.
-var Name = "disk"
+type blockdevNamingConfig struct {
+	machineType string
+	arch string
+}
+
+var (
+	// Name is the name of the test package. It must match the directory name.
+	Name = "disk"
+	blockdevNamingCases = []blockdevNamingConfig{
+		{
+			machineType: "t2a-standard-1",
+			arch: "ARM64",
+		},
+		{
+			machineType: "c3-standard-4",
+			arch: "X86_64",
+		},
+	}
+)
 
 const (
 	vmName         = "vm"
@@ -30,5 +47,21 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 	}
 	vm.RunTests("TestDiskReadWrite|TestDiskResize")
+	// Block device naming is an interaction between OS and hardware alone on windows, there is no guest-environment equivalent of udev rules for us to test.
+	if !utils.HasFeature(t.Image, "WINDOWS") {
+		for _, tc := range blockdevNamingCases {
+			if tc.arch != t.Image.Architecture {
+				continue
+			}
+			inst := &daisy.Instance{}
+			inst.MachineType = tc.machineType
+			inst.Name = "test-block-naming-" + tc.machineType
+			vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: inst.Name, Type: imagetest.PdBalanced}, {Name: "secondary", Type: imagetest.PdBalanced, SizeGb: 10}}, inst)
+			if err != nil {
+				return err
+			}
+			vm.RunTests("TestBlockDeviceNaming")
+		}
+	}
 	return nil
 }
