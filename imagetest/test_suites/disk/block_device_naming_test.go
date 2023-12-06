@@ -6,6 +6,7 @@ package disk
 import (
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -25,12 +26,12 @@ func TestBlockDeviceNaming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var disklist string
+	var disklist []string
 	for _, disk := range disks {
-		disklist += " " + disk.Name()
+		disklist = append(disklist, disk.Name())
 		if disk.Name() == "google-secondary" {
 			return
 		}
 	}
-	t.Fatalf("could not find a disk named google-secondary, found these disks:%s", disklist)
+	t.Fatalf("could not find a disk named google-secondary, found these disks: %s", strings.Join(disklist, " "))
 }
