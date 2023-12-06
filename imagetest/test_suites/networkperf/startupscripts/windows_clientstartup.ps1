@@ -16,6 +16,8 @@ Start-Sleep -s 5 # Wait for the server to start up.
 
 # Perform the test, and upload results.
 ./iperf -c $iperftarget -t 30 -P 16 2>&1 > $outfile
+# print iperf output to the logs
+Write-Host $_ 
 for (($i = 0); $i -lt 3; $i++)
 {
   Start-Sleep -Seconds $i
