@@ -17,7 +17,7 @@ func TestNetworkPerformance(t *testing.T) {
 	var results string
 	var err error
 	for i := 0; i < 3; i++ {
-		time.Sleep(time.Duration(i) * time.Second)
+		time.Sleep(30 * time.Duration(i) * time.Second)
 		results, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "results")
 		if err == nil {
 			break
