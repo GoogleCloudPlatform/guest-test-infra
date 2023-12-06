@@ -10,4 +10,8 @@ Expand-Archive -Path $iperfzippath -DestinationPath $zipdir
 New-NetFirewallRule -DisplayName "allow-iperf" -Direction Inbound -LocalPort 5001 -Protocol TCP -Action Allow
 
 cd $exepath
-./iperf -s -P 16 -t $timeout
+try {
+  ./iperf -s -P 16 -t $timeout
+} catch {
+  throw $_
+}
