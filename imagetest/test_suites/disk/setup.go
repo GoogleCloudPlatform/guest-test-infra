@@ -9,20 +9,20 @@ import (
 
 type blockdevNamingConfig struct {
 	machineType string
-	arch string
+	arch        string
 }
 
 var (
 	// Name is the name of the test package. It must match the directory name.
-	Name = "disk"
+	Name                = "disk"
 	blockdevNamingCases = []blockdevNamingConfig{
 		{
 			machineType: "t2a-standard-1",
-			arch: "ARM64",
+			arch:        "ARM64",
 		},
 		{
 			machineType: "c3-standard-4",
-			arch: "X86_64",
+			arch:        "X86_64",
 		},
 	}
 )

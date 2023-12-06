@@ -27,7 +27,7 @@ func TestBlockDeviceNaming(t *testing.T) {
 	}
 	var disklist string
 	for _, disk := range disks {
-		disklist += " "+disk.Name()
+		disklist += " " + disk.Name()
 		if disk.Name() == "google-secondary" {
 			return
 		}
