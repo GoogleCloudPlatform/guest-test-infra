@@ -121,4 +121,9 @@
         ],
     },
   },
+  RegistryImagePrivate:: {
+    name: 'registry-image-private',
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
+  },
 }
