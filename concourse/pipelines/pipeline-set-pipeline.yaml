@@ -1,4 +1,12 @@
 ---
+resource_types:
+- name: registry-image-private
+  type: registry-image
+  source:
+    repository: gcr.io/compute-image-tools/registry-image-forked
+    tag: latest
+    debug: true
+
 resources:
 - name: guest-test-infra
   type: git

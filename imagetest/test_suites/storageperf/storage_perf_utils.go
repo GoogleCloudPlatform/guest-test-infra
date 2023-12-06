@@ -1,6 +1,7 @@
 package storageperf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -158,16 +159,23 @@ func installFioLinux() error {
 		return fmt.Errorf("no package managers to install fio found")
 	}
 
+	// print more detailed error message than "exit code 1"
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	installFioCmd.Stdout = &out
+	installFioCmd.Stderr = &stderr
 	if err := installFioCmd.Start(); err != nil {
-		return fmt.Errorf("install fio cmomand failed to start: err %v", err)
+		return fmt.Errorf("install fio command failed to start: err %v, %s, %s", err, out.String(), stderr.String())
 	}
 
 	if err := installFioCmd.Wait(); err != nil {
+		stdoutStr := out.String()
+		stderrStr := stderr.String()
 		// Transient backend issues with zypper can cause exit errors 7, 104, 106, etc. Return a more detailed error message in these cases.
 		if usingZypper {
-			return checkZypperTransientError(err)
+			return checkZypperTransientError(err, stdoutStr, stderrStr)
 		}
-		return fmt.Errorf("install fio command failed with errors: %v", err)
+		return fmt.Errorf("install fio command failed with errors: %v, %s, %s", err, stdoutStr, stderrStr)
 	}
 	return nil
 }
@@ -183,11 +191,11 @@ func getVMName(ctx context.Context) string {
 }
 
 // check if a known zypper backend error is found
-func checkZypperTransientError(err error) error {
+func checkZypperTransientError(err error, stdout, stderr string) error {
 	exitErr, foundErr := err.(*exec.ExitError)
 	if foundErr {
 		exitCode := exitErr.ExitCode()
-		errorString := "zypper repo test environment setup failed: "
+		errorString := "zypper repo test environment setup failed: stdout " + stdout + ", stderr " + stderr + ", "
 		if exitCode == 7 {
 			errorString += "zypper process already running, cannot start zypper install"
 		} else if exitCode == 104 {

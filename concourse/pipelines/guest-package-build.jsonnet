@@ -12,8 +12,11 @@ local publishresulttask = {
   config: {
     platform: 'linux',
     image_resource: {
-      type: 'registry-image',
-      source: { repository: 'gcr.io/gcp-guest/concourse-metrics' },
+      type: 'registry-image-private',
+      source: {
+        repository: 'gcr.io/gcp-guest/concourse-metrics',
+        google_auth: true,
+      },
     },
     run: {
       path: '/publish-job-result',
@@ -1004,6 +1007,13 @@ local build_and_upload_guest_agent = build_guest_agent {
         },
       ],
       build_dir: 'cli_tools/diagnostics',
+    },
+  ],
+  resource_types: [
+    {
+      name: 'registry-image-private',
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
     },
   ],
   resources: [
