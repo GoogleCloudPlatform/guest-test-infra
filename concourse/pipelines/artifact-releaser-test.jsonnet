@@ -512,6 +512,7 @@ local pkggroup = {
       type: 'docker-image',
       source: { repository: 'cftoolsmiths/cron-resource' },
     },
+    common.RegistryImagePrivate,
   ],
   resources: [
                common.GitResource('guest-test-infra'),

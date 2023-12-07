@@ -1,3 +1,4 @@
+local common = import '../templates/common.libsonnet';
 local imagetesttask = {
   local task = self,
 
@@ -312,11 +313,7 @@ local slesarm64images = [
 // Start of output.
 {
   resource_types: [
-    {
-      name: 'registry-image-private',
-      type: 'registry-image',
-      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
-    },
+    common.RegistryImagePrivate,
     {
       name: 'gce-image',
       type: 'registry-image-private',
