@@ -98,6 +98,7 @@ func TestGuestPackages(t *testing.T) {
 		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
 	}
 	if strings.Contains(image, "ubuntu") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli") // TODO query snaps as well
 		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 	}
 
