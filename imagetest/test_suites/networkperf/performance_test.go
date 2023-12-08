@@ -60,7 +60,7 @@ func TestNetworkPerformance(t *testing.T) {
 
 	// Check the units.
 	units := resultsArray[6]
-	if !strings.HasPrefix(units, "G") {  // If the units aren't in Gbits/s, we automatically fail.
+	if !strings.HasPrefix(units, "G") { // If the units aren't in Gbits/s, we automatically fail.
 		t.Fatalf("Error: Did not meet performance expectation on machine type %s with network %s. Expected: %v Gbits/s, Actual: %v %s", machineTypeName, network, expected, result_perf, units)
 	}
 
