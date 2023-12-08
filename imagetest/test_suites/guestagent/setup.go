@@ -31,5 +31,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	telemetryenabled.RunTests("TestTelemetryEnabled") // Enabled by default
+
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		windowsaccount, err := t.CreateTestVM("windowsaccount")
+		if err != nil {
+			return err
+		}
+		windowsaccount.RunTests("TestCreateNewWindowsUser")
+	}
 	return nil
 }
