@@ -9,21 +9,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mdsmtls
+package guestagent
 
 import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 )
 
 // Name is the name of the test package. It must match the directory name.
-const Name = "mdsmtls"
+const Name = "guestagent"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM("vm")
+	telemetrydisabled, err := t.CreateTestVM("telemetry-disabled")
 	if err != nil {
 		return err
 	}
-	vm.RunTests("TestMTLSCredsExists")
+	telemetrydisabled.AddMetadata("disable-guest-telemetry", "true")
+	telemetrydisabled.RunTests("TestTelemetryDisabled")
+	telemetryenabled, err := t.CreateTestVM("telemetry-enabled")
+	if err != nil {
+		return err
+	}
+	telemetryenabled.RunTests("TestTelemetryEnabled") // Enabled by default
 	return nil
 }

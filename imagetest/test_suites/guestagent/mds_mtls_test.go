@@ -12,7 +12,7 @@
 //go:build cit
 // +build cit
 
-package mdsmtls
+package guestagent
 
 import (
 	"fmt"
