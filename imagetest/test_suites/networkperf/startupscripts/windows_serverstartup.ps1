@@ -11,3 +11,5 @@ New-NetFirewallRule -DisplayName "allow-iperf" -Direction Inbound -LocalPort 500
 
 cd $exepath
 ./iperf -s -P 16 -t $timeout
+# print iperf output to logs
+Write-Host $_

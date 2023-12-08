@@ -78,11 +78,11 @@ func TestGuestPackages(t *testing.T) {
 	// What packages to check for and excude for diffrent images
 	// Redhat like is default
 	requiredPkgs := []string{"google-guest-agent", "google-osconfig-agent"}
-	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-sdk")
+	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-cli")
 	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
 
 	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
-		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli")
 		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine")
 		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine-oslogin")
 		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
@@ -93,14 +93,12 @@ func TestGuestPackages(t *testing.T) {
 		requiredPkgs = append(requiredPkgs, "epel-release")
 	}
 	if strings.Contains(image, "debian") {
-		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk") // debian has google-cloud-cli
-		requiredPkgs = append(requiredPkgs, "google-cloud-cli")
 		requiredPkgs = append(requiredPkgs, "haveged", "net-tools")
 		requiredPkgs = append(requiredPkgs, "google-cloud-packages-archive-keyring", "isc-dhcp-client")
 		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
 	}
 	if strings.Contains(image, "ubuntu") {
-		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-sdk")
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli") // TODO query snaps as well
 		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 	}
 
@@ -114,6 +112,11 @@ func TestGuestPackages(t *testing.T) {
 
 	missingPkgs := findUniq(requiredPkgs, installedPkgs)
 	for _, pkg := range missingPkgs {
+		// Accept google-cloud-sdk as a replacement for google-cloud-cli during migration
+		if pkg == "google-cloud-cli" && slices.Contains(installedPkgs, "google-cloud-sdk") {
+			t.Logf("found image with google-cloud-sdk, migrate to google-cloud-cli")
+			continue
+		}
 		t.Errorf("Required package not installed: %s\n", pkg)
 	}
 
