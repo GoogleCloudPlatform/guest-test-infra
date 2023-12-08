@@ -51,12 +51,17 @@ func TestNetworkPerformance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Find actual performance..
-	var result_perf float64
-	resultArray := strings.Split(results, " ")
-	result_perf, err = strconv.ParseFloat(resultArray[5], 64)
+	// Find actual performance.
+	resultsArray := strings.Split(results, " ")
+	result_perf, err := strconv.ParseFloat(resultsArray[5], 64)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
+	}
+
+	// Check the units.
+	units := resultsArray[6]
+	if !strings.HasPrefix(units, "G") {  // If the units aren't in Gbits/s, we automatically fail.
+		t.Fatalf("Error: Did not meet performance expectation on machine type %s with network %s. Expected: %v Gbits/s, Actual: %v %s", machineTypeName, network, expected, result_perf, units)
 	}
 
 	// Check if it matches the target.
