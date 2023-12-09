@@ -176,7 +176,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var serverStartup string
 		var clientStartup string
 		if utils.HasFeature(t.Image, "WINDOWS") {
-
 			windowsStartup, err := scripts.ReadFile(windowsInstallStartupScriptURI)
 			if err != nil {
 				return err
