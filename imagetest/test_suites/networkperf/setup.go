@@ -95,12 +95,12 @@ var scripts embed.FS
 var targets embed.FS
 
 const (
-	linuxInstallStartupScriptURL   = "startupscripts/linux_common.sh"
-	linuxServerStartupScriptURL    = "startupscripts/linux_serverstartup.sh"
-	linuxClientStartupScriptURL    = "startupscripts/linux_clientstartup.sh"
-	windowsInstallStartupScriptURL = "startupscripts/windows_common.ps1"
-	windowsServerStartupScriptURL  = "startupscripts/windows_serverstartup.ps1"
-	windowsClientStartupScriptURL  = "startupscripts/windows_clientstartup.ps1"
+	linuxInstallStartupScriptURI   = "startupscripts/linux_common.sh"
+	linuxServerStartupScriptURI    = "startupscripts/linux_serverstartup.sh"
+	linuxClientStartupScriptURI    = "startupscripts/linux_clientstartup.sh"
+	windowsInstallStartupScriptURI = "startupscripts/windows_common.ps1"
+	windowsServerStartupScriptURI  = "startupscripts/windows_serverstartup.ps1"
+	windowsClientStartupScriptURI  = "startupscripts/windows_clientstartup.ps1"
 	targetsURL                     = "targets/default_targets.txt"
 	tier1TargetsURL                = "targets/tier1_targets.txt"
 )
@@ -176,31 +176,31 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var serverStartup string
 		var clientStartup string
 		if utils.HasFeature(t.Image, "WINDOWS") {
-			windowsStartup, err := scripts.ReadFile(windowsInstallStartupScriptURL)
+			windowsStartup, err := scripts.ReadFile(windowsInstallStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
+			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURL)
+			clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURI)
 			if err != nil {
 				return err
 			}
 			serverStartup = string(windowsStartup) + string(serverStartupByteArr)
 			clientStartup = string(windowsStartup) + string(clientStartupByteArr)
 		} else {
-			linuxStartup, err := scripts.ReadFile(linuxInstallStartupScriptURL)
+			linuxStartup, err := scripts.ReadFile(linuxInstallStartupScriptURI)
 			if err != nil {
 				return err
 			}
 
-			serverStartupByteArr, err := scripts.ReadFile(linuxServerStartupScriptURL)
+			serverStartupByteArr, err := scripts.ReadFile(linuxServerStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			clientStartupByteArr, err := scripts.ReadFile(linuxClientStartupScriptURL)
+			clientStartupByteArr, err := scripts.ReadFile(linuxClientStartupScriptURI)
 			if err != nil {
 				return err
 			}
