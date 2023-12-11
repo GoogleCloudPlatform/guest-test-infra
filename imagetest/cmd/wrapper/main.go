@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 
@@ -42,11 +43,11 @@ func main() {
 	defer func(ctx context.Context, firstBootSpecialGA bool) {
 		var err error
 		if firstBootSpecialGA {
-			err = utils.PutMetadata(ctx, "instance", "guest-attributes", utils.GuestAttributeTestNamespace,
-				utils.FirstBootGAKey)
+			err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+				utils.FirstBootGAKey), "")
 		} else {
-			err = utils.PutMetadata(ctx, "instance", "guest-attributes", utils.GuestAttributeTestNamespace,
-				utils.GuestAttributeTestKey)
+			err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+				utils.GuestAttributeTestKey), "")
 		}
 
 		if err != nil {
