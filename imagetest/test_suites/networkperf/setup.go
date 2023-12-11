@@ -95,12 +95,14 @@ var scripts embed.FS
 var targets embed.FS
 
 const (
-	serverStartupScriptURL        = "startupscripts/netserver_startup.sh"
-	clientStartupScriptURL        = "startupscripts/netclient_startup.sh"
-	windowsServerStartupScriptURL = "startupscripts/windows_serverstartup.ps1"
-	windowsClientStartupScriptURL = "startupscripts/windows_clientstartup.ps1"
-	targetsURL                    = "targets/default_targets.txt"
-	tier1TargetsURL               = "targets/tier1_targets.txt"
+	linuxInstallStartupScriptURI   = "startupscripts/linux_common.sh"
+	linuxServerStartupScriptURI    = "startupscripts/linux_serverstartup.sh"
+	linuxClientStartupScriptURI    = "startupscripts/linux_clientstartup.sh"
+	windowsInstallStartupScriptURI = "startupscripts/windows_common.ps1"
+	windowsServerStartupScriptURI  = "startupscripts/windows_serverstartup.ps1"
+	windowsClientStartupScriptURI  = "startupscripts/windows_clientstartup.ps1"
+	targetsURL                     = "targets/default_targets.txt"
+	tier1TargetsURL                = "targets/tier1_targets.txt"
 )
 
 // getExpectedPerf gets the expected performance of the given machine type. Since the targets map only contains breakpoints in vCPUs at which
@@ -174,27 +176,36 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var serverStartup string
 		var clientStartup string
 		if utils.HasFeature(t.Image, "WINDOWS") {
-			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURL)
+			windowsStartup, err := scripts.ReadFile(windowsInstallStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURL)
+			serverStartupByteArr, err := scripts.ReadFile(windowsServerStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			serverStartup = string(serverStartupByteArr)
-			clientStartup = string(clientStartupByteArr)
+			clientStartupByteArr, err := scripts.ReadFile(windowsClientStartupScriptURI)
+			if err != nil {
+				return err
+			}
+			serverStartup = string(windowsStartup) + string(serverStartupByteArr)
+			clientStartup = string(windowsStartup) + string(clientStartupByteArr)
 		} else {
-			serverStartupByteArr, err := scripts.ReadFile(serverStartupScriptURL)
+			linuxStartup, err := scripts.ReadFile(linuxInstallStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			clientStartupByteArr, err := scripts.ReadFile(clientStartupScriptURL)
+
+			serverStartupByteArr, err := scripts.ReadFile(linuxServerStartupScriptURI)
 			if err != nil {
 				return err
 			}
-			serverStartup = string(serverStartupByteArr)
-			clientStartup = string(clientStartupByteArr)
+			clientStartupByteArr, err := scripts.ReadFile(linuxClientStartupScriptURI)
+			if err != nil {
+				return err
+			}
+			serverStartup = string(linuxStartup) + string(serverStartupByteArr)
+			clientStartup = string(linuxStartup) + string(clientStartupByteArr)
 		}
 		for _, net := range tc.networks {
 			switch net {
