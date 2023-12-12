@@ -1,0 +1,36 @@
+# Test Setup
+This test uses multiple secrets to store the test users that it uses in order to run the test.
+These secrets are as follows:
+
+- `normal-user` - the email for the normal SSH user.
+- `admin-user` - the email for the normal SSH sudo user.
+- `normal-2fa-user` - the email for the normal 2FA SSH user.
+- `admin-2fa-user` - the email for the 2FA SSH sudo user.
+- `normal-2fa-key` - the 2FA secret for `normal-2fa-user`
+- `admin-2fa-key` - the 2FA secret for `admin-2fa-user`
+- `normal-user-ssh-key` - the private SSH key for `normal-user`
+- `admin-user-ssh-key` - the private SSH key for `admin-user`
+- `normal-2fa-ssh-key` - the private SSH key for `normal-2fa-user`
+- `admin-2fa-ssh-key` - the private SSH key for `admin-2fa-user`
+
+As a consequence, users of this test suite must be able to set up and provide 4 test users.
+Each of these test users should have permissions set up according to the 
+[OSLogin setup](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#configure_users) page.
+Note that the admin users should have the `roles/compute.osAdminLogin` permission.
+
+# User Setup
+In order to set up each of the users for the test, their OSLogin profiles must be set up with a
+permanent public SSH key. This can be accomplished by performing the following:
+1. [Create a VM with OSLogin enabled](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#enable_os_login_during_vm_creation).
+2. [SSH](https://cloud.google.com/compute/docs/connect/standard-ssh) to the new VM as one of your test users.
+3. [Create an SSH key pair](https://cloud.google.com/compute/docs/connect/create-ssh-keys#create_an_ssh_key_pair).
+4. Add the SSH public key to the user's OSLogin Profile.
+```
+gcloud compute os-login ssh-keys add --key-file=/path/to/keyfile.pub
+```
+5. Copy and paste the contents of the private key file into the appropriate secret, or use the `gcloud` CLI.
+For example, you can add the private SSH Key for `normal-user` by calling the following:
+```
+gcloud secrets create normal-user-ssh-key --data-file=/path/to/keyfile
+```
+6. Repeat steps 2-5 for each of the test users.
