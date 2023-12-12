@@ -270,7 +270,7 @@ are within a certain range (such as 97%) of the documented value.
 is run and the json output is returned. Out of the json output, we can get the read iops
 value which was achieved, and check that it is above a certain threshold.
 
-### TestRandomWriteIOPS and TestSequentialWriteIOPS
+#### TestRandomWriteIOPS and TestSequentialWriteIOPS
 Checks random and sequential file write performance on a disk and compares it to an expected IOPS value
 (in a future change, this will be compared to a documented IOPS value).
 
@@ -279,7 +279,7 @@ the rate we expect for both random writes and throughput.
 
 ### Test suite: hotattach
 
-### TestFileHotAttach
+#### TestFileHotAttach
 Validate that hot attach disks work: a file can be written to the disk, the disk can be detached and
 reattached, and the file can still be read.
 
