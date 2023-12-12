@@ -15,8 +15,8 @@ Tests are broken down by suite below:
 
 ### Test suite: cvm
 
-#### TestSEVEnabled
-Validate that CVM is enabled.
+#### TestSEVEnabled/TestSEVSNPEnabled/TestTDXEnabled
+Validate that an instance can boot with the specified confidential instance type and load its guest kernel module.
 
 ### Test suite: disk
 

@@ -1,4 +1,12 @@
-# Test Setup
+# Overview
+Having a separate test organization set up for this test suite is highly recommended.
+This is because having a separate test org:
+1. Provides a clean environment. You may have policies set in your current organization that
+could affect the test results.
+2. Allows for easy creation of the test users, the setup for which is specified later in this document.
+Otherwise, users would have to create their own by other means.
+
+## Test Setup
 This test uses multiple secrets to store the test users that it uses in order to run the test.
 These secrets are as follows:
 
@@ -18,7 +26,7 @@ Each of these test users should have permissions set up according to the
 [OSLogin setup](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#configure_users) page.
 Note that the admin users should have the `roles/compute.osAdminLogin` permission.
 
-# User Setup
+## User Setup
 In order to set up each of the users for the test, their OSLogin profiles must be set up with a
 permanent public SSH key. This can be accomplished by performing the following:
 1. [Create a VM with OSLogin enabled](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#enable_os_login_during_vm_creation).
@@ -34,3 +42,14 @@ For example, you can add the private SSH Key for `normal-user` by calling the fo
 gcloud secrets create normal-user-ssh-key --data-file=/path/to/keyfile
 ```
 6. Repeat steps 2-5 for each of the test users.
+
+### Two-factor Authentication
+As the test requires the 2FA secrets, when setting up the 2FA users, it is important that you acquire the secret before
+completing the 2FA setup. The steps are as follows:
+
+1. While logged in as the user, visit the [Security](https://myaccount.google.com/security) page.
+2. Set up Google Authenticator.
+3. Scan the barcode, but ***do not hit the next button***.
+4. Click the linked text saying that you can't scan the barcode, which reveals your 2FA secret.
+Save this secret into the appropriate secret in GCP's Secret Manager.
+5. Finish the 2FA setup.
