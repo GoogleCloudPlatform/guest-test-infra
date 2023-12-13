@@ -32,7 +32,54 @@ new space.
 disk and reboot the VM via the API. Wait for the VM to boot again, and validate
 the new size as reported by the operating system matches the expected size.
 
-### Test suite: image\_boot
+## Test suite: hostnamevalidation ##
+
+Tests which verify that the metadata hostname is created and works with the DNS record.
+
+#### TestHostname
+Test that the system hostname is correctly set.
+
+- <b>Background</b>: The hostname is one of many pieces of 'dynamic' configuration that supported
+GCE Images will set for you. This is compared to the
+'static' configuration which is present on the image to be tested. Dynamic
+configuration allows a single GCE Image to be used on many VMs without
+pre-modification.
+
+- <b>Test logic</b>: Retrieve the intended FQDN from metadata (which is authoritative) and
+compare the hostname part of it (first label) to the currently set hostname as
+returned by the kernel.
+
+#### TestFQDN
+Test that the fully-qualified domain name is correctly set.
+
+- <b>Background</b>: The FQDN is a complicated concept in Linux operating systems, and setting it in
+an incorrect way can lead to unexpected behavior in some software.
+
+- <b>Test logic</b>: Retrieve the intended FQDN from metadata and compare the full value to the
+output of `/bin/hostname -f`. See `man 1 hostname` for more details.
+
+#### TestCustomHostname
+Test that custom domain names are correctly set.
+
+- <b>Background</b>: The domain name for a VM matches the configured internal GCE DNS setting (https://cloud.google.com/compute/docs/internal-dns). By default, this is the VM name. However, if you
+specify a custom domain name at instance creation time, this will be used instead.
+
+- <b>Test logic</b>: Launch a VM with a custom domain name. Validate the domain name as with TestFQDN.
+
+#### TestHostKeysGeneratedOnce
+Validate that SSH host keys are only generated once per instance.
+
+- <b>Background</b>: The Google guest agent will generate new SSH hostkeys on the first boot of an
+instance. This is a dynamic configuration to enable GCE Images to be used on
+many instances, as multiple instances sharing host keys or having predictable
+host keys is a security risk. However, the host keys should remain constant for
+the lifetime of an instance, as changing them after the first generation may
+prevent new SSH connections.
+
+- <b>Test logic</b>: Launch a VM and confirm the guest agent generates unique host keys on startup.
+Restart the guest agent and confirm the host keys are not changed.
+
+### Test suite: imageboot
 
 #### TestGuestBoot
 Test that the VM can boot.
@@ -82,19 +129,9 @@ VM after 2 minutes. After the VM finishes shutdown, start the VM and inspect the
 last value written to the file. It should be >110 to represent approximately 2
 minute shutdown time.
 
-### Test suite: image\_validation
+### Test suite: licensevalidation ###
 
-#### TestNTPService
-Test that a time synchronization package is installed and properly configured.
-
-- <b>Background</b>: Linux operating systems require a time synchronization sofware to be running to
-correct any drift in the system clock. Correct clock time is required for a wide
-variety of applications, and virtual machines are particularly prone to clock
-drift.
-
-- <b>Test logic</b>: Validate that an appropriate time synchronization package is installed using the
-system package manager, and read its configuration file to verify that it is
-configured to check the Google-provided time server.
+A suite which tests that linux licensing and windows activation are working successfully.
 
 #### TestArePackagesLegal
 Test that all installed packages are licensed for 'open source' use.
@@ -109,24 +146,6 @@ for distribution.
 package, checking for known license names or identifying strings. Fail if any
 license is found which is not in the known-good list.
 
-#### TestStandardPrograms
-Validate that Google-provided programs are present.
-
-- <b>Background</b>: Google-provided Linux OS images come with certain Google utilities such as
-`gsutil` and `gcloud` preinstalled as a convenience.
-
-- <b>Test logic</b>: Attempt to invoke the utilities, confirming they are present, found in the PATH,
-and executable.
-
-#### TestGuestPackages
-Validate that the Google guest environment packages are installed
-
-- <b>Background</b>: Google-provided Linux OS images come with the Google guest environment
-preinstalled. The guest environment enables many GCE features to function.
-
-- <b>Test logic</b>: Validate that the guest environment packages are installed using the system
-package manager.
-
 #### TestLinuxLicense
 Validate the image has the appropriate license attached
 
@@ -137,49 +156,6 @@ the appropriate license.
 
 - <b>Test logic</b>: Connect to the metadata server from the VM and confirm the license available in
 metadata matches the expected value.
-
-#### TestHostname
-Test that the system hostname is correctly set.
-
-- <b>Background</b>: The hostname is one of many pieces of 'dynamic' configuration that supported
-GCE Images will set for you. This is compared to the
-'static' configuration which is present on the image to be tested. Dynamic
-configuration allows a single GCE Image to be used on many VMs without
-pre-modification.
-
-- <b>Test logic</b>: Retrieve the intended FQDN from metadata (which is authoritative) and
-compare the hostname part of it (first label) to the currently set hostname as
-returned by the kernel.
-
-#### TestFQDN
-Test that the fully-qualified domain name is correctly set.
-
-- <b>Background</b>: The FQDN is a complicated concept in Linux operating systems, and setting it in
-an incorrect way can lead to unexpected behavior in some software.
-
-- <b>Test logic</b>: Retrieve the intended FQDN from metadata and compare the full value to the
-output of `/bin/hostname -A`. See `man 1 hostname` for more details.
-
-#### TestCustomHostname
-Test that custom hostnames are correctly set.
-
-- <b>Background</b>: The hostname for a VM matches the name of the VM by default. However, if you
-specify a custom hostname at instance creation time, this will be used instead.
-
-- <b>Test logic</b>: Launch a VM with a custom hostname. Validate the hostname as with TestFQDN.
-
-#### TestHostKeysGeneratedOnce
-Validate that SSH host keys are only generated once per instance.
-
-- <b>Background</b>: The Google guest agent will generate new SSH hostkeys on the first boot of an
-instance. This is a dynamic configuration to enable GCE Images to be used on
-many instances, as multiple instances sharing host keys or having predictable
-host keys is a security risk. However, the host keys should remain constant for
-the lifetime of an instance, as changing them after the first generation may
-prevent new SSH connections.
-
-- <b>Test logic</b>: Launch a VM and confirm the guest agent generates unique host keys on startup.
-Restart the guest agent and confirm the host keys are not changed.
 
 ### Test suite: network
 
@@ -218,6 +194,38 @@ features such as the ability to authenticate users using 2FA, security keys, or 
 - <b>Test logic</b>: Launch a client VM and two server VMs. Each of the server VMs will perform a check to
 make sure the guest agent responds correctly to OSLogin metadata changes, and the client VM will use
 test users to SSH to each of the server VMs. The methods covered by this test are normal SSH and 2FA SSH.
+
+### Test suite: packagevalidation
+
+#### TestNTPService
+Test that a time synchronization package is installed and properly configured.
+
+- <b>Background</b>: Linux operating systems require a time synchronization sofware to be running to
+correct any drift in the system clock. Correct clock time is required for a wide
+variety of applications, and virtual machines are particularly prone to clock
+drift.
+
+- <b>Test logic</b>: Validate that an appropriate time synchronization package is installed using the
+system package manager, and read its configuration file to verify that it is
+configured to check the Google-provided time server.
+
+#### TestStandardPrograms
+Validate that Google-provided programs are present.
+
+- <b>Background</b>: Google-provided Linux OS images come with certain Google utilities such as
+`gsutil` and `gcloud` preinstalled as a convenience.
+
+- <b>Test logic</b>: Attempt to invoke the utilities, confirming they are present, found in the PATH,
+and executable.
+
+#### TestGuestPackages
+Validate that the Google guest environment packages are installed
+
+- <b>Background</b>: Google-provided Linux OS images come with the Google guest environment
+preinstalled. The guest environment enables many GCE features to function.
+
+- <b>Test logic</b>: Validate that the guest environment packages are installed using the system
+package manager.
 
 ### Test suite: security
 
@@ -282,9 +290,3 @@ the rate we expect for both random writes and throughput.
 #### TestFileHotAttach
 Validate that hot attach disks work: a file can be written to the disk, the disk can be detached and
 reattached, and the file can still be read.
-
-- <b>Background</b>: On windows and linux instances, we want to verify that we can add and remove additional
-disks. The hot attach functionality can be used to verify that disk memory is not lost after attach and detach operations.
-
-- <b>Test Logic</b>: The test writes a file to the disk, and then detaches and reattaches the disk.
-The test then verifies that the file can be read from. 
