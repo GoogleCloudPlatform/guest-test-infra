@@ -61,7 +61,7 @@ output of `/bin/hostname -f`. See `man 1 hostname` for more details.
 #### TestCustomHostname
 Test that custom domain names are correctly set.
 
-- <b>Background</b>: The domain name for a VM matches the name of the VM by default. However, if you
+- <b>Background</b>: The domain name for a VM matches the configured internal GCE DNS setting (https://cloud.google.com/compute/docs/internal-dns). By default, this is the VM name. However, if you
 specify a custom domain name at instance creation time, this will be used instead.
 
 - <b>Test logic</b>: Launch a VM with a custom domain name. Validate the domain name as with TestFQDN.
