@@ -56,15 +56,15 @@ Test that the fully-qualified domain name is correctly set.
 an incorrect way can lead to unexpected behavior in some software.
 
 - <b>Test logic</b>: Retrieve the intended FQDN from metadata and compare the full value to the
-output of `/bin/hostname -A`. See `man 1 hostname` for more details.
+output of `/bin/hostname -f`. See `man 1 hostname` for more details.
 
 #### TestCustomHostname
-Test that custom hostnames are correctly set.
+Test that custom domain names are correctly set.
 
-- <b>Background</b>: The hostname for a VM matches the name of the VM by default. However, if you
-specify a custom hostname at instance creation time, this will be used instead.
+- <b>Background</b>: The domain name for a VM matches the name of the VM by default. However, if you
+specify a custom domain name at instance creation time, this will be used instead.
 
-- <b>Test logic</b>: Launch a VM with a custom hostname. Validate the hostname as with TestFQDN.
+- <b>Test logic</b>: Launch a VM with a custom domain name. Validate the domain name as with TestFQDN.
 
 #### TestHostKeysGeneratedOnce
 Validate that SSH host keys are only generated once per instance.
