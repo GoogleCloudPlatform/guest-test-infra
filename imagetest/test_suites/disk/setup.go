@@ -48,7 +48,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestDiskReadWrite|TestDiskResize")
 	// Block device naming is an interaction between OS and hardware alone on windows, there is no guest-environment equivalent of udev rules for us to test.
-	if !utils.HasFeature(t.Image, "WINDOWS") {
+	if !utils.HasFeature(t.Image, "WINDOWS") && utils.HasFeature(t.Image, "GVNIC") {
 		for _, tc := range blockdevNamingCases {
 			if tc.arch != t.Image.Architecture {
 				continue
