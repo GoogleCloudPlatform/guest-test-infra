@@ -112,11 +112,6 @@ func TestGuestPackages(t *testing.T) {
 
 	missingPkgs := findUniq(requiredPkgs, installedPkgs)
 	for _, pkg := range missingPkgs {
-		// Accept google-cloud-sdk as a replacement for google-cloud-cli during migration
-		if pkg == "google-cloud-cli" && slices.Contains(installedPkgs, "google-cloud-sdk") {
-			t.Logf("found image with google-cloud-sdk, migrate to google-cloud-cli")
-			continue
-		}
 		t.Errorf("Required package not installed: %s\n", pkg)
 	}
 
