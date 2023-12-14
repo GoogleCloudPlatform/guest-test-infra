@@ -133,19 +133,6 @@ minute shutdown time.
 
 A suite which tests that linux licensing and windows activation are working successfully.
 
-#### TestArePackagesLegal
-Test that all installed packages are licensed for 'open source' use.
-
-- <b>Background</b>: The contents of GCE Images representing Linux distributions consist of hundreds
-or thousands of software components that have not been created by Google or by
-the OS vendor. In order to provide software written by other people, all the
-software must be appropriately licensed in order to grant Google the legal right
-for distribution.
-
-- <b>Test logic</b>: Look at the 'LICENSE' or 'copyright' files provided by every installed system
-package, checking for known license names or identifying strings. Fail if any
-license is found which is not in the known-good list.
-
 #### TestLinuxLicense
 Validate the image has the appropriate license attached
 
