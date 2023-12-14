@@ -12,7 +12,10 @@
 package guestagent
 
 import (
+	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -31,5 +34,14 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	telemetryenabled.RunTests("TestTelemetryEnabled") // Enabled by default
+	if utils.HasFeature(t.Image, "WINDOWS") {
+		passwordInst := &daisy.Instance{}
+		passwordInst.Scopes = append(passwordInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		windowsaccountVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "windowsaccount"}}, passwordInst)
+		if err != nil {
+			return err
+		}
+		windowsaccountVM.RunTests("TestWindowsPasswordReset")
+	}
 	return nil
 }
