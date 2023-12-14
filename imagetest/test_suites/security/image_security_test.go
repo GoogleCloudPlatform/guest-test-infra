@@ -268,10 +268,11 @@ func verifyServiceEnabled(image string) error {
 }
 
 func verifyAutomaticUpdate(image string) error {
-	automaticUpdateConfig, err := readAPTConfig(image)
+	output, err := exec.Command("apt-config", "dump").Output()
 	if err != nil {
 		return err
 	}
+	automaticUpdateConfig := string(output)
 	switch {
 	case strings.Contains(image, "debian-9"):
 		if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Enable "1";`) {
@@ -304,25 +305,6 @@ func verifyAutomaticUpdate(image string) error {
 		return fmt.Errorf(`"APT::Periodic::Unattended" is not set to 1`)
 	}
 	return nil
-}
-
-func readAPTConfig(image string) (string, error) {
-	var configPaths []string
-	var b []byte
-	configPaths = append(configPaths, "/etc/apt/apt.conf.d/20auto-upgrades")
-	if strings.Contains(image, "debian-9") {
-		configPaths = append(configPaths, "/etc/apt/apt.conf.d/02periodic")
-	} else if strings.Contains(image, "ubuntu") {
-		configPaths = append(configPaths, "/etc/apt/apt.conf.d/10periodic")
-	}
-	for _, path := range configPaths {
-		newByte, err := ioutil.ReadFile(path)
-		if err != nil {
-			return "", err
-		}
-		b = append(b, newByte...)
-	}
-	return string(b), nil
 }
 
 // sysctlGet returns a sysctl from a given key.
