@@ -145,7 +145,7 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error getting instance metadata: instance %s, zone %s, project %s, err %v", instanceName, zone, projectId, err)
 	}
-	fmt.Println("Generating public/private key pair")
+	t.Log("Generating public/private key pair")
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return "", err
@@ -175,13 +175,12 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 		md.Items = append(md.Items, &compute.MetadataItems{Key: "windows-keys", Value: &winKeys})
 	}
 
-	fmt.Println("Setting new 'windows-keys' metadata")
 	if err := client.SetInstanceMetadata(projectId, zone, instanceName, md); err != nil {
 		return "", err
 	}
-	t.Logf("Setting new 'windows-keys' metadata to %s", winKeys)
+	t.Logf("Set new 'windows-keys' metadata to %s", winKeys)
 
-	fmt.Println("Fetching encrypted password")
+	t.Log("Fetching encrypted password")
 	var trys int
 	var ep string
 	for {
@@ -196,7 +195,7 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 		trys++
 	}
 
-	fmt.Println("Decrypting password")
+	t.Log("Decrypting password")
 	return decryptPassword(key, ep)
 }
 
@@ -217,22 +216,27 @@ func verifyPowershellCmd(t *testing.T, cmd string) string {
 }
 
 func TestWindowsPasswordReset(t *testing.T) {
+	utils.WindowsOnly(t)
+	initpwd := "gyug3q445m0!"
+	createUserCmd := fmt.Sprintf("net user %s %s /add", user, initpwd)
+	verifyPowershellCmd(createUserCmd)
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
 		t.Fatalf("Error creating compute service: %v", err)
 	}
 
-	fmt.Printf("Resetting password on current instance for user %q\n", user)
+	t.Logf("Resetting password on current instance for user %q\n", user)
 	decryptedPassword, err := resetPassword(client, t)
 	if err != nil {
 		t.Fatalf("reset password failed: error %v", err)
 	}
-	fmt.Printf("- Username: %s\n- Password: %s\n", user, decryptedPassword)
+	t.Logf("- Username: %s\n- Password: %s\n", user, decryptedPassword)
 	// wait for guest agent to update, since it can take up to a minute
 	time.Sleep(time.Minute)
 	getUsersCmd := "Get-CIMInstance Win32_UserAccount | ForEach-Object { Write-Output $_.Name}"
 	userList := verifyPowershellCmd(t, getUsersCmd)
+	t.Logf("expected user %s in userlist %s", user, userList)
 	if !strings.Contains(userList, user) {
 		t.Fatalf("user %s not found in userlist: %s", user, userList)
 	}
