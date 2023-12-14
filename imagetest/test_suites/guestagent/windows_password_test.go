@@ -210,8 +210,24 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	return decryptPassword(key, ep)
 }
 
+// Verifies that a powershell command ran with no errors and exited with an exit code of 0.
+// If a username or password was invalid, this should result in a testing error.
+// Returns the standard output in case it needs to be used later.
+func verifyPowershellCmd(t *testing.T, cmd string) string {
+	procStatus, err := utils.RunPowershellCmd(cmd)
+	if err != nil {
+		t.Fatalf("cmd %s failed: stdout %s, stderr %v, error %v", cmd, procStatus.Stdout, procStatus.Stderr, err)
+	}
+
+	stdout := procStatus.Stdout
+	if procStatus.Exitcode != 0 {
+		t.Fatalf("cmd %s failed with exitcode %d, stdout %s and stderr %s", cmd, procStatus.Exitcode, stdout, procStatus.Stderr)
+	}
+	return stdout
+}
+
 func TestWindowsPasswordReset(t *testing.T) {
-	createNewWindowsUser()
+	//createNewWindowsUser()
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
@@ -219,9 +235,17 @@ func TestWindowsPasswordReset(t *testing.T) {
 	}
 
 	fmt.Printf("Resetting password on current instance for user %q\n", user)
-	pw, err := resetPassword(client, t)
+	decryptedPassword, err := resetPassword(client, t)
 	if err != nil {
 		t.Fatalf("reset password failed: error %v", err)
 	}
-	fmt.Printf("- Username: %s\n- Password: %s\n", user, pw)
+	fmt.Printf("- Username: %s\n- Password: %s\n", user, decryptedPassword)
+	getUsersCmd := "Get-CIMInstance Win32_UserAccount | ForEach-Object { Write-Output $_.Name}"
+	userList := verifyPowershellCmd(t, getUsersCmd)
+	if !strings.Contains(userList, user) {
+		t.Fatalf("user %s not found in userlist: %s", user, userList)
+	}
+	verificationCmd := fmt.Sprintf("Start-Process -Credential (New-Object System.Management.Automation.PSCredential(\"%s\", (\"%s\" | ConvertTo-SecureString -AsPlainText -Force))) -WorkingDirectory C:\\Windows\\System32 -FilePath cmd.exe", user, decryptedPassword)
+	verifyCredentialOutput := verifyPowershellCmd(t, verificationCmd)
+	t.Logf("verifying credentials set by agent output: %s", verifyCredentialOutput)
 }
