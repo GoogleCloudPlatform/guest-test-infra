@@ -294,7 +294,7 @@ func verifyAutomaticUpdate(image string) error {
 			return err
 		}
 		if interval > maxInterval || interval < minInterval {
-			return fmt.Errorf("autoclean interval is invalid or an unexpected length")
+			return fmt.Errorf("autoclean interval is %d, want greater or equal to %d and less or equal to %d", interval, minInterval, maxInterval)
 		}
 	}
 	if !strings.Contains(automaticUpdateConfig, `APT::Periodic::Update-Package-Lists "1";`) {
