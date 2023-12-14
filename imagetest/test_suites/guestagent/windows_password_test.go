@@ -33,7 +33,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-const user = "windowstester5"
+const user = "windowsuser5"
 
 type windowsKeyJSON struct {
 	ExpireOn string
@@ -42,6 +42,7 @@ type windowsKeyJSON struct {
 	UserName string
 }
 
+// unlike utils.GetMetadata(), this gets the full metadata object for the instance rather than the metadata stored at a single url path
 func getInstanceMetadata(client daisyCompute.Client, instance, zone, project string) (*compute.Metadata, error) {
 	ins, err := client.GetInstance(project, zone, instance)
 	if err != nil {
@@ -135,17 +136,6 @@ func decryptPassword(priv *rsa.PrivateKey, ep string) (string, error) {
 	return string(pwd), nil
 }
 
-func createNewWindowsUser() {
-	username := "windowsuser5"
-	password := "gyug3q445m0!"
-
-	createUserCmd := fmt.Sprintf("net user %s %s /add", username, password)
-	verificationCmd := fmt.Sprintf("Start-Process -Credential (New-Object System.Management.Automation.PSCredential(\"%s\", (\"%s\" | ConvertTo-SecureString -AsPlainText -Force))) -WorkingDirectory C:\\Windows\\System32 -FilePath cmd.exe", username, password)
-
-	utils.RunPowershellCmd(createUserCmd)
-	utils.RunPowershellCmd(verificationCmd)
-}
-
 func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	instanceName, zone, projectId, err := getProjectZoneAndInstanceName()
 	if err != nil {
@@ -227,7 +217,6 @@ func verifyPowershellCmd(t *testing.T, cmd string) string {
 }
 
 func TestWindowsPasswordReset(t *testing.T) {
-	//createNewWindowsUser()
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
@@ -246,6 +235,6 @@ func TestWindowsPasswordReset(t *testing.T) {
 		t.Fatalf("user %s not found in userlist: %s", user, userList)
 	}
 	verificationCmd := fmt.Sprintf("Start-Process -Credential (New-Object System.Management.Automation.PSCredential(\"%s\", (\"%s\" | ConvertTo-SecureString -AsPlainText -Force))) -WorkingDirectory C:\\Windows\\System32 -FilePath cmd.exe", user, decryptedPassword)
-	verifyCredentialOutput := verifyPowershellCmd(t, verificationCmd)
-	t.Logf("verifying credentials set by agent output: %s", verifyCredentialOutput)
+	// The process "Credential" in powershell does not print anything on success
+	verifyPowershellCmd(t, verificationCmd)
 }
