@@ -229,6 +229,8 @@ func TestWindowsPasswordReset(t *testing.T) {
 		t.Fatalf("reset password failed: error %v", err)
 	}
 	fmt.Printf("- Username: %s\n- Password: %s\n", user, decryptedPassword)
+	// wait for guest agent to update, since it can take up to a minute
+	time.Sleep(time.Minute)
 	getUsersCmd := "Get-CIMInstance Win32_UserAccount | ForEach-Object { Write-Output $_.Name}"
 	userList := verifyPowershellCmd(t, getUsersCmd)
 	if !strings.Contains(userList, user) {
