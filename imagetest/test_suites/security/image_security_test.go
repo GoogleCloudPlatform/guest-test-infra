@@ -95,6 +95,8 @@ func TestAutomaticUpdates(t *testing.T) {
 		if err := verifyAutomaticUpdate(image); err != nil {
 			t.Fatal(err)
 		}
+	case strings.Contains(image, "suse"):
+		t.Skip("Not supported on SUSE")
 	case strings.Contains(image, "sles"):
 		t.Skip("Not supported on SLES")
 	case strings.Contains(image, "fedora"):
@@ -127,17 +129,8 @@ func TestPasswordSecurity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
-	if strings.Contains(image, "sles") {
-		// SLES ships with "PermitRootLogin yes" in SSHD config.
-		t.Skip("Not supported on SLES")
-	}
-	if strings.Contains(image, "ubuntu") {
-		// Ubuntu doesn't set this option, but Ubuntu sshd defaults to prohibit-password
-		// TODO: find a way to determine the default so we can support 'not set' generally.
-		return
-	}
 
-	if err := verifySSHConfig(); err != nil {
+	if err := verifySSHConfig(image); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,29 +187,24 @@ func verifyPassword(ctx context.Context) error {
 	return nil
 }
 
-func verifySSHConfig() error {
-	fileBytes, err := ioutil.ReadFile("/etc/ssh/sshd_config")
+func verifySSHConfig(image string) error {
+	sshdConfig, err := exec.Command("sshd", "-T").Output()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get effective sshd config (failed to run sshd -T): %s", err)
 	}
-	sshdlines := strings.Split(string(fileBytes), "\n")
-	var noComments []string
-	for _, line := range sshdlines {
-		if !strings.HasPrefix(strings.TrimLeft(line, " "), "#") {
-			noComments = append(noComments, line)
-		}
+	// Effective configuration keys are all lowercase
+	passwordauthsetting := strings.TrimSuffix(string(regexp.MustCompile(`passwordauthentication[ \t]+[a-zA-Z]+\n`).Find(sshdConfig)), "\n")
+	if passwordauthsetting != "passwordauthentication no" {
+		return fmt.Errorf("sshd passwordauthentication setting is %q, want %q", passwordauthsetting, "passwordauthencation no")
 	}
-	sshdConfig := strings.Join(noComments, "\n")
-
-	if !strings.Contains(sshdConfig, "PasswordAuthentication no") {
-		return fmt.Errorf("\"PasswordAuthentication\" was not set to \"no\"")
+	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		// SLES ships with "PermitRootLogin yes" in SSHD config.
+		return nil
 	}
 
-	noRootSSH := strings.Contains(sshdConfig, "PermitRootLogin no")
-	noRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin without-password")
-	prohibitRootPasswordSSH := strings.Contains(sshdConfig, "PermitRootLogin prohibit-password")
-	if !noRootSSH && !noRootPasswordSSH && !prohibitRootPasswordSSH {
-		return fmt.Errorf("\"PermitRootLogin\" was not set to \"no\", \"without-password\", or \"prohibit-password\"")
+	permitrootloginsetting := strings.TrimSuffix(string(regexp.MustCompile(`permitrootlogin[ \t]+[a-zA-Z\-]+\n`).Find(sshdConfig)), "\n")
+	if permitrootloginsetting != "permitrootlogin no" && permitrootloginsetting != "permitrootlogin prohibit-password" && permitrootloginsetting != "permitrootlogin without-password" {
+		return fmt.Errorf("sshd permitrootlogin setting is %q, want %q, %q, or %q", permitrootloginsetting, "permitrootlogin no", "permitrootlogin prohibit-password", "permitrootlogin without-password")
 	}
 	return nil
 }
