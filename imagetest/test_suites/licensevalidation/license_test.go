@@ -39,6 +39,9 @@ var licenseNames = []string{
 	"ISC",
 	"JPEG",
 	"LGPL",
+	"LGPL-2.1+",
+	"LGPL-2+",
+	"LGPL",
 	"MIT",
 	"MIT license",
 	"MIT/X11 (BSD like)",
@@ -131,7 +134,7 @@ var licenses = []string{
 	`DO WHAT THE HELL YOU WANT TO`, // Yes, this is a real license.
 	`arping: GPL v2 or later`,      // iputils has a license summary file
 	`PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2`,
-	`This is the Python license. In short, you can use this product in commercial and non-commercial applications`,
+	`This is the Python license.`,
 	`This software is licensed under the same terms as Perl5 itself`,
 	`Mozilla Public License`,
 }
