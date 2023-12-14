@@ -219,7 +219,7 @@ func TestWindowsPasswordReset(t *testing.T) {
 	utils.WindowsOnly(t)
 	initpwd := "gyug3q445m0!"
 	createUserCmd := fmt.Sprintf("net user %s %s /add", user, initpwd)
-	verifyPowershellCmd(createUserCmd)
+	verifyPowershellCmd(t, createUserCmd)
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
