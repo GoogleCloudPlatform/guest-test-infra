@@ -72,35 +72,8 @@ type credsJSON struct {
 	Modulus           string `json:"modulus,omitempty"`
 }
 
-// gets the instance name, zone, and project id name as strings
-func getProjectZoneAndInstanceName() (string, string, string, error) {
-	var fqdnString string
-	if runtime.GOOS == "windows" {
-		procStatus, err := utils.RunPowershellCmd("Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri \"http://metadata.google.internal/computeMetadata/v1/instance/hostname\"")
-		if err != nil {
-			return "", "", "", fmt.Errorf("failed to get project, zone, or instance on windows: %v", err)
-		}
-		fqdnString = strings.TrimSpace(procStatus.Stdout)
-	} else {
-		fqdnBytes, err := exec.Command("curl", "http://metadata.google.internal/computeMetadata/v1/instance/hostname", "-H", "Metadata-Flavor: Google").Output()
-		fqdnString = strings.TrimSpace(string(fqdnBytes))
-		if err != nil {
-			return "", "", "", fmt.Errorf("failed to get project or zone on linux: %v", err)
-		}
-	}
-	// See the docs for the FQDN: https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names
-	// the returned string should be in the format VM_NAME.ZONE.c.PROJECT_ID.internal
-	fqdnTokens := strings.Split(string(fqdnString), ".")
-	if len(fqdnTokens) != 5 || strings.ToLower(fqdnTokens[4]) != "internal" || strings.ToLower(fqdnTokens[2]) != "c" {
-		return "", "", "", fmt.Errorf("returned string for vm metata was the wrong format: got %s", fqdnString)
-	}
-
-	// return format is (projectNumber, instanceZone, nil)
-	return fqdnTokens[0], fqdnTokens[1], fqdnTokens[3], nil
-}
-
 func getEncryptedPassword(client daisyCompute.Client, mod string) (string, error) {
-	instanceName, zone, projectId, err := getProjectZoneAndInstanceName()
+	instanceName, zone, projectId, err := utils.GetInstanceZoneProject()
 	if err != nil {
 		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
 	}

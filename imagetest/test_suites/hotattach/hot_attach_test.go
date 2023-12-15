@@ -215,28 +215,23 @@ func TestFileHotAttach(t *testing.T) {
 			t.Fatalf("unmount failed on linux: %v", err)
 		}
 	}
-	instName, err := exec.Command("hostname").Output()
+	instName, instanceZone, projectNumber, err := utils.GetInstanceZoneProject()
 	if err != nil {
-		t.Fatalf("failed to get hostname: %v %v", instName, err)
+		t.Fatalf("failed to get instance, zone, or project details: error %v", err)
 	}
 
-	projectNumber, instanceZone, err := getProjectAndZone()
-	if err != nil {
-		t.Fatalf("failed to get metadata for project or zone: %v", err)
-	}
-	instNameString, _, _ := strings.Cut(strings.TrimSpace(string(instName)), ".")
 	ctx := context.Background()
-	mountDiskResource, err := waitGetMountDisk(ctx, projectNumber, instNameString, instanceZone)
+	mountDiskResource, err := waitGetMountDisk(ctx, projectNumber, instName, instanceZone)
 	if err != nil {
 		t.Fatalf("get mount disk fail: %v", err)
 	}
 
 	diskDeviceName := mountDiskResource.DeviceName
-	if err = waitDetachDiskComplete(ctx, *diskDeviceName, projectNumber, instNameString, instanceZone); err != nil {
+	if err = waitDetachDiskComplete(ctx, *diskDeviceName, projectNumber, instName, instanceZone); err != nil {
 		t.Fatalf("detach disk fail: %v", err)
 	}
 
-	if err = waitAttachDiskComplete(ctx, mountDiskResource, projectNumber, instNameString, instanceZone); err != nil {
+	if err = waitAttachDiskComplete(ctx, mountDiskResource, projectNumber, instName, instanceZone); err != nil {
 		t.Fatalf("detach disk fail: %v", err)
 	}
 
