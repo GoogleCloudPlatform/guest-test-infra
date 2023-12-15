@@ -203,7 +203,7 @@ func GetProjectZone(ctx context.Context) (string, string, error) {
 func GetInstanceZoneProject() (string, string, string, error) {
 	var fqdnString string
 	if runtime.GOOS == "windows" {
-		procStatus, err := utils.RunPowershellCmd("Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri \"http://metadata.google.internal/computeMetadata/v1/instance/hostname\"")
+		procStatus, err := RunPowershellCmd("Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri \"http://metadata.google.internal/computeMetadata/v1/instance/hostname\"")
 		if err != nil {
 			return "", "", "", fmt.Errorf("failed to get project, zone, or instance on windows: %v", err)
 		}

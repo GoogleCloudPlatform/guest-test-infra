@@ -22,8 +22,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"os/exec"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -110,7 +108,7 @@ func decryptPassword(priv *rsa.PrivateKey, ep string) (string, error) {
 }
 
 func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
-	instanceName, zone, projectId, err := getProjectZoneAndInstanceName()
+	instanceName, zone, projectId, err := utils.GetInstanceZoneProject()
 	if err != nil {
 		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
 	}
