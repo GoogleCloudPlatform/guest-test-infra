@@ -13,6 +13,22 @@ Tests are broken down by suite below:
 
 ## Test Suites
 
+### Test suite: shapevalidation
+
+Test that a VM can boot and access the virtual hardware of the large machine shape in a VM family.
+
+#### Test`$FAMILY`Mem
+
+Test that the available system memory is at least the expected amount of memory for this VM shape.
+
+#### Test`$FAMILY`Cpu
+
+Test the the number of active processors is equal to the number of processors expected for this VM shape.
+
+#### Test`$FAMILY`Numa
+
+Test the the number of active numa nodes is equal to the number of processors expected for this VM shape.
+
 ### Test suite: cvm
 
 #### TestSEVEnabled/TestSEVSNPEnabled/TestTDXEnabled
