@@ -71,13 +71,13 @@ type credsJSON struct {
 }
 
 func getEncryptedPassword(client daisyCompute.Client, mod string) (string, error) {
-	instanceName, zone, projectId, err := utils.GetInstanceZoneProject()
+	instanceName, zone, projectID, err := utils.GetInstanceZoneProject()
 	if err != nil {
 		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
 	}
-	out, err := client.GetSerialPortOutput(projectId, zone, instanceName, 4, 0)
+	out, err := client.GetSerialPortOutput(projectID, zone, instanceName, 4, 0)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not get serial output: err %v", err)
 	}
 
 	for _, line := range strings.Split(out.Contents, "\n") {
@@ -108,13 +108,13 @@ func decryptPassword(priv *rsa.PrivateKey, ep string) (string, error) {
 }
 
 func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
-	instanceName, zone, projectId, err := utils.GetInstanceZoneProject()
+	instanceName, zone, projectID, err := utils.GetInstanceZoneProject()
 	if err != nil {
 		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
 	}
-	md, err := getInstanceMetadata(client, instanceName, zone, projectId)
+	md, err := getInstanceMetadata(client, instanceName, zone, projectID)
 	if err != nil {
-		return "", fmt.Errorf("error getting instance metadata: instance %s, zone %s, project %s, err %v", instanceName, zone, projectId, err)
+		return "", fmt.Errorf("error getting instance metadata: instance %s, zone %s, project %s, err %v", instanceName, zone, projectID, err)
 	}
 	t.Log("Generating public/private key pair")
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -146,7 +146,7 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 		md.Items = append(md.Items, &compute.MetadataItems{Key: "windows-keys", Value: &winKeys})
 	}
 
-	if err := client.SetInstanceMetadata(projectId, zone, instanceName, md); err != nil {
+	if err := client.SetInstanceMetadata(projectID, zone, instanceName, md); err != nil {
 		return "", err
 	}
 	t.Logf("Set new 'windows-keys' metadata to %s", winKeys)
