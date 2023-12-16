@@ -199,31 +199,12 @@ func GetProjectZone(ctx context.Context) (string, string, error) {
 	return project, zone, nil
 }
 
-// GetInstanceZoneProject gets the instance name, zone, and project id strings
-func GetInstanceZoneProject() (string, string, string, error) {
-	var fqdnString string
-	if runtime.GOOS == "windows" {
-		procStatus, err := RunPowershellCmd("Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri \"http://metadata.google.internal/computeMetadata/v1/instance/hostname\"")
-		if err != nil {
-			return "", "", "", fmt.Errorf("failed to get project, zone, or instance on windows: %v", err)
-		}
-		fqdnString = strings.TrimSpace(procStatus.Stdout)
-	} else {
-		fqdnBytes, err := exec.Command("curl", "http://metadata.google.internal/computeMetadata/v1/instance/hostname", "-H", "Metadata-Flavor: Google").Output()
-		fqdnString = strings.TrimSpace(string(fqdnBytes))
-		if err != nil {
-			return "", "", "", fmt.Errorf("failed to get project or zone on linux: %v", err)
-		}
+func GetInstanceName(ctx context.Context) (string, error) {
+	name, err := GetMetadata(ctx, "instance", "name")
+	if err != nil {
+		return "", fmt.Errorf("failed to get instance name: %v", err)
 	}
-	// See the docs for the FQDN: https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names
-	// the returned string should be in the format VM_NAME.ZONE.c.PROJECT_ID.internal
-	fqdnTokens := strings.Split(string(fqdnString), ".")
-	if len(fqdnTokens) != 5 || strings.ToLower(fqdnTokens[4]) != "internal" || strings.ToLower(fqdnTokens[2]) != "c" {
-		return "", "", "", fmt.Errorf("returned string for vm metata was the wrong format: got %s", fqdnString)
-	}
-
-	// return format is (instanceName, instanceZone, projectId, nil)
-	return fqdnTokens[0], fqdnTokens[1], fqdnTokens[3], nil
+	return name, nil
 }
 
 // AccessSecret accesses the given secret.

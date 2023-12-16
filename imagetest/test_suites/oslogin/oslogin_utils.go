@@ -55,15 +55,6 @@ func getPosixSplit(r rune) bool {
 	return r == '.' || r == '@' || r == '-'
 }
 
-// Gets the name of the instance running the test.
-func getInstanceName(ctx context.Context) (string, error) {
-	name, err := utils.GetMetadata(ctx, "instance", "name")
-	if err != nil {
-		return "", fmt.Errorf("failed to get instance name: %v", err)
-	}
-	return name, nil
-}
-
 // Gets the service account currently operating on the instance.
 func getServiceAccount(ctx context.Context) (string, error) {
 	serviceAccount, err := utils.GetMetadata(ctx, "instance", "service-accounts", "default", "email")

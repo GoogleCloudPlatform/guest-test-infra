@@ -18,31 +18,6 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-func getProjectAndZone() (string, string, error) {
-	var projectZoneUrl string
-	if runtime.GOOS == "windows" {
-		procStatus, err := utils.RunPowershellCmd("Invoke-RestMethod -Headers @{'Metadata-Flavor' = 'Google'} -Uri \"http://metadata.google.internal/computeMetadata/v1/instance/zone\"")
-		if err != nil {
-			return "", "", fmt.Errorf("failed to get project or zone on windows: %v", err)
-		}
-		projectZoneUrl = strings.TrimSpace(procStatus.Stdout)
-	} else {
-		projectZoneBytes, err := exec.Command("curl", "http://metadata.google.internal/computeMetadata/v1/instance/zone", "-H", "Metadata-Flavor: Google").Output()
-		projectZoneUrl = strings.TrimSpace(string(projectZoneBytes))
-		if err != nil {
-			return "", "", fmt.Errorf("failed to get project or zone on linux: %v", err)
-		}
-	}
-	// projectZoneUrl should be in the fomrat projects/$PROJECTNUMBER/zone/$ZONE, and we want to pass in just the $ZONE value to detach the disk.
-	projectZoneSlice := strings.Split(string(projectZoneUrl), "/")
-	if strings.ToLower(projectZoneSlice[0]) != "projects" || strings.ToLower(projectZoneSlice[2]) != "zones" || len(projectZoneSlice) != 4 {
-		return "", "", fmt.Errorf("returned string for vm metata was the wrong format: got %s", projectZoneUrl)
-	}
-
-	// return format is (projectNumber, instanceZone, nil)
-	return projectZoneSlice[1], projectZoneSlice[3], nil
-}
-
 func getLinuxMountPath(mountDiskSizeGB int, mountDiskName string) (string, error) {
 	symlinkRealPath := ""
 	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGB)
@@ -215,15 +190,20 @@ func TestFileHotAttach(t *testing.T) {
 			t.Fatalf("unmount failed on linux: %v", err)
 		}
 	}
-	instName, instanceZone, projectNumber, err := utils.GetInstanceZoneProject()
+	ctx := utils.Context(t)
+	instName, err := utils.GetInstanceName(ctx)
 	if err != nil {
-		t.Fatalf("failed to get instance, zone, or project details: error %v", err)
+		t.Fatalf("failed to get instance name: error %v", err)
+	}
+	instName = strings.TrimSpace(instName)
+	projectNumber, instanceZone, err := utils.GetProjectZone(ctx)
+	if err != nil {
+		t.Fatalf("failed to get instance zone or project details: error %v", err)
 	}
 
-	ctx := context.Background()
 	mountDiskResource, err := waitGetMountDisk(ctx, projectNumber, instName, instanceZone)
 	if err != nil {
-		t.Fatalf("get mount disk fail: %v", err)
+		t.Fatalf("get mount disk fail: projectNumber %s, instanceName %s, instanceZone %s, %v", projectNumber, instName, instanceZone, err)
 	}
 
 	diskDeviceName := mountDiskResource.DeviceName

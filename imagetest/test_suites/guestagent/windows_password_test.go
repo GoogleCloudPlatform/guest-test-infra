@@ -70,11 +70,7 @@ type credsJSON struct {
 	Modulus           string `json:"modulus,omitempty"`
 }
 
-func getEncryptedPassword(client daisyCompute.Client, mod string) (string, error) {
-	instanceName, zone, projectID, err := utils.GetInstanceZoneProject()
-	if err != nil {
-		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
-	}
+func getEncryptedPassword(client daisyCompute.Client, mod, instanceName, projectID, zone string) (string, error) {
 	out, err := client.GetSerialPortOutput(projectID, zone, instanceName, 4, 0)
 	if err != nil {
 		return "", fmt.Errorf("could not get serial output: err %v", err)
@@ -108,9 +104,14 @@ func decryptPassword(priv *rsa.PrivateKey, ep string) (string, error) {
 }
 
 func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
-	instanceName, zone, projectID, err := utils.GetInstanceZoneProject()
+	ctx := utils.Context(t)
+	instanceName, err := utils.GetInstanceName(ctx)
 	if err != nil {
-		return "", fmt.Errorf("could not project, zone or instance name: err %v", err)
+		return "", fmt.Errorf("could not get instsance name: err %v", err)
+	}
+	projectID, zone, err := utils.GetProjectZone(ctx)
+	if err != nil {
+		return "", fmt.Errorf("could not project or zone: err %v", err)
 	}
 	md, err := getInstanceMetadata(client, instanceName, zone, projectID)
 	if err != nil {
@@ -156,7 +157,7 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	var ep string
 	for {
 		time.Sleep(1 * time.Second)
-		ep, err = getEncryptedPassword(client, winKey.Modulus)
+		ep, err = getEncryptedPassword(client, winKey.Modulus, instanceName, projectID, zone)
 		if err == nil {
 			break
 		}
