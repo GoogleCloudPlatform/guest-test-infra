@@ -199,6 +199,7 @@ func GetProjectZone(ctx context.Context) (string, string, error) {
 	return project, zone, nil
 }
 
+// GetInstanceName gets the instance name.
 func GetInstanceName(ctx context.Context) (string, error) {
 	name, err := GetMetadata(ctx, "instance", "name")
 	if err != nil {
