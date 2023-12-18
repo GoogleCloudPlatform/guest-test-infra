@@ -5,13 +5,13 @@ package metadata
 
 import (
 	"fmt"
-	"io/ioutil"
 	"io"
-	"path"
-	"time"
+	"io/ioutil"
 	"os/exec"
+	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -105,16 +105,16 @@ func TestStartupScripts(t *testing.T) {
 	} else {
 		var cmd *exec.Cmd
 		switch {
-			case utils.CheckLinuxCmdExists("apt"):
-				cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
-			case utils.CheckLinuxCmdExists("dnf"):
-				cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
-			case utils.CheckLinuxCmdExists("yum"):
-				cmd = exec.Command("yum", "-y", "reinstall", "google-guest-agent")
-			case utils.CheckLinuxCmdExists("zypper"):
-				cmd = exec.Command("zypper", "--non-interactive", "--force", "install", "google-guest-agent")
-			default:
-				t.Fatal("could not find a package manager to reinstall guest-agent with")
+		case utils.CheckLinuxCmdExists("apt"):
+			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("dnf"):
+			cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("yum"):
+			cmd = exec.Command("yum", "-y", "reinstall", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("zypper"):
+			cmd = exec.Command("zypper", "--non-interactive", "--force", "install", "google-guest-agent")
+		default:
+			t.Fatal("could not find a package manager to reinstall guest-agent with")
 		}
 		if err := cmd.Run(); err != nil {
 			t.Fatalf("could not reinstall guest agent: %s", err)
