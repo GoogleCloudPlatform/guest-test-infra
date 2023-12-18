@@ -81,6 +81,9 @@ func TestCustomHostname(t *testing.T) {
 	if strings.Contains(image, "sles") {
 		t.Skip("SLES doesn't support custom hostnames.")
 	}
+	if strings.Contains(image, "suse") {
+		t.Skip("SUSE doesn't support custom hostnames.")
+	}
 
 	// Ubuntu doesn't support custom hostnames yet.
 	if strings.Contains(image, "ubuntu") {
@@ -232,6 +235,10 @@ func TestHostsFile(t *testing.T) {
 	if strings.Contains(image, "sles") {
 		// SLES does not have dhclient or the dhclient exit hook.
 		t.Skip("Not supported on SLES")
+	}
+	if strings.Contains(image, "suse") {
+		// SLES does not have dhclient or the dhclient exit hook.
+		t.Skip("Not supported on SUSE")
 	}
 	if strings.Contains(image, "ubuntu") {
 		// Ubuntu does not have dhclient or the dhclient exit hook.
