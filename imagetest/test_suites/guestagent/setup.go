@@ -12,7 +12,10 @@
 package guestagent
 
 import (
+	"github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -20,16 +23,36 @@ const Name = "guestagent"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	telemetrydisabled, err := t.CreateTestVM("telemetry-disabled")
+
+	telemetrydisabledinst := &daisy.Instance{}
+	telemetrydisabledinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
+	telemetrydisabledinst.Name = "telemetry-disabled"
+	telemetrydisabledvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: telemetrydisabledinst.Name, Type: imagetest.PdBalanced}}, telemetrydisabledinst)
 	if err != nil {
 		return err
 	}
-	telemetrydisabled.AddMetadata("disable-guest-telemetry", "true")
-	telemetrydisabled.RunTests("TestTelemetryDisabled")
-	telemetryenabled, err := t.CreateTestVM("telemetry-enabled")
+	telemetrydisabledvm.AddMetadata("disable-guest-telemetry", "true")
+	telemetrydisabledvm.RunTests("TestTelemetryDisabled")
+
+	telemetryenabledinst := &daisy.Instance{}
+	telemetryenabledinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
+	telemetryenabledinst.Name = "telemetry-enabled"
+	telemetryenabledvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: telemetryenabledinst.Name, Type: imagetest.PdBalanced}}, telemetryenabledinst)
 	if err != nil {
 		return err
 	}
-	telemetryenabled.RunTests("TestTelemetryEnabled") // Enabled by default
+	telemetryenabledvm.AddMetadata("disable-guest-telemetry", "false")
+	telemetryenabledvm.RunTests("TestTelemetryEnabled")
+
+	if !utils.HasFeature(t.Image, "WINDOWS") {
+		snapshotinst := &daisy.Instance{}
+		snapshotinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
+		snapshotinst.Name = "snapshot-scripts"
+		snapshotvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: snapshotinst.Name, Type: imagetest.PdBalanced}}, snapshotinst)
+		if err != nil {
+			return err
+		}
+		snapshotvm.RunTests("TestSnapshotScripts")
+	}
 	return nil
 }
