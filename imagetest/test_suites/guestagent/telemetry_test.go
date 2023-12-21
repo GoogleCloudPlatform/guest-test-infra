@@ -25,11 +25,12 @@ import (
 )
 
 func restartAgent(t *testing.T) {
+	t.Helper()
 	var cmd *exec.Cmd
 	if utils.IsWindows() {
-		cmd = exec.Command("powershell.exe", "-NonInteractive", "Restart-Service", "GCEGuestAgent")
+		cmd = exec.CommandContext(utils.Context(t), "powershell.exe", "-NonInteractive", "Restart-Service", "GCEGuestAgent")
 	} else {
-		cmd = exec.Command("systemctl", "restart", "google-guest-agent")
+		cmd = exec.CommandContext(utils.Context(t), "systemctl", "restart", "google-guest-agent")
 	}
 	err := cmd.Run()
 	if err != nil {
@@ -38,11 +39,12 @@ func restartAgent(t *testing.T) {
 }
 
 func getAgentOutput(t *testing.T) string {
+	t.Helper()
 	var cmd *exec.Cmd
 	if utils.IsWindows() {
-		cmd = exec.Command("powershell.exe", "-NonInteractive", "Get-WinEvent", "-Providername", "GCEGuestAgent")
+		cmd = exec.CommandContext(utils.Context(t), "powershell.exe", "-NonInteractive", "Get-WinEvent", "-Providername", "GCEGuestAgent")
 	} else {
-		cmd = exec.Command("journalctl", "-o", "cat", "-eu", "google-guest-agent")
+		cmd = exec.CommandContext(utils.Context(t), "journalctl", "-o", "cat", "-eu", "google-guest-agent")
 	}
 	out, err := cmd.Output()
 	if err != nil {
