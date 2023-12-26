@@ -15,7 +15,9 @@
 package guestagent
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strings"
@@ -56,7 +58,7 @@ func TestSnapshotScripts(t *testing.T) {
 	// Enable snapshot scripts in the agent and restart it.
 	// Wait 5 seconds for connection to snapshot service
 	agentcfg, err := os.ReadFile("/etc/default/instance_configs.cfg")
-	if err != nil {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		t.Fatal(err)
 	}
 	agentcfg = append(agentcfg, []byte("[Snapshots]\nenabled = true\ntimeout_in_seconds = 300\n")...)
