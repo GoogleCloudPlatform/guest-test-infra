@@ -27,7 +27,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
-			disks := []*compute.Disk{&compute.Disk{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
+			disks := []*compute.Disk{{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
 				return err
@@ -45,7 +45,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
 			disks := []*compute.Disk{
-				&compute.Disk{Name: vmName + "-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				{Name: vmName + "-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
@@ -64,7 +64,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.MachineType = "c3-standard-2"
 			vm.MinCpuPlatform = "Intel Sapphire Rapids"
 			disks := []*compute.Disk{
-				&compute.Disk{Name: vmName + "-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				{Name: vmName + "-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {

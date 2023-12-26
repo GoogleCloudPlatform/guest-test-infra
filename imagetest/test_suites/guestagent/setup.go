@@ -53,6 +53,15 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			return err
 		}
 		snapshotvm.RunTests("TestSnapshotScripts")
+	} else {
+		// on windows, the snapshot script test does not run, but we want to test that the guest agent resets the password correctly
+		passwordInst := &daisy.Instance{}
+		passwordInst.Scopes = append(passwordInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		windowsaccountVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "windowsaccount"}}, passwordInst)
+		if err != nil {
+			return err
+		}
+		windowsaccountVM.RunTests("TestWindowsPasswordReset")
 	}
 	return nil
 }
