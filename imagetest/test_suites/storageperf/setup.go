@@ -34,6 +34,9 @@ const (
 	windowsInstallFioScriptURL = "startupscripts/install_fio.ps1"
 )
 
+// hyperdisk test setup differs from other disk types
+var usingHyperdisk = false
+
 var storagePerfTestConfig = []storagePerfTest{
 	{
 		arch:             "X86_64",
@@ -107,6 +110,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
+	// mount disk size should not be less than 500 GB, as that is the standard file size for fio testing
+	// listed in the hyperdisk docs as of December 2023
+	if mountdiskSizeGB < 500 {
+		return fmt.Errorf("mount disk size must not be less than 500GB: see sample fio commands for hyperdisk at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance")
+	}
 	testVMs := []*imagetest.TestVM{}
 	for _, tc := range storagePerfTestConfig {
 		if skipTest(tc, t.Image) {
@@ -135,6 +143,10 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
+		// the hyperdisk docs for test parameters differ slightly: see https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+		if tc.diskType == imagetest.HyperdiskExtreme || tc.diskType == imagetest.HyperdiskThroughput || tc.diskType == imagetest.HyperdiskBalanced {
+			usingHyperdisk = true
+		}
 
 		daisyInst := &daisy.Instance{}
 		daisyInst.MachineType = tc.machineType

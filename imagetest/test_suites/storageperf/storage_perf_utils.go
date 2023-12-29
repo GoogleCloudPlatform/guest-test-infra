@@ -44,6 +44,8 @@ const (
 	randWriteAttribute = "randWrite"
 	seqReadAttribute   = "seqRead"
 	seqWriteAttribute  = "seqWrite"
+	// this excludes the filename=$TEST_DIR and filesize=$SIZE_IN_GB fields, which should be manually added to the string
+	fillDiskCommonOptions = "--name=fill_disk --ioengine=libaio --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
 )
 
 // map the machine type to performance targets
@@ -206,4 +208,56 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 		return fmt.Errorf("%s, exitCode %d", errorString, exitCode)
 	}
 	return err
+}
+
+// function to get num numa nodes
+func getNumNumaNodes() (int, error) {
+	numaNodesCmdString := "lscpu | grep -i 'numa node(s)' | awk '{print $NF}'"
+	numaNodesCmd := exec.Command(strings.Fields(numaNodesCmdString))
+	numaNodesOut, err := numaNodesCmd.CombinedOutput()
+	if err != nil {
+		return 0, err
+	}
+	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(numaNodesOut))
+	if err != nil {
+		return 0, err
+	}
+
+	return numNumaNodes, nil
+}
+
+// function to get cpu mapping as strings if there is only one numa node
+// returned format is queue_1_cpus, queue_2_cpus, error
+func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
+	cpuListCmd := exec.Command("cat", "/sys/class/block/"+symlinkRealPath+"/mq/*/cpu_list")
+	cpuListOut, err := cpuListCmd.CombinedOutput()
+	if err != nil {
+		return "", "", err
+	}
+	cpuListOutLines := strings.Split(cpuListOut, "\n")
+	if len(cpuListOutLines) < 2 {
+		return "", "", fmt.Errorf("expected at least two lines for cpu queue mapping, got string %s with %d lines", cpuListOut, len(cpuListOutLines))
+	}
+	queue_1_cpus = strings.TrimSpace(cpuListOutLines[0])
+	queue_2_cpus = strings.TrimSpace(cpuListOutLines[1])
+	return queue_1_cpus, queue_2_cpus, nil
+}
+
+// fill the disk before testing to reach the maximum read iops and bandwidth
+// TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
+func fillDisk(symlinkRealPath string) error {
+	var fillDiskCmd string
+	if runtime.GOOS == "windows" {
+		fmt.Println("fill disk preliminary step not yet implemented for windows")
+	} else {
+		// hard coding the filesize to 500G as that conforms to the docs while giving
+		// sufficiently high performance
+		fillDiskCmdString = fioCmdnameLinux + " " + fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
+		fillDiskCmd := exec.Command(strings.Fields(fillDiskCmdString))
+		fillDiskOutput, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("fio fill disk command failed with output %s and error %v", string(readIOPSJson), err)
+		}
+	}
+	return nil
 }
