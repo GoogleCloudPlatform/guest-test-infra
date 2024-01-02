@@ -63,7 +63,7 @@ const (
 // Changes the given metadata key to have the given value on the given instance. If the key does not exist,
 // then this will create the key-value pair in the instance's metadata.
 func changeMetadata(ctx context.Context, client *compute.InstancesClient, key, value string) error {
-	vmname, err := getInstanceName(ctx)
+	vmname, err := utils.GetInstanceName(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting vm name: %v", err)
 	}

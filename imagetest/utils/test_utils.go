@@ -199,6 +199,15 @@ func GetProjectZone(ctx context.Context) (string, string, error) {
 	return project, zone, nil
 }
 
+// GetInstanceName gets the instance name.
+func GetInstanceName(ctx context.Context) (string, error) {
+	name, err := GetMetadata(ctx, "instance", "name")
+	if err != nil {
+		return "", fmt.Errorf("failed to get instance name: %v", err)
+	}
+	return name, nil
+}
+
 // AccessSecret accesses the given secret.
 func AccessSecret(ctx context.Context, client *secretmanager.Client, secretName string) (string, error) {
 	// Get project
