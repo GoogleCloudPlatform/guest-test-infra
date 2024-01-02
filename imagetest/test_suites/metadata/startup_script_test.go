@@ -5,10 +5,13 @@ package metadata
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os/exec"
+	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -70,7 +73,8 @@ func testDaemonScriptWindows() error {
 }
 
 // TestStartupScripts verifies that the standard metadata script could run successfully
-// by checking the output content of the Startup script.
+// by checking the output content of the Startup script. It also checks that
+// the script does not run after a reinstall/upgrade of guest agent.
 func TestStartupScripts(t *testing.T) {
 	result, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
@@ -78,6 +82,50 @@ func TestStartupScripts(t *testing.T) {
 	}
 	if result != expectedStartupContent {
 		t.Fatalf(`startup script output expected "%s", got "%s".`, expectedStartupContent, result)
+	}
+	err = utils.PutMetadata(utils.Context(t), path.Join("instance", "guest-attributes", "testing", "result"), "")
+	if err != nil {
+		t.Fatalf("failed to clear startup script result: %s", err)
+	}
+	if utils.IsWindows() {
+		cmd := exec.Command("googet", "install", "-reinstall", "google-compute-engine-windows")
+		stdin, err := cmd.StdinPipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := cmd.Start(); err != nil {
+			t.Fatal(err)
+		}
+		time.Sleep(time.Second)
+		// Respond to "Reinstall google-compute-engine-windows? (y/N):" prompt
+		io.WriteString(stdin, "y\r\n")
+		if err := cmd.Wait(); err != nil {
+			t.Fatalf("could not reinstall guest-agent: %s", err)
+		}
+	} else {
+		var cmd *exec.Cmd
+		switch {
+		case utils.CheckLinuxCmdExists("apt"):
+			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("dnf"):
+			cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("yum"):
+			cmd = exec.Command("yum", "-y", "reinstall", "google-guest-agent")
+		case utils.CheckLinuxCmdExists("zypper"):
+			cmd = exec.Command("zypper", "--non-interactive", "--force", "install", "google-guest-agent")
+		default:
+			t.Fatal("could not find a package manager to reinstall guest-agent with")
+		}
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("could not reinstall guest agent: %s", err)
+		}
+	}
+	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
+	if err != nil {
+		t.Fatalf("failed to read startup script result key: %v", err)
+	}
+	if result == expectedStartupContent {
+		t.Errorf("startup script reexected after a reinstall of guest agent")
 	}
 }
 
