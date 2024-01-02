@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"runtime"
+	"strconv"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -212,13 +215,14 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 
 // function to get num numa nodes
 func getNumNumaNodes() (int, error) {
-	numaNodesCmdString := "lscpu | grep -i 'numa node(s)' | awk '{print $NF}'"
-	numaNodesCmd := exec.Command(strings.Fields(numaNodesCmdString))
+	numaNodesCmdArgs := "| grep -i 'numa node(s)' | awk '{print $NF}'"
+	numaNodesCmd := exec.Command("lscpu", strings.Fields(numaNodesCmdArgs)...)
 	numaNodesOut, err := numaNodesCmd.CombinedOutput()
 	if err != nil {
 		return 0, err
 	}
-	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(numaNodesOut))
+	numaNodesOutString := string(numaNodesOut)
+	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(numaNodesOutString))
 	if err != nil {
 		return 0, err
 	}
@@ -230,33 +234,33 @@ func getNumNumaNodes() (int, error) {
 // returned format is queue_1_cpus, queue_2_cpus, error
 func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
 	cpuListCmd := exec.Command("cat", "/sys/class/block/"+symlinkRealPath+"/mq/*/cpu_list")
-	cpuListOut, err := cpuListCmd.CombinedOutput()
+	cpuListBytes, err := cpuListCmd.CombinedOutput()
 	if err != nil {
 		return "", "", err
 	}
-	cpuListOutLines := strings.Split(cpuListOut, "\n")
+	cpuListString := string(cpuListBytes)
+	cpuListOutLines := strings.Split(string(cpuListString), "\n")
 	if len(cpuListOutLines) < 2 {
-		return "", "", fmt.Errorf("expected at least two lines for cpu queue mapping, got string %s with %d lines", cpuListOut, len(cpuListOutLines))
+		return "", "", fmt.Errorf("expected at least two lines for cpu queue mapping, got string %s with %d lines", cpuListString, len(cpuListOutLines))
 	}
-	queue_1_cpus = strings.TrimSpace(cpuListOutLines[0])
-	queue_2_cpus = strings.TrimSpace(cpuListOutLines[1])
+	queue_1_cpus := strings.TrimSpace(cpuListOutLines[0])
+	queue_2_cpus := strings.TrimSpace(cpuListOutLines[1])
 	return queue_1_cpus, queue_2_cpus, nil
 }
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
 func fillDisk(symlinkRealPath string) error {
-	var fillDiskCmd string
 	if runtime.GOOS == "windows" {
 		fmt.Println("fill disk preliminary step not yet implemented for windows")
 	} else {
 		// hard coding the filesize to 500G as that conforms to the docs while giving
 		// sufficiently high performance
-		fillDiskCmdString = fioCmdnameLinux + " " + fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
-		fillDiskCmd := exec.Command(strings.Fields(fillDiskCmdString))
-		fillDiskOutput, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
+		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
+		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
+		fillDiskOutput, err := fillDiskCmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("fio fill disk command failed with output %s and error %v", string(readIOPSJson), err)
+			return fmt.Errorf("fio fill disk command failed with output %s and error %v", string(fillDiskOutput), err)
 		}
 	}
 	return nil
