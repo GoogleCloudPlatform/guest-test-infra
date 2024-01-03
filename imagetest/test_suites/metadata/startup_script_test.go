@@ -103,7 +103,7 @@ func TestStartupScripts(t *testing.T) {
 			t.Fatalf("could not reinstall guest-agent: %s", err)
 		}
 	} else {
-		var cmd,fallback *exec.Cmd
+		var cmd, fallback *exec.Cmd
 		switch {
 		case utils.CheckLinuxCmdExists("apt"):
 			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
