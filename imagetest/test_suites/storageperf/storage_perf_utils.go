@@ -239,14 +239,14 @@ func getNumNumaNodes() (int, error) {
 		return 0, err
 	}
 	lscpuOutString := string(lscpuOut)
-	numNumaNodes = -1
+	numNumaNodes := -1
 	for _, line := range strings.Split(lscpuOutString, "\n") {
-		lowercaseLine := strings.Lower(line)
+		lowercaseLine := strings.ToLower(line)
 		if strings.Contains(lowercaseLine, "numa node") {
 			// the last token in the line should be the number of numa nodes
 			tokens := strings.Fields(lowercaseLine)
 			numNumaNodesString := strings.TrimSpace(tokens[len(tokens)-1])
-			i, err := strconv.Atoi(s)
+			i, err := strconv.Atoi(numNumaNodesString)
 			if err == nil {
 				numNumaNodes = i
 				break
