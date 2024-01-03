@@ -109,10 +109,10 @@ func TestStartupScripts(t *testing.T) {
 			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
 		case utils.CheckLinuxCmdExists("dnf"):
 			cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
-			cmd = exec.Command("dnf", "-y", "upgrade", "google-guest-agent")
+			fallback = exec.Command("dnf", "-y", "upgrade", "google-guest-agent")
 		case utils.CheckLinuxCmdExists("yum"):
 			cmd = exec.Command("yum", "-y", "reinstall", "google-guest-agent")
-			cmd = exec.Command("yum", "-y", "upgrade", "google-guest-agent")
+			fallback = exec.Command("yum", "-y", "upgrade", "google-guest-agent")
 		case utils.CheckLinuxCmdExists("zypper"):
 			cmd = exec.Command("zypper", "--non-interactive", "install", "--force", "google-guest-agent")
 		default:
