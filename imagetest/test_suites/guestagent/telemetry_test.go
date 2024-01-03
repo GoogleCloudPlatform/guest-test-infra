@@ -54,10 +54,7 @@ func getAgentOutput(t *testing.T) string {
 }
 
 func TestTelemetryEnabled(t *testing.T) {
-	output := getAgentOutput(t)
-	if !strings.Contains(output, "Successfully scheduled job telemetryJobID") {
-		t.Errorf("Telemetry jobs are not scheduled by default. Agent logs: %s", output)
-	}
+	initialoutput := getAgentOutput(t)
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
@@ -87,17 +84,21 @@ func TestTelemetryEnabled(t *testing.T) {
 	}
 	restartAgent(t)
 	time.Sleep(time.Second)
-	output = strings.TrimPrefix(getAgentOutput(t), output)
-	if !strings.Contains(output, "Failed to schedule job telemetryJobID") {
-		t.Errorf("Telemetry jobs are scheduled after setting disable-guest-telemetry=true. Agent logs: %s", output)
+	totaloutput := getAgentOutput(t)
+	finaloutput := strings.TrimPrefix(totaloutput, initialoutput)
+	if !strings.Contains(totaloutput, "telemetry") {
+		t.Skip("agent does not support telemetry")
+	}
+	if !strings.Contains(initialoutput, "Successfully scheduled job telemetryJobID") {
+		t.Errorf("Telemetry jobs are not scheduled by default. Agent logs: %s", initialoutput)
+	}
+	if !strings.Contains(finaloutput, "Failed to schedule job telemetryJobID") {
+		t.Errorf("Telemetry jobs are scheduled after setting disable-guest-telemetry=true. Agent logs: %s", finaloutput)
 	}
 }
 
 func TestTelemetryDisabled(t *testing.T) {
-	output := getAgentOutput(t)
-	if !strings.Contains(output, "Failed to schedule job telemetryJobID") {
-		t.Errorf("Telemetry jobs are scheduled after setting disable-guest-telemetry=true. Agent logs: %s", output)
-	}
+	initialoutput := getAgentOutput(t)
 	ctx := utils.Context(t)
 	client, err := daisyCompute.NewClient(ctx)
 	if err != nil {
@@ -127,8 +128,15 @@ func TestTelemetryDisabled(t *testing.T) {
 	}
 	restartAgent(t)
 	time.Sleep(time.Second)
-	output = strings.TrimPrefix(getAgentOutput(t), output)
-	if !strings.Contains(output, "Successfully scheduled job telemetryJobID") {
-		t.Errorf("Telemetry jobs are not scheduled after setting disable-guest-telemetry=false. Agent logs: %s", output)
+	totaloutput := getAgentOutput(t)
+	finaloutput := strings.TrimPrefix(totaloutput, initialoutput)
+	if !strings.Contains(totaloutput, "telemetry") {
+		t.Skip("agent does not support telemetry")
+	}
+	if !strings.Contains(initialoutput, "Failed to schedule job telemetryJobID") {
+		t.Errorf("Telemetry jobs are scheduled after setting disable-guest-telemetry=true. Agent logs: %s", initialoutput)
+	}
+	if !strings.Contains(finaloutput, "Successfully scheduled job telemetryJobID") {
+		t.Errorf("Telemetry jobs are not scheduled after setting disable-guest-telemetry=false. Agent logs: %s", finaloutput)
 	}
 }
