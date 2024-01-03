@@ -34,9 +34,6 @@ const (
 	windowsInstallFioScriptURL = "startupscripts/install_fio.ps1"
 )
 
-// hyperdisk test setup differs from other disk types
-var usingHyperdisk = false
-
 var storagePerfTestConfig = []storagePerfTest{
 	{
 		arch:             "X86_64",
@@ -143,10 +140,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
-		// the hyperdisk docs for test parameters differ slightly: see https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
-		if tc.diskType == imagetest.HyperdiskExtreme || tc.diskType == imagetest.HyperdiskThroughput || tc.diskType == imagetest.HyperdiskBalanced {
-			usingHyperdisk = true
-		}
 
 		daisyInst := &daisy.Instance{}
 		daisyInst.MachineType = tc.machineType
@@ -158,6 +151,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 
 		vm.AddMetadata("enable-guest-attributes", "TRUE")
+		// set the disk type: hyperdisk has different testing parameters from https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+		vm.AddMetadata(diskTypeAttribute, tc.diskType)
 		// set the expected performance values
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false

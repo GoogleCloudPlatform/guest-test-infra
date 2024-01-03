@@ -42,7 +42,8 @@ const (
 	// constants for the mode of running the test
 	randomMode     = "random"
 	sequentialMode = "sequential"
-	// Guest Attribute constants for storing the expected iops
+	// Guest Attribute constants for storing the expected iops and disk type
+	diskTypeAttribute  = "diskType"
 	randReadAttribute  = "randRead"
 	randWriteAttribute = "randWrite"
 	seqReadAttribute   = "seqRead"
@@ -215,18 +216,46 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 
 // function to get num numa nodes
 func getNumNumaNodes() (int, error) {
-	numaNodesCmdArgs := "| grep -i 'numa node(s)' | awk '{print $NF}'"
+	/*numaNodesCmdArgs := "| grep -i 'numa node(s)' | awk '{print $NF}'"
 	numaNodesCmd := exec.Command("lscpu", strings.Fields(numaNodesCmdArgs)...)
-	numaNodesOut, err := numaNodesCmd.CombinedOutput()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	numaNodesCmd.Stdout = &stdout
+	numaNodesCmd.Stderr = &stderr
+	if err := numaNodesCmd.Start(); err != nil {
+		return 0, err
+	}
+	if err := numaNodesCmd.Wait(); err != nil {
+		stdoutString := stdout.String()
+		stderrString := stderr.String()
+		return 0, fmt.Errorf("numa nodes command failed with stdout %s and error %s, error code %v", stdoutString, stderrString, err)
+	}
+	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(stdout.String()))
+	if err != nil {
+		return 0, err
+	}*/
+	lscpuOut, err := exec.Command("lscpu").CombinedOutput()
 	if err != nil {
 		return 0, err
 	}
-	numaNodesOutString := string(numaNodesOut)
-	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(numaNodesOutString))
-	if err != nil {
-		return 0, err
+	lscpuOutString := string(lscpuOut)
+	numNumaNodes = -1
+	for _, line := range strings.Split(lscpuOutString, "\n") {
+		lowercaseLine := strings.Lower(line)
+		if strings.Contains(lowercaseLine, "numa node") {
+			// the last token in the line should be the number of numa nodes
+			tokens := strings.Fields(lowercaseLine)
+			numNumaNodesString := strings.TrimSpace(tokens[len(tokens)-1])
+			i, err := strconv.Atoi(s)
+			if err == nil {
+				numNumaNodes = i
+				break
+			}
+		}
 	}
-
+	if numNumaNodes < 0 {
+		return 0, fmt.Errorf("did not find any line with numNumaNodes in lscpu output: %s", lscpuOutString)
+	}
 	return numNumaNodes, nil
 }
 

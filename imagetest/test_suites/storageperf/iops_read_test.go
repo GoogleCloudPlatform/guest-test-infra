@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
@@ -54,6 +55,18 @@ func getLinuxSymlinkRead() (string, error) {
 	return symlinkRealPath, nil
 }
 func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
+	usingHyperdisk := false
+	ctx := utils.Context(t)
+	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
+	if err != nil {
+		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
+	}
+	t.Logf("disk type is %s", diskType)
+	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
+		usingHyperdisk = true
+	}
+
+	// hyperdisk benchmarks guidance: https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 	var readOptions string
 	if mode == sequentialMode && usingHyperdisk {
 		readOptions = hyperdiskFIOSeqReadOptions
@@ -65,6 +78,8 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		readOptions = commonFIORandReadOptions
 	}
 
+	t.Logf("read options are %s", readOptions)
+	t.Logf("using hyperdisk is %t", usingHyperdisk)
 	symlinkRealPath, err := getLinuxSymlinkRead()
 	if err != nil {
 		return []byte{}, err
@@ -72,6 +87,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 
 	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 	if usingHyperdisk {
+		t.Logf("using hyperdisk case")
 		numNumaNodes, err := getNumNumaNodes()
 		if err != nil {
 			t.Fatalf("failed to get number of numa nodes: err %v", err)
@@ -87,7 +103,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 	}
 	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		return []byte{}, fmt.Errorf("couldn't get image from metadata")
 	}
