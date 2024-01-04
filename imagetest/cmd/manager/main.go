@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
 	"github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/cvm"
@@ -44,6 +45,7 @@ var (
 	localPath       = flag.String("local_path", "", "path where test output files are stored, can be modified for local testing")
 	images          = flag.String("images", "", "comma separated list of images to test")
 	timeout         = flag.String("timeout", "45m", "timeout for the test suite")
+	computeEndpointOverride = flag.String("compute_endpoint_override", "", "compute client endpoint override")
 	parallelCount   = flag.Int("parallel_count", 5, "TestParallelCount")
 	parallelStagger = flag.String("parallel_stagger", "60s", "parseable time.Duration to stagger each parallel test")
 	filter          = flag.String("filter", "", "only run tests matching filter")
@@ -207,7 +209,14 @@ func main() {
 	}
 
 	ctx := context.Background()
-	computeclient, err := compute.NewClient(ctx)
+	var computeclient compute.Client
+	var err error
+	if *computeEndpointOverride != "" {
+		log.Printf("Using compute endpoint %q", *computeEndpointOverride)
+		computeclient, err = compute.NewClient(ctx, option.WithEndpoint(*computeEndpointOverride))
+	} else {
+		computeclient, err = compute.NewClient(ctx)
+	}
 	if err != nil {
 		log.Fatalf("Could not create compute client:%v", err)
 	}
@@ -255,7 +264,7 @@ func main() {
 			}
 
 			log.Printf("Add test workflow for test %s on image %s", testPackage.name, image)
-			test, err := imagetest.NewTestWorkflow(computeclient, testPackage.name, image, *timeout, *project, *zone, *x86Shape, *arm64Shape)
+			test, err := imagetest.NewTestWorkflow(computeclient, *computeEndpointOverride, testPackage.name, image, *timeout, *project, *zone, *x86Shape, *arm64Shape)
 			if err != nil {
 				log.Fatalf("Failed to create test workflow: %v", err)
 			}

@@ -572,7 +572,7 @@ func getTestResults(ctx context.Context, ts *TestWorkflow) ([]string, error) {
 }
 
 // NewTestWorkflow returns a new TestWorkflow.
-func NewTestWorkflow(client daisycompute.Client, name, image, timeout, project, zone, x86Shape string, arm64Shape string) (*TestWorkflow, error) {
+func NewTestWorkflow(client daisycompute.Client, computeEndpointOverride, name, image, timeout, project, zone, x86Shape string, arm64Shape string) (*TestWorkflow, error) {
 	t := &TestWorkflow{}
 	t.counter = 0
 	t.Name = name
@@ -607,6 +607,9 @@ func NewTestWorkflow(client daisycompute.Client, name, image, timeout, project, 
 	}
 
 	t.wf = daisy.New()
+	if computeEndpointOverride != "" {
+		t.wf.ComputeEndpoint = computeEndpointOverride
+	}
 	t.wf.Name = strings.ReplaceAll(name, "_", "-")
 	t.wf.DefaultTimeout = timeout
 	t.wf.Zone = zone
