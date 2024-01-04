@@ -285,11 +285,13 @@ func fillDisk(symlinkRealPath string) error {
 	} else {
 		// hard coding the filesize to 500G as that conforms to the docs while giving
 		// sufficiently high performance
-		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=2500G --filename=" + symlinkRealPath
+		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
 		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
-		fillDiskOutput, err := fillDiskCmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("fio fill disk command failed with output %s and error %v", string(fillDiskOutput), err)
+		if err := fillDiskCmd.Start(); err != nil {
+			return err
+		}
+		if err := fillDiskCmd.Wait(); err != nil {
+			return err
 		}
 	}
 	return nil
