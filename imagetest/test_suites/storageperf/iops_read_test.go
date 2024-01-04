@@ -19,8 +19,8 @@ import (
 const (
 	commonFIORandReadOptions    = "--name=read_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
 	commonFIOSeqReadOptions     = "--name=read_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
-	hyperdiskFIORandReadOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --ioengine=libaio --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randread --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
-	hyperdiskFIOSeqReadOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --ioengine=libaio --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
+	hyperdiskFIORandReadOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randread --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
+	hyperdiskFIOSeqReadOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
@@ -97,7 +97,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 			if err != nil {
 				t.Fatalf("could not get cpu to nvme queue mapping: err %v", err)
 			}
-			readOptions += "--name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
+			readOptions += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
 		} else {
 			readOptions += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
 		}
@@ -140,7 +140,7 @@ func TestRandomReadIOPS(t *testing.T) {
 		}
 	} else {
 		if randReadIOPSJson, err = RunFIOReadLinux(t, randomMode); err != nil {
-			t.Fatalf("linux fio rand read failed with error: %v", err)
+			t.Fatalf("linux fio rand read failed with error: %s", err.Error())
 		}
 	}
 
