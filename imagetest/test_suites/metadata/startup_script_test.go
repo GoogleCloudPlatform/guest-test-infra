@@ -107,6 +107,7 @@ func TestStartupScripts(t *testing.T) {
 		switch {
 		case utils.CheckLinuxCmdExists("apt"):
 			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
+			fallback = exec.Command("apt", "install", "-y", "--reinstall", "google-guest-agent")
 		case utils.CheckLinuxCmdExists("dnf"):
 			cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
 			fallback = exec.Command("dnf", "-y", "upgrade", "google-guest-agent")
