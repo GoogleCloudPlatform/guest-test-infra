@@ -122,8 +122,27 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 			}
 		}
 	}
-	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	readIOPSJson, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
+	readOptions += " --filename=" + symlinkRealpath + " --ioengine=libaio"
+	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
+	if usingHyperdisk {
+		t.Logf("using hyperdisk case")
+		numNumaNodes, err := getNumNumaNodes()
+		if err != nil {
+			t.Fatalf("failed to get number of numa nodes: err %v", err)
+		}
+		if numNumaNodes == 1 {
+			queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
+			if err != nil {
+				t.Fatalf("could not get cpu to nvme queue mapping: err %v", err)
+			}
+			readOptions += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
+		} else {
+			readOptions += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
+		}
+	}
+
+	readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
 	}
