@@ -25,10 +25,10 @@ echo "imagetestroot is $imagetestroot"
 cd $imagetestroot
 go mod download
 go build -o $outpath/wrapper.amd64 ./cmd/wrapper/main.go
-GOARCH=arm64 go build -o $outpath/wrapper.arm64 ./cmd/wrapper/main.go
-GOOS=windows GOARCH=amd64 go build -o $outpath/wrapp64.exe ./cmd/wrapper/main.go
-GOOS=windows GOARCH=386 go build -o $outpath/wrapp32.exe ./cmd/wrapper/main.go
-go build -o $outpath/manager ./cmd/manager/main.go
+GOARCH=arm64 go build -o $outpath/wrapper.arm64 ./cmd/wrapper/main.go || exit 1
+GOOS=windows GOARCH=amd64 go build -o $outpath/wrapp64.exe ./cmd/wrapper/main.go || exit 1
+GOOS=windows GOARCH=386 go build -o $outpath/wrapp32.exe ./cmd/wrapper/main.go || exit 1
+go build -o $outpath/manager ./cmd/manager/main.go || exit 1
 
 
 cd test_suites

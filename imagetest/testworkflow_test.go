@@ -529,7 +529,7 @@ func TestNewTestWorkflow(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer srv.Close()
-			twf, err := NewTestWorkflow(client, tc.name, tc.image, tc.timeout, tc.project, tc.zone, tc.x86Shape, tc.arm64Shape)
+			twf, err := NewTestWorkflow(client, "", tc.name, tc.image, tc.timeout, tc.project, tc.zone, tc.x86Shape, tc.arm64Shape)
 			if err != nil {
 				t.Fatalf("failed to create test workflow: %v", err)
 			}
