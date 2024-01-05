@@ -85,23 +85,6 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
-	if usingHyperdisk {
-		t.Logf("using hyperdisk case")
-		numNumaNodes, err := getNumNumaNodes()
-		if err != nil {
-			t.Fatalf("failed to get number of numa nodes: err %v", err)
-		}
-		if numNumaNodes == 1 {
-			queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
-			if err != nil {
-				t.Fatalf("could not get cpu to nvme queue mapping: err %v", err)
-			}
-			readOptions += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
-		} else {
-			readOptions += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
-		}
-	}
 	// ubuntu 16.04 has a different option name due to an old fio version
 	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
@@ -141,8 +124,10 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 			readOptions += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
 		}
 	}
-
-	readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
+	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
+	t.Logf("command string is %s", randReadCmd.String())
+	readIOPSJson, err := randReadCmd.CombinedOutput()
+	//readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
 	}
