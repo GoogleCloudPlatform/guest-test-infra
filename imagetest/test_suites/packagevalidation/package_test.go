@@ -6,6 +6,8 @@ package packagevalidation
 import (
 	"os/exec"
 	"slices"
+	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -67,9 +69,41 @@ func TestGuestPackages(t *testing.T) {
 	}
 
 	// What command to list all packages
-	listPackagesCmd := []string{"rpm", "-qa", "--queryformat", "%{NAME}\n"}
-	if strings.Contains(image, "debian") || strings.Contains(image, "ubuntu") {
-		listPackagesCmd = []string{"dpkg-query", "-W", "--showformat", "${Package}\n"}
+	listPkgs := func()([]string, error) {
+		return nil, fmt.Errorf("could not determine how to list installed packages")
+	}
+	switch {
+		case utils.CheckLinuxCmdExists("rpm"):
+		listPkgs = func()([]string, error) { o, err := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\n").Output(); return strings.Split(string(o), "\n"), err }
+		case utils.CheckLinuxCmdExists("dpkg-query") && utils.CheckLinuxCmdExists("snap"):
+		listPkgs = func()([]string, error) {
+			var pkgs []string
+			dpkgout, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output();
+			if err != nil {
+				return nil, err
+			}
+			pkgs = append(pkgs, strings.Split(string(dpkgout), "\n")...)
+			// Snap format name regexp source:
+			// https://snapcraft.io/docs/the-snap-format
+			// Technically incorrect as it won't match a single character package names
+			// But nothing we're looking for has a single character name
+			snapname := regexp.MustCompile("[a-z0-9][a-z0-9-]*[a-z0-9]")
+			snapout, err := exec.Command("snap", "list").Output()
+			if err != nil {
+				return nil, err
+			}
+			for i, line := range strings.Split(string(snapout), "\n") {
+				if i == 0 {
+					continue // Skip header
+				}
+				if pkg := snapname.FindString(line); pkg != "" {
+					pkgs = append(pkgs, pkg)
+				}
+			}
+			return pkgs, nil
+		}
+		case utils.CheckLinuxCmdExists("dpkg-query"):
+		listPkgs = func()([]string, error) { o, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output(); return strings.Split(string(o), "\n"), err }
 	}
 
 	// What packages to insure are not installed
@@ -98,17 +132,14 @@ func TestGuestPackages(t *testing.T) {
 		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
 	}
 	if strings.Contains(image, "ubuntu") {
-		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli") // TODO query snaps as well
 		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
 	}
 
-	cmd := exec.Command(listPackagesCmd[0], listPackagesCmd[1:]...)
-	out, err := cmd.Output()
+	installedPkgs, err := listPkgs()
 	if err != nil {
 		t.Errorf("Failed to execute list packages command: %v", err)
 		return
 	}
-	installedPkgs := strings.Split(string(out), "\n")
 
 	missingPkgs := findUniq(requiredPkgs, installedPkgs)
 	for _, pkg := range missingPkgs {
