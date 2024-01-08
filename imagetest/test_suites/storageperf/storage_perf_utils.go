@@ -297,7 +297,7 @@ func fillDisk(symlinkRealPath string) error {
 	return nil
 }
 
-func getHyperdiskAdditionalOptions() (string, error) {
+func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
 	readOptionsSuffix := ""
 	numNumaNodes, err := getNumNumaNodes()
 	if err != nil {

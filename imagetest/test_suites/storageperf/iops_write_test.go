@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
@@ -107,7 +108,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
 	if usingHyperdisk {
-		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions()
+		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
 		if err != nil {
 			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
 		}
