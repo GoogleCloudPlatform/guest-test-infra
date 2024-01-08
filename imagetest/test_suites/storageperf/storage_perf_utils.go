@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path"
 	"runtime"
 	"strconv"
 	"strings"
@@ -216,24 +217,6 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 
 // function to get num numa nodes
 func getNumNumaNodes() (int, error) {
-	/*numaNodesCmdArgs := "| grep -i 'numa node(s)' | awk '{print $NF}'"
-	numaNodesCmd := exec.Command("lscpu", strings.Fields(numaNodesCmdArgs)...)
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	numaNodesCmd.Stdout = &stdout
-	numaNodesCmd.Stderr = &stderr
-	if err := numaNodesCmd.Start(); err != nil {
-		return 0, err
-	}
-	if err := numaNodesCmd.Wait(); err != nil {
-		stdoutString := stdout.String()
-		stderrString := stderr.String()
-		return 0, fmt.Errorf("numa nodes command failed with stdout %s and error %s, error code %v", stdoutString, stderrString, err)
-	}
-	numNumaNodes, err := strconv.Atoi(strings.TrimSpace(stdout.String()))
-	if err != nil {
-		return 0, err
-	}*/
 	lscpuOut, err := exec.Command("lscpu").CombinedOutput()
 	if err != nil {
 		return 0, err
@@ -279,7 +262,21 @@ func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
-func fillDisk(symlinkRealPath string) error {
+func fillDisk(symlinkRealPath string, ctx context.Context) error {
+	// fill disk only needs to be run once, before the first test case.
+	testingNamespace := "testing"
+	fillDiskGuestAttribute := "fillDisk"
+	_, err := utils.GetMetadata(ctx, "instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute)
+	if err == nil {
+		// already ran fill disk once, do not need to run it again.
+		return nil
+	} else {
+		err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute), "")
+		if err != nil {
+			return fmt.Errorf("guest attribute to mark fill disk completed not placed: error %v", err)
+		}
+	}
+
 	if runtime.GOOS == "windows" {
 		fmt.Println("fill disk preliminary step not yet implemented for windows")
 	} else {
