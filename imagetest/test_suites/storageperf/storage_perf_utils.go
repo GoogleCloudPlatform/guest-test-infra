@@ -262,7 +262,7 @@ func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
-func fillDisk(symlinkRealPath string, ctx context.Context) error {
+func fillDisk(ctx context.Context, symlinkRealPath string) error {
 	// fill disk only needs to be run once, before the first test case.
 	testingNamespace := "testing"
 	fillDiskGuestAttribute := "fillDisk"
