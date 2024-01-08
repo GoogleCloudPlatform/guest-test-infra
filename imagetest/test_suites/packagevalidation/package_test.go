@@ -4,10 +4,10 @@
 package packagevalidation
 
 import (
-	"os/exec"
-	"slices"
 	"fmt"
+	"os/exec"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -69,16 +69,19 @@ func TestGuestPackages(t *testing.T) {
 	}
 
 	// What command to list all packages
-	listPkgs := func()([]string, error) {
+	listPkgs := func() ([]string, error) {
 		return nil, fmt.Errorf("could not determine how to list installed packages")
 	}
 	switch {
-		case utils.CheckLinuxCmdExists("rpm"):
-		listPkgs = func()([]string, error) { o, err := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\n").Output(); return strings.Split(string(o), "\n"), err }
-		case utils.CheckLinuxCmdExists("dpkg-query") && utils.CheckLinuxCmdExists("snap"):
-		listPkgs = func()([]string, error) {
+	case utils.CheckLinuxCmdExists("rpm"):
+		listPkgs = func() ([]string, error) {
+			o, err := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\n").Output()
+			return strings.Split(string(o), "\n"), err
+		}
+	case utils.CheckLinuxCmdExists("dpkg-query") && utils.CheckLinuxCmdExists("snap"):
+		listPkgs = func() ([]string, error) {
 			var pkgs []string
-			dpkgout, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output();
+			dpkgout, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output()
 			if err != nil {
 				return nil, err
 			}
@@ -102,8 +105,11 @@ func TestGuestPackages(t *testing.T) {
 			}
 			return pkgs, nil
 		}
-		case utils.CheckLinuxCmdExists("dpkg-query"):
-		listPkgs = func()([]string, error) { o, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output(); return strings.Split(string(o), "\n"), err }
+	case utils.CheckLinuxCmdExists("dpkg-query"):
+		listPkgs = func() ([]string, error) {
+			o, err := exec.Command("dpkg-query", "-W", "--showformat", "${Package}\n").Output()
+			return strings.Split(string(o), "\n"), err
+		}
 	}
 
 	// What packages to insure are not installed
