@@ -62,7 +62,6 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
 	}
-	t.Logf("disk type is %s", diskType)
 	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
 		usingHyperdisk = true
 	}
@@ -78,8 +77,6 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		writeOptions = commonFIORandWriteOptions
 	}
 
-	t.Logf("write options are %s", writeOptions)
-	t.Logf("using hyperdisk is %t", usingHyperdisk)
 	symlinkRealPath, err := getLinuxSymlinkWrite()
 	if err != nil {
 		return []byte{}, err
@@ -98,7 +95,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
 		}
 		if usingHyperdisk {
-			err = fillDisk(symlinkRealPath, ctx)
+			err = fillDisk(symlinkRealPath, ctx, t)
 			if err != nil {
 				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
 			}
@@ -115,7 +112,6 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		writeOptions += hyperdiskAdditionalOptions
 	}
 	randWriteCmd := exec.Command(fioCmdNameLinux, strings.Fields(writeOptions)...)
-	t.Logf("write command string is %s", randWriteCmd.String())
 	writeIOPSJson, err := randWriteCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)

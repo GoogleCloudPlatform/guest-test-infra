@@ -61,7 +61,6 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	if err != nil {
 		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
 	}
-	t.Logf("disk type is %s", diskType)
 	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
 		usingHyperdisk = true
 	}
@@ -78,8 +77,6 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		readOptions = commonFIORandReadOptions
 	}
 
-	t.Logf("read options are %s", readOptions)
-	t.Logf("using hyperdisk is %t", usingHyperdisk)
 	symlinkRealPath, err := getLinuxSymlinkRead()
 	if err != nil {
 		return []byte{}, err
@@ -115,10 +112,10 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		}
 		readOptions += hyperdiskAdditionalOptions
 	}
+
 	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
 	t.Logf("read command string is %s", randReadCmd.String())
 	readIOPSJson, err := randReadCmd.CombinedOutput()
-	//readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
 	}
