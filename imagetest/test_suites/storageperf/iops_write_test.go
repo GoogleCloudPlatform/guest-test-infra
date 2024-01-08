@@ -12,12 +12,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	commonFIORandWriteOptions = "--name=write_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqWriteOptions  = "--name=write_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandWriteOptions    = "--name=write_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqWriteOptions     = "--name=write_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	hyperdiskFIORandWriteOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randwrite --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
+	hyperdiskFIOSeqWriteOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
 
 func RunFIOWriteWindows(mode string) ([]byte, error) {
@@ -53,12 +56,30 @@ func getLinuxSymlinkWrite() (string, error) {
 }
 
 func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
+	usingHyperdisk := false
+	ctx := utils.Context(t)
+	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
+	if err != nil {
+		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
+	}
+	t.Logf("disk type is %s", diskType)
+	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
+		usingHyperdisk = true
+	}
+
 	var writeOptions string
-	if mode == sequentialMode {
+	if mode == sequentialMode && usingHyperdisk {
+		writeOptions = hyperdiskFIOSeqWriteOptions
+	} else if mode == sequentialMode && !usingHyperdisk {
 		writeOptions = commonFIOSeqWriteOptions
+	} else if mode == randomMode && usingHyperdisk {
+		writeOptions = hyperdiskFIORandWriteOptions
 	} else {
 		writeOptions = commonFIORandWriteOptions
 	}
+
+	t.Logf("write options are %s", writeOptions)
+	t.Logf("using hyperdisk is %t", usingHyperdisk)
 	symlinkRealPath, err := getLinuxSymlinkWrite()
 	if err != nil {
 		return []byte{}, err
@@ -76,9 +97,26 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		if err = installFioLinux(); err != nil {
 			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
 		}
+		if usingHyperdisk {
+			err = fillDisk(symlinkRealPath, ctx)
+			if err != nil {
+				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
+			}
+		}
 	}
-	fioWriteOptionsLinuxSlice := strings.Fields(writeOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	writeIOPSJson, err := exec.Command(fioCmdNameLinux, fioWriteOptionsLinuxSlice...).CombinedOutput()
+	writeOptions += " --filename=" + symlinkRealPath + " --ioengine=libaio"
+	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
+	if usingHyperdisk {
+		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
+		if err != nil {
+			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
+		}
+		writeOptions += hyperdiskAdditionalOptions
+	}
+	randWriteCmd := exec.Command(fioCmdNameLinux, strings.Fields(writeOptions)...)
+	t.Logf("write command string is %s", randWriteCmd.String())
+	writeIOPSJson, err := randWriteCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
 	}

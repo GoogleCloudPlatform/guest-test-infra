@@ -12,12 +12,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
 const (
-	commonFIORandReadOptions = "--name=read_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqReadOptions  = "--name=read_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandReadOptions    = "--name=read_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqReadOptions     = "--name=read_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	hyperdiskFIORandReadOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randread --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
+	hyperdiskFIOSeqReadOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
 
 func RunFIOReadWindows(mode string) ([]byte, error) {
@@ -52,18 +55,38 @@ func getLinuxSymlinkRead() (string, error) {
 	return symlinkRealPath, nil
 }
 func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
+	usingHyperdisk := false
+	ctx := utils.Context(t)
+	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
+	if err != nil {
+		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
+	}
+	t.Logf("disk type is %s", diskType)
+	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
+		usingHyperdisk = true
+	}
+
+	// hyperdisk benchmarks guidance: https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 	var readOptions string
-	if mode == sequentialMode {
+	if mode == sequentialMode && usingHyperdisk {
+		readOptions = hyperdiskFIOSeqReadOptions
+	} else if mode == sequentialMode && !usingHyperdisk {
 		readOptions = commonFIOSeqReadOptions
+	} else if mode == randomMode && usingHyperdisk {
+		readOptions = hyperdiskFIORandReadOptions
 	} else {
 		readOptions = commonFIORandReadOptions
 	}
+
+	t.Logf("read options are %s", readOptions)
+	t.Logf("using hyperdisk is %t", usingHyperdisk)
 	symlinkRealPath, err := getLinuxSymlinkRead()
 	if err != nil {
 		return []byte{}, err
 	}
+
 	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		return []byte{}, fmt.Errorf("couldn't get image from metadata")
 	}
@@ -75,9 +98,27 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		if err = installFioLinux(); err != nil {
 			return []byte{}, fmt.Errorf("linux fio installation failed: err %v", err)
 		}
+		if usingHyperdisk {
+			err = fillDisk(symlinkRealPath, ctx)
+			if err != nil {
+				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
+			}
+		}
 	}
-	fioReadOptionsLinuxSlice := strings.Fields(readOptions + " --filename=" + symlinkRealPath + " --ioengine=libaio")
-	readIOPSJson, err := exec.Command(fioCmdNameLinux, fioReadOptionsLinuxSlice...).CombinedOutput()
+	readOptions += " --filename=" + symlinkRealPath + " --ioengine=libaio"
+	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
+	if usingHyperdisk {
+		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
+		if err != nil {
+			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
+		}
+		readOptions += hyperdiskAdditionalOptions
+	}
+	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
+	t.Logf("read command string is %s", randReadCmd.String())
+	readIOPSJson, err := randReadCmd.CombinedOutput()
+	//readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)
 	}
@@ -94,7 +135,7 @@ func TestRandomReadIOPS(t *testing.T) {
 		}
 	} else {
 		if randReadIOPSJson, err = RunFIOReadLinux(t, randomMode); err != nil {
-			t.Fatalf("linux fio rand read failed with error: %v", err)
+			t.Fatalf("linux fio rand read failed with error: %s", err.Error())
 		}
 	}
 

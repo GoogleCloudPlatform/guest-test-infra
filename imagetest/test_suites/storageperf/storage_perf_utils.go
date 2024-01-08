@@ -6,6 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path"
+	"runtime"
+	"strconv"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -39,11 +43,14 @@ const (
 	// constants for the mode of running the test
 	randomMode     = "random"
 	sequentialMode = "sequential"
-	// Guest Attribute constants for storing the expected iops
+	// Guest Attribute constants for storing the expected iops and disk type
+	diskTypeAttribute  = "diskType"
 	randReadAttribute  = "randRead"
 	randWriteAttribute = "randWrite"
 	seqReadAttribute   = "seqRead"
 	seqWriteAttribute  = "seqWrite"
+	// this excludes the filename=$TEST_DIR and filesize=$SIZE_IN_GB fields, which should be manually added to the string
+	fillDiskCommonOptions = "--name=fill_disk --ioengine=libaio --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
 )
 
 // map the machine type to performance targets
@@ -206,4 +213,101 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 		return fmt.Errorf("%s, exitCode %d", errorString, exitCode)
 	}
 	return err
+}
+
+// function to get num numa nodes
+func getNumNumaNodes() (int, error) {
+	lscpuOut, err := exec.Command("lscpu").CombinedOutput()
+	if err != nil {
+		return 0, err
+	}
+	lscpuOutString := string(lscpuOut)
+	numNumaNodes := -1
+	for _, line := range strings.Split(lscpuOutString, "\n") {
+		lowercaseLine := strings.ToLower(line)
+		if strings.Contains(lowercaseLine, "numa node") {
+			// the last token in the line should be the number of numa nodes
+			tokens := strings.Fields(lowercaseLine)
+			numNumaNodesString := strings.TrimSpace(tokens[len(tokens)-1])
+			i, err := strconv.Atoi(numNumaNodesString)
+			if err == nil {
+				numNumaNodes = i
+				break
+			}
+		}
+	}
+	if numNumaNodes < 0 {
+		return 0, fmt.Errorf("did not find any line with numNumaNodes in lscpu output: %s", lscpuOutString)
+	}
+	return numNumaNodes, nil
+}
+
+// function to get cpu mapping as strings if there is only one numa node
+// returned format is queue_1_cpus, queue_2_cpus, error
+func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
+	cpuListCmd := exec.Command("cat", "/sys/class/block/"+symlinkRealPath+"/mq/*/cpu_list")
+	cpuListBytes, err := cpuListCmd.CombinedOutput()
+	if err != nil {
+		return "", "", err
+	}
+	cpuListString := string(cpuListBytes)
+	cpuListOutLines := strings.Split(string(cpuListString), "\n")
+	if len(cpuListOutLines) < 2 {
+		return "", "", fmt.Errorf("expected at least two lines for cpu queue mapping, got string %s with %d lines", cpuListString, len(cpuListOutLines))
+	}
+	queue_1_cpus := strings.TrimSpace(cpuListOutLines[0])
+	queue_2_cpus := strings.TrimSpace(cpuListOutLines[1])
+	return queue_1_cpus, queue_2_cpus, nil
+}
+
+// fill the disk before testing to reach the maximum read iops and bandwidth
+// TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
+func fillDisk(symlinkRealPath string, ctx context.Context) error {
+	// fill disk only needs to be run once, before the first test case.
+	testingNamespace := "testing"
+	fillDiskGuestAttribute := "fillDisk"
+	_, err := utils.GetMetadata(ctx, "instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute)
+	if err == nil {
+		// already ran fill disk once, do not need to run it again.
+		return nil
+	} else {
+		err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute), "")
+		if err != nil {
+			return fmt.Errorf("guest attribute to mark fill disk completed not placed: error %v", err)
+		}
+	}
+
+	if runtime.GOOS == "windows" {
+		fmt.Println("fill disk preliminary step not yet implemented for windows")
+	} else {
+		// hard coding the filesize to 500G as that conforms to the docs while giving
+		// sufficiently high performance
+		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
+		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
+		if err := fillDiskCmd.Start(); err != nil {
+			return err
+		}
+		if err := fillDiskCmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
+	readOptionsSuffix := ""
+	numNumaNodes, err := getNumNumaNodes()
+	if err != nil {
+		return "", fmt.Errorf("failed to get number of numa nodes: err %v", err)
+	}
+	if numNumaNodes == 1 {
+		queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
+		if err != nil {
+			return "", fmt.Errorf("could not get cpu to nvme queue mapping: err %v", err)
+		}
+		readOptionsSuffix += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
+	} else {
+		readOptionsSuffix += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
+	}
+	return readOptionsSuffix, nil
 }
