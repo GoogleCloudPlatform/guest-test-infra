@@ -95,7 +95,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
 		}
 		if usingHyperdisk {
-			err = fillDisk(symlinkRealPath, ctx, t)
+			err = fillDisk(symlinkRealPath, ctx)
 			if err != nil {
 				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
 			}
