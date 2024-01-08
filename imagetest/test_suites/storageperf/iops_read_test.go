@@ -109,23 +109,14 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
 	if usingHyperdisk {
-		t.Logf("using hyperdisk case")
-		numNumaNodes, err := getNumNumaNodes()
+		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions()
 		if err != nil {
-			t.Fatalf("failed to get number of numa nodes: err %v", err)
+			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
 		}
-		if numNumaNodes == 1 {
-			queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
-			if err != nil {
-				t.Fatalf("could not get cpu to nvme queue mapping: err %v", err)
-			}
-			readOptions += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
-		} else {
-			readOptions += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
-		}
+		readOptions += hyperdiskAdditionalOptions
 	}
 	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
-	t.Logf("command string is %s", randReadCmd.String())
+	t.Logf("read command string is %s", randReadCmd.String())
 	readIOPSJson, err := randReadCmd.CombinedOutput()
 	//readIOPSJson, err := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...).CombinedOutput()
 	if err != nil {

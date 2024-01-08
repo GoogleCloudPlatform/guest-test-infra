@@ -296,3 +296,21 @@ func fillDisk(symlinkRealPath string) error {
 	}
 	return nil
 }
+
+func getHyperdiskAdditionalOptions() (string, error) {
+	readOptionsSuffix := ""
+	numNumaNodes, err := getNumNumaNodes()
+	if err != nil {
+		return "", fmt.Errorf("failed to get number of numa nodes: err %v", err)
+	}
+	if numNumaNodes == 1 {
+		queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
+		if err != nil {
+			return "", fmt.Errorf("could not get cpu to nvme queue mapping: err %v", err)
+		}
+		readOptionsSuffix += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
+	} else {
+		readOptionsSuffix += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
+	}
+	return readOptionsSuffix, nil
+}
