@@ -244,7 +244,7 @@ func getNumNumaNodes() (int, error) {
 
 // function to get cpu mapping as strings if there is only one numa node
 // returned format is queue_1_cpus, queue_2_cpus, error
-func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
+func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 	cpuListCmd := exec.Command("cat", "/sys/class/block/"+symlinkRealPath+"/mq/*/cpu_list")
 	cpuListBytes, err := cpuListCmd.CombinedOutput()
 	if err != nil {
@@ -255,9 +255,9 @@ func getCpuNvmeMapping(symlinkRealPath string) (string, string, error) {
 	if len(cpuListOutLines) < 2 {
 		return "", "", fmt.Errorf("expected at least two lines for cpu queue mapping, got string %s with %d lines", cpuListString, len(cpuListOutLines))
 	}
-	queue_1_cpus := strings.TrimSpace(cpuListOutLines[0])
-	queue_2_cpus := strings.TrimSpace(cpuListOutLines[1])
-	return queue_1_cpus, queue_2_cpus, nil
+	queue1Cpus := strings.TrimSpace(cpuListOutLines[0])
+	queue2Cpus := strings.TrimSpace(cpuListOutLines[1])
+	return queue1Cpus, queue2Cpus, nil
 }
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
@@ -270,11 +270,10 @@ func fillDisk(symlinkRealPath string, ctx context.Context) error {
 	if err == nil {
 		// already ran fill disk once, do not need to run it again.
 		return nil
-	} else {
-		err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute), "")
-		if err != nil {
-			return fmt.Errorf("guest attribute to mark fill disk completed not placed: error %v", err)
-		}
+	}
+	err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute), "")
+	if err != nil {
+		return fmt.Errorf("guest attribute to mark fill disk completed not placed: error %v", err)
 	}
 
 	if runtime.GOOS == "windows" {
@@ -301,11 +300,11 @@ func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
 		return "", fmt.Errorf("failed to get number of numa nodes: err %v", err)
 	}
 	if numNumaNodes == 1 {
-		queue_1_cpus, queue_2_cpus, err := getCpuNvmeMapping(symlinkRealPath)
+		queue1Cpus, queue2Cpus, err := getCPUNvmeMapping(symlinkRealPath)
 		if err != nil {
 			return "", fmt.Errorf("could not get cpu to nvme queue mapping: err %v", err)
 		}
-		readOptionsSuffix += " --name=read_iops --cpus_allowed=" + queue_1_cpus + " --name=read_iops_2 --cpus_allowed=" + queue_2_cpus
+		readOptionsSuffix += " --name=read_iops --cpus_allowed=" + queue1Cpus + " --name=read_iops_2 --cpus_allowed=" + queue2Cpus
 	} else {
 		readOptionsSuffix += " --name=read_iops --numa_cpu_nodes=0 --name=read_iops_2 --numa_cpu_nodes=1"
 	}
