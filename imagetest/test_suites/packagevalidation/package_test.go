@@ -88,9 +88,7 @@ func TestGuestPackages(t *testing.T) {
 			pkgs = append(pkgs, strings.Split(string(dpkgout), "\n")...)
 			// Snap format name regexp source:
 			// https://snapcraft.io/docs/the-snap-format
-			// Technically incorrect as it won't match a single character package names
-			// But nothing we're looking for has a single character name
-			snapname := regexp.MustCompile("[a-z0-9][a-z0-9-]*[a-z0-9]")
+			snapname := regexp.MustCompile("[a-z0-9][a-z0-9-]*[a-z0-9]|[a-z0-9]")
 			snapout, err := exec.Command("snap", "list").Output()
 			if err != nil {
 				return nil, err
