@@ -44,17 +44,16 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	telemetryenabledvm.AddMetadata("disable-guest-telemetry", "false")
 	telemetryenabledvm.RunTests("TestTelemetryEnabled")
 
-	if !utils.HasFeature(t.Image, "WINDOWS") {
-		snapshotinst := &daisy.Instance{}
-		snapshotinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
-		snapshotinst.Name = "snapshot-scripts"
-		snapshotvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: snapshotinst.Name, Type: imagetest.PdBalanced}}, snapshotinst)
-		if err != nil {
-			return err
-		}
-		snapshotvm.RunTests("TestSnapshotScripts")
-	} else {
-		// on windows, the snapshot script test does not run, but we want to test that the guest agent resets the password correctly
+	snapshotinst := &daisy.Instance{}
+	snapshotinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
+	snapshotinst.Name = "snapshot-scripts"
+	snapshotvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: snapshotinst.Name, Type: imagetest.PdBalanced}}, snapshotinst)
+	if err != nil {
+		return err
+	}
+	snapshotvm.RunTests("TestSnapshotScripts")
+
+	if utils.HasFeature(t.Image, "WINDOWS") {
 		passwordInst := &daisy.Instance{}
 		passwordInst.Scopes = append(passwordInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
 		windowsaccountVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "windowsaccount"}}, passwordInst)
