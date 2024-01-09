@@ -7,34 +7,37 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
-	"slices"
 	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-// findUnique returns a slice of elements that are in arrayA but not in arrayB.
-func findUniq(arrayA, arrayB []string) []string {
-	unique := []string{}
-	for _, itemA := range arrayA {
-		if !slices.Contains(arrayB, itemA) {
-			unique = append(unique, itemA)
-		}
-	}
+// osPackage defines the rules for expected installed packages.
+type osPackage struct {
+	// name is the name of the package, a package could have alternative names
+	// depending on the distro, see alternatives field.
+	name string
 
-	return unique
-}
+	// shouldNotBeInstalled defines if we are checking if the package should or
+	// should not be installed.
+	shouldNotBeInstalled bool
 
-// removeFromArray removes a specific string from an array of strings.
-func removeFromArray(arr []string, strToRemove string) []string {
-	var newArr []string
-	for _, item := range arr {
-		if item != strToRemove {
-			newArr = append(newArr, item)
-		}
-	}
-	return newArr
+	// alternatives are alternative names, a package can be named differently
+	// depending on the distribution.
+	alternatives []string
+
+	// imagesSkip are the image name matching expression for images we don't want
+	// to check this package rule.
+	// The expression matching is applied with strings.Contains() so if the image
+	// name contains the substring it will match.
+	imagesSkip []string
+
+	// images is the oposite of imagesSkip and defines the image name matching
+	// expression of the images this rule must apply.
+	// The expression matching is applied with strings.Contains() so if the image
+	// name contains the substring it will match.
+	images []string
 }
 
 func TestStandardPrograms(t *testing.T) {
@@ -110,50 +113,110 @@ func TestGuestPackages(t *testing.T) {
 		}
 	}
 
-	// What packages to insure are not installed
-	excludePkgs := []string{}
+	pkgs := []*osPackage{
+		&osPackage{
+			name: "google-guest-agent",
+		},
+		&osPackage{
+			name: "google-osconfig-agent",
+		},
+		&osPackage{
+			name:       "google-compute-engine",
+			imagesSkip: []string{"sles", "suse"},
+		},
+		&osPackage{
+			name:   "google-guest-configs",
+			images: []string{"sles", "suse"},
+		},
+		&osPackage{
+			name:   "google-guest-oslogin",
+			images: []string{"sles", "suse"},
+		},
+		&osPackage{
+			name:       "gce-disk-expand",
+			imagesSkip: []string{"sles", "suse", "ubuntu"},
+		},
+		&osPackage{
+			name:         "google-cloud-cli",
+			alternatives: []string{"google-cloud-sdk"},
+		},
+		&osPackage{
+			name:       "google-compute-engine-oslogin",
+			imagesSkip: []string{"sles", "suse"},
+		},
+		&osPackage{
+			name:   "epel-release",
+			images: []string{"centos-7", "rhel-7"},
+		},
+		&osPackage{
+			name:   "haveged",
+			images: []string{"debian"},
+		},
+		&osPackage{
+			name:   "net-tools",
+			images: []string{"debian"},
+		},
+		&osPackage{
+			name:   "google-cloud-packages-archive-keyring",
+			images: []string{"debian"},
+		},
+		&osPackage{
+			name:   "isc-dhcp-client",
+			images: []string{"debian"},
+		},
+		&osPackage{
+			name:                 "cloud-initramfs-growroot",
+			shouldNotBeInstalled: true,
+			images:               []string{"debian"},
+		},
+	}
 
-	// What packages to check for and excude for diffrent images
-	// Redhat like is default
-	requiredPkgs := []string{"google-guest-agent", "google-osconfig-agent"}
-	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-cli")
-	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
-
-	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
-		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli")
-		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine")
-		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine-oslogin")
-		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
-		requiredPkgs = append(requiredPkgs, "google-guest-configs") // SLES name for 'google-compute-engine' package.
-		requiredPkgs = append(requiredPkgs, "google-guest-oslogin")
-	}
-	if strings.Contains(image, "centos-7") {
-		requiredPkgs = append(requiredPkgs, "epel-release")
-	}
-	if strings.Contains(image, "debian") {
-		requiredPkgs = append(requiredPkgs, "haveged", "net-tools")
-		requiredPkgs = append(requiredPkgs, "google-cloud-packages-archive-keyring", "isc-dhcp-client")
-		excludePkgs = append(excludePkgs, "cloud-initramfs-growroot")
-	}
-	if strings.Contains(image, "ubuntu") {
-		requiredPkgs = removeFromArray(requiredPkgs, "gce-disk-expand")
-	}
-
-	installedPkgs, err := listPkgs()
+	installedList, err := listPkgs()
 	if err != nil {
 		t.Errorf("Failed to execute list packages command: %v", err)
 		return
 	}
 
-	missingPkgs := findUniq(requiredPkgs, installedPkgs)
-	for _, pkg := range missingPkgs {
-		t.Errorf("Required package not installed: %s\n", pkg)
+	installedMap := make(map[string]bool)
+	for _, curr := range installedList {
+		installedMap[curr] = true
 	}
 
-	shouldnotPkgs := findUniq(excludePkgs, installedPkgs) // find whats installed
-	shouldnotPkgs = findUniq(excludePkgs, shouldnotPkgs)  // it shouldn't be
-	for _, pkg := range shouldnotPkgs {
-		t.Errorf("Package installed but should not be: %s\n", pkg)
-	}
+	for _, curr := range pkgs {
+		skipPackage := false
+		for _, skipExpression := range curr.imagesSkip {
+			if strings.Contains(image, skipExpression) {
+				skipPackage = true
+				break
+			}
+		}
 
+		imageMatched := len(curr.images) == 0
+		for _, matchExpression := range curr.images {
+			if strings.Contains(image, matchExpression) {
+				imageMatched = true
+				break
+			}
+		}
+
+		if skipPackage || !imageMatched {
+			continue
+		}
+
+		packageInstalled := false
+		packageNames := []string{curr.name}
+		packageNames = append(packageNames, curr.alternatives...)
+
+		for _, currPackage := range packageNames {
+			if _, found := installedMap[currPackage]; found {
+				packageInstalled = true
+				break
+			}
+		}
+
+		if !curr.shouldNotBeInstalled != packageInstalled {
+			t.Errorf("package %s has wrong installation state, got (shouldNotBeInstalled: %t, packageInstalled: %t)",
+				curr.name, curr.shouldNotBeInstalled, packageInstalled)
+		}
+	}
 }
