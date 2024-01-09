@@ -85,15 +85,8 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioLinux(); err != nil {
-			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
-		}
-		// fill disk is only run once, which is right after fio is installed
-		if usingHyperdisk {
-			err = fillDisk(symlinkRealPath)
-			if err != nil {
-				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
-			}
+		if err = installFioAndFillDisk(symlinkRealPath, usingHyperdisk); err != nil {
+			return []byte{}, err
 		}
 	}
 	writeOptions += " --filename=" + symlinkRealPath + " --ioengine=libaio"

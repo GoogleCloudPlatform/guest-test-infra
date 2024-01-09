@@ -107,11 +107,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
-	// mount disk size should not be less than 500 GB, as that is the standard file size for fio testing
-	// listed in the hyperdisk docs as of December 2023
-	if mountdiskSizeGB < 500 {
-		return fmt.Errorf("mount disk size must not be less than 500GB: see sample fio commands for hyperdisk at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance")
-	}
 	testVMs := []*imagetest.TestVM{}
 	for _, tc := range storagePerfTestConfig {
 		if skipTest(tc, t.Image) {

@@ -85,16 +85,10 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		readOptions = strings.Replace(readOptions, "iodepth_batch_complete_max", "iodepth_batch_complete", 1)
 	}
 
+	// if this is the first of the disk tests run, install fio and fill the disk
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioLinux(); err != nil {
-			return []byte{}, fmt.Errorf("linux fio installation failed: err %v", err)
-		}
-		// fill the disk right after the fio install, ensuring that fill disk is only run once
-		if usingHyperdisk {
-			err = fillDisk(symlinkRealPath)
-			if err != nil {
-				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
-			}
+		if err = installFioAndFillDisk(symlinkRealPath); err != nil {
+			return []byte{}, err
 		}
 	}
 	readOptions += " --filename=" + symlinkRealPath + " --ioengine=libaio"
