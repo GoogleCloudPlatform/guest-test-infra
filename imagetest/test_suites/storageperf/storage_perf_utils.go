@@ -312,14 +312,15 @@ func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
 }
 
 func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool) error {
-	if err = installFioLinux(); err != nil {
+	if err := installFioLinux(); err != nil {
 		return fmt.Errorf("fio installation on linux failed: err %v", err)
 	}
 	// TODO: figure out how to fill the disk without taking too long on PD balanced, then remove the usingHyperdisk parameter
 	if usingHyperdisk {
-		err = fillDisk(symlinkRealPath)
+		err := fillDisk(symlinkRealPath)
 		if err != nil {
 			return fmt.Errorf("fill disk preliminary step failed: err %v", err)
 		}
 	}
+	return nil
 }

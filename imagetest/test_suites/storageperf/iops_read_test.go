@@ -87,7 +87,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 
 	// if this is the first of the disk tests run, install fio and fill the disk
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioAndFillDisk(symlinkRealPath); err != nil {
+		if err = installFioAndFillDisk(symlinkRealPath, usingHyperdisk); err != nil {
 			return []byte{}, err
 		}
 	}
