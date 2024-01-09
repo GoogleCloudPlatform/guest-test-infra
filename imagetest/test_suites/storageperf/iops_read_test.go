@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
@@ -54,28 +53,23 @@ func getLinuxSymlinkRead() (string, error) {
 	}
 	return symlinkRealPath, nil
 }
-func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
-	usingHyperdisk := false
-	ctx := utils.Context(t)
-	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
-	if err != nil {
-		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
-	}
-	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
-		usingHyperdisk = true
-	}
 
-	// hyperdisk benchmarks guidance: https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
-	var readOptions string
+func getLinuxReadOptions(mode string, usingHyperdisk bool) string {
 	if mode == sequentialMode && usingHyperdisk {
-		readOptions = hyperdiskFIOSeqReadOptions
+		return hyperdiskFIOSeqReadOptions
 	} else if mode == sequentialMode && !usingHyperdisk {
-		readOptions = commonFIOSeqReadOptions
+		return commonFIOSeqReadOptions
 	} else if mode == randomMode && usingHyperdisk {
-		readOptions = hyperdiskFIORandReadOptions
+		return hyperdiskFIORandReadOptions
 	} else {
-		readOptions = commonFIORandReadOptions
+		return commonFIORandReadOptions
 	}
+}
+
+func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
+	ctx := utils.Context(t)
+	usingHyperdisk := isUsingHyperdisk(ctx)
+	readOptions := getLinuxReadOptions(mode, usingHyperdisk)
 
 	symlinkRealPath, err := getLinuxSymlinkRead()
 	if err != nil {
@@ -95,8 +89,9 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 		if err = installFioLinux(); err != nil {
 			return []byte{}, fmt.Errorf("linux fio installation failed: err %v", err)
 		}
+		// fill the disk right after the fio install, ensuring that fill disk is only run once
 		if usingHyperdisk {
-			err = fillDisk(ctx, symlinkRealPath)
+			err = fillDisk(symlinkRealPath)
 			if err != nil {
 				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
 			}

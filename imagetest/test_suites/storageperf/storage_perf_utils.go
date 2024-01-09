@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"path"
 	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
@@ -215,6 +215,19 @@ func checkZypperTransientError(err error, stdout, stderr string) error {
 	return err
 }
 
+// use the guest attribute to check if hyperdisk is being used. If the guest attribute was not set, assume by default that hyperdisk fio options are not being used.
+func isUsingHyperdisk(ctx context.Context) bool {
+	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
+	if err != nil {
+		return false
+	}
+	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
+		return true
+	}
+
+	return false
+}
+
 // function to get num numa nodes
 func getNumNumaNodes() (int, error) {
 	lscpuOut, err := exec.Command("lscpu").CombinedOutput()
@@ -262,20 +275,7 @@ func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
-func fillDisk(ctx context.Context, symlinkRealPath string) error {
-	// fill disk only needs to be run once, before the first test case.
-	testingNamespace := "testing"
-	fillDiskGuestAttribute := "fillDisk"
-	_, err := utils.GetMetadata(ctx, "instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute)
-	if err == nil {
-		// already ran fill disk once, do not need to run it again.
-		return nil
-	}
-	err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", testingNamespace, fillDiskGuestAttribute), "")
-	if err != nil {
-		return fmt.Errorf("guest attribute to mark fill disk completed not placed: error %v", err)
-	}
-
+func fillDisk(symlinkRealPath string) error {
 	if runtime.GOOS == "windows" {
 		fmt.Println("fill disk preliminary step not yet implemented for windows")
 	} else {

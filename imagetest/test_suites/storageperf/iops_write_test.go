@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
@@ -55,27 +54,22 @@ func getLinuxSymlinkWrite() (string, error) {
 	return symlinkRealPath, nil
 }
 
-func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
-	usingHyperdisk := false
-	ctx := utils.Context(t)
-	diskType, err := utils.GetMetadata(ctx, "instance", "attributes", diskTypeAttribute)
-	if err != nil {
-		t.Fatalf("could not get guest metadata %s: err r%v", diskTypeAttribute, err)
-	}
-	if diskType == imagetest.HyperdiskExtreme || diskType == imagetest.HyperdiskThroughput || diskType == imagetest.HyperdiskBalanced {
-		usingHyperdisk = true
-	}
-
-	var writeOptions string
+func getLinuxWriteOptions(mode string, usingHyperdisk bool) string {
 	if mode == sequentialMode && usingHyperdisk {
-		writeOptions = hyperdiskFIOSeqWriteOptions
+		return hyperdiskFIOSeqWriteOptions
 	} else if mode == sequentialMode && !usingHyperdisk {
-		writeOptions = commonFIOSeqWriteOptions
+		return commonFIOSeqWriteOptions
 	} else if mode == randomMode && usingHyperdisk {
-		writeOptions = hyperdiskFIORandWriteOptions
+		return hyperdiskFIORandWriteOptions
 	} else {
-		writeOptions = commonFIORandWriteOptions
+		return commonFIORandWriteOptions
 	}
+}
+
+func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
+	ctx := utils.Context(t)
+	usingHyperdisk := isUsingHyperdisk(ctx)
+	writeOptions := getLinuxWriteOptions(mode, usingHyperdisk)
 
 	symlinkRealPath, err := getLinuxSymlinkWrite()
 	if err != nil {
@@ -94,8 +88,9 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		if err = installFioLinux(); err != nil {
 			return []byte{}, fmt.Errorf("fio installation on linux failed: err %v", err)
 		}
+		// fill disk is only run once, which is right after fio is installed
 		if usingHyperdisk {
-			err = fillDisk(ctx, symlinkRealPath)
+			err = fillDisk(symlinkRealPath)
 			if err != nil {
 				return []byte{}, fmt.Errorf("fill disk preliminary step failed: err %v", err)
 			}
