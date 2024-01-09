@@ -81,6 +81,12 @@ func TestGuestPackages(t *testing.T) {
 	requiredPkgs = append(requiredPkgs, "google-compute-engine", "gce-disk-expand", "google-cloud-cli")
 	requiredPkgs = append(requiredPkgs, "google-compute-engine-oslogin")
 
+	// We haven't published a rocky-linux-8-optimized for arm with google-cloud-cli, so check google-cloud-sdk instead.
+	if strings.Contains(image, "rocky-linux-8-optimized-gcp-arm64") {
+		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli")
+		requiredPkgs = append(requiredPkgs, "google-cloud-sdk")
+	}
+
 	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
 		requiredPkgs = removeFromArray(requiredPkgs, "google-cloud-cli")
 		requiredPkgs = removeFromArray(requiredPkgs, "google-compute-engine")
