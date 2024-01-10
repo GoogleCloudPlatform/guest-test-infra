@@ -136,7 +136,7 @@ func TestShutdownScripts(t *testing.T) {
 		t.Fatalf("failed to read shutdown script result key: %v", err)
 	}
 	if result == expectedShutdownContent {
-		t.Errorf("shutdown script reexected after a reinstall of guest agent")
+		t.Errorf("shutdown script re-executed after a reinstall of guest agent")
 	}
 }
 
