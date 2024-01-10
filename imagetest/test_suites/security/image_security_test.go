@@ -279,8 +279,8 @@ func verifyAutomaticUpdate(image string) error {
 		if err != nil {
 			return err
 		}
-		if !strings.Contains(AUOptions, "AUOptions : 4") {
-			return fmt.Errorf("Unexpected AUOptions, got %q want %q", AUOptions, "AUOptions : 4")
+		if !strings.Contains(AUOptions.Stdout, "AUOptions : 4") {
+			return fmt.Errorf("Unexpected AUOptions, got %q want %q", AUOptions.Stdout, "AUOptions : 4")
 		}
 		return nil
 	}
@@ -362,7 +362,7 @@ var (
 
 // TestSockets tests that only whitelisted ports are listening globally.
 func TestSockets(t *testing.T) {
-	t.LinuxOnly(t)
+	utils.LinuxOnly(t)
 	// TODO Windows support
 	// print listening TCP or UDP sockets with no header and no name
 	// resolution.
