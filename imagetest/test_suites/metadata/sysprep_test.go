@@ -9,7 +9,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-func TestSysprepSpecialize(t *testing.T){
+func TestSysprepSpecialize(t *testing.T) {
 	utils.WindowsOnly(t)
 	result, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
