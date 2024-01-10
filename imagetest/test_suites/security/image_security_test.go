@@ -58,6 +58,7 @@ const (
 
 // TestKernelSecuritySettings Checks that the given parameter has the given value in sysctl.
 func TestKernelSecuritySettings(t *testing.T) {
+	utils.LinuxOnly(t)
 	for key, expect := range securitySettingMap {
 		v, err := sysctlGet(key)
 		if err != nil {
@@ -95,6 +96,10 @@ func TestAutomaticUpdates(t *testing.T) {
 		if err := verifyAutomaticUpdate(image); err != nil {
 			t.Fatal(err)
 		}
+	case strings.Contains(image, "windows"):
+		if err := verifyAutomaticUpdate(image); err != nil {
+			t.Fatal(err)
+		}
 	case strings.Contains(image, "suse"):
 		t.Skip("Not supported on SUSE")
 	case strings.Contains(image, "sles"):
@@ -125,6 +130,7 @@ func TestAutomaticUpdates(t *testing.T) {
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
 	ctx := utils.Context(t)
+	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
@@ -268,6 +274,16 @@ func verifyServiceEnabled(image string) error {
 }
 
 func verifyAutomaticUpdate(image string) error {
+	if strings.Contains(image, "windows") {
+		AUOptions, err := utils.RunPowershellCmd(`Get-ItemProperty -Path HKLM:\software\policies\microsoft\windows\windowsupdate\au | Format-List -Property AUOptions`)
+		if err != nil {
+			return err
+		}
+		if !strings.Contains(AUOptions.Stdout, "AUOptions : 4") {
+			return fmt.Errorf("Unexpected AUOptions, got %q want %q", AUOptions.Stdout, "AUOptions : 4")
+		}
+		return nil
+	}
 	output, err := exec.Command("apt-config", "dump").Output()
 	if err != nil {
 		return err
@@ -346,6 +362,8 @@ var (
 
 // TestSockets tests that only whitelisted ports are listening globally.
 func TestSockets(t *testing.T) {
+	utils.LinuxOnly(t)
+	// TODO Windows support
 	// print listening TCP or UDP sockets with no header and no name
 	// resolution.
 	out, _, err := runCommand("ss", "-Hltun")
