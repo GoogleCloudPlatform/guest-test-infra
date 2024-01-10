@@ -275,7 +275,7 @@ func verifyServiceEnabled(image string) error {
 
 func verifyAutomaticUpdate(image string) error {
 	if strings.Contains(image, "windows") {
-		AUOptions, err := utils.RunPowershellCmd("Get-ItemProperty -Path HKLM:\software\policies\microsoft\windows\windowsupdate\au | Format-List -Property AUOptions")
+		AUOptions, err := utils.RunPowershellCmd(`Get-ItemProperty -Path HKLM:\software\policies\microsoft\windows\windowsupdate\au | Format-List -Property AUOptions`)
 		if err != nil {
 			return err
 		}
