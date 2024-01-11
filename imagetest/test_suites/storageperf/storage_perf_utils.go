@@ -42,8 +42,10 @@ const (
 	// The local path on the test VM where fio is stored.
 	fioWindowsLocalPath = "C:\\fio.exe"
 	// constants for the mode of running the test
-	randomMode     = "random"
-	sequentialMode = "sequential"
+	randRead  = "randread"
+	randWrite = "randwrite"
+	seqRead   = "read"
+	seqWrite  = "write"
 	// Guest Attribute constants for storing the expected iops and disk type
 	diskTypeAttribute  = "diskType"
 	randReadAttribute  = "randRead"
@@ -51,7 +53,11 @@ const (
 	seqReadAttribute   = "seqRead"
 	seqWriteAttribute  = "seqWrite"
 	// this excludes the filename=$TEST_DIR and filesize=$SIZE_IN_GB fields, which should be manually added to the string
-	fillDiskCommonOptions = "--name=fill_disk --ioengine=libaio --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
+	fillDiskCommonOptions   = "--name=fill_disk --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
+	commonFIORandOptions    = "--name=write_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqOptions     = "--name=write_bandwidth_test --filesize=500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	hyperdiskFIORandOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
+	hyperdiskFIOSeqOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
 
 // map the machine type to performance targets
@@ -188,14 +194,32 @@ func installFioLinux() error {
 	return nil
 }
 
-// this function is only for convenience: if a performance test fails,
-// the test vm name can print out the vm machine type for faster analysis.
-func getVMName(ctx context.Context) string {
-	machineName, err := utils.GetMetadata(ctx, "instance", "name")
-	if err != nil {
-		return "unknown"
+// Assumes the larger disk is the disk which performance is being tested on, and gets the symlink to the disk
+func getLinuxSymlink() (string, error) {
+	symlinkRealPath := ""
+	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
+	if err == nil {
+		symlinkRealPath = "/dev/" + diskPartition
+	} else {
+		return "", fmt.Errorf("failed to find symlink: error %v", err)
 	}
-	return machineName
+	return symlinkRealPath, nil
+}
+
+func getFIOOptions(mode string, usingHyperdisk bool) string {
+	if usingHyperdisk {
+		if mode == randRead || mode == randWrite {
+			return hyperdiskFIORandOptions + " --rw=" + mode
+		} else {
+			return hyperdiskFIOSeqOptions + " --rw=" + mode
+		}
+	}
+
+	if mode == randRead || mode == randWrite {
+		return commonFIORandOptions + " --rw=" + mode
+	} else {
+		return commonFIOSeqOptions + " --rw=" + mode
+	}
 }
 
 // check if a known zypper backend error is found
@@ -230,6 +254,7 @@ func isUsingHyperdisk(ctx context.Context) bool {
 }
 
 // function to get num numa nodes
+// TODO: implement this for windows hyperdisk
 func getNumNumaNodes() (int, error) {
 	if runtime.GOOS == "windows" {
 		return 0, fmt.Errorf("getNumaNodes not yet implemented on windows")
@@ -261,6 +286,7 @@ func getNumNumaNodes() (int, error) {
 
 // function to get cpu mapping as strings if there is only one numa node
 // returned format is queue_1_cpus, queue_2_cpus, error
+// TODO: implement this for windows hyperdisk
 func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 	if runtime.GOOS == "windows" {
 		return "", "", fmt.Errorf("get cpu to nvme mapping not yet implemented on windows")
@@ -286,9 +312,9 @@ func fillDisk(symlinkRealPath string, t *testing.T) error {
 	if runtime.GOOS == "windows" {
 		t.Logf("fill disk preliminary step not yet implemented for windows")
 	} else {
-		// hard coding the filesize to 500G as that conforms to the docs while giving
-		// sufficiently high performance
-		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
+		// hard coding the filesize to 500G to save time on the fill disk step, as it
+		// apppears to give sufficient performance
+		fillDiskCmdOptions := fillDiskCommonOptions + " --ioengine=libaio --filesize=500G --filename=" + symlinkRealPath
 		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
 		t.Logf("fill disk cmd is %s", fillDiskCmd.String())
 		if err := fillDiskCmd.Start(); err != nil {
@@ -319,15 +345,77 @@ func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
 	return readOptionsSuffix, nil
 }
 
-func installFioAndFillDisk(symlinkRealPath string, t *testing.T) error {
+func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool, t *testing.T) error {
 	if err := installFioLinux(); err != nil {
 		return fmt.Errorf("fio installation on linux failed: err %v", err)
 	}
 	// TODO: figure out how to fill the disk without taking too long on PD balanced, then remove the usingHyperdisk parameter
 	t.Logf("entering fill disk step")
-	err := fillDisk(symlinkRealPath, t)
-	if err != nil {
-		return fmt.Errorf("fill disk preliminary step failed: err %v", err)
+	if usingHyperdisk {
+		err := fillDisk(symlinkRealPath, t)
+		if err != nil {
+			return fmt.Errorf("fill disk preliminary step failed: err %v", err)
+		}
 	}
 	return nil
+}
+
+func RunFIOLinux(t *testing.T, mode string) ([]byte, error) {
+	ctx := utils.Context(t)
+	usingHyperdisk := isUsingHyperdisk(ctx)
+	options := getFIOOptions(mode, usingHyperdisk)
+
+	symlinkRealPath, err := getLinuxSymlink()
+	if err != nil {
+		return []byte{}, err
+	}
+	// ubuntu 16.04 has a different option name due to an old fio version
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	if err != nil {
+		return []byte{}, fmt.Errorf("couldn't get image from metadata")
+	}
+	if strings.Contains(image, "ubuntu-pro-1604") {
+		options = strings.Replace(options, "iodepth_batch_complete_max", "iodepth_batch_complete", 1)
+	}
+
+	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
+		if err = installFioAndFillDisk(symlinkRealPath, usingHyperdisk, t); err != nil {
+			return []byte{}, err
+		}
+	}
+	options += " --filename=" + symlinkRealPath + " --ioengine=libaio"
+	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
+	if usingHyperdisk {
+		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
+		if err != nil {
+			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
+		}
+		options += hyperdiskAdditionalOptions
+	}
+	randCmd := exec.Command(fioCmdNameLinux, strings.Fields(options)...)
+	t.Logf("rand cmd is %s", randCmd.String())
+	IOPSJson, err := randCmd.CombinedOutput()
+	if err != nil {
+		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", IOPSJson, err)
+	}
+	return IOPSJson, nil
+}
+
+func RunFIOWindows(mode string) ([]byte, error) {
+	IOPSFile := "C:\\fio-iops.txt"
+	// TODO: hyperdisk testing is not yet implemented for windows
+	usingHyperdisk := false
+	fiopOptions := getFIOOptions(mode, usingHyperdisk)
+	fioOptionsWindows := " -ArgumentList \"" + fiopOptions + " --output=" + IOPSFile + " --filename=\\\\.\\PhysicalDrive1" + " --ioengine=windowsaio" + " --thread\"" + " -wait"
+	// fioWindowsLocalPath is defined within storage_perf_utils.go
+	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioOptionsWindows); err != nil {
+		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
+	}
+
+	IOPSJsonProcStatus, err := utils.RunPowershellCmd("Get-Content " + IOPSFile)
+	if err != nil {
+		return []byte{}, fmt.Errorf("Get-Content of fio output file returned with error: %v %s %s", err, IOPSJsonProcStatus.Stdout, IOPSJsonProcStatus.Stderr)
+	}
+	return []byte(IOPSJsonProcStatus.Stdout), nil
 }

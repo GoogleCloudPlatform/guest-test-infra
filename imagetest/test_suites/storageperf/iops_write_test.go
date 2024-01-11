@@ -15,109 +15,16 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-const (
-	commonFIORandWriteOptions    = "--name=write_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqWriteOptions     = "--name=write_bandwidth_test --filesize=500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
-	hyperdiskFIORandWriteOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randwrite --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
-	hyperdiskFIOSeqWriteOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
-)
-
-func RunFIOWriteWindows(mode string) ([]byte, error) {
-	writeIopsFile := "C:\\fio-write-iops.txt"
-	var writeOptions string
-	if mode == sequentialMode {
-		writeOptions = commonFIOSeqWriteOptions
-	} else {
-		writeOptions = commonFIORandWriteOptions
-	}
-	fioWriteOptionsWindows := " -ArgumentList \"" + writeOptions + " --output=" + writeIopsFile + " --filename=\\\\.\\PhysicalDrive1" + " --ioengine=windowsaio" + " --thread\"" + " -wait"
-	// fioWindowsLocalPath is defined within storage_perf_utils.go
-	if procStatus, err := utils.RunPowershellCmd("Start-Process " + fioWindowsLocalPath + fioWriteOptionsWindows); err != nil {
-		return []byte{}, fmt.Errorf("fio.exe returned with error: %v %s %s", err, procStatus.Stdout, procStatus.Stderr)
-	}
-
-	writeIopsJsonProcStatus, err := utils.RunPowershellCmd("Get-Content " + writeIopsFile)
-	if err != nil {
-		return []byte{}, fmt.Errorf("Get-Content of fio output file returned with error: %v %s %s", err, writeIopsJsonProcStatus.Stdout, writeIopsJsonProcStatus.Stderr)
-	}
-	return []byte(writeIopsJsonProcStatus.Stdout), nil
-}
-
-func getLinuxSymlinkWrite() (string, error) {
-	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
-	if err == nil {
-		symlinkRealPath = "/dev/" + diskPartition
-	} else {
-		return "", fmt.Errorf("failed to find symlink: error %v", err)
-	}
-	return symlinkRealPath, nil
-}
-
-func getLinuxWriteOptions(mode string, usingHyperdisk bool) string {
-	if mode == sequentialMode && usingHyperdisk {
-		return hyperdiskFIOSeqWriteOptions
-	} else if mode == sequentialMode && !usingHyperdisk {
-		return commonFIOSeqWriteOptions
-	} else if mode == randomMode && usingHyperdisk {
-		return hyperdiskFIORandWriteOptions
-	} else {
-		return commonFIORandWriteOptions
-	}
-}
-
-func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
-	ctx := utils.Context(t)
-	usingHyperdisk := isUsingHyperdisk(ctx)
-	writeOptions := getLinuxWriteOptions(mode, usingHyperdisk)
-
-	symlinkRealPath, err := getLinuxSymlinkWrite()
-	if err != nil {
-		return []byte{}, err
-	}
-	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
-	if err != nil {
-		return []byte{}, fmt.Errorf("couldn't get image from metadata")
-	}
-	if strings.Contains(image, "ubuntu-pro-1604") {
-		writeOptions = strings.Replace(writeOptions, "iodepth_batch_complete_max", "iodepth_batch_complete", 1)
-	}
-
-	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioAndFillDisk(symlinkRealPath, t); err != nil {
-			return []byte{}, err
-		}
-	}
-	writeOptions += " --filename=" + symlinkRealPath + " --ioengine=libaio"
-	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
-	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
-	if usingHyperdisk {
-		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
-		if err != nil {
-			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
-		}
-		writeOptions += hyperdiskAdditionalOptions
-	}
-	randWriteCmd := exec.Command(fioCmdNameLinux, strings.Fields(writeOptions)...)
-	t.Logf("rand write cmd is %s", randWriteCmd.String())
-	writeIOPSJson, err := randWriteCmd.CombinedOutput()
-	if err != nil {
-		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
-	}
-	return writeIOPSJson, nil
-}
-
 // TestRandomWriteIOPS checks that random write IOPS are around the value listed in public docs.
 func TestRandomWriteIOPS(t *testing.T) {
 	var randWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randWriteIOPSJson, err = RunFIOWriteWindows(randomMode); err != nil {
+		if randWriteIOPSJson, err = RunFIOWindows(randWrite); err != nil {
 			t.Fatalf("windows fio rand write failed with error: %v", err)
 		}
 	} else {
-		if randWriteIOPSJson, err = RunFIOWriteLinux(t, randomMode); err != nil {
+		if randWriteIOPSJson, err = RunFIOLinux(t, randWrite); err != nil {
 			t.Fatalf("linux fio rand write failed with error: %v", err)
 		}
 	}
@@ -145,7 +52,8 @@ func TestRandomWriteIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandWriteIOPSString, err)
 	}
 
-	machineName := getVMName(utils.Context(t))
+	// suppress the error because the vm name is only for printing out test results, and does not affect test behavior
+	machineName, _ := utils.GetInstanceName(utils.Context(t))
 	if finalIOPSValue < iopsErrorMargin*expectedRandWriteIOPS {
 		t.Fatalf("iops average for vm %s was too low: expected at least %f of target %s, got %s", machineName, iopsErrorMargin, expectedRandWriteIOPSString, finalIOPSValueString)
 	}
@@ -158,11 +66,11 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	var seqWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqWriteIOPSJson, err = RunFIOWriteWindows(sequentialMode); err != nil {
+		if seqWriteIOPSJson, err = RunFIOWriteWindows(seqWrite); err != nil {
 			t.Fatalf("windows fio seq write failed with error: %v", err)
 		}
 	} else {
-		if seqWriteIOPSJson, err = RunFIOWriteLinux(t, sequentialMode); err != nil {
+		if seqWriteIOPSJson, err = RunFIOWriteLinux(t, seqWrite); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)
 		}
 	}
