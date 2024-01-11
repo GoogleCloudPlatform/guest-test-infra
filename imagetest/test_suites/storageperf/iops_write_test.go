@@ -6,7 +6,6 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -66,11 +65,11 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	var seqWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqWriteIOPSJson, err = RunFIOWriteWindows(seqWrite); err != nil {
+		if seqWriteIOPSJson, err = RunFIOWindows(seqWrite); err != nil {
 			t.Fatalf("windows fio seq write failed with error: %v", err)
 		}
 	} else {
-		if seqWriteIOPSJson, err = RunFIOWriteLinux(t, seqWrite); err != nil {
+		if seqWriteIOPSJson, err = RunFIOLinux(t, seqWrite); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)
 		}
 	}
@@ -104,7 +103,7 @@ func TestSequentialWriteIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedSeqWriteIOPSString, err)
 	}
 
-	machineName := getVMName(utils.Context(t))
+	machineName, _ := utils.GetInstanceName(utils.Context(t))
 	if finalBandwidthMBps < iopsErrorMargin*expectedSeqWriteIOPS {
 		t.Fatalf("iops average for vm %s was too low: expected at least %f of target %s, got %s", machineName, iopsErrorMargin, expectedSeqWriteIOPSString, finalBandwidthMBpsString)
 	}

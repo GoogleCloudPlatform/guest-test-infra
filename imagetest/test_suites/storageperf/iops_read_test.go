@@ -6,7 +6,6 @@ package storageperf
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -52,7 +51,7 @@ func TestRandomReadIOPS(t *testing.T) {
 		t.Fatalf("benchmark iops string %s was not a float: err %v", expectedRandReadIOPSString, err)
 	}
 
-	machineName := getVMName(utils.Context(t))
+	machineName, _ := utils.GetInstanceName(utils.Context(t))
 	if finalIOPSValue < iopsErrorMargin*expectedRandReadIOPS {
 		t.Fatalf("iops average for vm %s was too low: expected at least %f of target %s, got %s", machineName, iopsErrorMargin, expectedRandReadIOPSString, finalIOPSValueString)
 	}
