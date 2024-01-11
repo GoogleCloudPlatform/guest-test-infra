@@ -103,6 +103,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 
 	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
+	t.Logf("randreadcmd is %s", randReadCmd.String())
 	readIOPSJson, err := randReadCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)

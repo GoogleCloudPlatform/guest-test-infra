@@ -100,6 +100,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 		writeOptions += hyperdiskAdditionalOptions
 	}
 	randWriteCmd := exec.Command(fioCmdNameLinux, strings.Fields(writeOptions)...)
+	t.Logf("rand write cmd is %s", randWriteCmd.String())
 	writeIOPSJson, err := randWriteCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", writeIOPSJson, err)
