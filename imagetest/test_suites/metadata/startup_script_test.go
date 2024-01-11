@@ -116,6 +116,7 @@ func TestStartupScripts(t *testing.T) {
 			fallback = exec.Command("yum", "-y", "upgrade", "google-guest-agent")
 		case utils.CheckLinuxCmdExists("zypper"):
 			cmd = exec.Command("zypper", "--non-interactive", "install", "--force", "google-guest-agent")
+			fallback = exec.Command("zypper", "--non-interactive", "install", "--force", "google-guest-agent")
 		default:
 			t.Fatal("could not find a package manager to reinstall guest-agent with")
 		}
