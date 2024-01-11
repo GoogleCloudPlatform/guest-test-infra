@@ -22,6 +22,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.AddMetadata("block-project-ssh-keys", "true")
 	vm.AddMetadata("enable-guest-attributes", "true")
+	vm.AddMetadata("enable-windows-ssh", "true")
+	vm.AddMetadata("sysprep-specialize-script-cmd", "googet -noconfirm=true install google-compute-engine-ssh")
 	vm.RunTests("TestSSHInstanceKey|TestHostKeysAreUnique|TestMatchingKeysInGuestAttributes")
 
 	vm2, err := t.CreateTestVM("vm2")
@@ -31,6 +33,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.AddUser(user, publicKey)
 	vm2.AddMetadata("enable-guest-attributes", "true")
 	vm2.AddMetadata("enable-oslogin", "false")
+	vm2.AddMetadata("enable-windows-ssh", "true")
+	vm2.AddMetadata("sysprep-specialize-script-cmd", "googet -noconfirm=true install google-compute-engine-ssh")
 	vm2.RunTests("TestEmptyTest")
 
 	vm3, err := t.CreateTestVM("vm3")

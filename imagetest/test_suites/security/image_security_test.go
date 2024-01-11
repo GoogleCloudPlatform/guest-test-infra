@@ -130,7 +130,6 @@ func TestAutomaticUpdates(t *testing.T) {
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
 	ctx := utils.Context(t)
-	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
@@ -138,6 +137,9 @@ func TestPasswordSecurity(t *testing.T) {
 
 	if err := verifySSHConfig(image); err != nil {
 		t.Fatal(err)
+	}
+	if utils.IsWindows() {
+		return
 	}
 
 	// Root password/login is disabled.
@@ -194,21 +196,28 @@ func verifyPassword(ctx context.Context) error {
 }
 
 func verifySSHConfig(image string) error {
-	sshdConfig, err := exec.Command("sshd", "-T").Output()
+	var sshdConfig []byte
+	var err error
+	if utils.IsWindows() {
+		sshdConfig, err = exec.Command(`C:\Program Files\OpenSSH\sshd.exe`, "-T").Output()
+	} else {
+		sshdConfig, err = exec.Command("sshd", "-T").Output()
+	}
 	if err != nil {
-		return fmt.Errorf("could not get effective sshd config (failed to run sshd -T): %s", err)
+		return fmt.Errorf("could not get effective sshd config: %s", err)
 	}
 	// Effective configuration keys are all lowercase
-	passwordauthsetting := strings.TrimSuffix(string(regexp.MustCompile(`passwordauthentication[ \t]+[a-zA-Z]+\n`).Find(sshdConfig)), "\n")
+	passwordauthsetting := strings.TrimSuffix(strings.TrimSuffix(string(regexp.MustCompile(`passwordauthentication[ \t]+[a-zA-Z]+\r?\n`).Find(sshdConfig)), "\n"), "\r")
 	if passwordauthsetting != "passwordauthentication no" {
 		return fmt.Errorf("sshd passwordauthentication setting is %q, want %q", passwordauthsetting, "passwordauthencation no")
 	}
-	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+	if strings.Contains(image, "sles") || strings.Contains(image, "suse") || utils.IsWindows() {
 		// SLES ships with "PermitRootLogin yes" in SSHD config.
+		// This setting is meaningless on windows
 		return nil
 	}
 
-	permitrootloginsetting := strings.TrimSuffix(string(regexp.MustCompile(`permitrootlogin[ \t]+[a-zA-Z\-]+\n`).Find(sshdConfig)), "\n")
+	permitrootloginsetting := strings.TrimSuffix(strings.TrimSuffix(string(regexp.MustCompile(`permitrootlogin[ \t]+[a-zA-Z\-]+\r?\n`).Find(sshdConfig)), "\n"), "\r")
 	if permitrootloginsetting != "permitrootlogin no" && permitrootloginsetting != "permitrootlogin prohibit-password" && permitrootloginsetting != "permitrootlogin without-password" {
 		return fmt.Errorf("sshd permitrootlogin setting is %q, want %q, %q, or %q", permitrootloginsetting, "permitrootlogin no", "permitrootlogin prohibit-password", "permitrootlogin without-password")
 	}

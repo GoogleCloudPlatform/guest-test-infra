@@ -28,7 +28,7 @@ func restartAgent(t *testing.T) {
 	t.Helper()
 	var cmd *exec.Cmd
 	if utils.IsWindows() {
-		cmd = exec.CommandContext(utils.Context(t), "powershell.exe", "-NonInteractive", "Restart-Service", "GCEGuestAgent")
+		cmd = exec.CommandContext(utils.Context(t), "powershell.exe", "-NonInteractive", "Restart-Service", "GCEAgent")
 	} else {
 		cmd = exec.CommandContext(utils.Context(t), "systemctl", "restart", "google-guest-agent")
 	}
