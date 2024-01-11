@@ -308,7 +308,7 @@ func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
 func fillDisk(symlinkRealPath string, t *testing.T) error {
 	if runtime.GOOS == "windows" {
-		t.Logf("fill disk preliminary step not yet implemented for windows")
+		t.Logf("fill disk preliminary step not yet implemented for windows: performance may be lower than the target values")
 	} else {
 		// hard coding the filesize to 500G to save time on the fill disk step, as it
 		// apppears to give sufficient performance
@@ -352,6 +352,8 @@ func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool, t *testi
 		if err != nil {
 			return fmt.Errorf("fill disk preliminary step failed: err %v", err)
 		}
+	} else {
+		t.Logf("fill disk warmup step not yet implemented for disk types other than hyperdisk: performance values may be lower than the documented values")
 	}
 	return nil
 }
