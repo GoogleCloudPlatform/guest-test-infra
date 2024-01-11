@@ -19,11 +19,11 @@ func TestRandomReadIOPS(t *testing.T) {
 	var randReadIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randReadIOPSJson, err = RunFIOWindows(randRead); err != nil {
+		if randReadIOPSJson, err = runFIOWindows(randRead); err != nil {
 			t.Fatalf("windows fio rand read failed with error: %v", err)
 		}
 	} else {
-		if randReadIOPSJson, err = RunFIOLinux(t, randRead); err != nil {
+		if randReadIOPSJson, err = runFIOLinux(t, randRead); err != nil {
 			t.Fatalf("linux fio rand read failed with error: %s", err.Error())
 		}
 	}
@@ -64,11 +64,11 @@ func TestSequentialReadIOPS(t *testing.T) {
 	var seqReadIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqReadIOPSJson, err = RunFIOWindows(seqRead); err != nil {
+		if seqReadIOPSJson, err = runFIOWindows(seqRead); err != nil {
 			t.Fatalf("windows fio seq read failed with error: %v", err)
 		}
 	} else {
-		if seqReadIOPSJson, err = RunFIOLinux(t, seqRead); err != nil {
+		if seqReadIOPSJson, err = runFIOLinux(t, seqRead); err != nil {
 			t.Fatalf("linux fio seq read failed with error: %v", err)
 		}
 	}

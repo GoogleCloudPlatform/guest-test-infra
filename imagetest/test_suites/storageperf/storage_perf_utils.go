@@ -210,16 +210,14 @@ func getFIOOptions(mode string, usingHyperdisk bool) string {
 	if usingHyperdisk {
 		if mode == randRead || mode == randWrite {
 			return hyperdiskFIORandOptions + " --rw=" + mode
-		} else {
-			return hyperdiskFIOSeqOptions + " --rw=" + mode
 		}
+		return hyperdiskFIOSeqOptions + " --rw=" + mode
 	}
 
 	if mode == randRead || mode == randWrite {
 		return commonFIORandOptions + " --rw=" + mode
-	} else {
-		return commonFIOSeqOptions + " --rw=" + mode
 	}
+	return commonFIOSeqOptions + " --rw=" + mode
 }
 
 // check if a known zypper backend error is found
@@ -316,7 +314,6 @@ func fillDisk(symlinkRealPath string, t *testing.T) error {
 		// apppears to give sufficient performance
 		fillDiskCmdOptions := fillDiskCommonOptions + " --ioengine=libaio --filesize=500G --filename=" + symlinkRealPath
 		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
-		t.Logf("fill disk cmd is %s", fillDiskCmd.String())
 		if err := fillDiskCmd.Start(); err != nil {
 			return err
 		}
@@ -350,7 +347,6 @@ func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool, t *testi
 		return fmt.Errorf("fio installation on linux failed: err %v", err)
 	}
 	// TODO: figure out how to fill the disk without taking too long on PD balanced, then remove the usingHyperdisk parameter
-	t.Logf("entering fill disk step")
 	if usingHyperdisk {
 		err := fillDisk(symlinkRealPath, t)
 		if err != nil {
@@ -360,7 +356,7 @@ func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool, t *testi
 	return nil
 }
 
-func RunFIOLinux(t *testing.T, mode string) ([]byte, error) {
+func runFIOLinux(t *testing.T, mode string) ([]byte, error) {
 	ctx := utils.Context(t)
 	usingHyperdisk := isUsingHyperdisk(ctx)
 	options := getFIOOptions(mode, usingHyperdisk)
@@ -394,7 +390,6 @@ func RunFIOLinux(t *testing.T, mode string) ([]byte, error) {
 		options += hyperdiskAdditionalOptions
 	}
 	randCmd := exec.Command(fioCmdNameLinux, strings.Fields(options)...)
-	t.Logf("rand cmd is %s", randCmd.String())
 	IOPSJson, err := randCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", IOPSJson, err)
@@ -402,7 +397,7 @@ func RunFIOLinux(t *testing.T, mode string) ([]byte, error) {
 	return IOPSJson, nil
 }
 
-func RunFIOWindows(mode string) ([]byte, error) {
+func runFIOWindows(mode string) ([]byte, error) {
 	IOPSFile := "C:\\fio-iops.txt"
 	// TODO: hyperdisk testing is not yet implemented for windows
 	usingHyperdisk := false

@@ -19,11 +19,11 @@ func TestRandomWriteIOPS(t *testing.T) {
 	var randWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randWriteIOPSJson, err = RunFIOWindows(randWrite); err != nil {
+		if randWriteIOPSJson, err = runFIOWindows(randWrite); err != nil {
 			t.Fatalf("windows fio rand write failed with error: %v", err)
 		}
 	} else {
-		if randWriteIOPSJson, err = RunFIOLinux(t, randWrite); err != nil {
+		if randWriteIOPSJson, err = runFIOLinux(t, randWrite); err != nil {
 			t.Fatalf("linux fio rand write failed with error: %v", err)
 		}
 	}
@@ -65,11 +65,11 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	var seqWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqWriteIOPSJson, err = RunFIOWindows(seqWrite); err != nil {
+		if seqWriteIOPSJson, err = runFIOWindows(seqWrite); err != nil {
 			t.Fatalf("windows fio seq write failed with error: %v", err)
 		}
 	} else {
-		if seqWriteIOPSJson, err = RunFIOLinux(t, seqWrite); err != nil {
+		if seqWriteIOPSJson, err = runFIOLinux(t, seqWrite); err != nil {
 			t.Fatalf("linux fio seq write failed with error: %v", err)
 		}
 	}
