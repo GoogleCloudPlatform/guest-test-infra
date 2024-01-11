@@ -2,6 +2,7 @@ package sql
 
 import (
 	"embed"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -29,7 +30,7 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if utils.HasFeature(t.Image, "WINDOWS") {
+	if utils.HasFeature(t.Image, "WINDOWS") && strings.Contains(t.Image.Name, "sql") {
 		defaultNetwork, err := t.CreateNetwork("default-network", false)
 		if err != nil {
 			return err
