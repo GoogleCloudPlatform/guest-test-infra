@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	commonFIORandReadOptions    = "--name=read_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqReadOptions     = "--name=read_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandReadOptions    = "--name=read_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randread --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqReadOptions     = "--name=read_bandwidth_test --filesize=500G --numjobs=1 --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --offset_increment=500G --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 	hyperdiskFIORandReadOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randread --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
 	hyperdiskFIOSeqReadOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=read --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
@@ -87,7 +87,7 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 
 	// if this is the first of the disk tests run, install fio and fill the disk
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioAndFillDisk(symlinkRealPath, usingHyperdisk); err != nil {
+		if err = installFioAndFillDisk(symlinkRealPath, t); err != nil {
 			return []byte{}, err
 		}
 	}
@@ -103,7 +103,6 @@ func RunFIOReadLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 
 	randReadCmd := exec.Command(fioCmdNameLinux, strings.Fields(readOptions)...)
-	t.Logf("read command string is %s", randReadCmd.String())
 	readIOPSJson, err := randReadCmd.CombinedOutput()
 	if err != nil {
 		return []byte{}, fmt.Errorf("fio command failed with error: %v %v", readIOPSJson, err)

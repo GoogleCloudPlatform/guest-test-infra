@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -230,6 +231,9 @@ func isUsingHyperdisk(ctx context.Context) bool {
 
 // function to get num numa nodes
 func getNumNumaNodes() (int, error) {
+	if runtime.GOOS == "windows" {
+		return 0, fmt.Errorf("getNumaNodes not yet implemented on windows")
+	}
 	lscpuOut, err := exec.Command("lscpu").CombinedOutput()
 	if err != nil {
 		return 0, err
@@ -258,6 +262,9 @@ func getNumNumaNodes() (int, error) {
 // function to get cpu mapping as strings if there is only one numa node
 // returned format is queue_1_cpus, queue_2_cpus, error
 func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
+	if runtime.GOOS == "windows" {
+		return "", "", fmt.Errorf("get cpu to nvme mapping not yet implemented on windows")
+	}
 	cpuListCmd := exec.Command("cat", "/sys/class/block/"+symlinkRealPath+"/mq/*/cpu_list")
 	cpuListBytes, err := cpuListCmd.CombinedOutput()
 	if err != nil {
@@ -275,14 +282,15 @@ func getCPUNvmeMapping(symlinkRealPath string) (string, string, error) {
 
 // fill the disk before testing to reach the maximum read iops and bandwidth
 // TODO: implement this for windows by passing in the \\\\.\\PhysicalDrive1 parameter
-func fillDisk(symlinkRealPath string) error {
+func fillDisk(symlinkRealPath string, t *testing.T) error {
 	if runtime.GOOS == "windows" {
-		fmt.Println("fill disk preliminary step not yet implemented for windows")
+		t.Logf("fill disk preliminary step not yet implemented for windows")
 	} else {
 		// hard coding the filesize to 500G as that conforms to the docs while giving
 		// sufficiently high performance
 		fillDiskCmdOptions := fillDiskCommonOptions + " --filesize=500G --filename=" + symlinkRealPath
 		fillDiskCmd := exec.Command(fioCmdNameLinux, strings.Fields(fillDiskCmdOptions)...)
+		t.Logf("fill disk cmd is %s", fillDiskCmd.String())
 		if err := fillDiskCmd.Start(); err != nil {
 			return err
 		}
@@ -311,16 +319,15 @@ func getHyperdiskAdditionalOptions(symlinkRealPath string) (string, error) {
 	return readOptionsSuffix, nil
 }
 
-func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool) error {
+func installFioAndFillDisk(symlinkRealPath string, t *testing.T) error {
 	if err := installFioLinux(); err != nil {
 		return fmt.Errorf("fio installation on linux failed: err %v", err)
 	}
 	// TODO: figure out how to fill the disk without taking too long on PD balanced, then remove the usingHyperdisk parameter
-	if usingHyperdisk {
-		err := fillDisk(symlinkRealPath)
-		if err != nil {
-			return fmt.Errorf("fill disk preliminary step failed: err %v", err)
-		}
+	t.Logf("entering fill disk step")
+	err := fillDisk(symlinkRealPath, t)
+	if err != nil {
+		return fmt.Errorf("fill disk preliminary step failed: err %v", err)
 	}
 	return nil
 }

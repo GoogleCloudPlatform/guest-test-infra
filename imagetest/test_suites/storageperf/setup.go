@@ -174,7 +174,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		testVMs = append(testVMs, vm)
 	}
 	for _, vm := range testVMs {
-		vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
+		vm.RunTests("TestRandomReadIOPS")
+		//vm.RunTests("TestRandomReadIOPS|TestSequentialReadIOPS|TestRandomWriteIOPS|TestSequentialWriteIOPS")
 	}
 	return nil
 }

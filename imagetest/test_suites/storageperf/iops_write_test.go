@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	commonFIORandWriteOptions    = "--name=write_iops_test --filesize=" + mountdiskSizeGBString + "G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
-	commonFIOSeqWriteOptions     = "--name=write_bandwidth_test --filesize=" + mountdiskSizeGBString + "G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
+	commonFIORandWriteOptions    = "--name=write_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --rw=randwrite --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
+	commonFIOSeqWriteOptions     = "--name=write_bandwidth_test --filesize=500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 	hyperdiskFIORandWriteOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --rw=randwrite --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
 	hyperdiskFIOSeqWriteOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --rw=write --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
@@ -85,7 +85,7 @@ func RunFIOWriteLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 
 	if !utils.CheckLinuxCmdExists(fioCmdNameLinux) {
-		if err = installFioAndFillDisk(symlinkRealPath, usingHyperdisk); err != nil {
+		if err = installFioAndFillDisk(symlinkRealPath, t); err != nil {
 			return []byte{}, err
 		}
 	}
