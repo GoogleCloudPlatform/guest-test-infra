@@ -2,6 +2,7 @@ package storageperf
 
 import (
 	"embed"
+	"flag"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -19,7 +20,10 @@ var Name = "storageperf"
 //go:embed startupscripts/*
 var scripts embed.FS
 
+var testFilter = flag.String("storageperf_test_filter", ".*", "regexp filter for storageperf test cases, only cases with a matching name will be run")
+
 type storagePerfTest struct {
+	name             string
 	machineType      string
 	arch             string
 	diskType         string
@@ -36,6 +40,7 @@ const (
 
 var storagePerfTestConfig = []storagePerfTest{
 	{
+		name:             "h3-pd",
 		arch:             "X86_64",
 		machineType:      "h3-standard-88",
 		zone:             "us-central1-a",
@@ -45,6 +50,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	/* temporarily disable c3d hyperdisk until the api allows it again
 	{
+		name: "c3d-hde",
 		arch: "X86_64",
 		machineType: "c3d-standard-180",
 		zone: "us-east4-c",
@@ -53,6 +59,7 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},*/
 	{
+		name:             "c3d-pd",
 		arch:             "X86_64",
 		machineType:      "c3d-standard-180",
 		zone:             "us-east4-c",
@@ -61,6 +68,7 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
+		name:             "c3-hde",
 		arch:             "X86_64",
 		machineType:      "c3-standard-88",
 		diskType:         imagetest.HyperdiskExtreme,
@@ -68,6 +76,7 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
+		name:             "c3-pd",
 		arch:             "X86_64",
 		machineType:      "c3-standard-88",
 		diskType:         imagetest.PdBalanced,
@@ -75,6 +84,31 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
+		name:             "c4-hdb",
+		arch:             "X86_64",
+		machineType:      "c4-standard-192",
+		diskType:         imagetest.HyperdiskBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
+	},
+	{
+		name:             "c4-hde",
+		arch:             "X86_64",
+		machineType:      "c4-standard-192",
+		diskType:         imagetest.HyperdiskBalanced,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
+	},
+	{
+		name:             "c4-hdt",
+		arch:             "X86_64",
+		machineType:      "c4-standard-192",
+		diskType:         imagetest.HyperdiskThroughput,
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
+	},
+	{
+		name:        "t2a-pd",
 		arch:        "ARM64",
 		machineType: "t2a-standard-48",
 		zone:        "us-central1-a",
@@ -82,18 +116,21 @@ var storagePerfTestConfig = []storagePerfTest{
 		cpuMetric:   "T2A_CPUS",
 	},
 	{
+		name:        "n2-hde",
 		arch:        "X86_64",
 		machineType: "n2-standard-80",
 		diskType:    imagetest.HyperdiskExtreme,
 		cpuMetric:   "N2_CPUS",
 	},
 	{
+		name:        "n2d-pd",
 		arch:        "X86_64",
 		machineType: "n2d-standard-64",
 		diskType:    imagetest.PdBalanced,
 		cpuMetric:   "N2D_CPUS",
 	},
 	{
+		name:           "n1-pd",
 		arch:           "X86_64",
 		machineType:    "n1-standard-64",
 		diskType:       imagetest.PdBalanced,
@@ -104,12 +141,16 @@ var storagePerfTestConfig = []storagePerfTest{
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	filter, err := regexp.Compile(*testFilter)
+	if err != nil {
+		return fmt.Errorf("invalid test case filter: %v", err)
+	}
 	if bootdiskSizeGB == mountdiskSizeGB {
 		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
 	}
 	testVMs := []*imagetest.TestVM{}
 	for _, tc := range storagePerfTestConfig {
-		if skipTest(tc, t.Image) {
+		if skipTest(tc, t.Image) || !filter.MatchString(tc.name) {
 			continue
 		}
 
@@ -152,7 +193,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false
 		if tc.diskType == imagetest.HyperdiskExtreme {
-			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[tc.machineType]
+			vmPerformanceTargets, foundKey = hyperdiskExtremeIOPSMap[tc.machineType]
+		} else if tc.diskType == imagetest.HyperdiskBalanced {
+			vmPerformanceTargets, foundKey = hyperdiskBalancedIOPSMap[tc.machineType]
+		} else if tc.diskType == imagetest.HyperdiskThroughput {
+			vmPerformanceTargets, foundKey = hyperdiskThroughputIOPSMap[tc.machineType]
 		} else if tc.diskType == imagetest.PdBalanced {
 			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
 		}

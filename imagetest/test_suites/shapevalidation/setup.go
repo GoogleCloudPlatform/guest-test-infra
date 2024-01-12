@@ -1,6 +1,7 @@
 package shapevalidation
 
 import (
+	"flag"
 	"fmt"
 	"regexp"
 
@@ -12,6 +13,8 @@ import (
 
 // Name is the name of the test package. It must match the directory name.
 var Name = "shapevalidation"
+
+var testFilter = flag.String("shapevalidation_test_filter", ".*", "regexp filter for shapevalidation test cases, only cases with a matching family name will be run")
 
 type shape struct {
 	name string // Full shape name
@@ -28,7 +31,7 @@ type shape struct {
 	quota           *daisy.QuotaAvailable // Quota necessary to run the test
 }
 
-// Map of family name to the shape that should be tested in that family.
+// Map of test name to the shape that should be tested.
 var x86shapes = map[string]*shape{
 	"C3": {
 		name:            "c3-highmem-176",
@@ -59,6 +62,33 @@ var x86shapes = map[string]*shape{
 		numa:  1,
 		disks: []*compute.Disk{{Name: "E2", Type: imagetest.PdStandard}},
 		quota: &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 32},
+	},
+	"C4-192": {
+		name:            "c4-highmem-192",
+		cpu:             192,
+		mem:             1488,
+		numa:            2,
+		disks:           []*compute.Disk{{Name: "C4", Type: imagetest.HyperdiskBalanced}},
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 192},
+		requireFeatures: []string{"GVNIC"},
+	},
+	"C4-96": {
+		name:            "c4-standard-96",
+		cpu:             96,
+		mem:             360,
+		numa:            1,
+		disks:           []*compute.Disk{{Name: "C4", Type: imagetest.HyperdiskBalanced}},
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 96},
+		requireFeatures: []string{"GVNIC"},
+	},
+	"C4-2": {
+		name:            "c4-standard-2",
+		cpu:             2,
+		mem:             7,
+		numa:            1,
+		disks:           []*compute.Disk{{Name: "C4", Type: imagetest.HyperdiskBalanced}},
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 2},
+		requireFeatures: []string{"GVNIC"},
 	},
 	"N2": {
 		name:  "n2-highmem-128",
@@ -115,11 +145,18 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 }
 
 func testFamily(t *imagetest.TestWorkflow, families map[string]*shape) error {
+	filter, err := regexp.Compile(*testFilter)
+	if err != nil {
+		return fmt.Errorf("invalid shapevalidation test filter: %v", err)
+	}
 	// This isn't because the test modifies project-level data, but because the
 	// test uses so much capacity that we need to test images serially.
 	t.LockProject()
 Familyloop:
 	for family, shape := range families {
+		if !filter.MatchString(family) {
+			continue
+		}
 		for _, feat := range shape.requireFeatures {
 			if !utils.HasFeature(t.Image, feat) {
 				continue Familyloop

@@ -3,6 +3,7 @@ package networkperf
 import (
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"regexp"
 
@@ -15,7 +16,10 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "networkperf"
 
+var testFilter = flag.String("networkperf_test_filter", ".*", "regexp filter for storageperf test cases, only cases with a matching name will be run")
+
 type networkPerfTest struct {
+	name        string
 	machineType string   // Machinetype used for test
 	zone        string   // (optional) zone required for machinetype
 	arch        string   // arch required for machinetype
@@ -25,36 +29,42 @@ type networkPerfTest struct {
 
 var networkPerfTestConfig = []networkPerfTest{
 	{
+		name:        "n1-2",
 		machineType: "n1-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8},
 	},
 	{
+		name:        "n2-2",
 		machineType: "n2-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 8},
 	},
 	{
+		name:        "n2d-2",
 		machineType: "n2d-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 8},
 	},
 	{
+		name:        "e2-2",
 		machineType: "e2-standard-2",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 8},
 	},
 	{
+		name:        "t2d-1",
 		machineType: "t2d-standard-1",
 		arch:        "X86_84",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "T2D_CPUS", Units: 4},
 	},
 	{
+		name:        "t2a-1",
 		machineType: "t2a-standard-1",
 		arch:        "ARM64",
 		networks:    []string{"DEFAULT"},
@@ -62,16 +72,32 @@ var networkPerfTestConfig = []networkPerfTest{
 		quota:       &daisy.QuotaAvailable{Metric: "T2A_CPUS", Units: 4, Region: "us-central1"},
 	},
 	{
+		name:        "n2-32",
 		machineType: "n2-standard-32",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 192}, // 32 cpus x 2 vms per tier 1 test + 32 x 4 vms per default test
 	},
 	{
+		name:        "n2d-48",
 		machineType: "n2d-standard-48",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 288},
+	},
+	{
+		name:        "c4-2",
+		machineType: "c4-standard-2",
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT"},
+		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8},
+	},
+	{
+		name:        "c4-192",
+		machineType: "c4-standard-192",
+		arch:        "X86_64",
+		networks:    []string{"DEFAULT", "TIER_1"},
+		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 768},
 	},
 }
 
@@ -130,11 +156,15 @@ func getExpectedPerf(targetMap map[string]int, machineType *compute.MachineType)
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	filter, err := regexp.Compile(*testFilter)
+	if err != nil {
+		return fmt.Errorf("invalid storageperf test filter: %v", err)
+	}
 	if !utils.HasFeature(t.Image, "GVNIC") {
 		t.Skip(fmt.Sprintf("%s does not support GVNIC", t.Image.Name))
 	}
 	for _, tc := range networkPerfTestConfig {
-		if tc.arch != t.Image.Architecture {
+		if tc.arch != t.Image.Architecture || !filter.MatchString(tc.name) {
 			continue
 		}
 
