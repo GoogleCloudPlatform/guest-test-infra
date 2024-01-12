@@ -146,6 +146,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		}
 
 		vm.AddMetadata("enable-guest-attributes", "TRUE")
+		// set the disk type: hyperdisk has different testing parameters from https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
+		vm.AddMetadata(diskTypeAttribute, tc.diskType)
 		// set the expected performance values
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false
