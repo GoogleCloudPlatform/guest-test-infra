@@ -366,13 +366,19 @@ func TestSockets(t *testing.T) {
 	// TODO Windows support
 	// print listening TCP or UDP sockets with no header and no name
 	// resolution.
-	out, _, err := runCommand("ss", "-Hltun")
+	out, err := exec.Command("ss", "-Hltun").Output()
+	if err != nil && err.Error() == "exit status 255" {
+		// Probably on an OS with a versio of ss too old to support -H
+		out, err = exec.Command("ss", "-ltun").Output()
+		_, a, _ := strings.Cut(string(out), "\n")
+		out = []byte(a)
+	}
 	if err != nil {
 		t.Fatalf("failed running ss command: %v", err)
 	}
 	var listenTCP []string
 	var listenUDP []string
-	for _, line := range strings.Split(out, "\n") {
+	for _, line := range strings.Split(string(out), "\n") {
 		if line == "" {
 			continue
 		}
