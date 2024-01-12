@@ -20,7 +20,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 	var err error
 	if runtime.GOOS == "windows" {
 		if randWriteIOPSJson, err = runFIOWindows(randWrite); err != nil {
-			t.Fatalf("windows fio rand write failed with error: %v", err)
+			t.Fatalf("windows fio rand write failed with error: %v. If testing locally, check the guidance at storageperf/startupscripts/install_fio.ps1", err)
 		}
 	} else {
 		if randWriteIOPSJson, err = runFIOLinux(t, randWrite); err != nil {
