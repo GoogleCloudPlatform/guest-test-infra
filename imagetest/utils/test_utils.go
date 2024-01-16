@@ -147,13 +147,21 @@ func GetHostKeysFromDisk() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ParseHostKey(totalBytes)
+	keymap, err := ParseHostKey(totalBytes)
+	if err != nil {
+		return nil, err
+	}
+	return keymap, nil
 }
 
 // GetHostKeysFileFromDisk read ssh host public key as bytes
 func GetHostKeysFileFromDisk() ([]byte, error) {
 	var totalBytes []byte
-	keyFiles, err := filepath.Glob("/etc/ssh/ssh_host_*_key.pub")
+	keyglob := "/etc/ssh/ssh_host_*_key.pub"
+	if IsWindows() {
+		keyglob = `C:\ProgramData\ssh\ssh_host_*_key.pub`
+	}
+	keyFiles, err := filepath.Glob(keyglob)
 	if err != nil {
 		return nil, err
 	}
@@ -164,6 +172,28 @@ func GetHostKeysFileFromDisk() ([]byte, error) {
 			return nil, err
 		}
 		totalBytes = append(totalBytes, bytes...)
+	}
+	if IsWindows() {
+		// winrm and rdp certs are stored in a certificate store, just grab the thumbprints and pretend we got them from disk for the parser
+		winrmThumb, err := RunPowershellCmd(`Get-ChildItem 'Cert:\LocalMachine\My\' | Where-Object {$_.Subject -eq "CN=$(hostname)"} | Format-List -Property Thumbprint`)
+		if err != nil {
+			return nil, err
+		}
+		winrm := strings.TrimPrefix(strings.TrimSpace(winrmThumb.Stdout), "Thumbprint : ")
+		if winrm == "" {
+			return nil, fmt.Errorf("Could not find winrm cert thumbprint, got %s from cert store query", winrmThumb.Stdout)
+		}
+		winrm = "winrm " + winrm
+		rdpThumb, err := RunPowershellCmd(`Get-ChildItem 'Cert:\LocalMachine\Remote Desktop\' | Where-Object {$_.Subject -eq "CN=$(hostname)"} | Format-List -Property Thumbprint`)
+		if err != nil {
+			return nil, err
+		}
+		rdp := strings.TrimPrefix(strings.TrimSpace(rdpThumb.Stdout), "Thumbprint : ")
+		if rdp == "" {
+			return nil, fmt.Errorf("Could not find rdp cert thumbprint, got %s from cert store query", rdpThumb.Stdout)
+		}
+		rdp = "rdp " + rdp
+		totalBytes = append([]byte(winrm + "\n" + rdp))
 	}
 	return totalBytes, nil
 }
@@ -176,6 +206,7 @@ func ParseHostKey(bytes []byte) (map[string]string, error) {
 	}
 	var hostkeyMap = make(map[string]string)
 	for _, hostkey := range hostkeyLines {
+		hostkey = strings.TrimSuffix(hostkey, "\r")
 		splits := strings.Split(hostkey, " ")
 		if len(splits) < 2 {
 			return nil, fmt.Errorf("hostkey has wrong format %s", hostkey)

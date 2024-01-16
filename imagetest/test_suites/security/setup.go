@@ -7,6 +7,8 @@ var Name = "security"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	_, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("vm")
+	vm.AddMetadata("enable-windows-ssh", "true")
+	vm.AddMetadata("sysprep-specialize-script-cmd", "googet -noconfirm=true install google-compute-engine-ssh")
 	return err
 }
