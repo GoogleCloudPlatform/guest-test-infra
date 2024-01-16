@@ -27,9 +27,6 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.85
-	// fio should use the full disk size as the filesize when benchmarking
-	mountdiskSizeGBString = "3500"
-	mountdiskSizeGB       = 3500
 	bootdiskSizeGB        = 50
 	bytesInMB             = 1048576
 	mountDiskName         = "hyperdisk"
@@ -52,6 +49,8 @@ const (
 	randWriteAttribute = "randWrite"
 	seqReadAttribute   = "seqRead"
 	seqWriteAttribute  = "seqWrite"
+	// disk size varies due to performance limits per GB being different for disk types
+	diskSizeGBAttribute  = "diskSizeGB"
 	// this excludes the filename=$TEST_DIR and filesize=$SIZE_IN_GB fields, which should be manually added to the string
 	fillDiskCommonOptions   = "--name=fill_disk --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
 	commonFIORandOptions    = "--name=write_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
@@ -61,7 +60,7 @@ const (
 )
 
 // map the machine type to performance targets
-var hyperdiskIOPSMap = map[string]PerformanceTargets{
+var hyperdiskExtremeIOPSMap = map[string]PerformanceTargets{
 	"c3-standard-88": {
 		randReadIOPS:  350000.0,
 		randWriteIOPS: 350000.0,
@@ -122,6 +121,13 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 	},
 }
 
+// The mount disk size should be large enough that size*iopsPerGB is equal to the iops performance target
+// https://cloud.google.com/compute/docs/disks/performance#iops_limits_for_zonal
+// https://cloud.google.com/compute/docs/disks/hyperdisks#iops_for
+var iopsPerGBMap = {
+	imagetest.HyperdiskExtreme: 1000,
+	imagetest.PdBalanced: 6,
+}
 // FIOOutput defines the output from the fio command
 type FIOOutput struct {
 	Jobs []FIOJob               `json:"jobs,omitempty"`
@@ -195,8 +201,12 @@ func installFioLinux() error {
 }
 
 // Assumes the larger disk is the disk which performance is being tested on, and gets the symlink to the disk
-func getLinuxSymlink() (string, error) {
+func getLinuxSymlink(mountdiskSizeGBString string) (string, error) {
 	symlinkRealPath := ""
+	mountdiskSizeGB, err := strconv.Atoi(mountdiskSizeGBString)
+	if err != nil {
+		return "", fmt.Errorf("disk gb attribute size was not an int: %s", mountdiskSizeGB)
+	}
 	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
 	if err == nil {
 		symlinkRealPath = "/dev/" + diskPartition
@@ -346,14 +356,8 @@ func installFioAndFillDisk(symlinkRealPath string, usingHyperdisk bool, t *testi
 	if err := installFioLinux(); err != nil {
 		return fmt.Errorf("fio installation on linux failed: err %v", err)
 	}
-	// TODO: figure out how to fill the disk without taking too long on PD balanced, then remove the usingHyperdisk parameter
-	if usingHyperdisk {
-		err := fillDisk(symlinkRealPath, t)
-		if err != nil {
-			return fmt.Errorf("fill disk preliminary step failed: err %v", err)
-		}
-	} else {
-		t.Logf("fill disk warmup step not yet implemented for disk types other than hyperdisk: performance values may be lower than the documented values")
+	if err := fillDisk(symlinkRealPath, t); err != nil {
+		return fmt.Errorf("fill disk preliminary step failed: err %v", err)
 	}
 	return nil
 }
@@ -363,12 +367,16 @@ func runFIOLinux(t *testing.T, mode string) ([]byte, error) {
 	usingHyperdisk := isUsingHyperdisk(ctx)
 	options := getFIOOptions(mode, usingHyperdisk)
 
-	symlinkRealPath, err := getLinuxSymlink()
+	mountdiskSizeGBString, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", diskSizeGBAttribute)
+	if err != nil {
+		return []byte{}, fmt.Errorf("couldn't get image from metadata")
+	}
+	symlinkRealPath, err := getLinuxSymlink(mountdiskSizeGBString)
 	if err != nil {
 		return []byte{}, err
 	}
 	// ubuntu 16.04 has a different option name due to an old fio version
-	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		return []byte{}, fmt.Errorf("couldn't get image from metadata")
 	}
@@ -415,4 +423,24 @@ func runFIOWindows(mode string) ([]byte, error) {
 		return []byte{}, fmt.Errorf("Get-Content of fio output file returned with error: %v %s %s", err, IOPSJsonProcStatus.Stdout, IOPSJsonProcStatus.Stderr)
 	}
 	return []byte(IOPSJsonProcStatus.Stdout), nil
+}
+
+// get the minimum mount disk size required to reach the iops target.
+// default to 3500GB if this calculation fails.
+func getRequiredDiskSize(machineType, diskType string) int {
+	defaultDiskSize := 3500
+	var iopsTargetStruct PerformanceTargets
+	var iopsTargetFound error
+	if diskType == imagetest.PdBalanced {
+		iopsTargetStruct, iopsTargetFound = pdBalanceIOPSMap[machineType]
+
+	} else if diskType == imagetest.HyperdiskExtreme {
+		iopsTargetStruct, iopsTargetFound = hyperdiskExtremeIOPSMap[machineType]
+	}
+
+	iopsPerGB, diskTypeFound := iopsPerGBMap[diskType]
+	if iopsTargetFound && diskTypeFound {
+		return int(iopsTargetStruct.randReadIOPS/iopsPerGB)
+	}
+	return defaultDiskSize
 }

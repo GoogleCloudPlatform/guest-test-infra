@@ -104,9 +104,6 @@ var storagePerfTestConfig = []storagePerfTest{
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if bootdiskSizeGB == mountdiskSizeGB {
-		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
-	}
 	testVMs := []*imagetest.TestVM{}
 	for _, tc := range storagePerfTestConfig {
 		if skipTest(tc, t.Image) {
@@ -117,6 +114,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if len(region) > 2 {
 			region = region[:len(region)-2]
 		}
+
+		mountdiskSizeGB := getRequiredDiskSize(tc.machineType, tc.diskType)
+		// disk sizes must be different for disk identification
+		if bootdiskSizeGB == mountdiskSizeGB {
+			mountdiskSizeGB += 1
+		}
+		vm.AddMetadata(diskSizeGBAttribute, fmt.Sprintf("%d", mountdiskSizeGB))
 		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
 			return err
 		}
@@ -152,7 +156,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false
 		if tc.diskType == imagetest.HyperdiskExtreme {
-			vmPerformanceTargets, foundKey = hyperdiskIOPSMap[tc.machineType]
+			vmPerformanceTargets, foundKey = hyperdiskExtremeIOPSMap[tc.machineType]
 		} else if tc.diskType == imagetest.PdBalanced {
 			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
 		}
