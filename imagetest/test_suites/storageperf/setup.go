@@ -118,7 +118,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		mountdiskSizeGB := getRequiredDiskSize(tc.machineType, tc.diskType)
 		// disk sizes must be different for disk identification
 		if bootdiskSizeGB == mountdiskSizeGB {
-			mountdiskSizeGB += 1
+			mountdiskSizeGB++
 		}
 
 		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: float64(bootdiskSizeGB + mountdiskSizeGB), Region: region}); err != nil {
