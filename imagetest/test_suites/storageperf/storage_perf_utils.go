@@ -429,7 +429,8 @@ func runFIOWindows(mode string) ([]byte, error) {
 // get the minimum mount disk size required to reach the iops target.
 // default to 3500GB if this calculation fails.
 func getRequiredDiskSize(machineType, diskType string) int64 {
-	var defaultDiskSize int64 = 3500
+	// mount disks should always be at least 3500GB, as a testing convention.
+	var minimumDiskSizeGB int64 = 3500
 	var iopsTargetStruct PerformanceTargets
 	var iopsTargetFound bool
 	if diskType == imagetest.PdBalanced {
@@ -441,7 +442,10 @@ func getRequiredDiskSize(machineType, diskType string) int64 {
 
 	iopsPerGB, diskTypeFound := iopsPerGBMap[diskType]
 	if iopsTargetFound && diskTypeFound {
-		return int64(iopsTargetStruct.randReadIOPS / float64(iopsPerGB))
+		calculatedDiskSizeGB := int64(iopsTargetStruct.randReadIOPS / float64(iopsPerGB))
+		if calculatedDiskSizeGB > minimumDiskSizeGB {
+			return calculatedDiskSizeGB
+		}
 	}
-	return defaultDiskSize
+	return minimumDiskSizeGB
 }
