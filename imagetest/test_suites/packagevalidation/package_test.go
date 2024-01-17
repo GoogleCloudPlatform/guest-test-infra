@@ -114,58 +114,58 @@ func TestGuestPackages(t *testing.T) {
 	}
 
 	pkgs := []*osPackage{
-		&osPackage{
+		{
 			name: "google-guest-agent",
 		},
-		&osPackage{
+		{
 			name: "google-osconfig-agent",
 		},
-		&osPackage{
+		{
 			name:       "google-compute-engine",
 			imagesSkip: []string{"sles", "suse"},
 		},
-		&osPackage{
+		{
 			name:   "google-guest-configs",
 			images: []string{"sles", "suse"},
 		},
-		&osPackage{
+		{
 			name:   "google-guest-oslogin",
 			images: []string{"sles", "suse"},
 		},
-		&osPackage{
+		{
 			name:       "gce-disk-expand",
 			imagesSkip: []string{"sles", "suse", "ubuntu"},
 		},
-		&osPackage{
+		{
 			name:         "google-cloud-cli",
 			alternatives: []string{"google-cloud-sdk"},
 			imagesSkip:   []string{"sles", "suse"},
 		},
-		&osPackage{
+		{
 			name:       "google-compute-engine-oslogin",
 			imagesSkip: []string{"sles", "suse"},
 		},
-		&osPackage{
+		{
 			name:   "epel-release",
 			images: []string{"centos-7", "rhel-7"},
 		},
-		&osPackage{
+		{
 			name:   "haveged",
 			images: []string{"debian"},
 		},
-		&osPackage{
+		{
 			name:   "net-tools",
 			images: []string{"debian"},
 		},
-		&osPackage{
+		{
 			name:   "google-cloud-packages-archive-keyring",
 			images: []string{"debian"},
 		},
-		&osPackage{
+		{
 			name:   "isc-dhcp-client",
 			images: []string{"debian"},
 		},
-		&osPackage{
+		{
 			name:                 "cloud-initramfs-growroot",
 			shouldNotBeInstalled: true,
 			images:               []string{"debian"},
