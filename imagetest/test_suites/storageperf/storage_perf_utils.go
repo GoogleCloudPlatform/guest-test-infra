@@ -27,10 +27,10 @@ const (
 	vmName = "vm"
 	// iopsErrorMargin allows for a small difference between iops found in the test and the iops value listed in public documentation.
 	iopsErrorMargin = 0.85
-	bootdiskSizeGB        = 50
-	bytesInMB             = 1048576
-	mountDiskName         = "hyperdisk"
-	fioCmdNameLinux       = "fio"
+	bootdiskSizeGB  = 50
+	bytesInMB       = 1048576
+	mountDiskName   = "hyperdisk"
+	fioCmdNameLinux = "fio"
 	// constant from the fio docs to convert bandwidth to bw_bytes:
 	// https://fio.readthedocs.io/en/latest/fio_doc.html#json-output
 	fioBWToBytes = 1024
@@ -50,7 +50,7 @@ const (
 	seqReadAttribute   = "seqRead"
 	seqWriteAttribute  = "seqWrite"
 	// disk size varies due to performance limits per GB being different for disk types
-	diskSizeGBAttribute  = "diskSizeGB"
+	diskSizeGBAttribute = "diskSizeGB"
 	// this excludes the filename=$TEST_DIR and filesize=$SIZE_IN_GB fields, which should be manually added to the string
 	fillDiskCommonOptions   = "--name=fill_disk --direct=1 --verify=0 --randrepeat=0 --bs=128K --iodepth=64 --rw=randwrite --iodepth_batch_submit=64  --iodepth_batch_complete_max=64"
 	commonFIORandOptions    = "--name=write_iops_test --filesize=500G --numjobs=1 --time_based --runtime=1m --ramp_time=2s --direct=1 --verify=0 --bs=4K --iodepth=256 --randrepeat=0 --iodepth_batch_submit=256  --iodepth_batch_complete_max=256 --output-format=json"
@@ -124,10 +124,11 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 // The mount disk size should be large enough that size*iopsPerGB is equal to the iops performance target
 // https://cloud.google.com/compute/docs/disks/performance#iops_limits_for_zonal
 // https://cloud.google.com/compute/docs/disks/hyperdisks#iops_for
-var iopsPerGBMap = {
+var iopsPerGBMap = map[string]int{
 	imagetest.HyperdiskExtreme: 1000,
-	imagetest.PdBalanced: 6,
+	imagetest.PdBalanced:       6,
 }
+
 // FIOOutput defines the output from the fio command
 type FIOOutput struct {
 	Jobs []FIOJob               `json:"jobs,omitempty"`
@@ -205,7 +206,7 @@ func getLinuxSymlink(mountdiskSizeGBString string) (string, error) {
 	symlinkRealPath := ""
 	mountdiskSizeGB, err := strconv.Atoi(mountdiskSizeGBString)
 	if err != nil {
-		return "", fmt.Errorf("disk gb attribute size was not an int: %s", mountdiskSizeGB)
+		return "", fmt.Errorf("disk gb attribute size was not an int: %s", mountdiskSizeGBString)
 	}
 	diskPartition, err := utils.GetMountDiskPartition(mountdiskSizeGB)
 	if err == nil {
@@ -427,12 +428,12 @@ func runFIOWindows(mode string) ([]byte, error) {
 
 // get the minimum mount disk size required to reach the iops target.
 // default to 3500GB if this calculation fails.
-func getRequiredDiskSize(machineType, diskType string) int {
-	defaultDiskSize := 3500
+func getRequiredDiskSize(machineType, diskType string) int64 {
+	var defaultDiskSize int64 = 3500
 	var iopsTargetStruct PerformanceTargets
-	var iopsTargetFound error
+	var iopsTargetFound bool
 	if diskType == imagetest.PdBalanced {
-		iopsTargetStruct, iopsTargetFound = pdBalanceIOPSMap[machineType]
+		iopsTargetStruct, iopsTargetFound = pdbalanceIOPSMap[machineType]
 
 	} else if diskType == imagetest.HyperdiskExtreme {
 		iopsTargetStruct, iopsTargetFound = hyperdiskExtremeIOPSMap[machineType]
@@ -440,7 +441,7 @@ func getRequiredDiskSize(machineType, diskType string) int {
 
 	iopsPerGB, diskTypeFound := iopsPerGBMap[diskType]
 	if iopsTargetFound && diskTypeFound {
-		return int(iopsTargetStruct.randReadIOPS/iopsPerGB)
+		return int64(iopsTargetStruct.randReadIOPS / float64(iopsPerGB))
 	}
 	return defaultDiskSize
 }

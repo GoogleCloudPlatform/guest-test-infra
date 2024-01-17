@@ -120,8 +120,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if bootdiskSizeGB == mountdiskSizeGB {
 			mountdiskSizeGB += 1
 		}
-		vm.AddMetadata(diskSizeGBAttribute, fmt.Sprintf("%d", mountdiskSizeGB))
-		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: bootdiskSizeGB + mountdiskSizeGB, Region: region}); err != nil {
+
+		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: float64(bootdiskSizeGB + mountdiskSizeGB), Region: region}); err != nil {
 			return err
 		}
 		if tc.cpuMetric != "" {
@@ -152,6 +152,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm.AddMetadata("enable-guest-attributes", "TRUE")
 		// set the disk type: hyperdisk has different testing parameters from https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
 		vm.AddMetadata(diskTypeAttribute, tc.diskType)
+		vm.AddMetadata(diskSizeGBAttribute, fmt.Sprintf("%d", mountdiskSizeGB))
 		// set the expected performance values
 		var vmPerformanceTargets PerformanceTargets
 		var foundKey bool = false
