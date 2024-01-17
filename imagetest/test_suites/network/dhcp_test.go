@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
-	"strings"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
