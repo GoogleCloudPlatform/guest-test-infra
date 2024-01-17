@@ -135,7 +135,7 @@ func TestPasswordSecurity(t *testing.T) {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	if err := verifySSHConfig(image); err != nil {
+	if err := verifySSHConfig(t, image); err != nil {
 		t.Fatal(err)
 	}
 	if utils.IsWindows() {
@@ -195,13 +195,23 @@ func verifyPassword(ctx context.Context) error {
 	return nil
 }
 
-func verifySSHConfig(image string) error {
+func verifySSHConfig(t *testing.T, image string) error {
 	var sshdConfig []byte
 	var err error
 	if utils.IsWindows() {
-		sshdConfig, err = exec.Command(`C:\Program Files\OpenSSH\sshd.exe`, "-T").Output()
+		addUser := exec.CommandContext(utils.Context(t), `net`, `user`, `testadmin`, `password123!`, `/add`)
+		o, err := addUser.Output()
+		if err != nil {
+			t.Fatalf("failed to add testadmin user: %v; output: %s", err, o)
+		}
+		addToGrp := exec.CommandContext(utils.Context(t), `net`, `localgroup`, `administrators`, `testadmin`, `/add`)
+		err = addToGrp.Run()
+		if err != nil {
+			t.Fatalf("failed to add testadmin to administrators: %v; output: %s", err, o)
+		}
+		sshdConfig, err = exec.CommandContext(utils.Context(t), `C:\Program Files\OpenSSH\sshd.exe`, `-C`, `user=testadmin`, "-T").Output()
 	} else {
-		sshdConfig, err = exec.Command("sshd", "-T").Output()
+		sshdConfig, err = exec.CommandContext(utils.Context(t), "sshd", "-T").Output()
 	}
 	if err != nil {
 		return fmt.Errorf("could not get effective sshd config: %s", err)
