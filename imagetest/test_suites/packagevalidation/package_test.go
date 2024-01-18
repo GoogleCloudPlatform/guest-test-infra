@@ -138,7 +138,6 @@ func TestGuestPackages(t *testing.T) {
 		},
 		{
 			name:         "google-cloud-cli",
-			alternatives: []string{"google-cloud-sdk"},
 			imagesSkip:   []string{"sles", "suse"},
 		},
 		{
