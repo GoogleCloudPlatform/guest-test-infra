@@ -196,6 +196,7 @@ func verifyPassword(ctx context.Context) error {
 }
 
 func verifySSHConfig(t *testing.T, image string) error {
+	t.Helper()
 	var sshdConfig []byte
 	var err error
 	if utils.IsWindows() {
