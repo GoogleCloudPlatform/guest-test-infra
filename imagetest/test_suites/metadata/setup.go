@@ -138,6 +138,14 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm7.SetWindowsStartupScript(strings.Repeat("a", metadataMaxLength))
 		vm8.SetWindowsStartupScript(daemonScript)
 
+		sysprepspecialize, err := t.CreateTestVM("sysprepspecialize")
+		if err != nil {
+			return err
+		}
+		sysprepspecialize.AddMetadata("enable-guest-attributes", "TRUE")
+		sysprepspecialize.AddMetadata("sysprep-specialize-script-cmd", `pwsh -Command "Invoke-RestMethod -Method Put -Body startup_success -Headers @{'Metadata-Flavor' = 'Google'} -Uri 'http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/testing/result' -ContentType 'application/json; charset=utf-8' -UseBasicParsing"`)
+		sysprepspecialize.RunTests("TestSysprepSpecialize")
+
 	} else {
 		startupByteArr, err = scripts.ReadFile(startupScriptLinuxURL)
 		if err != nil {
