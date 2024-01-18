@@ -1,10 +1,9 @@
 package hotattach
 
 import (
-	"fmt"
-
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -12,11 +11,8 @@ import (
 var Name = "hotattach"
 
 const (
-	diskName     = "hotattachmount"
-	instanceName = "hotattachvm"
-
-	bootDiskSizeGB  = 10
-	mountDiskSizeGB = 30
+	instanceName   = "hotattachvm"
+	bootDiskSizeGB = 10
 
 	// the path to write the file on linux
 	linuxMountPath          = "/mnt/disks/hotattach"
@@ -26,9 +22,6 @@ const (
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	if bootDiskSizeGB == mountDiskSizeGB {
-		return fmt.Errorf("boot disk and mount disk must be different sizes for disk identification")
-	}
 	hotattachInst := &daisy.Instance{}
 	hotattachInst.Scopes = append(hotattachInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
 
@@ -37,10 +30,29 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	} else {
 		hotattachInst.MachineType = "n2-standard-8"
 	}
-	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: instanceName, Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: diskName, Type: imagetest.PdBalanced, SizeGb: mountDiskSizeGB}}, hotattachInst)
+	hotattach, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: instanceName + "-pdbalanced", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: "hotattachmount", Type: imagetest.PdBalanced, SizeGb: 30}}, hotattachInst)
 	if err != nil {
 		return err
 	}
-	vm.RunTests("TestFileHotAttach")
+	hotattach.AddMetadata("hotattach-disk-name", "hotattachmount")
+	hotattach.RunTests("TestFileHotAttach")
+
+	if t.Image.Architecture != "ARM64" && utils.HasFeature(t.Image, "GVNIC") {
+		lssdMountInst := &daisy.Instance{}
+		lssdMountInst.Zone = "us-east4-b"
+		lssdMountInst.MachineType = "c3-standard-8-lssd"
+
+		lssdMount, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Zone: "us-east4-b", Name: instanceName + "-lssd", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}}, lssdMountInst)
+		if err != nil {
+			return err
+		}
+		// local SSD's don't show up exactly as their device name under /dev/disk/by-id
+		if utils.HasFeature(t.Image, "WINDOWS") {
+			lssdMount.AddMetadata("hotattach-disk-name", "nvme_card0")
+		} else {
+			lssdMount.AddMetadata("hotattach-disk-name", "local-nvme-ssd-0")
+		}
+		lssdMount.RunTests("TestMount")
+	}
 	return nil
 }
