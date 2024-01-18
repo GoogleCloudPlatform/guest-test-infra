@@ -105,7 +105,9 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 
 	for _, disk := range disks {
-		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
+		currentDisk := &compute.AttachedDisk{Source: disk.Name}
+		currentDisk.AutoDelete = true
+		instance.Disks = append(instance.Disks, currentDisk)
 	}
 
 	if instance.Metadata == nil {
