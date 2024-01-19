@@ -48,7 +48,7 @@ new space.
 disk and reboot the VM via the API. Wait for the VM to boot again, and validate
 the new size as reported by the operating system matches the expected size.
 
-## Test suite: hostnamevalidation ##
+### Test suite: hostnamevalidation ###
 
 Tests which verify that the metadata hostname is created and works with the DNS record.
 
