@@ -5,13 +5,11 @@ package metadata
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os/exec"
 	"path"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -87,48 +85,8 @@ func TestStartupScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to clear startup script result: %s", err)
 	}
-	if utils.IsWindows() {
-		cmd := exec.Command("googet", "install", "-reinstall", "google-compute-engine-windows")
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := cmd.Start(); err != nil {
-			t.Fatal(err)
-		}
-		time.Sleep(time.Second)
-		// Respond to "Reinstall google-compute-engine-windows? (y/N):" prompt
-		io.WriteString(stdin, "y\r\n")
-		if err := cmd.Wait(); err != nil {
-			t.Fatalf("could not reinstall guest-agent: %s", err)
-		}
-	} else {
-		var cmd, fallback *exec.Cmd
-		switch {
-		case utils.CheckLinuxCmdExists("apt"):
-			cmd = exec.Command("apt", "reinstall", "-y", "google-guest-agent")
-			fallback = exec.Command("apt", "install", "-y", "--reinstall", "google-guest-agent")
-		case utils.CheckLinuxCmdExists("dnf"):
-			cmd = exec.Command("dnf", "-y", "reinstall", "google-guest-agent")
-			fallback = exec.Command("dnf", "-y", "upgrade", "google-guest-agent")
-		case utils.CheckLinuxCmdExists("yum"):
-			cmd = exec.Command("yum", "-y", "reinstall", "google-guest-agent")
-			fallback = exec.Command("yum", "-y", "upgrade", "google-guest-agent")
-		case utils.CheckLinuxCmdExists("zypper"):
-			cmd = exec.Command("zypper", "--non-interactive", "install", "--force", "google-guest-agent")
-			fallback = exec.Command("zypper", "--non-interactive", "install", "--force", "google-guest-agent")
-		default:
-			t.Fatal("could not find a package manager to reinstall guest-agent with")
-		}
-		if err := cmd.Run(); err != nil {
-			if fallback != nil {
-				if err := fallback.Run(); err != nil {
-					t.Fatalf("could not reinstall guest agent with fallback: %s", err)
-				}
-			} else {
-				t.Fatalf("could not reinstall guest agent: %s", err)
-			}
-		}
+	if err := reinstallPackage("google-guest-agent"); err != nil {
+		t.Fatal(err)
 	}
 	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
