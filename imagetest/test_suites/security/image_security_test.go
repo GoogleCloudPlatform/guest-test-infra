@@ -486,8 +486,7 @@ func validateSocketsWindows(t *testing.T) {
 		t.Fatalf("could not get udp listeners: %v", err)
 	}
 	for _, port := range portRe.FindAllString(UDPListeners.Stdout, -1) {
-		port = strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r")
-		p, err := strconv.Atoi(port)
+		p, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r"))
 		if err != nil {
 			continue
 		}
@@ -530,8 +529,7 @@ func validateSocketsWindows(t *testing.T) {
 		t.Fatalf("could not get tcp listeners: %v", err)
 	}
 	for _, port := range portRe.FindAllString(TCPListeners.Stdout, -1) {
-		port = strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r")
-		p, err := strconv.Atoi(port)
+		p, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r"))
 		if err != nil {
 			continue
 		}
