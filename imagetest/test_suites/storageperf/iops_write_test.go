@@ -19,7 +19,7 @@ func TestRandomWriteIOPS(t *testing.T) {
 	var randWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randWriteIOPSJson, err = runFIOWindows(randWrite); err != nil {
+		if randWriteIOPSJson, err = runFIOWindows(t, randWrite); err != nil {
 			t.Fatalf("windows fio rand write failed with error: %v. If testing locally, check the guidance at storageperf/startupscripts/install_fio.ps1", err)
 		}
 	} else {
@@ -65,7 +65,7 @@ func TestSequentialWriteIOPS(t *testing.T) {
 	var seqWriteIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqWriteIOPSJson, err = runFIOWindows(seqWrite); err != nil {
+		if seqWriteIOPSJson, err = runFIOWindows(t, seqWrite); err != nil {
 			t.Fatalf("windows fio seq write failed with error: %v", err)
 		}
 	} else {
