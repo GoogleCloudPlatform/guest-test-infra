@@ -3,8 +3,6 @@ package storageperf
 import (
 	"embed"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -58,6 +56,13 @@ var storagePerfTestConfig = []storagePerfTest{
 		zone:             "us-east4-c",
 		diskType:         imagetest.PdBalanced,
 		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
+	},
+	{
+		arch:             "X86_64",
+		machineType:      "c3-standard-88-lssd",
+		diskType:         "lssd",
+		cpuMetric:        "C3_CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
@@ -120,31 +125,38 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if bootdiskSizeGB == mountdiskSizeGB {
 			mountdiskSizeGB++
 		}
+		bootDisk := &compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
+		disks := []*compute.Disk{bootDisk}
 
-		if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: float64(bootdiskSizeGB + mountdiskSizeGB), Region: region}); err != nil {
-			return err
-		}
-		if tc.cpuMetric != "" {
-			quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
-
-			i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
-			if err != nil {
+		if tc.diskType != "lssd" {
+			if err := t.WaitForDisksQuota(&daisy.QuotaAvailable{Metric: "SSD_TOTAL_GB", Units: float64(bootdiskSizeGB + mountdiskSizeGB), Region: region}); err != nil {
 				return err
 			}
-			quota.Units = i
-			if err := t.WaitForVMQuota(quota); err != nil {
-				return err
+			if tc.cpuMetric != "" {
+				quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
+				z := tc.zone
+				if z == "" {
+					z = t.Zone.Name
+				}
+				mt, err := t.Client.GetMachineType(t.Project.Name, z, tc.machineType)
+				if err != nil {
+					return fmt.Errorf("could not find machinetype %v", err)
+				}
+				quota.Units = float64(mt.GuestCpus)
+				if err := t.WaitForVMQuota(quota); err != nil {
+					return err
+				}
 			}
-		}
 
-		bootDisk := compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
-		mountDisk := compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
+			mountDisk := &compute.Disk{Name: mountDiskName + tc.machineType + tc.diskType, Type: tc.diskType, SizeGb: mountdiskSizeGB, Zone: tc.zone}
+			disks = append(disks, mountDisk)
+		}
 
 		daisyInst := &daisy.Instance{}
 		daisyInst.MachineType = tc.machineType
 		daisyInst.MinCpuPlatform = tc.minCPUPlatform
 		daisyInst.Zone = tc.zone
-		vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&bootDisk, &mountDisk}, daisyInst)
+		vm, err := t.CreateTestVMMultipleDisks(disks, daisyInst)
 		if err != nil {
 			return err
 		}
@@ -160,6 +172,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vmPerformanceTargets, foundKey = hyperdiskExtremeIOPSMap[tc.machineType]
 		} else if tc.diskType == imagetest.PdBalanced {
 			vmPerformanceTargets, foundKey = pdbalanceIOPSMap[tc.machineType]
+		} else if tc.diskType == "lssd" {
+			vmPerformanceTargets, foundKey = lssdIOPSMap[tc.machineType]
 		}
 		if !foundKey {
 			return fmt.Errorf("expected performance for machine type %s and disk type %s not found", tc.machineType, tc.diskType)
