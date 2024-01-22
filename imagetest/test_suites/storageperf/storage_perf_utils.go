@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"os"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -58,8 +58,8 @@ const (
 	commonFIOSeqOptions     = "--name=write_bandwidth_test --filesize=500G --time_based --ramp_time=2s --runtime=1m --direct=1 --verify=0 --randrepeat=0 --numjobs=1 --offset_increment=500G --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --output-format=json"
 	hyperdiskFIORandOptions = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=4K --iodepth=256 --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
 	hyperdiskFIOSeqOptions  = "--numjobs=8 --size=500G --time_based --runtime=5m --ramp_time=10s --direct=1 --verify=0 --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
-	lssdFIORandOptions = "--name=write_iops_test --numjobs=8 --size=500G --time_based --runtime=5m --randrepeat=0 --invalidate=1 --ramp_time=10s --direct=1 --verify=0 --verify_fatal=0 --bs=4K --iodepth=256 --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
-	lssdFIOSeqOptions  = "--name=write_bandwidth_test --numjobs=8 --size=500G --time_based --runtime=5m --randrepeat=0 --invalidate=1 --ramp_time=10s --direct=1 --verify=0 --verify_fatal=0 --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
+	lssdFIORandOptions      = "--name=write_iops_test --numjobs=8 --size=500G --time_based --runtime=5m --randrepeat=0 --invalidate=1 --ramp_time=10s --direct=1 --verify=0 --verify_fatal=0 --bs=4K --iodepth=256 --iodepth_batch_submit=256 --iodepth_batch_complete_max=256 --group_reporting --output-format=json"
+	lssdFIOSeqOptions       = "--name=write_bandwidth_test --numjobs=8 --size=500G --time_based --runtime=5m --randrepeat=0 --invalidate=1 --ramp_time=10s --direct=1 --verify=0 --verify_fatal=0 --bs=1M --iodepth=64 --iodepth_batch_submit=64 --iodepth_batch_complete_max=64 --offset_increment=20G --group_reporting --output-format=json"
 )
 
 // map the machine type to performance targets
@@ -145,7 +145,7 @@ var pdbalanceIOPSMap = map[string]PerformanceTargets{
 var iopsPerGBMap = map[string]int{
 	imagetest.HyperdiskExtreme: 1000,
 	imagetest.PdBalanced:       6,
-	"lssd":	0, // This value shouldn't be needed, but LSSD performance should be unaffected by core count.
+	"lssd":                     0, // This value shouldn't be needed, but LSSD performance should be unaffected by core count.
 }
 
 // FIOOutput defines the output from the fio command
@@ -245,7 +245,7 @@ func collectLSSDs(ctx context.Context) (string, error) {
 	if utils.IsWindows() {
 		num, err := utils.RunPowershellCmd(`(Get-Disk -FriendlyName LssdVdisk).Number`)
 		if err == nil && num.Stdout != "" {
-			return `\\.\PhysicalDrive`+strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(num.Stdout), "\n"), "\r"), nil
+			return `\\.\PhysicalDrive` + strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(num.Stdout), "\n"), "\r"), nil
 		}
 		out, err := utils.RunPowershellCmd(`New-StoragePool -FriendlyName LssdPool -ResiliencySettingNameDefault Simple -StorageSubsystemFriendlyName "Windows Storage*" -PhysicalDisks $(Get-PhysicalDisk -CanPool $True | Where-Object Model -Match "nvme_card[0-9]+") | New-VirtualDisk -FriendlyName "LssdVdisk" -UseMaximumSize`)
 		if err != nil {
@@ -255,7 +255,7 @@ func collectLSSDs(ctx context.Context) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("could not find vdisk number: %s %v", num.Stdout, err)
 		}
-		return `\\.\PhysicalDrive`+strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(num.Stdout), "\n"), "\r"), nil
+		return `\\.\PhysicalDrive` + strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(num.Stdout), "\n"), "\r"), nil
 	} else {
 		if !utils.CheckLinuxCmdExists("mdadm") {
 			err := installPkgLinux("mdadm")

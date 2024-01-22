@@ -61,10 +61,10 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		arch: "X86_64",
-		machineType: "c3-standard-88-lssd",
-		diskType: "lssd",
-		cpuMetric: "C3_CPUS",
+		arch:             "X86_64",
+		machineType:      "c3-standard-88-lssd",
+		diskType:         "lssd",
+		cpuMetric:        "C3_CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
@@ -121,7 +121,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if len(region) > 2 {
 			region = region[:len(region)-2]
 		}
-
 
 		mountdiskSizeGB := getRequiredDiskSize(tc.machineType, tc.diskType)
 		// disk sizes must be different for disk identification
