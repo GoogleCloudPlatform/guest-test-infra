@@ -3,8 +3,6 @@ package storageperf
 import (
 	"embed"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -136,12 +134,15 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			}
 			if tc.cpuMetric != "" {
 				quota := &daisy.QuotaAvailable{Metric: tc.cpuMetric, Region: region}
-
-				i, err := strconv.ParseFloat(regexp.MustCompile("-[0-9]+$").FindString(tc.machineType)[1:], 64)
-				if err != nil {
-					return err
+				z := tc.zone
+				if z == "" {
+					z = t.Zone.Name
 				}
-				quota.Units = i
+				mt, err := t.Client.GetMachineType(t.Project.Name, z, tc.machineType)
+				if err != nil {
+					return fmt.Errorf("could not find machinetype %v", err)
+				}
+				quota.Units = float64(mt.GuestCpus)
 				if err := t.WaitForVMQuota(quota); err != nil {
 					return err
 				}
