@@ -256,36 +256,35 @@ func collectLSSDs(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("could not find vdisk number: %s %v", num.Stdout, err)
 		}
 		return `\\.\PhysicalDrive` + strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(num.Stdout), "\n"), "\r"), nil
+	}
+	if !utils.CheckLinuxCmdExists("mdadm") {
+		err := installPkgLinux("mdadm")
+		if err != nil {
+			return "", err
+		}
+	}
+	if _, err := os.Stat("/dev/md0"); os.IsNotExist(err) {
+		var mdadmargs []string
+		disks, err := os.ReadDir("/dev/disk/by-id/")
+		if err != nil {
+			return "", err
+		}
+		for _, disk := range disks {
+			if strings.HasPrefix(disk.Name(), "google-local-nvme-ssd") {
+				mdadmargs = append(mdadmargs, "/dev/disk/by-id/"+disk.Name())
+			}
+		}
+		mdadmargs = append([]string{"--create", "/dev/md0", "--level=0", fmt.Sprintf("--raid-devices=%d", len(mdadmargs))}, mdadmargs...)
+		cmd := exec.CommandContext(ctx, "mdadm", mdadmargs...)
+		o, err := cmd.CombinedOutput()
+		if err != nil {
+			return "", fmt.Errorf("failed to run \"mdadm %s\": %s %v", mdadmargs, o, err)
+		}
+		diskPath = "/dev/md0"
+	} else if err == nil {
+		diskPath = "/dev/md0"
 	} else {
-		if !utils.CheckLinuxCmdExists("mdadm") {
-			err := installPkgLinux("mdadm")
-			if err != nil {
-				return "", err
-			}
-		}
-		if _, err := os.Stat("/dev/md0"); os.IsNotExist(err) {
-			var mdadmargs []string
-			disks, err := os.ReadDir("/dev/disk/by-id/")
-			if err != nil {
-				return "", err
-			}
-			for _, disk := range disks {
-				if strings.HasPrefix(disk.Name(), "google-local-nvme-ssd") {
-					mdadmargs = append(mdadmargs, "/dev/disk/by-id/"+disk.Name())
-				}
-			}
-			mdadmargs = append([]string{"--create", "/dev/md0", "--level=0", fmt.Sprintf("--raid-devices=%d", len(mdadmargs))}, mdadmargs...)
-			cmd := exec.CommandContext(ctx, "mdadm", mdadmargs...)
-			o, err := cmd.CombinedOutput()
-			if err != nil {
-				return "", fmt.Errorf("failed to run \"mdadm %s\": %s %v", mdadmargs, o, err)
-			}
-			diskPath = "/dev/md0"
-		} else if err == nil {
-			diskPath = "/dev/md0"
-		} else {
-			return "", fmt.Errorf("could not determine if raid array exists: %v", err)
-		}
+		return "", fmt.Errorf("could not determine if raid array exists: %v", err)
 	}
 	return diskPath, nil
 }
