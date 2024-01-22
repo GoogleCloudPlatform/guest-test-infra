@@ -392,13 +392,20 @@ func runFIOLinux(t *testing.T, mode string) ([]byte, error) {
 	}
 	options += " --filename=" + symlinkRealPath + " --ioengine=libaio"
 	// use the recommended options from the hyperdisk docs at https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance
-	// the options --name and --numa_cpu_node must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio
+	// the options --name and --numa_cpu_nodes must be at the very end of the command to run the jobs correctly on hyperdisk and avoid confusing fio.
+	// Also, the default installation of fio must include libnuma-dev, otherwise the --numa_cpu_nodes option will result in an error.
+	libnumadevIsInstalled := libnumadevInstalled(image)
 	if usingHyperdisk {
-		hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
-		if err != nil {
-			t.Fatalf("failed to get hyperdisk additional options: error %v", err)
+		// for the fio command to compile, we still need to add the --name option
+		if !libnumadevIsInstalled {
+			options += " --name=" + mode + "_test"
+		} else {
+			hyperdiskAdditionalOptions, err := getHyperdiskAdditionalOptions(symlinkRealPath)
+			if err != nil {
+				t.Fatalf("failed to get hyperdisk additional options: error %v", err)
+			}
+			options += hyperdiskAdditionalOptions
 		}
-		options += hyperdiskAdditionalOptions
 	}
 	randCmd := exec.Command(fioCmdNameLinux, strings.Fields(options)...)
 	IOPSJson, err := randCmd.CombinedOutput()
@@ -448,4 +455,17 @@ func getRequiredDiskSize(machineType, diskType string) int64 {
 		}
 	}
 	return minimumDiskSizeGB
+}
+
+// Return true if libnuma-dev is built as part of fio on the image.
+// If libnuma-dev is not included in fio on the image, the hyperdisk
+// option "numa_cpu_nodes" will not be recognized.
+func libnumadevInstalled(image string) bool {
+	incompatibleImageStrings := []string{"ubuntu-pro-1604", "ubuntu-pro-1804", "ubuntu-pro-fips-1804"}
+	for _, incompatibleImageString := range incompatibleImageStrings {
+		if strings.Contains(image, incompatibleImageString) {
+			return false
+		}
+	}
+	return true
 }
