@@ -506,7 +506,7 @@ func finalizeWorkflows(ctx context.Context, tests []*TestWorkflow, zone, gcsPref
 				if createDisksOk && (strings.HasPrefix(vm.MachineType, "c4-") || strings.HasPrefix(vm.MachineType, "n4-")) {
 					for _, attachedDisk := range vm.Disks {
 						for _, disk := range *createDisksStep.CreateDisks {
-							if attachedDisk.Source == disk.Name && (disk.Type == "" || strings.HasPrefix(disk.Type, "pd-")) {
+							if attachedDisk.Source == disk.Name && disk.Type == "" {
 								disk.Type = HyperdiskBalanced
 							}
 						}
