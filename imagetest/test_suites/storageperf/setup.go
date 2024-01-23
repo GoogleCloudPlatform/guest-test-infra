@@ -102,7 +102,7 @@ var storagePerfTestConfig = []storagePerfTest{
 		name:             "c4-hde",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
-		diskType:         imagetest.HyperdiskBalanced,
+		diskType:         imagetest.HyperdiskExtreme,
 		cpuMetric:        "CPUS",
 		requiredFeatures: []string{"GVNIC"},
 	},
