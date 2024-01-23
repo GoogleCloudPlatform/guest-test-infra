@@ -4,8 +4,8 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"strings"
 	"regexp"
+	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
