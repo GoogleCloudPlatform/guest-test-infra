@@ -16,7 +16,7 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "networkperf"
 
-var testFilter = flag.String("networkperf_test_filter", ".*", "regexp filter for storageperf test cases, only cases with a matching name will be run")
+var testFilter = flag.String("networkperf_test_filter", ".*", "regexp filter for networkperf test cases, only cases with a matching name will be run")
 
 type networkPerfTest struct {
 	name        string
