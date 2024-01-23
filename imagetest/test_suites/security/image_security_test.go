@@ -130,14 +130,16 @@ func TestAutomaticUpdates(t *testing.T) {
 // TestPasswordSecurity Ensure that the system enforces strong passwords and correct lockouts.
 func TestPasswordSecurity(t *testing.T) {
 	ctx := utils.Context(t)
-	utils.LinuxOnly(t)
 	image, err := utils.GetMetadata(ctx, "instance", "image")
 	if err != nil {
 		t.Fatalf("couldn't get image from metadata")
 	}
 
-	if err := verifySSHConfig(image); err != nil {
+	if err := verifySSHConfig(t, image); err != nil {
 		t.Fatal(err)
+	}
+	if utils.IsWindows() {
+		return
 	}
 
 	// Root password/login is disabled.
@@ -193,22 +195,40 @@ func verifyPassword(ctx context.Context) error {
 	return nil
 }
 
-func verifySSHConfig(image string) error {
-	sshdConfig, err := exec.Command("sshd", "-T").Output()
+func verifySSHConfig(t *testing.T, image string) error {
+	t.Helper()
+	var sshdConfig []byte
+	var err error
+	if utils.IsWindows() {
+		addUser := exec.CommandContext(utils.Context(t), `net`, `user`, `testadmin`, `password123!`, `/add`)
+		o, err := addUser.Output()
+		if err != nil {
+			t.Fatalf("failed to add testadmin user: %v; output: %s", err, o)
+		}
+		addToGrp := exec.CommandContext(utils.Context(t), `net`, `localgroup`, `administrators`, `testadmin`, `/add`)
+		err = addToGrp.Run()
+		if err != nil {
+			t.Fatalf("failed to add testadmin to administrators: %v; output: %s", err, o)
+		}
+		sshdConfig, err = exec.CommandContext(utils.Context(t), `C:\Program Files\OpenSSH\sshd.exe`, `-C`, `user=testadmin`, "-T").Output()
+	} else {
+		sshdConfig, err = exec.CommandContext(utils.Context(t), "sshd", "-T").Output()
+	}
 	if err != nil {
-		return fmt.Errorf("could not get effective sshd config (failed to run sshd -T): %s", err)
+		return fmt.Errorf("could not get effective sshd config: %s", err)
 	}
 	// Effective configuration keys are all lowercase
-	passwordauthsetting := strings.TrimSuffix(string(regexp.MustCompile(`passwordauthentication[ \t]+[a-zA-Z]+\n`).Find(sshdConfig)), "\n")
+	passwordauthsetting := strings.TrimSuffix(strings.TrimSuffix(string(regexp.MustCompile(`passwordauthentication[ \t]+[a-zA-Z]+\r?\n`).Find(sshdConfig)), "\n"), "\r")
 	if passwordauthsetting != "passwordauthentication no" {
 		return fmt.Errorf("sshd passwordauthentication setting is %q, want %q", passwordauthsetting, "passwordauthencation no")
 	}
-	if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+	if strings.Contains(image, "sles") || strings.Contains(image, "suse") || utils.IsWindows() {
 		// SLES ships with "PermitRootLogin yes" in SSHD config.
+		// This setting is meaningless on windows
 		return nil
 	}
 
-	permitrootloginsetting := strings.TrimSuffix(string(regexp.MustCompile(`permitrootlogin[ \t]+[a-zA-Z\-]+\n`).Find(sshdConfig)), "\n")
+	permitrootloginsetting := strings.TrimSuffix(strings.TrimSuffix(string(regexp.MustCompile(`permitrootlogin[ \t]+[a-zA-Z\-]+\r?\n`).Find(sshdConfig)), "\n"), "\r")
 	if permitrootloginsetting != "permitrootlogin no" && permitrootloginsetting != "permitrootlogin prohibit-password" && permitrootloginsetting != "permitrootlogin without-password" {
 		return fmt.Errorf("sshd permitrootlogin setting is %q, want %q, %q, or %q", permitrootloginsetting, "permitrootlogin no", "permitrootlogin prohibit-password", "permitrootlogin without-password")
 	}
@@ -362,17 +382,25 @@ var (
 
 // TestSockets tests that only whitelisted ports are listening globally.
 func TestSockets(t *testing.T) {
-	utils.LinuxOnly(t)
-	// TODO Windows support
+	if utils.IsWindows() {
+		validateSocketsWindows(t)
+		return
+	}
 	// print listening TCP or UDP sockets with no header and no name
 	// resolution.
-	out, _, err := runCommand("ss", "-Hltun")
+	out, err := exec.Command("ss", "-Hltun").Output()
+	if err != nil && err.Error() == "exit status 255" {
+		// Probably on an OS with a version of ss too old to support -H
+		out, err = exec.Command("ss", "-ltun").Output()
+		_, a, _ := strings.Cut(string(out), "\n")
+		out = []byte(a)
+	}
 	if err != nil {
 		t.Fatalf("failed running ss command: %v", err)
 	}
 	var listenTCP []string
 	var listenUDP []string
-	for _, line := range strings.Split(out, "\n") {
+	for _, line := range strings.Split(string(out), "\n") {
 		if line == "" {
 			continue
 		}
@@ -448,6 +476,95 @@ func validateSockets(listening, allowed []string) error {
 	}
 
 	return nil
+}
+
+func validateSocketsWindows(t *testing.T) {
+	t.Helper()
+	portRe := regexp.MustCompile("[0-9]+\r?\n")
+	UDPListeners, err := utils.RunPowershellCmd(`Get-NetUDPEndpoint | Format-List -Property LocalPort`)
+	if err != nil {
+		t.Fatalf("could not get udp listeners: %v", err)
+	}
+	for _, port := range portRe.FindAllString(UDPListeners.Stdout, -1) {
+		p, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r"))
+		if err != nil {
+			continue
+		}
+		switch p {
+		case 123: // NTP
+			continue
+		case 137: // NetBIOS name service
+			continue
+		case 138: // NetBIOS
+			continue
+		case 500: // IPSec IKE
+			continue
+		case 546: // dhcp
+			continue
+		case 3389: // RDP
+			continue
+		case 3544: // Teredo
+			continue
+		case 4500: // IPSec NAT Traversal
+			continue
+		case 5353: // multicast dns
+			continue
+		case 5355: // LLMNR
+			continue
+		case 5050: // svchost
+			continue
+		}
+		owningprocess, err := utils.RunPowershellCmd(fmt.Sprintf(`(Get-Process -Id "$((Get-NetUDPEndpoint -LocalPort %d).OwningProcess)").ProcessName`, p))
+		if err != nil {
+			t.Errorf("could not find process name listening on port %d", p)
+		}
+		pname := strings.TrimSpace(owningprocess.Stdout)
+		if p > 49152 && pname == "svchost" {
+			continue
+		}
+		t.Errorf("found udp listener on unexpected port %d (process name %s)", p, pname)
+	}
+	TCPListeners, err := utils.RunPowershellCmd(`Get-NetTCPConnection -State Listen | Format-List -Property LocalPort`)
+	if err != nil {
+		t.Fatalf("could not get tcp listeners: %v", err)
+	}
+	for _, port := range portRe.FindAllString(TCPListeners.Stdout, -1) {
+		p, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSuffix(port, "\n"), "\r"))
+		if err != nil {
+			continue
+		}
+		switch p {
+		case 22: // sshd
+			continue
+		case 135: // msrpc
+			continue
+		case 139: // NetBIOS
+			continue
+		case 445: // microsoft-ds
+			continue
+		case 3389: // rdp
+			continue
+		case 5985: // winrm
+			continue
+		case 5986: // winrm
+			continue
+		case 20201: // ops agent
+			continue
+		case 20202: // ops agent
+			continue
+		case 47001: // windows remote management
+			continue
+		}
+		owningprocess, err := utils.RunPowershellCmd(fmt.Sprintf(`(Get-Process -Id "$((Get-TCPConnection -State Listen -LocalPort %d).OwningProcess)").ProcessName`, p))
+		if err != nil {
+			t.Errorf("could not find process name listening on port %d", p)
+		}
+		pname := strings.TrimSpace(owningprocess.Stdout)
+		if p > 49152 && (pname == "svchost" || pname == "Idle") {
+			continue
+		}
+		t.Errorf("found tcp listener on unexpected port %d (process %s)", p, pname)
+	}
 }
 
 func isInSlice(entry string, list []string) bool {

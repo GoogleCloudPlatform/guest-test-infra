@@ -105,7 +105,9 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 
 	for _, disk := range disks {
-		instance.Disks = append(instance.Disks, &compute.AttachedDisk{Source: disk.Name})
+		currentDisk := &compute.AttachedDisk{Source: disk.Name, AutoDelete: true}
+		currentDisk.AutoDelete = true
+		instance.Disks = append(instance.Disks, currentDisk)
 	}
 
 	if instance.Metadata == nil {
@@ -157,7 +159,7 @@ func (t *TestWorkflow) appendCreateVMStepBeta(disks []*compute.Disk, instance *d
 	instance.Scopes = append(instance.Scopes, "https://www.googleapis.com/auth/devstorage.read_write")
 
 	for _, disk := range disks {
-		instance.Disks = append(instance.Disks, &computeBeta.AttachedDisk{Source: disk.Name})
+		instance.Disks = append(instance.Disks, &computeBeta.AttachedDisk{Source: disk.Name, AutoDelete: true})
 	}
 
 	if instance.Metadata == nil {

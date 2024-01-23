@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -25,6 +26,11 @@ func TestDHCP(t *testing.T) {
 	var err error
 
 	// Run every case: if one command or check succeeds, the test passes.
+	if utils.IsWindows() {
+		checkDhcpWindows(t)
+		return
+	}
+
 	if utils.CheckLinuxCmdExists(networkctlCmd) {
 		cmd = exec.Command(networkctlCmd, "status")
 		if err = parseNetworkctlOutput(cmd); err == nil {
@@ -53,6 +59,31 @@ func TestDHCP(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("dhcp command failed or not found: %v", err)
+	}
+}
+
+func checkDhcpWindows(t *testing.T) {
+	ifaceIndexes, err := utils.GetMetadata(utils.Context(t), "instance", "network-interfaces")
+	if err != nil {
+		t.Errorf("could not get interfaces: %s", err)
+	}
+	for _, ifaceIndex := range strings.Split(ifaceIndexes, "\n") {
+		if ifaceIndex == "" {
+			continue
+		}
+		i, err := strconv.Atoi(strings.TrimSuffix(ifaceIndex, "/"))
+		if err != nil {
+			t.Errorf("can't convert %s to int", ifaceIndex)
+		}
+		iface, err := utils.GetInterface(utils.Context(t), i)
+		if err != nil {
+			t.Errorf("could not find interface %d", i)
+		}
+		cmd := fmt.Sprintf(`Get-NetIPInterface -InterfaceAlias "%s" -Dhcp Enabled`, iface.Name)
+		out, err := utils.RunPowershellCmd(cmd)
+		if err != nil {
+			t.Errorf("could not verify that iface %s used DHCP to obtain an IP address: %s\ncmd %s returned %q", iface.Name, err, cmd, out.Stdout)
+		}
 	}
 }
 

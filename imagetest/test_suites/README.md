@@ -48,7 +48,7 @@ new space.
 disk and reboot the VM via the API. Wait for the VM to boot again, and validate
 the new size as reported by the operating system matches the expected size.
 
-## Test suite: hostnamevalidation ##
+### Test suite: hostnamevalidation ###
 
 Tests which verify that the metadata hostname is created and works with the DNS record.
 
@@ -94,6 +94,12 @@ prevent new SSH connections.
 
 - <b>Test logic</b>: Launch a VM and confirm the guest agent generates unique host keys on startup.
 Restart the guest agent and confirm the host keys are not changed.
+
+### Test suite: hotattach
+
+#### TestFileHotAttach
+Validate that hot attach disks work: a file can be written to the disk, the disk can be detached and
+reattached, and the file can still be read.
 
 ### Test suite: imageboot
 
@@ -269,6 +275,14 @@ or 'false')
 
 ### Test suite: storageperf
 
+This test suite verifies PD performance on linux and windows. The following documentation is relevant for working with these tests, as of January 2024.
+
+Performance limits: https://cloud.google.com/compute/docs/disks/performance. In addition to machine type and vCPU performance limits, most disks have a performance limit per VM, as well as a performance limit per GB. 
+
+FIO command options: https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance. To reach maximum IOPS and bandwidth MB per second, the disk needs to be warmed up with a "random write" fio task before running the benchmarking test.
+
+Hyperdisk limits: https://cloud.google.com/compute/docs/disks/benchmark-hyperdisk-performance. Hyperdisk disk types have a much higher performance limit and limit per GB of disk size. To reach the highest performance values on linux, some additional fio options may be required.
+
 #### TestRandomReadIOPS and TestSequentialReadIOPS
 Checks random and sequential read performance on files and compares it to an expected IOPS value
 (in a future change, this will be compared to the documented IOPS value).
@@ -288,8 +302,3 @@ Checks random and sequential file write performance on a disk and compares it to
 - <b>Background</b>: Similar to the read iops tests, we want to verify that write IOPS on disks work at
 the rate we expect for both random writes and throughput.
 
-### Test suite: hotattach
-
-#### TestFileHotAttach
-Validate that hot attach disks work: a file can be written to the disk, the disk can be detached and
-reattached, and the file can still be read.

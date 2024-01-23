@@ -19,7 +19,7 @@ func TestRandomReadIOPS(t *testing.T) {
 	var randReadIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if randReadIOPSJson, err = runFIOWindows(randRead); err != nil {
+		if randReadIOPSJson, err = runFIOWindows(t, randRead); err != nil {
 			t.Fatalf("windows fio rand read failed with error: %v. If testing locally, check the guidance at storageperf/startupscripts/install_fio.ps1", err)
 		}
 	} else {
@@ -64,7 +64,7 @@ func TestSequentialReadIOPS(t *testing.T) {
 	var seqReadIOPSJson []byte
 	var err error
 	if runtime.GOOS == "windows" {
-		if seqReadIOPSJson, err = runFIOWindows(seqRead); err != nil {
+		if seqReadIOPSJson, err = runFIOWindows(t, seqRead); err != nil {
 			t.Fatalf("windows fio seq read failed with error: %v", err)
 		}
 	} else {

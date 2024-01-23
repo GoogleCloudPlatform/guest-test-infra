@@ -5,6 +5,7 @@ package ssh
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -48,30 +49,47 @@ func TestSSHInstanceKey(t *testing.T) {
 	}
 }
 
-// checkLocalUser test that the user account exists in /etc/passwd
+// checkLocalUser test that the user account exists in /etc/passwd on linux
+// or in Get-LocalUser output on windows
 func checkLocalUser(client *ssh.Client, user string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
 	}
 	defer session.Close()
-	grepPasswdCmd := fmt.Sprintf("grep %s: /etc/passwd", user)
-	if err := session.Run(grepPasswdCmd); err != nil {
+	var findUsercmd string
+	if utils.IsWindows() {
+		findUsercmd = fmt.Sprintf(`powershell.exe -NonInteractive -NoLogo -NoProfile "Get-LocalUser -Name %s"`, user)
+	} else {
+		findUsercmd = fmt.Sprintf("grep %s: /etc/passwd", user)
+	}
+	if err := session.Run(findUsercmd); err != nil {
 		return err
 	}
 	return nil
 }
 
-// checkSudoGroup test that the user account exists in sudo group
+// checkSudoGroup test that the user account exists in sudo group on linux
+// administrator group on windows
 func checkSudoGroup(client *ssh.Client, user string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
 	}
 	defer session.Close()
-	grepGroupCmd := fmt.Sprintf("grep 'google-sudoers:.*%s' /etc/group", user)
-	if err := session.Run(grepGroupCmd); err != nil {
-		return err
+	var findInGrpcmd string
+	if utils.IsWindows() {
+		findInGrpcmd = fmt.Sprintf(`powershell.exe -NonInteractive -NoLogo -NoProfile "Get-LocalGroupMember -Group Administrators | Where-Object Name -Match %s"`, user)
+	} else {
+		findInGrpcmd = fmt.Sprintf("grep 'google-sudoers:.*%s' /etc/group", user)
+	}
+	out, err := session.Output(findInGrpcmd)
+	if err != nil {
+		return fmt.Errorf("%s err: %v; stderr: %s", findInGrpcmd, err, session.Stderr)
+	}
+	if utils.IsWindows() && !strings.Contains(string(out), user) {
+		// The command on windows will exit successfully even with no match
+		return fmt.Errorf("could not find user in Administrators group")
 	}
 	return nil
 }

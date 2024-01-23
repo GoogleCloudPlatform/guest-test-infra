@@ -9,7 +9,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -18,28 +21,32 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-func getLinuxMountPath(mountDiskSizeGB int, mountDiskName string) (string, error) {
-	symlinkRealPath := ""
-	diskPartition, err := utils.GetMountDiskPartition(mountDiskSizeGB)
-	if err == nil {
-		symlinkRealPath = "/dev/" + diskPartition
-	} else {
-		errorString := err.Error()
-		symlinkRealPath, err = utils.GetMountDiskPartitionSymlink(mountDiskName)
-		if err != nil {
-			errorString += err.Error()
-			return "", fmt.Errorf("failed to find symlink to mount disk with any method: errors %s", errorString)
-		}
+func getWindowsDiskNumber(ctx context.Context) (int, error) {
+	diskName, err := utils.GetMetadata(ctx, "instance", "attributes", "hotattach-disk-name")
+	if err != nil {
+		return 0, err
 	}
-	return symlinkRealPath, nil
+	intMatch := regexp.MustCompile("[0-9]+")
+	o, err := utils.RunPowershellCmd(`(Get-Disk -FriendlyName "` + diskName + `").Number`)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(intMatch.FindString(o.Stdout))
 }
 
-func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
+func getLinuxMountPath(ctx context.Context) (string, error) {
+	diskName, err := utils.GetMetadata(ctx, "instance", "attributes", "hotattach-disk-name")
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks("/dev/disk/by-id/google-" + diskName)
+}
+
+func mountLinuxDiskToPath(ctx context.Context, mountDiskDir string, isReattach bool) error {
 	if err := os.MkdirAll(mountDiskDir, 0777); err != nil {
 		return fmt.Errorf("could not make mount disk dir %s: error %v", mountDiskDir, err)
 	}
-	// see constants defined in setup.go
-	mountDiskPath, err := getLinuxMountPath(mountDiskSizeGB, diskName)
+	mountDiskPath, err := getLinuxMountPath(ctx)
 	if err != nil {
 		return err
 	}
@@ -62,9 +69,8 @@ func mountLinuxDiskToPath(mountDiskDir string, isReattach bool) error {
 	return nil
 }
 
-func unmountLinuxDisk() error {
-	// see constants defined in setup.go
-	mountDiskPath, err := getLinuxMountPath(mountDiskSizeGB, diskName)
+func unmountLinuxDisk(ctx context.Context) error {
+	mountDiskPath, err := getLinuxMountPath(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to find unmount path: %v", err)
 	}
@@ -151,18 +157,23 @@ func waitGetMountDisk(ctx context.Context, projectNumber, instanceNameString, in
 
 // TestFileHotAttach is a test which checks that a file on a disk is usable, even after the disk was detached and reattached.
 func TestFileHotAttach(t *testing.T) {
+	ctx := utils.Context(t)
 	fileName := "hotattach.txt"
 	fileContents := "cold Attach"
 	fileContentsBytes := []byte(fileContents)
 	var fileFullPath string
 	if runtime.GOOS == "windows" {
-		procStatus, err := utils.RunPowershellCmd("Initialize-Disk -PartitionStyle GPT -Number 1 -PassThru | New-Partition -DriveLetter " + windowsMountDriveLetter + " -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Attach-Test' -Confirm:$false")
+		diskNum, err := getWindowsDiskNumber(ctx)
+		if err != nil {
+			diskNum = 1
+		}
+		procStatus, err := utils.RunPowershellCmd(fmt.Sprintf(`Initialize-Disk -PartitionStyle GPT -Number %d -PassThru | New-Partition -DriveLetter %s -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Attach-Test' -Confirm:$false`, diskNum, windowsMountDriveLetter))
 		if err != nil {
 			t.Fatalf("failed to initialize disk on windows: errors %v, %s, %s", err, procStatus.Stdout, procStatus.Stderr)
 		}
 		fileFullPath = windowsMountDriveLetter + ":\\" + fileName
 	} else {
-		if err := mountLinuxDiskToPath(linuxMountPath, false); err != nil {
+		if err := mountLinuxDiskToPath(ctx, linuxMountPath, false); err != nil {
 			t.Fatalf("failed to mount linux disk to linuxmountpath %s: error %v", linuxMountPath, err)
 		}
 		fileFullPath = linuxMountPath + "/" + fileName
@@ -186,11 +197,10 @@ func TestFileHotAttach(t *testing.T) {
 	}
 	// run unmount steps if linux
 	if runtime.GOOS != "windows" {
-		if err = unmountLinuxDisk(); err != nil {
+		if err = unmountLinuxDisk(ctx); err != nil {
 			t.Fatalf("unmount failed on linux: %v", err)
 		}
 	}
-	ctx := utils.Context(t)
 	instName, err := utils.GetInstanceName(ctx)
 	if err != nil {
 		t.Fatalf("failed to get instance name: error %v", err)
@@ -219,7 +229,7 @@ func TestFileHotAttach(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Log("windows disk was successfully reattached")
 	} else {
-		if err := mountLinuxDiskToPath(linuxMountPath, true); err != nil {
+		if err := mountLinuxDiskToPath(ctx, linuxMountPath, true); err != nil {
 			t.Fatalf("failed to mount linux disk to path %s on reattach: error %v", linuxMountPath, err)
 		}
 	}
@@ -239,4 +249,58 @@ func TestFileHotAttach(t *testing.T) {
 	}
 
 	t.Logf("hot attach success")
+}
+
+// TestMount tests that a drive can be mounted and written to. Hotattach without the attaching and detaching.
+func TestMount(t *testing.T) {
+	ctx := utils.Context(t)
+	fileName := "hotattach.txt"
+	fileContents := "cold Attach"
+	fileContentsBytes := []byte(fileContents)
+	var fileFullPath string
+	if runtime.GOOS == "windows" {
+		diskNum, err := getWindowsDiskNumber(ctx)
+		if err != nil {
+			diskNum = 1
+		}
+		procStatus, err := utils.RunPowershellCmd(fmt.Sprintf(`Initialize-Disk -PartitionStyle GPT -Number %d -PassThru | New-Partition -DriveLetter %s -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Attach-Test' -Confirm:$false`, diskNum, windowsMountDriveLetter))
+		if err != nil {
+			t.Fatalf("failed to initialize disk on windows: errors %v, %s, %s", err, procStatus.Stdout, procStatus.Stderr)
+		}
+		fileFullPath = windowsMountDriveLetter + ":\\" + fileName
+	} else {
+		if err := mountLinuxDiskToPath(ctx, linuxMountPath, false); err != nil {
+			t.Fatalf("failed to mount linux disk to linuxmountpath %s: error %v", linuxMountPath, err)
+		}
+		fileFullPath = linuxMountPath + "/" + fileName
+	}
+	f, err := os.Create(fileFullPath)
+	if err != nil {
+		f.Close()
+		t.Fatalf("failed to create file at path %s: error %v", fileFullPath, err)
+	}
+
+	w := bufio.NewWriter(f)
+	_, err = w.Write(fileContentsBytes)
+	if err != nil {
+		f.Close()
+		t.Fatalf("failed to write bytes: err %v", err)
+	}
+	w.Flush()
+	f.Sync()
+
+	hotAttachFile, err := os.Open(fileFullPath)
+	if err != nil {
+		hotAttachFile.Close()
+		t.Fatalf("file could not be reopened at path %s: error A%v", fileFullPath, err)
+	}
+	defer hotAttachFile.Close()
+
+	fileLength, err := hotAttachFile.Read(fileContentsBytes)
+	if fileLength == 0 {
+		t.Fatalf("file was empty after writing to it")
+	}
+	if err != nil {
+		t.Fatalf("reading file after writing failed with error: %v", err)
+	}
 }
