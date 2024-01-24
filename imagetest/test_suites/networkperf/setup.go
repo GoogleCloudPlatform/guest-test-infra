@@ -87,6 +87,7 @@ var networkPerfTestConfig = []networkPerfTest{
 	},
 	{
 		name:        "c4-2",
+		zone:        "us-east4-b",
 		machineType: "c4-standard-2",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
@@ -94,6 +95,7 @@ var networkPerfTestConfig = []networkPerfTest{
 	},
 	{
 		name:        "c4-192",
+		zone:        "us-east4-b",
 		machineType: "c4-standard-192",
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
@@ -171,7 +173,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if tc.quota != nil {
 			t.WaitForVMQuota(tc.quota)
 		}
-		machine, err := t.Client.GetMachineType(t.Project.Name, t.Zone.Name, tc.machineType)
+		zone := tc.zone
+		if zone == "" {
+			zone = t.Zone.Name
+		}
+		machine, err := t.Client.GetMachineType(t.Project.Name, zone, tc.machineType)
 		if err != nil {
 			return err
 		}
@@ -262,7 +268,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 				serverVM.ForceMachineType(tc.machineType)
-				serverVM.ForceZone(tc.zone)
+				serverVM.ForceZone(zone)
 				if err := serverVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 					return err
 				}
@@ -276,7 +282,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 				clientVM.ForceMachineType(tc.machineType)
-				clientVM.ForceZone(tc.zone)
+				clientVM.ForceZone(zone)
 				if err := clientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 					return err
 				}
@@ -295,7 +301,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 				jfServerVM.ForceMachineType(tc.machineType)
-				jfServerVM.ForceZone(tc.zone)
+				jfServerVM.ForceZone(zone)
 				if err := jfServerVM.AddCustomNetwork(jfNetwork, jfSubnetwork); err != nil {
 					return err
 				}
@@ -306,7 +312,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
 				jfClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfClientDisk}, nil)
 				jfClientVM.ForceMachineType(tc.machineType)
-				jfClientVM.ForceZone(tc.zone)
+				jfClientVM.ForceZone(zone)
 				if err != nil {
 					return err
 				}
@@ -372,7 +378,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 				tier1ServerVM.ForceMachineType(tc.machineType)
-				tier1ServerVM.ForceZone(tc.zone)
+				tier1ServerVM.ForceZone(zone)
 				if err := tier1ServerVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 					return err
 				}
@@ -387,7 +393,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 				tier1ClientVM.ForceMachineType(tc.machineType)
-				tier1ClientVM.ForceZone(tc.zone)
+				tier1ClientVM.ForceZone(zone)
 				if err := tier1ClientVM.AddCustomNetwork(defaultNetwork, defaultSubnetwork); err != nil {
 					return err
 				}

@@ -63,31 +63,14 @@ var x86shapes = map[string]*shape{
 		disks: []*compute.Disk{{Name: "E2", Type: imagetest.PdStandard}},
 		quota: &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 32},
 	},
-	"C4-192": {
+	"C4": {
 		name:            "c4-highmem-192",
 		cpu:             192,
 		mem:             1488,
 		numa:            2,
-		disks:           []*compute.Disk{{Name: "C4-192", Type: imagetest.HyperdiskBalanced}},
-		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 192},
-		requireFeatures: []string{"GVNIC"},
-	},
-	"C4-96": {
-		name:            "c4-standard-96",
-		cpu:             96,
-		mem:             360,
-		numa:            1,
-		disks:           []*compute.Disk{{Name: "C4-96", Type: imagetest.HyperdiskBalanced}},
-		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 96},
-		requireFeatures: []string{"GVNIC"},
-	},
-	"C4-2": {
-		name:            "c4-standard-2",
-		cpu:             2,
-		mem:             7,
-		numa:            1,
-		disks:           []*compute.Disk{{Name: "C4-2", Type: imagetest.HyperdiskBalanced}},
-		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 2},
+		zone:            "us-east4-b",
+		disks:           []*compute.Disk{{Name: "C4-192", Type: imagetest.HyperdiskBalanced, Zone: "us-east4-b"}},
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 192, Region: "us-east4"},
 		requireFeatures: []string{"GVNIC"},
 	},
 	"N2": {
@@ -185,7 +168,10 @@ Familyloop:
 			vm.ForceZone(shape.zone)
 		}
 		vm.ForceMachineType(shape.name)
-		vm.RunTests(fmt.Sprintf("(Test%sFamilyCpu)|(Test%sFamilyMem)|(Test%sFamilyNuma)", family, family, family))
+		vm.AddMetadata("expected_memory", fmt.Sprintf("%d", shape.mem))
+		vm.AddMetadata("expected_cpu", fmt.Sprintf("%d", shape.cpu))
+		vm.AddMetadata("expected_numa", fmt.Sprintf("%d", shape.numa))
+		vm.RunTests("(TestCpu)|(TestMem)|(TestNuma)")
 	}
 	return nil
 }
