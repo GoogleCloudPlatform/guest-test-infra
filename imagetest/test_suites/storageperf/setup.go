@@ -92,7 +92,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c4-hdb",
-		zone:             "us-east4-b",
+		zone:             "us-east5-b",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
 		diskType:         imagetest.HyperdiskBalanced,
@@ -101,7 +101,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c4-hde",
-		zone:             "us-east4-b",
+		zone:             "us-east5-b",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
 		diskType:         imagetest.HyperdiskExtreme,
@@ -115,6 +115,15 @@ var storagePerfTestConfig = []storagePerfTest{
 		zone:        "us-central1-a",
 		diskType:    imagetest.PdBalanced,
 		cpuMetric:   "T2A_CPUS",
+	},
+	{
+		name:             "n4-hdb",
+		arch:             "X86_64",
+		machineType:      "n4-standard-64",
+		cpuMetric:        "CPUS",
+		requiredFeatures: []string{"GVNIC"},
+		diskType:         imagetest.HyperdiskBalanced,
+		zone:             "us-east4-b",
 	},
 	{
 		name:        "n2-hde",

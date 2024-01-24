@@ -106,6 +106,18 @@ var hyperdiskExtremeIOPSMap = map[string]PerformanceTargets{
 }
 
 var hyperdiskBalancedIOPSMap = map[string]PerformanceTargets{
+	"n4-standard-48": {
+		randReadIOPS:  160000.0,
+		randWriteIOPS: 160000.0,
+		seqReadBW:     2400.0,
+		seqWriteBW:    2400.0,
+	},
+	"n4-standard-64": {
+		randReadIOPS:  160000.0,
+		randWriteIOPS: 160000.0,
+		seqReadBW:     3000.0,
+		seqWriteBW:    3000.0,
+	},
 	"c4-standard-192": {
 		randReadIOPS:  320000.0,
 		randWriteIOPS: 320000.0,
@@ -573,6 +585,10 @@ func getRequiredDiskSize(machineType, diskType string) int64 {
 
 	} else if diskType == imagetest.HyperdiskExtreme {
 		iopsTargetStruct, iopsTargetFound = hyperdiskExtremeIOPSMap[machineType]
+	} else if diskType == imagetest.HyperdiskBalanced {
+		iopsTargetStruct, iopsTargetFound = hyperdiskBalancedIOPSMap[machineType]
+	} else if diskType == imagetest.HyperdiskThroughput {
+		iopsTargetStruct, iopsTargetFound = hyperdiskThroughputIOPSMap[machineType]
 	}
 
 	iopsPerGB, diskTypeFound := iopsPerGBMap[diskType]

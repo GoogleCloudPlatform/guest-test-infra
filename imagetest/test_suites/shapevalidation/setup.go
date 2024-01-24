@@ -63,6 +63,16 @@ var x86shapes = map[string]*shape{
 		disks: []*compute.Disk{{Name: "E2", Type: imagetest.PdStandard}},
 		quota: &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 32},
 	},
+	"N4": {
+		name:            "n4-highmem-80",
+		cpu:             80,
+		mem:             640,
+		numa:            1,
+		zone:            "us-east4-b",
+		disks:           []*compute.Disk{{Name: "N4", Type: imagetest.HyperdiskBalanced, Zone: "us-east4-b"}},
+		quota:           &daisy.QuotaAvailable{Metric: "CPUS", Units: 80, Region: "us-east4"},
+		requireFeatures: []string{"GVNIC"},
+	},
 	"C4": {
 		name:            "c4-highmem-192",
 		cpu:             192,
