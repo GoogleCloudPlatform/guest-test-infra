@@ -312,12 +312,6 @@ local imgpublishjob = {
             task: 'prepublish-test-' + tl.image,
             config: prepublishtesttask {
               images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-              // Special case ARM for now.
-              extra_args: if
-                std.endsWith(tl.image_prefix, '-arm64')
-              then
-                ['-machine_type=t2a-standard-2']
-              else [],
             },
             attempts: 3,
           },
@@ -358,12 +352,6 @@ local imgpublishjob = {
               task: 'image-test-' + tl.image,
               config: imagetesttask {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                // Special case ARM for now.
-                extra_args: if
-                  std.endsWith(tl.image_prefix, '-arm64')
-                then
-                  ['-machine_type=t2a-standard-2']
-                else [],
               },
               attempts: 3,
             },

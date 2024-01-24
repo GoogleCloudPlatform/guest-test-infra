@@ -365,9 +365,6 @@ local slesarm64images = [
     imagevalidationjob {
       image: family + '-devel',
       bucket: 'ubuntu-gce-validation-results',
-      extra_args: [
-        '-machine_type=t2a-standard-2',
-      ],
     }
     for family in ubuntuarm64develimages
   ] + [
@@ -380,9 +377,6 @@ local slesarm64images = [
     imagevalidationjob {
       image: family,
       bucket: 'ubuntu-gce-validation-results',
-      extra_args: [
-        '-machine_type=t2a-standard-2',
-      ],
     }
     for family in ubuntuproarm64images
   ] + [
@@ -395,9 +389,6 @@ local slesarm64images = [
     imagevalidationjob {
       image: family,
       bucket: 'sles-gce-validation-results',
-      extra_args: [
-        '-machine_type=t2a-standard-2',
-      ],
     }
     for family in slesarm64images
   ],
