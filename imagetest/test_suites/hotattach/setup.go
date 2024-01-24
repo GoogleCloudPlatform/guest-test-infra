@@ -25,11 +25,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	hotattachInst := &daisy.Instance{}
 	hotattachInst.Scopes = append(hotattachInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
 
-	if t.Image.Architecture == "ARM64" {
-		hotattachInst.MachineType = "t2a-standard-8"
-	} else {
-		hotattachInst.MachineType = "n2-standard-8"
-	}
 	hotattach, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: instanceName + "-pdbalanced", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: "hotattachmount", Type: imagetest.PdBalanced, SizeGb: 30}}, hotattachInst)
 	if err != nil {
 		return err
