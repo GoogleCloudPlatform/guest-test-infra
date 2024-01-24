@@ -97,6 +97,30 @@ var hyperdiskExtremeIOPSMap = map[string]PerformanceTargets{
 		seqReadBW:     5000.0,
 		seqWriteBW:    5000.0,
 	},
+	"c4-standard-192": {
+		randReadIOPS:  1000000.0,
+		randWriteIOPS: 1000000.0,
+		seqReadBW:     10000.0,
+		seqWriteBW:    10000.0,
+	},
+}
+
+var hyperdiskBalancedIOPSMap = map[string]PerformanceTargets{
+	"c4-standard-192": {
+		randReadIOPS:  320000.0,
+		randWriteIOPS: 320000.0,
+		seqReadBW:     10000.0,
+		seqWriteBW:    10000.0,
+	},
+}
+
+var hyperdiskThroughputIOPSMap = map[string]PerformanceTargets{
+	"c4-standard-192": {
+		randReadIOPS:  320000.0, // TODO
+		randWriteIOPS: 320000.0, // TODO
+		seqReadBW:     10000.0,
+		seqWriteBW:    10000.0,
+	},
 }
 
 var pdbalanceIOPSMap = map[string]PerformanceTargets{

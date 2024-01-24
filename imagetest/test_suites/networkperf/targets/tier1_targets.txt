@@ -27,5 +27,15 @@
         "n2d-highcpu-48": 50,
         "n2d-highcpu-96": 100,
         "n2d-highmem-48": 50,
-        "n2d-highmem-96": 100
+        "n2d-highmem-96": 100,
+
+        "c4-standard-48":  50,
+        "c4-standard-96":  100,
+        "c4-standard-192": 200,
+        "c4-highmem-48":  50,
+        "c4-highmem-96":  100,
+        "c4-highmem-192": 200,
+        "c4-highcpu-48":  50,
+        "c4-highcpu-96":  100,
+        "c4-highcpu-192": 200
 }
