@@ -794,6 +794,11 @@ func (n *Network) CreateSubnetwork(name string, ipRange string) (*Subnetwork, er
 	return &Subnetwork{name, n.testWorkflow, subnetwork, n}, nil
 }
 
+// SetRegion sets the subnetwork region
+func (s *Subnetwork) SetRegion(region string) {
+	s.subnetwork.Region = region
+}
+
 // AddSecondaryRange add secondary IP range to Subnetwork
 func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 	s.subnetwork.SecondaryIpRanges = append(s.subnetwork.SecondaryIpRanges, &compute.SubnetworkSecondaryRange{

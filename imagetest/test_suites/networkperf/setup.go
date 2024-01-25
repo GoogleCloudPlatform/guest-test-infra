@@ -22,6 +22,7 @@ type networkPerfTest struct {
 	name        string
 	machineType string   // Machinetype used for test
 	zone        string   // (optional) zone required for machinetype
+	diskType    string   // (optional) diskType required for machinetype
 	arch        string   // arch required for machinetype
 	networks    []string // Networks to test (TIER_1 and/or DEFAULT)
 	quota       *daisy.QuotaAvailable
@@ -31,35 +32,35 @@ var networkPerfTestConfig = []networkPerfTest{
 	{
 		name:        "n1-2",
 		machineType: "n1-standard-2",
-		arch:        "X86_84",
+		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8},
 	},
 	{
 		name:        "n2-2",
 		machineType: "n2-standard-2",
-		arch:        "X86_84",
+		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2_CPUS", Units: 8},
 	},
 	{
 		name:        "n2d-2",
 		machineType: "n2d-standard-2",
-		arch:        "X86_84",
+		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 8},
 	},
 	{
 		name:        "e2-2",
 		machineType: "e2-standard-2",
-		arch:        "X86_84",
+		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "E2_CPUS", Units: 8},
 	},
 	{
 		name:        "t2d-1",
 		machineType: "t2d-standard-1",
-		arch:        "X86_84",
+		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "T2D_CPUS", Units: 4},
 	},
@@ -96,6 +97,7 @@ var networkPerfTestConfig = []networkPerfTest{
 	{
 		name:        "n4-80",
 		machineType: "n4-standard-80",
+		diskType:    imagetest.HyperdiskBalanced,
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 320, Region: "us-east4"},
@@ -105,6 +107,7 @@ var networkPerfTestConfig = []networkPerfTest{
 		name:        "c4-2",
 		zone:        "us-east5-b",
 		machineType: "c4-standard-2",
+		diskType:    imagetest.HyperdiskBalanced,
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT"},
 		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8, Region: "us-east5"},
@@ -113,6 +116,7 @@ var networkPerfTestConfig = []networkPerfTest{
 		name:        "c4-192",
 		zone:        "us-east5-b",
 		machineType: "c4-standard-192",
+		diskType:    imagetest.HyperdiskBalanced,
 		arch:        "X86_64",
 		networks:    []string{"DEFAULT", "TIER_1"},
 		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 1152, Region: "us-east5"},
@@ -189,13 +193,26 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if tc.quota != nil {
 			t.WaitForVMQuota(tc.quota)
 		}
-		zone := tc.zone
-		if zone == "" {
+		var region string
+		var zone string
+		if tc.zone == "" {
 			zone = t.Zone.Name
+			region = t.Zone.Region
+		} else {
+			z, err := t.Client.GetZone(t.Project.Name, tc.zone)
+			if err != nil {
+				return err
+			}
+			zone = z.Name
+			region = z.Region
 		}
 		machine, err := t.Client.GetMachineType(t.Project.Name, zone, tc.machineType)
 		if err != nil {
 			return err
+		}
+		diskType := tc.diskType
+		if diskType == "" {
+			diskType = imagetest.PdBalanced
 		}
 
 		// Create network containing everything
@@ -207,6 +224,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
+		defaultSubnetwork.SetRegion(region)
 		if err := defaultNetwork.CreateFirewallRule("default-allow-tcp-"+tc.machineType, "tcp", []string{"5001"}, []string{"192.168.0.0/24"}); err != nil {
 			return err
 		}
@@ -219,6 +237,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
+		jfSubnetwork.SetRegion(region)
 		if err := jfNetwork.CreateFirewallRule("jf-allow-tcp-"+tc.machineType, "tcp", []string{"5001"}, []string{"192.168.1.0/24"}); err != nil {
 			return err
 		}
@@ -278,7 +297,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
 
 				// Default VMs.
-				serverDisk := compute.Disk{Name: serverConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				serverDisk := compute.Disk{Name: serverConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				serverVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&serverDisk}, nil)
 				if err != nil {
 					return err
@@ -292,7 +311,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				clientDisk := compute.Disk{Name: clientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				clientDisk := compute.Disk{Name: clientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				clientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&clientDisk}, nil)
 				if err != nil {
 					return err
@@ -311,7 +330,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.AddMetadata("network-tier", net)
 
 				// Jumbo frames VMs.
-				jfServerDisk := compute.Disk{Name: jfServerConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				jfServerDisk := compute.Disk{Name: jfServerConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				jfServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfServerDisk}, nil)
 				if err != nil {
 					return err
@@ -325,7 +344,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				jfClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfClientDisk}, nil)
 				jfClientVM.ForceMachineType(tc.machineType)
 				jfClientVM.ForceZone(zone)
@@ -388,7 +407,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
 
 				// Tier 1 VMs.
-				t1ServerDisk := compute.Disk{Name: tier1ServerConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				t1ServerDisk := compute.Disk{Name: tier1ServerConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				tier1ServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ServerDisk}, nil)
 				if err != nil {
 					return err
@@ -403,7 +422,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				}
 				tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
 
-				t1ClientDisk := compute.Disk{Name: tier1ClientConfig.name + "-" + tc.machineType, Type: imagetest.PdBalanced, Zone: tc.zone}
+				t1ClientDisk := compute.Disk{Name: tier1ClientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
 				tier1ClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ClientDisk}, nil)
 				if err != nil {
 					return err
