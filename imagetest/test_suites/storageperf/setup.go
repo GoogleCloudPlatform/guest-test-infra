@@ -25,6 +25,7 @@ type storagePerfTest struct {
 	name             string
 	machineType      string
 	arch             string
+	bootDiskType     string
 	diskType         string
 	cpuMetric        string
 	minCPUPlatform   string
@@ -40,6 +41,7 @@ const (
 var storagePerfTestConfig = []storagePerfTest{
 	{
 		name:             "h3-pd",
+		bootDiskType:     imagetest.PdBalanced,
 		arch:             "X86_64",
 		machineType:      "h3-standard-88",
 		zone:             "us-central1-a",
@@ -50,6 +52,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	/* temporarily disable c3d hyperdisk until the api allows it again
 	{
 		name: "c3d-hde",
+		bootDiskType: imagetest.PdBalanced,
 		arch: "X86_64",
 		machineType: "c3d-standard-180",
 		zone: "us-east4-c",
@@ -59,6 +62,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},*/
 	{
 		name:             "c3d-pd",
+		bootDiskType:     imagetest.PdBalanced,
 		arch:             "X86_64",
 		machineType:      "c3d-standard-180",
 		zone:             "us-east4-c",
@@ -68,6 +72,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c3-lssd",
+		bootDiskType:     imagetest.PdBalanced,
 		arch:             "X86_64",
 		machineType:      "c3-standard-88-lssd",
 		diskType:         "lssd",
@@ -76,6 +81,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c3-hde",
+		bootDiskType:     imagetest.PdBalanced,
 		arch:             "X86_64",
 		machineType:      "c3-standard-88",
 		diskType:         imagetest.HyperdiskExtreme,
@@ -84,6 +90,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c3-pd",
+		bootDiskType:     imagetest.PdBalanced,
 		arch:             "X86_64",
 		machineType:      "c3-standard-88",
 		diskType:         imagetest.PdBalanced,
@@ -92,6 +99,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c4-hdb",
+		bootDiskType:     imagetest.HyperdiskBalanced,
 		zone:             "us-east5-b",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
@@ -101,6 +109,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	},
 	{
 		name:             "c4-hde",
+		bootDiskType:     imagetest.HyperdiskBalanced,
 		zone:             "us-east5-b",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
@@ -109,15 +118,17 @@ var storagePerfTestConfig = []storagePerfTest{
 		requiredFeatures: []string{"GVNIC"},
 	},
 	{
-		name:        "t2a-pd",
-		arch:        "ARM64",
-		machineType: "t2a-standard-48",
-		zone:        "us-central1-a",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "T2A_CPUS",
+		name:         "t2a-pd",
+		bootDiskType: imagetest.PdBalanced,
+		arch:         "ARM64",
+		machineType:  "t2a-standard-48",
+		zone:         "us-central1-a",
+		diskType:     imagetest.PdBalanced,
+		cpuMetric:    "T2A_CPUS",
 	},
 	{
 		name:             "n4-hdb",
+		bootDiskType:     imagetest.HyperdiskBalanced,
 		arch:             "X86_64",
 		machineType:      "n4-standard-64",
 		cpuMetric:        "CPUS",
@@ -126,21 +137,24 @@ var storagePerfTestConfig = []storagePerfTest{
 		zone:             "us-east4-b",
 	},
 	{
-		name:        "n2-hde",
-		arch:        "X86_64",
-		machineType: "n2-standard-80",
-		diskType:    imagetest.HyperdiskExtreme,
-		cpuMetric:   "N2_CPUS",
+		name:         "n2-hde",
+		bootDiskType: imagetest.PdBalanced,
+		arch:         "X86_64",
+		machineType:  "n2-standard-80",
+		diskType:     imagetest.HyperdiskExtreme,
+		cpuMetric:    "N2_CPUS",
 	},
 	{
-		name:        "n2d-pd",
-		arch:        "X86_64",
-		machineType: "n2d-standard-64",
-		diskType:    imagetest.PdBalanced,
-		cpuMetric:   "N2D_CPUS",
+		name:         "n2d-pd",
+		bootDiskType: imagetest.PdBalanced,
+		arch:         "X86_64",
+		machineType:  "n2d-standard-64",
+		diskType:     imagetest.PdBalanced,
+		cpuMetric:    "N2D_CPUS",
 	},
 	{
 		name:           "n1-pd",
+		bootDiskType:   imagetest.PdBalanced,
 		arch:           "X86_64",
 		machineType:    "n1-standard-64",
 		diskType:       imagetest.PdBalanced,
@@ -171,7 +185,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if bootdiskSizeGB == mountdiskSizeGB {
 			mountdiskSizeGB++
 		}
-		bootDisk := &compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: imagetest.PdBalanced, SizeGb: bootdiskSizeGB, Zone: tc.zone}
+		bootDisk := &compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: tc.bootDiskType, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		disks := []*compute.Disk{bootDisk}
 
 		if tc.diskType != "lssd" {
