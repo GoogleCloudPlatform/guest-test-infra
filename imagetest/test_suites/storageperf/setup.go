@@ -110,7 +110,7 @@ var storagePerfTestConfig = []storagePerfTest{
 	{
 		name:             "c4-hde",
 		bootDiskType:     imagetest.HyperdiskBalanced,
-		zone:             "us-east5-b",
+		zone:             "us-east4-b",
 		arch:             "X86_64",
 		machineType:      "c4-standard-192",
 		diskType:         imagetest.HyperdiskExtreme,
