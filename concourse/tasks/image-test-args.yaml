@@ -11,7 +11,7 @@ inputs:
 run:
   path: /manager
   args:
-  - -project=gcp-guest
+  - -project=compute-image-test-pool-001
   - -zone=us-central1-a
   - -test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005
   - -images=((images))

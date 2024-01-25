@@ -317,7 +317,7 @@ local buildpackageimagetask = {
     run: {
       path: '/daisy',
       args: [
-        '-project=gcp-guest',
+        '-project=compute-image-test-pool-001',
         '-zone=us-central1-a',
         '-var:source_image=' + tl.source_image,
         '-var:gcs_package_path=' + tl.gcs_package_path,
@@ -452,7 +452,7 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=gcp-guest',
+                  '-project=compute-image-test-pool-001',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
@@ -473,11 +473,10 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=gcp-guest',
+                  '-project=compute-image-test-pool-001',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
-                  '-machine_type=t2a-standard-2',
                   '-exclude=(image)|(disk)|(security)|(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)',
                 ],
               },
@@ -684,7 +683,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
                       '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
-                      '-parallel-count=2',
+                      '-parallel_count=2',
                       '-filter=oslogin',
                     ],
                   },
@@ -706,8 +705,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
                       '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
-                      '-machine_type=t2a-standard-2',
-                      '-parallel-count=2',
+                      '-parallel_count=2',
                       '-filter=oslogin',
                     ],
                   },
