@@ -41,17 +41,17 @@ func restartAgent(t *testing.T) {
 func getAgentOutput(t *testing.T) string {
 	t.Helper()
 	if utils.IsWindows() {
-		o, err := utils.RunPowershellCmd(`Get-WinEvent -Providername GCEGuestAgent | Format-List -Property Message`)
+		out, err := utils.RunPowershellCmd(`Get-WinEvent -Providername GCEGuestAgent | Format-List -Property Message`)
 		if err != nil {
 			t.Fatalf("could not get agent output: %v", err)
 		}
-		return string(o.Stdout)
+		return string(out.Stdout)
 	}
-	o, err := exec.CommandContext(utils.Context(t), "journalctl", "-o", "cat", "-eu", "google-guest-agent").Output()
+	out, err := exec.CommandContext(utils.Context(t), "journalctl", "-o", "cat", "-eu", "google-guest-agent").Output()
 	if err != nil {
 		t.Fatalf("could not get agent output: %v", err)
 	}
-	return string(o)
+	return string(out)
 }
 
 func TestTelemetryEnabled(t *testing.T) {
