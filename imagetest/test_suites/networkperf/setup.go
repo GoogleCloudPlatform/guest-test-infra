@@ -84,37 +84,42 @@ var networkPerfTestConfig = []networkPerfTest{
 		networks:    []string{"DEFAULT", "TIER_1"},
 		quota:       &daisy.QuotaAvailable{Metric: "N2D_CPUS", Units: 288},
 	},
-/*	{
-		name:        "n4-16",
-		machineType: "n4-standard-16",
-		arch:        "X86_64",
-		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 64, Region: "us-east4"},
-	},
-	{
-		name:        "n4-80",
-		machineType: "n4-standard-80",
-		diskType:    imagetest.HyperdiskBalanced,
-		arch:        "X86_64",
-		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 320, Region: "us-east4"},
-	},
-	{
-		name:        "c4-2",
-		machineType: "c4-standard-2",
-		diskType:    imagetest.HyperdiskBalanced,
-		arch:        "X86_64",
-		networks:    []string{"DEFAULT"},
-		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8, Region: "us-east5"},
-	},
-	{
-		name:        "c4-192",
-		machineType: "c4-standard-192",
-		diskType:    imagetest.HyperdiskBalanced,
-		arch:        "X86_64",
-		networks:    []string{"DEFAULT", "TIER_1"},
-		quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 1152, Region: "us-east5"},
-	},*/
+	/*
+		{
+			name:        "n4-16",
+			machineType: "n4-standard-16",
+			arch:        "X86_64",
+			networks:    []string{"DEFAULT"},
+			quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 64, Region: "us-east4"},
+		},
+
+		{
+			name:        "n4-80",
+			machineType: "n4-standard-80",
+			diskType:    imagetest.HyperdiskBalanced,
+			arch:        "X86_64",
+			networks:    []string{"DEFAULT"},
+			quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 320, Region: "us-east4"},
+		},
+
+		{
+			name:        "c4-2",
+			machineType: "c4-standard-2",
+			diskType:    imagetest.HyperdiskBalanced,
+			arch:        "X86_64",
+			networks:    []string{"DEFAULT"},
+			quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 8, Region: "us-east5"},
+		},
+
+		{
+			name:        "c4-192",
+			machineType: "c4-standard-192",
+			diskType:    imagetest.HyperdiskBalanced,
+			arch:        "X86_64",
+			networks:    []string{"DEFAULT", "TIER_1"},
+			quota:       &daisy.QuotaAvailable{Metric: "CPUS", Units: 1152, Region: "us-east5"},
+		},
+	*/
 }
 
 // InstanceConfig for setting up test VMs.
