@@ -131,6 +131,26 @@ func TestPowershellVersion(t *testing.T) {
 
 }
 
+func TestServerGuiShell(t *testing.T) {
+	utils.WindowsOnly(t)
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	if err != nil {
+		t.Fatalf("could not get image name: %v", err)
+	}
+	expect := "True"
+	if strings.Contains(image, "-core") {
+		expect = "False"
+	}
+	o, err := utils.RunPowershellCmd(`(Get-ItemProperty "HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Server\\ServerLevels" -Name Server-Gui-Shell -ErrorAction SilentlyContinue) -ne $null`)
+	if err != nil {
+		t.Fatalf("could not get Server-Gui-Shell installation state: %v %v", o.Stdout, err)
+	}
+	installState := strings.TrimSuffix(strings.TrimSuffix(o.Stdout, "\n"), "\r")
+	if installState != expect {
+		t.Errorf("unexpected Server-Gui-Shell installation state, got %s want %s", installState, expect)
+	}
+}
+
 func TestStartExe(t *testing.T) {
 	utils.WindowsOnly(t)
 	command := "Start-Process cmd -Args '/c typeperf \"\\Memory\\Available bytes\"'"

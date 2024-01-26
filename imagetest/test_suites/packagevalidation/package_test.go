@@ -137,9 +137,8 @@ func TestGuestPackages(t *testing.T) {
 			imagesSkip: []string{"sles", "suse", "ubuntu"},
 		},
 		{
-			name:         "google-cloud-cli",
-			alternatives: []string{"google-cloud-sdk"},
-			imagesSkip:   []string{"sles", "suse"},
+			name:       "google-cloud-cli",
+			imagesSkip: []string{"sles", "suse"},
 		},
 		{
 			name:       "google-compute-engine-oslogin",
