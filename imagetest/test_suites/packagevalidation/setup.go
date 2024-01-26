@@ -45,6 +45,11 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		vm5.RunTests("TestAutoUpdateEnabled|TestNetworkConnecton|TestEmsEnabled" +
 			"|TestTimeZoneUTC|TestPowershellVersion|TestStartExe|TestDotNETVersion" +
 			"|TestServicesState|TestWindowsEdition|TestWindowsCore")
+		sysprepvm, err := t.CreateTestVM("gcesysprep")
+		if err != nil {
+			return err
+		}
+		sysprepvm.RunTests("TestGCESysprep")
 	}
 	return nil
 }
