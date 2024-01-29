@@ -798,7 +798,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		return res
 	}
 
-	clean := go func() {
+	clean := func() {
 		log.Printf("cleaning up after test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
 		cleaned, errs := cleanTestWorkflow(test)
 		for _, err := range errs {
@@ -807,7 +807,7 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		if len(cleaned) > 0 {
 			log.Printf("test %s/%s had %d leftover resources\n", test.Name, test.Image.Name, len(cleaned))
 		}
-			for _, c := range cleaned {
+		for _, c := range cleaned {
 			log.Printf("deleted resource %s from test %s/%s", c, test.Name, test.Image.Name)
 		}
 	}
