@@ -86,8 +86,14 @@ func TestShutdownScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to clear shutdown script result: %s", err)
 	}
-	if err := reinstallPackage("google-guest-agent"); err != nil {
-		t.Fatal(err)
+	if utils.IsWindows() {
+		if err := reinstallPackage("google-compute-engine-windows"); err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		if err := reinstallPackage("google-guest-agent"); err != nil {
+			t.Fatal(err)
+		}
 	}
 	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
