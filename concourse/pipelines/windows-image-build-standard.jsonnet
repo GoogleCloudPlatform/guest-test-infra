@@ -531,6 +531,10 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2022',
     'windows-server-2022-core',
   ],
+  local windows_2025_images = [
+    'windows-server-2025',
+    'windows-server-2025-core',
+  ],
   local sql_2014_images = [
     'sql-2014-enterprise-windows-2012-r2',
     'sql-2014-enterprise-windows-2016',
@@ -580,7 +584,7 @@ local ImgGroup(name, images, environments) = {
   ],
 
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
-                              + windows_2022_images,
+                              + windows_2022_images + windows_2025_images,
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
 
   resource_types: [
@@ -610,6 +614,8 @@ local ImgGroup(name, images, environments) = {
   jobs: [
           // Windows builds
 
+          ImgBuildJob('windows-server-2025', 'win2025-64', 'windows_gcs_updates_server2025'),
+          ImgBuildJob('windows-server-2025-core', 'win2025-64', 'windows_gcs_updates_server2025'),
           ImgBuildJob('windows-server-2022', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2022-core', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2019', 'win2019-64', 'windows_gcs_updates_server2019'),
@@ -681,6 +687,7 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('windows-2016', windows_2016_images, server_envs),
     ImgGroup('windows-2019', windows_2019_images, server_envs),
     ImgGroup('windows-2022', windows_2022_images, server_envs),
+    ImgGroup('windows-2025', windows_2025_images, server_envs),
     ImgGroup('sql-2014', sql_2014_images, sql_envs),
     ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
