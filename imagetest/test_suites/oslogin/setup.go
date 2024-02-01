@@ -126,8 +126,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	defaultVM.AddMetadata("enable-oslogin", "true")
 	defaultVM.RunTests("TestOsLoginEnabled|TestGetentPasswd|TestAgent")
 
-	normalUser := twoFATestUsers[counter % len(twoFATestUsers)]
-	adminUser := twoFAAdminTestUsers[counter % len(twoFAAdminTestUsers)]
+	normalUser := twoFATestUsers[counter%len(twoFATestUsers)]
+	adminUser := twoFAAdminTestUsers[counter%len(twoFAAdminTestUsers)]
 
 	ssh, err := t.CreateTestVM("ssh")
 	if err != nil {
