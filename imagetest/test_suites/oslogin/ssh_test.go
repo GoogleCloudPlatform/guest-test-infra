@@ -33,32 +33,14 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// testUser encapsulates a test user for this test.
-type testUser struct {
-	// email is the secret for the email of the test user.
-	email string
-
-	// is2FA dictates whether this user is a user for 2FA tests.
-	is2FA bool
-
-	// isAdmin dictates whether this user has admin OSLogin priveleges.
-	isAdmin bool
-
-	// twoFAKey is the secret for the 2FA secret for the test user.
-	twoFAKey string
-
-	// sshKey is the private SSH Key for the test user.
-	sshKey string
-}
-
 const (
 	// normal users
-	normalUser    = "normal-user"
-	adminUser     = "admin-user"
+	normalUser = "normal-user"
+	adminUser  = "admin-user"
 
 	// SSH keys
-	normalUserSSHKey  = "normal-user-ssh-key"
-	adminUserSSHKey   = "admin-user-ssh-key"
+	normalUserSSHKey = "normal-user-ssh-key"
+	adminUserSSHKey  = "admin-user-ssh-key"
 
 	// Time to wait for agent check. The agent check consists of 2 metadata waits
 	// and 1-2s of runtime. This allows for the agent check to finish, with extra
