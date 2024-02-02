@@ -12,17 +12,26 @@ These secrets are as follows:
 
 - `normal-user` - the email for the normal SSH user.
 - `admin-user` - the email for the normal SSH sudo user.
-- `normal-2fa-user` - the email for the normal 2FA SSH user.
-- `admin-2fa-user` - the email for the 2FA SSH sudo user.
-- `normal-2fa-key` - the 2FA secret for `normal-2fa-user`
-- `admin-2fa-key` - the 2FA secret for `admin-2fa-user`
 - `normal-user-ssh-key` - the private SSH key for `normal-user`
 - `admin-user-ssh-key` - the private SSH key for `admin-user`
-- `normal-2fa-ssh-key` - the private SSH key for `normal-2fa-user`
-- `admin-2fa-ssh-key` - the private SSH key for `admin-2fa-user`
 
-As a consequence, users of this test suite must be able to set up and provide 4 test users.
-Each of these test users should have permissions set up according to the 
+For the 2FA users, there are 3 for each of normal and admin 2FA users, of which
+there are 5.
+- `normal-2fa-user` - the email for the normal 2FA SSH user
+- `normal-2fa-ssh-key` - the private SSH key for `normal-2fa-user`
+- `normal-2fa-key` - the 2FA secret for `normal-2fa-user`
+
+- `admin-2fa-user` - the email for the admin 2FA SSH user
+- `admin-2fa-ssh-key` - the private SSH key for `admin-2fa-user`
+- `admin-2fa-key` - the 2FA secret for `admin-2fa-user`
+
+For every 2FA user past the first, a number starting from 1 is appended at the
+end. For example, the secrets for the next normal 2FA SSH user should be named
+`normal-2fa-user-1`, `normal-2fa-ssh-key-1`, and `normal-2fa-key-1`, and the
+next after should be `normal-2fa-user-2`, etc.
+
+As a consequence, users of this test suite must be able to set up and provide 12 test users.
+Each of these test users should have permissions set up according to the
 [OSLogin setup](https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#configure_users) page.
 Note that the admin users should have the `roles/compute.osAdminLogin` permission.
 

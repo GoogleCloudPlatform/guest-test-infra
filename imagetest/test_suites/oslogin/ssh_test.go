@@ -34,21 +34,13 @@ import (
 )
 
 const (
-	// users
-	normalUser    = "normal-user"
-	adminUser     = "admin-user"
-	normal2FAUser = "normal-2fa-user"
-	admin2FAUser  = "admin-2fa-user"
-
-	// 2fa keys
-	normal2FAKey = "normal-2fa-key"
-	admin2FAKey  = "admin-2fa-key"
+	// normal users
+	normalUser = "normal-user"
+	adminUser  = "admin-user"
 
 	// SSH keys
 	normalUserSSHKey = "normal-user-ssh-key"
 	adminUserSSHKey  = "admin-user-ssh-key"
-	normal2FASSHKey  = "normal-2fa-ssh-key"
-	admin2FASSHKey   = "admin-2fa-ssh-key"
 
 	// Time to wait for agent check. The agent check consists of 2 metadata waits
 	// and 1-2s of runtime. This allows for the agent check to finish, with extra
@@ -235,7 +227,7 @@ func TestSSH(t *testing.T) {
 	}
 }
 
-// Checks if an admin user can use sudo after successfully SSH-ing to an instance.
+// TestAdminSSH checks if an admin user can use sudo after successfully SSH-ing to an instance.
 func TestAdminSSH(t *testing.T) {
 	ctx := utils.Context(t)
 
@@ -285,8 +277,23 @@ func TestAdminSSH(t *testing.T) {
 	}
 }
 
+// Test2FASSH tests if users set up with 2FA can SSH to a VM using 2FA OSLogin.
 func Test2FASSH(t *testing.T) {
 	ctx := utils.Context(t)
+
+	// Obtain the secrets for the 2FA user to use for this test.
+	userSecret, err := utils.GetMetadata(ctx, "instance", "attributes", normal2FAUser)
+	if err != nil {
+		t.Fatalf("failed to get secret for user: %v", err)
+	}
+	sshKeySecret, err := utils.GetMetadata(ctx, "instance", "attributes", normal2FASSHKey)
+	if err != nil {
+		t.Fatalf("failed to get secret for user ssh key: %v", err)
+	}
+	twoFASecret, err := utils.GetMetadata(ctx, "instance", "attributes", normal2FAKey)
+	if err != nil {
+		t.Fatalf("failed to get secret for user 2FA secret: %v", err)
+	}
 
 	// Secret manager client.
 	secretClient, err := secretmanager.NewClient(ctx)
@@ -295,15 +302,15 @@ func Test2FASSH(t *testing.T) {
 	}
 	defer secretClient.Close()
 
-	user, err := utils.AccessSecret(ctx, secretClient, normal2FAUser)
+	user, err := utils.AccessSecret(ctx, secretClient, userSecret)
 	if err != nil {
 		t.Fatalf("failed to get user info: %v", err)
 	}
 	posix := getPosix(user)
 
-	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, normal2FASSHKey)
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, sshKeySecret)
 	if err != nil {
-		t.Fatalf("failed to get user key: %v", err)
+		t.Fatalf("failed to get user ssh key: %v", err)
 	}
 
 	// Manually set up SSH.
@@ -341,7 +348,7 @@ func Test2FASSH(t *testing.T) {
 		}
 
 		// If not the first question, input code for two-factor.
-		s, err := utils.AccessSecret(ctx, secretClient, normal2FAKey)
+		s, err := utils.AccessSecret(ctx, secretClient, twoFASecret)
 		if err != nil {
 			return nil, err
 		}
@@ -373,8 +380,24 @@ func Test2FASSH(t *testing.T) {
 	}
 }
 
+// Test2FAAdminSSH tests whether 2FA authentication with OSLogin admin permissions
+// correctly gives admin users sudo permissions.
 func Test2FAAdminSSH(t *testing.T) {
 	ctx := utils.Context(t)
+
+	// Obtain the secrets for the 2FA user to use for this test.
+	userSecret, err := utils.GetMetadata(ctx, "instance", "attributes", admin2FAUser)
+	if err != nil {
+		t.Fatalf("failed to get secret for user: %v", err)
+	}
+	sshKeySecret, err := utils.GetMetadata(ctx, "instance", "attributes", admin2FASSHKey)
+	if err != nil {
+		t.Fatalf("failed to get secret for user ssh key: %v", err)
+	}
+	twoFASecret, err := utils.GetMetadata(ctx, "instance", "attributes", admin2FAKey)
+	if err != nil {
+		t.Fatalf("failed to get secret for user 2FA secret: %v", err)
+	}
 
 	// Secret manager client.
 	secretClient, err := secretmanager.NewClient(ctx)
@@ -383,13 +406,13 @@ func Test2FAAdminSSH(t *testing.T) {
 	}
 	defer secretClient.Close()
 
-	user, err := utils.AccessSecret(ctx, secretClient, admin2FAUser)
+	user, err := utils.AccessSecret(ctx, secretClient, userSecret)
 	if err != nil {
 		t.Fatalf("failed to get user info: %v", err)
 	}
 	posix := getPosix(user)
 
-	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, admin2FASSHKey)
+	privateSSHKey, err := utils.AccessSecret(ctx, secretClient, sshKeySecret)
 	if err != nil {
 		t.Fatalf("failed to get user key: %v", err)
 	}
@@ -429,7 +452,7 @@ func Test2FAAdminSSH(t *testing.T) {
 		}
 
 		// If not the first question, generate and input the OTP.
-		s, err := utils.AccessSecret(ctx, secretClient, admin2FAKey)
+		s, err := utils.AccessSecret(ctx, secretClient, twoFASecret)
 		if err != nil {
 			return nil, err
 		}
