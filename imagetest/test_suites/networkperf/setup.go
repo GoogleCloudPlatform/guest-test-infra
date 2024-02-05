@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"path"
 	"regexp"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -204,7 +205,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				return err
 			}
 			zone = z.Name
-			region = z.Region
+			region = path.Base(z.Region)
 		}
 		machine, err := t.Client.GetMachineType(t.Project.Name, zone, tc.machineType)
 		if err != nil {
