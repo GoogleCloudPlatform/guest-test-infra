@@ -87,7 +87,8 @@ func main() {
 		log.Fatalf("failed to get metadata _test_package_name: %v", err)
 	}
 
-	workDir, err := ioutil.TempDir("", "image_test")
+	// NOTE(sejalsharma): modified the following line "", "image_test".
+	workDir, err := ioutil.TempDir("/etc", "iimage_test")
 	if err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
 	}
