@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	// NOTE(sejalsharma): modified the following line "/boot-marker".
 	markerFile      = "/var/boot-marker"
 	gb              = 1024.0 * 1024.0 * 1024.0
 	defaultDiskSize = 20
@@ -53,7 +52,6 @@ func TestDiskResize(t *testing.T) {
 }
 
 func getDiskSize() (int64, error) {
-	// NOTE(sejalsharma): / to /var.
 	fstatOut, err := exec.Command("df", "-B1", "--output=size", "/var").CombinedOutput()
 	if err != nil {
 		return 0, fmt.Errorf("df command failed with error %v", err)
