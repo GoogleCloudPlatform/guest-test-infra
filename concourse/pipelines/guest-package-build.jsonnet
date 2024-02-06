@@ -317,7 +317,7 @@ local buildpackageimagetask = {
     run: {
       path: '/daisy',
       args: [
-        '-project=compute-image-test-pool-001',
+        '-project=gcp-guest',
         '-zone=us-central1-a',
         '-var:source_image=' + tl.source_image,
         '-var:gcs_package_path=' + tl.gcs_package_path,
