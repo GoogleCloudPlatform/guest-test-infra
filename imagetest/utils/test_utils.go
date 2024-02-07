@@ -193,7 +193,7 @@ func GetHostKeysFileFromDisk() ([]byte, error) {
 			return nil, fmt.Errorf("Could not find rdp cert thumbprint, got %s from cert store query", rdpThumb.Stdout)
 		}
 		rdp = "rdp " + rdp
-		totalBytes = append([]byte(winrm + "\n" + rdp))
+		totalBytes = []byte(winrm + "\n" + rdp)
 	}
 	return totalBytes, nil
 }
