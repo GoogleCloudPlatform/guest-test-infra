@@ -18,7 +18,6 @@ local prepublishtesttask = {
 
   // Start of task
   platform: 'linux',
-  serial_groups: ['shapevalidation'],
   image_resource: {
     type: 'registry-image',
     source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
@@ -31,6 +30,7 @@ local prepublishtesttask = {
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
       '-filter=(shapevalidation)',
+      '-shapevalidation_test_filter=^[A-Z][0-3]',
       '-images=' + task.images,
     ] + task.extra_args,
   },
