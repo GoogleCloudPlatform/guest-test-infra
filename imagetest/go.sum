@@ -22,6 +22,8 @@ cloud.google.com/go/storage v1.31.0/go.mod h1:81ams1PrhW16L4kF7qg+4mTq7SRs5HsbDT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f h1:fHLga6U5ibwILQYGom/Fta6xJpn8DJ/XbIRmVaySLjA=
 github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20230929171844-6a3c47dc7a4f/go.mod h1:zr7ug08Bz1pQZzWmiKYTHuF/+KbbuSFiP74D2pPukGE=
+github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20240207005040-a283f5d80c12 h1:p/aoXPazJo0ehO3yjg3O4VNbJTO5TAshYIga5fpL1Gw=
+github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20240207005040-a283f5d80c12/go.mod h1:zr7ug08Bz1pQZzWmiKYTHuF/+KbbuSFiP74D2pPukGE=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
