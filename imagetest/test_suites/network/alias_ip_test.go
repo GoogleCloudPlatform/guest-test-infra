@@ -20,12 +20,24 @@ const (
 )
 
 func TestAliases(t *testing.T) {
+	ctx := utils.Context(t)
+	if image, err := utils.GetMetadata(ctx, "instance", "image"); err != nil {
+		t.Fatalf("could not determine image: %v", err)
+	} else if strings.Contains(image, "sles-15") || strings.Contains(image, "opensuse-leap") {
+		t.Skipf("known issue: guest-agent cannot set routes on %s", image)
+	}
 	if err := verifyIPAliases(t); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestAliasAfterReboot(t *testing.T) {
+	ctx := utils.Context(t)
+	if image, err := utils.GetMetadata(ctx, "instance", "image"); err != nil {
+		t.Fatalf("could not determine image: %v", err)
+	} else if strings.Contains(image, "sles-15") || strings.Contains(image, "opensuse-leap") {
+		t.Skipf("known issue: guest-agent cannot set routes on %s", image)
+	}
 	_, err := os.Stat(markerFile)
 	if os.IsNotExist(err) {
 		// first boot
@@ -85,6 +97,11 @@ func getGoogleRoutes(networkInterface string) ([]string, error) {
 
 func TestAliasAgentRestart(t *testing.T) {
 	ctx := utils.Context(t)
+	if image, err := utils.GetMetadata(ctx, "instance", "image"); err != nil {
+		t.Fatalf("could not determine image: %v", err)
+	} else if strings.Contains(image, "sles-15") || strings.Contains(image, "opensuse-leap") {
+		t.Skipf("known issue: guest-agent cannot set routes on %s", image)
+	}
 	iface, err := utils.GetInterface(ctx, 0)
 	if err != nil {
 		t.Fatalf("couldn't get interface: %v", err)
