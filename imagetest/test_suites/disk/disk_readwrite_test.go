@@ -22,8 +22,8 @@ func TestDiskReadWrite(t *testing.T) {
 }
 
 func testDiskReadWriteLinux(t *testing.T) {
-	testFile := "/test.txt"
-	newTestFile := "/testnew.txt"
+	testFile := "/var/test.txt"
+	newTestFile := "/var/testnew.txt"
 	content := "Test File Content"
 	f, err := os.Create(testFile)
 	if err != nil {

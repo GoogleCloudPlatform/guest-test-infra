@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	markerFile      = "/boot-marker"
+	markerFile      = "/var/boot-marker"
 	gb              = 1024.0 * 1024.0 * 1024.0
 	defaultDiskSize = 20
 )
@@ -46,13 +46,18 @@ func TestDiskResize(t *testing.T) {
 	}
 
 	// Total blocks * size per block = total space in bytes
-	if err := verifyDiskSize(resizeDiskSize); err != nil {
+	if err := verifyDiskSize(resizeDiskSize, image); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func getDiskSize() (int64, error) {
-	fstatOut, err := exec.Command("df", "-B1", "--output=size", "/").CombinedOutput()
+func getDiskSize(image string) (int64, error) {
+	diskPath := "/"
+	if strings.Contains(image, "cos") {
+		diskPath = "/mnt/stateful_partition"
+	}
+
+	fstatOut, err := exec.Command("df", "-B1", "--output=size", diskPath).CombinedOutput()
 	if err != nil {
 		return 0, fmt.Errorf("df command failed with error %v", err)
 	}
@@ -70,8 +75,8 @@ func getDiskSize() (int64, error) {
 	return 0, fmt.Errorf("could not find disk size in fstat output %s", fstatOutString)
 }
 
-func verifyDiskSize(expectedGb int) error {
-	diskSize, err := getDiskSize()
+func verifyDiskSize(expectedGb int, image string) error {
+	diskSize, err := getDiskSize(image)
 	if err != nil {
 		return fmt.Errorf("could not get disk size: err %v", err)
 	}
