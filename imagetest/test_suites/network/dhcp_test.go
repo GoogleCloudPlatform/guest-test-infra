@@ -25,6 +25,15 @@ func TestDHCP(t *testing.T) {
 	var cmd *exec.Cmd
 	var err error
 
+	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
+	if err != nil {
+		t.Fatalf("could not get image name: %s", err)
+	}
+
+	if strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") {
+		t.Skipf("DHCP test not supported on: %s", image)
+	}
+
 	// Run every case: if one command or check succeeds, the test passes.
 	if utils.IsWindows() {
 		checkDhcpWindows(t)

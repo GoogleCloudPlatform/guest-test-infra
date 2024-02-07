@@ -798,6 +798,21 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 		return res
 	}
 
+	clean := func() {
+		log.Printf("cleaning up after test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
+		cleaned, errs := cleanTestWorkflow(test)
+		for _, err := range errs {
+			log.Printf("error cleaning test %s/%s: %v\n", test.Name, test.Image.Name, err)
+		}
+		if len(cleaned) > 0 {
+			log.Printf("test %s/%s had %d leftover resources\n", test.Name, test.Image.Name, len(cleaned))
+		}
+		for _, c := range cleaned {
+			log.Printf("deleted resource %s from test %s/%s", c, test.Name, test.Image.Name)
+		}
+	}
+	defer clean()
+
 	start := time.Now()
 	log.Printf("running test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
 	if err := test.wf.Run(ctx); err != nil {
@@ -806,18 +821,6 @@ func runTestWorkflow(ctx context.Context, test *TestWorkflow) testResult {
 	}
 	delta := formatTimeDelta("04m 05s", time.Now().Sub(start))
 	log.Printf("finished test %s/%s (ID %s) in project %s, time spent: %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project, delta)
-
-	log.Printf("cleaning up after test %s/%s (ID %s) in project %s\n", test.Name, test.Image.Name, test.wf.ID(), test.wf.Project)
-	cleaned, errs := cleanTestWorkflow(test)
-	for _, err := range errs {
-		log.Printf("error cleaning test %s/%s: %v\n", test.Name, test.Image.Name, err)
-	}
-	if len(cleaned) > 0 {
-		log.Printf("test %s/%s had %d leftover resources\n", test.Name, test.Image.Name, len(cleaned))
-	}
-	for _, c := range cleaned {
-		log.Printf("deleted resource %s from test %s/%s", c, test.Name, test.Image.Name)
-	}
 
 	results, err := getTestResults(ctx, test)
 	if err != nil {

@@ -654,6 +654,22 @@ func TestAddSecondaryRange(t *testing.T) {
 	}
 }
 
+func TestSetRegion(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	network, err := twf.CreateNetwork("network", false)
+	if err != nil {
+		t.Errorf("failed to create network: %v", err)
+	}
+	subnet, err := network.CreateSubnetwork("subnet", "ipRange")
+	if err != nil {
+		t.Errorf("failed to create subnetwork: %v", err)
+	}
+	subnet.SetRegion("testregion")
+	if subnet.subnetwork.Region != "testregion" {
+		t.Errorf("Subnet has unexpected region, got %s want testregion", subnet.subnetwork.Region)
+	}
+}
+
 // TestCreateNetworkDependenciesReverse tests that the create-vms step depends
 // on the create-networks step if they are created in order.
 func TestCreateNetworkDependencies(t *testing.T) {
