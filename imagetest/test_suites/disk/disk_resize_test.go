@@ -55,7 +55,7 @@ func getDiskSize(image string) (int64, error) {
 	diskPath := "/"
 	if strings.Contains(image, "cos") {
 		diskPath = "/mnt/stateful_partition"
-        }
+	}
 
 	fstatOut, err := exec.Command("df", "-B1", "--output=size", diskPath).CombinedOutput()
 	if err != nil {
