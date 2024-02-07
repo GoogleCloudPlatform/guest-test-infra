@@ -61,46 +61,39 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
-	var multinictests string
+	multinictests := "TestStaticIP"
 	if !utils.HasFeature(t.Image, "WINDOWS") {
-		multinictests += "TestAlias"
+		multinictests += "|TestAlias"
+	}
+
+	// VM2 for multiNIC
+	networkRebootInst := &daisy.Instance{}
+	networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootInst)
+	if err != nil {
+		return err
+	}
+	vm2.AddMetadata("enable-guest-attributes", "TRUE")
+	if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
+		return err
+	}
+	if err := vm2.AddCustomNetwork(network2, subnetwork2); err != nil {
+		return err
+	}
+	if err := vm2.SetPrivateIP(network2, vm2Config.ip); err != nil {
+		return err
+	}
+	if err := vm2.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
+		return err
+	}
+	if err := vm2.Reboot(); err != nil {
+		return err
 	}
 	if utils.HasFeature(t.Image, "GVNIC") {
-		if multinictests != "" {
-			multinictests += "|"
-		}
-		multinictests += "TestGVNIC"
+		multinictests += "|TestGVNIC"
+		vm2.UseGVNIC()
 	}
+	vm2.RunTests(multinictests)
 
-	if multinictests != "" {
-		// VM2 for multiNIC
-		networkRebootInst := &daisy.Instance{}
-		networkRebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-		vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vm2Config.name}}, networkRebootInst)
-		if err != nil {
-			return err
-		}
-		vm2.AddMetadata("enable-guest-attributes", "TRUE")
-		if err := vm2.AddCustomNetwork(network1, subnetwork1); err != nil {
-			return err
-		}
-		if err := vm2.AddCustomNetwork(network2, subnetwork2); err != nil {
-			return err
-		}
-		if err := vm2.SetPrivateIP(network2, vm2Config.ip); err != nil {
-			return err
-		}
-		if err := vm2.AddAliasIPRanges("10.14.8.0/24", "secondary-range"); err != nil {
-			return err
-		}
-		if err := vm2.Reboot(); err != nil {
-			return err
-		}
-		if utils.HasFeature(t.Image, "GVNIC") {
-			vm2.UseGVNIC()
-		}
-
-		vm2.RunTests(multinictests)
-	}
 	return nil
 }
