@@ -96,4 +96,8 @@ func TestGCESysprep(t *testing.T) {
 	if strings.TrimSpace(rdpFw.Stdout) == "" {
 		t.Errorf("could not find rdp firewall rule")
 	}
+	osconfigAgentStatus, err := utils.RunPowershellCmd(`Get-Service google_osconfig_agent | Where-Object {$_.StartType -eq "Disabled"}`)
+	if err != nil || osconfigAgentStatus.Stdout == "" {
+		t.Errorf("google_osconfig_agent does not appear to be disabled: %s %v", osconfigAgentStatus.Stdout, err)
+	}
 }
