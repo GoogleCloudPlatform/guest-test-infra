@@ -23,7 +23,7 @@ func TestAliases(t *testing.T) {
 	ctx := utils.Context(t)
 	if image, err := utils.GetMetadata(ctx, "instance", "image"); err != nil {
 		t.Fatalf("could not determine image: %v", err)
-	} else if strings.Contains(image, "sles-15") || strings.Contains(image, "opensuse-leap") || strings.Contains(image, "ubuntu-1604"){
+	} else if strings.Contains(image, "sles-15") || strings.Contains(image, "opensuse-leap") || strings.Contains(image, "ubuntu-1604") {
 		t.Skipf("known issue: guest-agent cannot set routes on %s", image)
 	}
 	if err := verifyIPAliases(t); err != nil {
