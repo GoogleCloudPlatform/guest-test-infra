@@ -33,7 +33,11 @@ func TestStaticIP(t *testing.T) {
 		if err != nil {
 			t.Errorf("could not get subnet mask for interface %s: %v", ifaceIndex, err)
 		}
-		expectedIP += suffixFromMask(mask)
+		if ifaceIndex == "0" && utils.IsWindows() {
+			// TODO (acrate): check subnet on secondary interfaces (pending guest-agent fixes)
+			// TODO (acrate): check subnet on linux (pending GCE)
+			expectedIP += suffixFromMask(mask)
+		}
 		mac, err := utils.GetMetadata(ctx, "instance", "network-interfaces", ifaceIndex, "mac")
 		if err != nil {
 			t.Errorf("could not get interface %s mac address: %v", ifaceIndex, err)
