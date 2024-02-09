@@ -5,10 +5,10 @@ package network
 
 import (
 	"fmt"
-	"testing"
-	"strings"
-	"strconv"
 	"math/bits"
+	"strconv"
+	"strings"
+	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -67,7 +67,7 @@ func TestStaticIP(t *testing.T) {
 	}
 }
 
-func suffixFromMask(mask string) (string) {
+func suffixFromMask(mask string) string {
 	var sum int
 	for _, n := range strings.Split(mask, ".") {
 		i, err := strconv.ParseUint(n, 10, 8)
