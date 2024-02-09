@@ -64,7 +64,7 @@ func rollInt64ToString(list []int64) string {
 }
 
 func requiredLicenseList(image *compute.Image) ([]string, error) {
-	licenseUrlTmpl := "https://www.googleapis.com/compute/v1/projects/%s/global/licenses/%s"
+	licenseURLTmpl := "https://www.googleapis.com/compute/v1/projects/%s/global/licenses/%s"
 	transform := func() {}
 	var requiredLicenses []string
 	var preferFamily bool // Use family name rather than image name to generate license
@@ -114,8 +114,8 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 		project = "windows-cloud"
 		transform = func() {
 			requiredLicenses = []string{
-				fmt.Sprintf(licenseUrlTmpl, project, strings.Replace(sqlWindowsVersionRe.FindString(image.Name), "windows-", "windows-server-", -1)),
-				fmt.Sprintf(licenseUrlTmpl, "windows-sql-cloud", strings.Replace(sqlVersionRe.FindString(image.Name), "sql-", "sql-server-", -1)),
+				fmt.Sprintf(licenseURLTmpl, project, strings.Replace(sqlWindowsVersionRe.FindString(image.Name), "windows-", "windows-server-", -1)),
+				fmt.Sprintf(licenseURLTmpl, "windows-sql-cloud", strings.Replace(sqlVersionRe.FindString(image.Name), "sql-", "sql-server-", -1)),
 			}
 		}
 	case strings.Contains(image.Name, "windows"):
@@ -123,7 +123,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 		transform = func() {
 			if strings.Contains(image.Name, "core") {
 				requiredLicenses[len(requiredLicenses)-1] = strings.TrimSuffix(requiredLicenses[len(requiredLicenses)-1], "-core")
-				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseUrlTmpl, project, "windows-server-core"))
+				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, "windows-server-core"))
 			}
 		}
 	default:
@@ -131,9 +131,9 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 	}
 
 	if preferFamily {
-		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseUrlTmpl, project, image.Family))
+		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, image.Family))
 	} else {
-		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseUrlTmpl, project, versionSuffixRe.ReplaceAllString(image.Name, "")))
+		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, versionSuffixRe.ReplaceAllString(image.Name, "")))
 	}
 
 	transform()
