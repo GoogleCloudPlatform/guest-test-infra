@@ -31,6 +31,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowscontainers"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/winrm"
 	"google.golang.org/api/option"
 )
 
@@ -189,6 +190,10 @@ func main() {
 		{
 			ssh.Name,
 			ssh.TestSetup,
+		},
+		{
+			winrm.Name,
+			winrm.TestSetup,
 		},
 		{
 			sql.Name,
