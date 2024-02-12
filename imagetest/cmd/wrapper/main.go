@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
 	"time"
 
@@ -87,7 +88,11 @@ func main() {
 		log.Fatalf("failed to get metadata _test_package_name: %v", err)
 	}
 
-	workDir, err := ioutil.TempDir("/etc", "image_test")
+	workDirPath := "/etc/"
+	if runtime.GOOS == "windows" {
+		workDirPath = "C:\\"
+	}
+	workDir, err := os.MkdirTemp(workDirPath, "image_test")
 	if err != nil {
 		log.Fatalf("failed to create work dir: %v", err)
 	}
