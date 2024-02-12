@@ -10,7 +10,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-var imageSuffixRe = regexp.MustCompile(`(-?(v[0-9]+|(arm|amd)64)){0,2}$`)
+var imageSuffixRe = regexp.MustCompile(`-(arm|amd|x86_)64$`)
 var sqlWindowsVersionRe = regexp.MustCompile("windows-[0-9]{4}-dc")
 var sqlVersionRe = regexp.MustCompile("sql-[0-9]{4}-(express|enterprise|standard|web)")
 
@@ -19,24 +19,25 @@ var Name = "licensevalidation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
+	licensetests := "TestLicenses"
 	if utils.HasFeature(t.Image, "WINDOWS") {
-		licensetests := "TestLicenses|TestWindowsActivationStatus"
-		vm1, err := t.CreateTestVM("licensevm")
-		if err != nil {
-			return err
-		}
-		rlicenses, err := requiredLicenseList(t.Image)
-		if err != nil {
-			return err
-		}
-		vm1.AddMetadata("expected-licenses", rollStringToString(rlicenses))
-		vm1.AddMetadata("actual-licenses", rollStringToString(t.Image.Licenses))
-		vm1.AddMetadata("expected-license-codes", rollInt64ToString(t.Image.LicenseCodes))
-		if err != nil {
-			return err
-		}
-		vm1.RunTests(licensetests)
+		licensetests += "|TestWindowsActivationStatus"
 	}
+	vm1, err := t.CreateTestVM("licensevm")
+	if err != nil {
+		return err
+	}
+	rlicenses, err := requiredLicenseList(t.Image)
+	if err != nil {
+		return err
+	}
+	vm1.AddMetadata("expected-licenses", rollStringToString(rlicenses))
+	vm1.AddMetadata("actual-licenses", rollStringToString(t.Image.Licenses))
+	vm1.AddMetadata("expected-license-codes", rollInt64ToString(t.Image.LicenseCodes))
+	if err != nil {
+		return err
+	}
+	vm1.RunTests(licensetests)
 	return nil
 }
 
@@ -62,18 +63,31 @@ func rollInt64ToString(list []int64) string {
 	return result
 }
 
+// generate a list of license URLs we should expect to see on the image from the Name and Family properties
 func requiredLicenseList(image *compute.Image) ([]string, error) {
 	licenseURLTmpl := "https://www.googleapis.com/compute/v1/projects/%s/global/licenses/%s"
 	transform := func() {}
 	var requiredLicenses []string
-	var preferFamily bool // Use family name rather than image name to generate license
 	var project string
 	switch {
 	case strings.Contains(image.Name, "debian"):
 		project = "debian-cloud"
+		transform = func() {
+			// Rightmost dash separated segment with only [a-z] chars should be the codename
+			var codename string
+			segments := strings.Split(image.Name, "-")
+			for i := len(segments)-1; i>=0; i-- {
+				if len(regexp.MustCompile("[a-z]+").FindString(segments[i])) == len(segments[i]) {
+					codename = segments[i]
+					break
+				}
+			}
+			for i := range requiredLicenses {
+				requiredLicenses[i] += "-" + codename
+			}
+		}
 	case strings.Contains(image.Name, "rhel") && strings.Contains(image.Name, "sap"):
 		project = "rhel-sap-cloud"
-		preferFamily = true
 		transform = func() {
 			newSuffix := "-sap"
 			if strings.Contains(image.Name, "byos") {
@@ -103,33 +117,28 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 		project = "almalinux-cloud"
 	case strings.Contains(image.Name, "opensuse"):
 		project = "opensuse-cloud"
-		preferFamily = true
 		transform = func() { requiredLicenses[len(requiredLicenses)-1] += "-42" } // Quirk of opensuse licensing. This suffix will not need to be updated with version changes.
 	case strings.Contains(image.Name, "sles") && strings.Contains(image.Name, "sap"):
 		project = "suse-sap-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "sles"):
 		project = "suse-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "ubuntu-pro"):
 		project = "ubuntu-os-pro-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "ubuntu"):
 		project = "ubuntu-os-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "windows") && strings.Contains(image.Name, "sql"):
 		project = "windows-cloud"
 		transform = func() {
 			requiredLicenses = []string{
-				fmt.Sprintf(licenseURLTmpl, project, strings.Replace(sqlWindowsVersionRe.FindString(image.Name), "windows-", "windows-server-", -1)),
 				fmt.Sprintf(licenseURLTmpl, "windows-sql-cloud", strings.Replace(sqlVersionRe.FindString(image.Name), "sql-", "sql-server-", -1)),
+				fmt.Sprintf(licenseURLTmpl, project, strings.Replace(sqlWindowsVersionRe.FindString(image.Name), "windows-", "windows-server-", -1)),
 			}
 		}
 	case strings.Contains(image.Name, "windows"):
 		project = "windows-cloud"
 		transform = func() {
+			requiredLicenses = []string{fmt.Sprintf(licenseURLTmpl, project, "windows-server-"+regexp.MustCompile("[0-9]{4}").FindString(image.Family)+"-dc")}
 			if strings.Contains(image.Name, "core") {
-				requiredLicenses[len(requiredLicenses)-1] = strings.TrimSuffix(requiredLicenses[len(requiredLicenses)-1], "-core")
 				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, "windows-server-core"))
 			}
 		}
@@ -137,12 +146,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 		return nil, fmt.Errorf("Not sure what project to look for licenses from for %s", image.Name)
 	}
 
-	if preferFamily {
-		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, image.Family))
-	} else {
-		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, imageSuffixRe.ReplaceAllString(image.Name, "")))
-	}
-
+	requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, imageSuffixRe.ReplaceAllString(image.Family, "")))
 	transform()
 
 	return requiredLicenses, nil
