@@ -83,14 +83,12 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 			rhelSapVersionRe := regexp.MustCompile("-[0-9]+-sap-(ha|byos)$")
 			requiredLicenses[len(requiredLicenses)-1] = rhelSapVersionRe.ReplaceAllString(requiredLicenses[len(requiredLicenses)-1], newSuffix)
 		}
-	case strings.Contains(image.Name, "rhel") && strings.Contains(image.Name, "byos"):
-		project = "rhel-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "rhel"):
 		project = "rhel-cloud"
-		preferFamily = true
 		transform = func() {
-			requiredLicenses[len(requiredLicenses)-1] += "-server"
+			if !strings.Contains(image.Name, "byos") {
+				requiredLicenses[len(requiredLicenses)-1] += "-server"
+			}
 		}
 	case strings.Contains(image.Name, "centos"):
 		project = "centos-cloud"
