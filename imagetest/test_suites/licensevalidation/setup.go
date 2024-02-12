@@ -10,7 +10,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-var versionSuffixRe = regexp.MustCompile("-v[0-9]+$")
+var imageSuffixRe = regexp.MustCompile(`(-?(v[0-9]+|(arm|amd)64)){0,2}$`)
 var sqlWindowsVersionRe = regexp.MustCompile("windows-[0-9]{4}-dc")
 var sqlVersionRe = regexp.MustCompile("sql-[0-9]{4}-(express|enterprise|standard|web)")
 
@@ -72,16 +72,20 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 	switch {
 	case strings.Contains(image.Name, "debian"):
 		project = "debian-cloud"
-	case strings.Contains(image.Name, "rhel") && strings.Contains(image.Name, "byos"):
-		project = "rhel-cloud"
-		preferFamily = true
 	case strings.Contains(image.Name, "rhel") && strings.Contains(image.Name, "sap"):
 		project = "rhel-sap-cloud"
 		preferFamily = true
 		transform = func() {
-			rhelSapVersionRe := regexp.MustCompile("-[0-9]+-sap-ha$")
-			requiredLicenses[len(requiredLicenses)-1] = rhelSapVersionRe.ReplaceAllString(requiredLicenses[len(requiredLicenses)-1], "-sap")
+			newSuffix := "-sap"
+			if strings.Contains(image.Name, "byos") {
+				newSuffix += "-byos"
+			}
+			rhelSapVersionRe := regexp.MustCompile("-[0-9]+-sap-(ha|byos)$")
+			requiredLicenses[len(requiredLicenses)-1] = rhelSapVersionRe.ReplaceAllString(requiredLicenses[len(requiredLicenses)-1], newSuffix)
 		}
+	case strings.Contains(image.Name, "rhel") && strings.Contains(image.Name, "byos"):
+		project = "rhel-cloud"
+		preferFamily = true
 	case strings.Contains(image.Name, "rhel"):
 		project = "rhel-cloud"
 		preferFamily = true
@@ -90,6 +94,12 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 		}
 	case strings.Contains(image.Name, "centos"):
 		project = "centos-cloud"
+		transform = func() {
+			if image.Family == "centos-stream-8" {
+				// centos-stream-8 doesn't include -8
+				requiredLicenses[len(requiredLicenses)-1] = requiredLicenses[len(requiredLicenses)-1][:len(requiredLicenses[len(requiredLicenses)-1])-2]
+			}
+		}
 	case strings.Contains(image.Name, "rocky-linux"):
 		project = "rocky-linux-cloud"
 	case strings.Contains(image.Name, "almalinux"):
@@ -133,7 +143,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 	if preferFamily {
 		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, image.Family))
 	} else {
-		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, versionSuffixRe.ReplaceAllString(image.Name, "")))
+		requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, imageSuffixRe.ReplaceAllString(image.Name, "")))
 	}
 
 	transform()
