@@ -230,7 +230,45 @@ local promotepackagejob = {
   },
 };
 
-// task which uploads a package using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
+// task which uploads a package version using the 'uploadToArtifactReleaser' pubsub request type
+local uploadpackageversiontask = {
+  local tl = self,
+
+  environment:: 'staging',
+  os_type:: error 'must set os_type in uploadpackageversiontask',
+  // This parameter must be enclosed in double quotes when passed in, for json parsing.
+  // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
+  gcs_files:: error 'must set gcs_files in uploadpackageversiontask',
+  pkg_name:: error 'must set pkgname in uploadpackageversiontask',
+  pkg_version:: error 'must set pkgversion in uploadpackageversiontask',
+  sbom_file:: error 'must set sbom_file in uploadpackageversiontask',
+  topic:: 'projects/artifact-releaser-prod/topics/artifact-registry-package-upload-prod',
+  request_type:: '"uploadToArtifactReleaser"',
+
+  task: 'upload-' + tl.repo + '-version',
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "%s", "request": {"ostype": "%s", "environment": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}' %
+        [tl.request_type, tl.os_type, tl.environment, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
+      ],
+    },
+  },
+};
+
+// task which uploads a package to rapture using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
+// this is scheduled to be deprecated in favor of uploadpackageversiontask
 local uploadpackagetask = {
   local tl = self,
 
