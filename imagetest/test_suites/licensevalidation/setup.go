@@ -19,25 +19,24 @@ var Name = "licensevalidation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	licensetests := "TestLicenses"
 	if utils.HasFeature(t.Image, "WINDOWS") {
-		licensetests += "|TestWindowsActivationStatus"
+		licensetests := "TestLicenses|TestWindowsActivationStatus"
+		vm1, err := t.CreateTestVM("licensevm")
+		if err != nil {
+			return err
+		}
+		rlicenses, err := requiredLicenseList(t.Image)
+		if err != nil {
+			return err
+		}
+		vm1.AddMetadata("expected-licenses", rollStringToString(rlicenses))
+		vm1.AddMetadata("actual-licenses", rollStringToString(t.Image.Licenses))
+		vm1.AddMetadata("expected-license-codes", rollInt64ToString(t.Image.LicenseCodes))
+		if err != nil {
+			return err
+		}
+		vm1.RunTests(licensetests)
 	}
-	vm1, err := t.CreateTestVM("licensevm")
-	if err != nil {
-		return err
-	}
-	rlicenses, err := requiredLicenseList(t.Image)
-	if err != nil {
-		return err
-	}
-	vm1.AddMetadata("expected-licenses", rollStringToString(rlicenses))
-	vm1.AddMetadata("actual-licenses", rollStringToString(t.Image.Licenses))
-	vm1.AddMetadata("expected-license-codes", rollInt64ToString(t.Image.LicenseCodes))
-	if err != nil {
-		return err
-	}
-	vm1.RunTests(licensetests)
 	return nil
 }
 
