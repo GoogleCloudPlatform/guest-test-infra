@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	markerFile = "/boot-marker"
+	markerFile = "/var/boot-marker"
 )
 
 func TestAliases(t *testing.T) {
