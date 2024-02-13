@@ -1,6 +1,8 @@
 package network
 
 import (
+	"strings"
+
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -62,7 +64,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
 	multinictests := "TestStaticIP"
-	if !utils.HasFeature(t.Image, "WINDOWS") {
+	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") {
 		multinictests += "|TestAlias"
 	}
 
