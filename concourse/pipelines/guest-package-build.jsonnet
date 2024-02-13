@@ -235,10 +235,10 @@ local uploadpackageversiontask = {
   local tl = self,
 
   environment:: 'stable',
-  os_type:: error 'must set os_type in uploadpackageversiontask',
   // Unlike other parameters, gcs_files must be enclosed in double quotes when passed in for json parsing.
   // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
   gcs_files:: error 'must set gcs_files in uploadpackageversiontask',
+  os_type:: error 'must set os_type in uploadpackageversiontask',
   pkg_name:: error 'must set pkgname in uploadpackageversiontask',
   pkg_version:: error 'must set pkgversion in uploadpackageversiontask',
   sbom_file:: error 'must set sbom_file in uploadpackageversiontask',
@@ -888,14 +888,6 @@ local build_and_upload_guest_agent = build_guest_agent {
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el8',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-disk-expand-el9',
         },
 
       ],
