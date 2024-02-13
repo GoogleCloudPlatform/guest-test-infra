@@ -234,7 +234,7 @@ local promotepackagejob = {
 local uploadpackageversiontask = {
   local tl = self,
 
-  environment:: 'staging',
+  environment:: 'stable',
   os_type:: error 'must set os_type in uploadpackageversiontask',
   // Unlike other parameters, gcs_files must be enclosed in double quotes when passed in for json parsing.
   // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
