@@ -245,7 +245,7 @@ local uploadpackageversiontask = {
   topic:: 'projects/artifact-releaser-prod/topics/artifact-registry-package-upload-prod',
   request_type:: 'uploadToArtifactReleaser',
 
-  task: 'upload-' + tl.repo + '-version',
+  task: 'upload-' + tl.pkg_name + '-' + tl.os_type,
   config: {
     platform: 'linux',
     image_resource: {
@@ -260,7 +260,7 @@ local uploadpackageversiontask = {
         'publish',
         tl.topic,
         '--message',
-        '{"type": "%s", "request": {"ostype": "%s", "environment": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}' %
+        '{"type": "%s", "request": {"ostype": "%s", "environment": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
         [tl.request_type, tl.os_type, tl.environment, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
       ],
     },
@@ -889,7 +889,13 @@ local build_and_upload_guest_agent = build_guest_agent {
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el8',
         },
-
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"',
+          os_type: 'EL9_YUM',
+          pkg_name: 'guest-diskexpand',
+          pkg_version: '((.:package-version))',
+          sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
+        },
       ],
     },
     buildpackagejob {
