@@ -889,6 +889,14 @@ local build_and_upload_guest_agent = build_guest_agent {
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el8',
         },
+        uploadpackagetask {
+          package_paths:
+            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"}',
+          sbom_file:
+            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
+          universe: 'cloud-yum',
+          repo: 'gce-disk-expand-el9',
+        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"',
           os_type: 'EL9_YUM',
@@ -896,6 +904,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_version: '((.:package-version))',
           sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
         },
+
       ],
     },
     buildpackagejob {
