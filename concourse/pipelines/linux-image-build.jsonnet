@@ -46,7 +46,6 @@ local prepublishtesttask = {
 
   // Start of task
   platform: 'linux',
-  serial_groups: ['shapevalidation'],
   image_resource: {
     type: 'registry-image',
     source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
@@ -60,6 +59,7 @@ local prepublishtesttask = {
       // Run tests not ran in publish-to-testing
       // TODO enable oslogin
       '-filter=(shapevalidation)',
+      '-shapevalidation_test_filter=^[A-Z][0-3]',
       '-images=' + task.images,
     ] + task.extra_args,
   },
