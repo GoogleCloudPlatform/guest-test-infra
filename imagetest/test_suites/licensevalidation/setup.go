@@ -76,7 +76,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 			// Rightmost dash separated segment with only [a-z] chars should be the codename
 			var codename string
 			segments := strings.Split(image.Name, "-")
-			for i := len(segments)-1; i>=0; i-- {
+			for i := len(segments) - 1; i >= 0; i-- {
 				if len(regexp.MustCompile("[a-z]+").FindString(segments[i])) == len(segments[i]) {
 					codename = segments[i]
 					break
