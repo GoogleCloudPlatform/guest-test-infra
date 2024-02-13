@@ -30,7 +30,7 @@ local imagetesttask = {
     path: '/manager',
     args: [
       '-project=gcp-guest',
-      '-zone=us-central1-a',
+      '-zone=us-central1-c',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
       '-images=' + task.images,
@@ -54,7 +54,7 @@ local prepublishtesttask = {
     path: '/manager',
     args: [
       '-project=gcp-guest',
-      '-zone=us-central1-a',
+      '-zone=us-central1-c',
       '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
       // Run tests not ran in publish-to-testing
       // TODO enable oslogin
