@@ -234,16 +234,16 @@ local promotepackagejob = {
 local uploadpackageversiontask = {
   local tl = self,
 
-  environment:: 'stable',
   // Unlike other parameters, gcs_files must be enclosed in double quotes when passed in for json parsing.
   // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
   gcs_files:: error 'must set gcs_files in uploadpackageversiontask',
   os_type:: error 'must set os_type in uploadpackageversiontask',
   pkg_name:: error 'must set pkgname in uploadpackageversiontask',
   pkg_version:: error 'must set pkgversion in uploadpackageversiontask',
+  request_type:: 'uploadToArtifactReleaser',
   sbom_file:: error 'must set sbom_file in uploadpackageversiontask',
   topic:: 'projects/artifact-releaser-prod/topics/artifact-registry-package-upload-prod',
-  request_type:: 'uploadToArtifactReleaser',
+
 
   task: 'upload-' + tl.pkg_name + '-' + tl.os_type,
   config: {
@@ -260,8 +260,8 @@ local uploadpackageversiontask = {
         'publish',
         tl.topic,
         '--message',
-        '{"type": "%s", "request": {"ostype": "%s", "environment": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
-        [tl.request_type, tl.os_type, tl.environment, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
+        '{"type": "%s", "request": {"ostype": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s], "reponame": "%s",}}' %
+        [tl.request_type, tl.os_type, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files, "gs://gce-packages-prod/" + tl.pkg_name + "/" + tl.pkg_version + "/" + tl.os_type],
       ],
     },
   },
