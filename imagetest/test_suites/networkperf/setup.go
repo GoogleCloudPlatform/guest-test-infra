@@ -198,7 +198,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		var zone string
 		if tc.zone == "" {
 			zone = t.Zone.Name
-			region = t.Zone.Region
+			region = path.Base(t.Zone.Region)
 		} else {
 			z, err := t.Client.GetZone(t.Project.Name, tc.zone)
 			if err != nil {
