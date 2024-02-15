@@ -260,8 +260,8 @@ local uploadpackageversiontask = {
         'publish',
         tl.topic,
         '--message',
-        '{"type": "%s", "request": {"ostype": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s], "reponame": "%s",}}' %
-        [tl.request_type, tl.os_type, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files, "gs://gce-packages-prod/" + tl.pkg_name + "/" + tl.pkg_version + "/" + tl.os_type],
+        '{"type": "%s", "request": {"ostype": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
+        [tl.request_type, tl.os_type, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
       ],
     },
   },
