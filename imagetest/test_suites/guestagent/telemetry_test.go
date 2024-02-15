@@ -41,7 +41,7 @@ func restartAgent(t *testing.T) {
 func getAgentOutput(t *testing.T) string {
 	t.Helper()
 	if utils.IsWindows() {
-		out, err := utils.RunPowershellCmd(`Get-WinEvent -Providername GCEGuestAgent | Format-List -Property Message`)
+		out, err := utils.RunPowershellCmd(`(Get-WinEvent -Providername GCEGuestAgent).Message`)
 		if err != nil {
 			t.Fatalf("could not get agent output: %v", err)
 		}
