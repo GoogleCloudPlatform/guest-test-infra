@@ -64,7 +64,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
 	multinictests := "TestStaticIP"
-	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") {
+	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") && !strings.Contains(t.Image.Name, "ubuntu-pro-1604") {
 		multinictests += "|TestAlias"
 	}
 
