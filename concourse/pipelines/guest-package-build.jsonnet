@@ -234,6 +234,7 @@ local promotepackagejob = {
 local uploadpackageversiontask = {
   local tl = self,
 
+  environment:: 'prod',
   // Unlike other parameters, gcs_files must be enclosed in double quotes when passed in for json parsing.
   // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
   gcs_files:: error 'must set gcs_files in uploadpackageversiontask',
@@ -260,8 +261,8 @@ local uploadpackageversiontask = {
         'publish',
         tl.topic,
         '--message',
-        '{"type": "%s", "request": {"ostype": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
-        [tl.request_type, tl.os_type, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
+        '{"type": "%s", "request": {"ostype": "%s", "environment": "%s", "pkgname": "%s", "pkgversion": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
+        [tl.request_type, tl.os_type, tl.environment, tl.pkg_name, tl.pkg_version, tl.sbom_file, tl.gcs_files],
       ],
     },
   },
