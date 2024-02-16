@@ -421,6 +421,7 @@ local imggroup = {
     'rhel-8',
     'rhel-8-byos',
     'rhel-9',
+    'rhel-9-c3m',
     'rhel-9-arm64',
     'rhel-9-byos',
     'rhel-9-byos-arm64',
