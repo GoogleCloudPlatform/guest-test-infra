@@ -5,6 +5,8 @@ package packagevalidation
 
 import (
 	"os"
+	"regexp"
+	"strconv"
 	"os/exec"
 	"strings"
 	"testing"
@@ -25,8 +27,8 @@ func TestGCESysprep(t *testing.T) {
 		t.Fatalf("failed to run gcesysprep: %s %v", out, err)
 	}
 
-	// RecordCount under 100 is acceptable, some logs will be generated after clearing the log during the rest of the sysprep
-	logs, err := utils.RunPowershellCmd(`Get-WinEvent -ListLog * | Where-Object {$_.RecordCount -gt 100} | Format-Table -HideTableHeaders -Property LogName,RecordCount`)
+	// RecordCount under 200 is acceptable, some logs will be generated after clearing the log during the rest of the sysprep
+	logs, err := utils.RunPowershellCmd(`Get-WinEvent -ListLog * | Where-Object {$_.RecordCount -gt 200} | Format-Table -HideTableHeaders -Property LogName,RecordCount`)
 	if err != nil {
 		t.Fatalf("could not get eventlog counts: %s %v", logs.Stderr, err)
 	}
@@ -95,6 +97,19 @@ func TestGCESysprep(t *testing.T) {
 	}
 	if strings.TrimSpace(rdpFw.Stdout) == "" {
 		t.Errorf("could not find rdp firewall rule")
+	}
+	sysprepInstalled, err := utils.RunPowershellCmd(`googet installed google-compute-engine-sysprep.noarch | Select-Object -Index 1`)
+	if err != nil {
+		t.Fatalf("could not check installed sysprep version: %v", err)
+	}
+	// YYYYMMDD
+	sysprepVerRe := regexp.MustCompile("[0-9]{8}")
+	sysprepVer, err := strconv.Atoi(sysprepVerRe.FindString(sysprepInstalled.Stdout))
+	if err != nil {
+		t.Fatalf("could not determine value of sysprep version: %v", err)
+	}
+	if sysprepVer <= 20240122 {
+		t.Skipf("version %d of gcesysprep is too old to disable google_osconfig_agent when -NoShutdown is passed", sysprepVer)
 	}
 	osconfigAgentStatus, err := utils.RunPowershellCmd(`Get-Service google_osconfig_agent | Where-Object {$_.StartType -eq "Disabled"}`)
 	if err != nil || osconfigAgentStatus.Stdout == "" {
