@@ -230,7 +230,47 @@ local promotepackagejob = {
   },
 };
 
-// task which uploads a package using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
+// task which uploads a package version using the 'uploadToArtifactReleaser' pubsub request type
+local uploadpackageversiontask = {
+  local tl = self,
+
+  // Unlike other parameters, gcs_files must be enclosed in double quotes when passed in for json parsing.
+  // For example, gcs_files: '"path1","path2"', or gcs_files: '"path"' if there is only one file.
+  gcs_files:: error 'must set gcs_files in uploadpackageversiontask',
+  os_type:: error 'must set os_type in uploadpackageversiontask',
+  pkg_inside_name:: error 'must set pkg_inside_name in uploadpackageversiontask',
+  pkg_name:: error 'must set pkgname in uploadpackageversiontask',
+  pkg_version:: error 'must set pkgversion in uploadpackageversiontask',
+  request_type:: 'uploadToArtifactReleaser',
+  reponame:: error 'must set reponame in uploadpackageversiontask',
+  sbom_file:: error 'must set sbom_file in uploadpackageversiontask',
+  topic:: 'projects/artifact-releaser-prod/topics/artifact-registry-package-upload-prod',
+
+
+  task: 'upload-' + tl.pkg_name + '-' + tl.os_type,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "%s", "request": {"ostype": "%s", "pkginsidename": "%s", "pkgname": "%s", "pkgversion": "%s", "reponame": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
+        [tl.request_type, tl.os_type, tl.pkg_inside_name, tl.pkg_name, tl.pkg_version, tl.reponame, tl.sbom_file, tl.gcs_files],
+      ],
+    },
+  },
+};
+
+// task which uploads a package to rapture using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
+// this is scheduled to be deprecated in favor of uploadpackageversiontask
 local uploadpackagetask = {
   local tl = self,
 
@@ -860,6 +900,15 @@ local build_and_upload_guest_agent = build_guest_agent {
             '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
           universe: 'cloud-yum',
           repo: 'gce-disk-expand-el9',
+        },
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"',
+          os_type: 'EL9_YUM',
+          pkg_inside_name: 'gce-disk-expand',
+          pkg_name: 'guest-diskexpand',
+          pkg_version: '((.:package-version))',
+          reponame: 'gce-disk-expand-el9',
+          sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
         },
 
       ],
