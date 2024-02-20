@@ -14,6 +14,7 @@ var Name = "imageboot"
 
 var sbUnsupported = []*regexp.Regexp{
 	// Permanent exceptions
+	regexp.MustCompile("-c3m$"),
 	regexp.MustCompile("debian-1[01].*arm64"),
 	regexp.MustCompile("windows-server-2012-r2-dc-core"), // Working but not easily testable and EOL in 1.5 months
 	// Temporary exceptions
