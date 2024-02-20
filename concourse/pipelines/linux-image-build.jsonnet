@@ -421,10 +421,12 @@ local imggroup = {
     'rhel-8',
     'rhel-8-byos',
     'rhel-9',
-    'rhel-9-c3m',
     'rhel-9-arm64',
     'rhel-9-byos',
     'rhel-9-byos-arm64',
+  ],
+  local rhel_c3m_images = [
+    'rhel-9-c3m',
   ],
   local rocky_linux_images = [
     'rocky-linux-8',
@@ -477,7 +479,9 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images],
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_c3m_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_c3m_images],
   jobs: [
           // Debian build jobs
           debianimgbuildjob {
@@ -489,7 +493,7 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
+          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images + rhel_c3m_images
         ] +
         [
           // Debian publish jobs
@@ -515,6 +519,17 @@ local imggroup = {
           }
           for env in envs
           for image in rhel_images
+        ] +
+        [
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+            runtests: false,
+          }
+          for env in envs
+          for image in rhel_c3m_images
         ] +
         [
           // CentOS publish jobs
@@ -553,7 +568,7 @@ local imggroup = {
     imggroup { name: 'debian', images: debian_images },
     imggroup {
       name: 'rhel',
-      images: rhel_images,
+      images: rhel_images + rhel_c3m_images,
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
