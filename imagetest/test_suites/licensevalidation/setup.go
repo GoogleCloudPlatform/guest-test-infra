@@ -102,6 +102,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 			if !strings.Contains(image.Name, "byos") {
 				requiredLicenses[len(requiredLicenses)-1] += "-server"
 			}
+			requiredLicenses[len(requiredLicenses)-1] = strings.ReplaceAll(requiredLicenses[len(requiredLicenses)-1], "-c3m", "")
 		}
 	case strings.Contains(image.Name, "centos"):
 		project = "centos-cloud"
