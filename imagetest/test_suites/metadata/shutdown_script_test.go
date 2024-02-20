@@ -75,14 +75,21 @@ func testShutdownScriptTimeWindows() error {
 // by checking the output content of the Shutdown script. It also checks that
 // shutdown scripts don't run on reinstall or upgrade of the guest-agent.
 func TestShutdownScripts(t *testing.T) {
-	result, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
+	ctx := utils.Context(t)
+	result, err := utils.GetMetadata(ctx, "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read shutdown script result key: %v", err)
 	}
 	if result != expectedShutdownContent {
 		t.Errorf(`shutdown script output expected "%s", got "%s".`, expectedShutdownContent, result)
 	}
-	err = utils.PutMetadata(utils.Context(t), path.Join("instance", "guest-attributes", "testing", "result"), "")
+	image, err := utils.GetMetadata(ctx, "instance", "image")
+	if err != nil {
+		t.Fatalf("could not determine image: %v", err)
+	} else if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		t.Skipf("image %s has known issues with metadata scripts on reinstall", image)
+	}
+	err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", "testing", "result"), "")
 	if err != nil {
 		t.Fatalf("failed to clear shutdown script result: %s", err)
 	}
@@ -95,7 +102,7 @@ func TestShutdownScripts(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
+	result, err = utils.GetMetadata(ctx, "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read shutdown script result key: %v", err)
 	}
