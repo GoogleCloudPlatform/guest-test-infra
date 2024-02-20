@@ -5,9 +5,9 @@ package packagevalidation
 
 import (
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
-	"os/exec"
 	"strings"
 	"testing"
 
