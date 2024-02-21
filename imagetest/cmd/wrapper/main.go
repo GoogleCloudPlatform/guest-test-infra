@@ -43,12 +43,18 @@ func main() {
 	// firstBootSpecialGA should be true if we need to match a different guest attribute than the usual guest attribute
 	defer func(ctx context.Context, firstBootSpecialGA bool) {
 		var err error
-		if firstBootSpecialGA {
-			err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
-				utils.FirstBootGAKey), "")
-		} else {
-			err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
-				utils.GuestAttributeTestKey), "")
+		for i := 0; i < 3; i++ {
+			if firstBootSpecialGA {
+				err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+					utils.FirstBootGAKey), "")
+			} else {
+				err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", utils.GuestAttributeTestNamespace,
+					utils.GuestAttributeTestKey), "")
+			}
+			if err == nil {
+				break
+			}
+			time.Sleep(time.Duration(i) * time.Second)
 		}
 
 		if err != nil {
