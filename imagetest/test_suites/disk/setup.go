@@ -21,7 +21,7 @@ var (
 			arch:        "ARM64",
 		},
 		{
-			machineType: "c3-standard-4",
+			machineType: "c3d-standard-4",
 			arch:        "X86_64",
 		},
 	}
