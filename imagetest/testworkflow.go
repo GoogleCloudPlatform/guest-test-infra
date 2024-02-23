@@ -134,6 +134,7 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 		}
 		createVMStep.CreateInstances = createInstances
 	}
+	instance.Metadata["_cit_timeout"] = t.wf.DefaultTimeout
 
 	return createVMStep, instance, nil
 }
@@ -186,6 +187,7 @@ func (t *TestWorkflow) appendCreateVMStepBeta(disks []*compute.Disk, instance *d
 		}
 		createVMStep.CreateInstances = createInstances
 	}
+	instance.Metadata["_cit_timeout"] = t.wf.DefaultTimeout
 
 	return createVMStep, instance, nil
 }
