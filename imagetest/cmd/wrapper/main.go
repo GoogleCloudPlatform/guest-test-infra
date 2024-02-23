@@ -66,6 +66,11 @@ func main() {
 		}
 	}(ctx, firstBootSpecialAttribute)
 
+	testTimeout, err := utils.GetMetadata(ctx, "instance", "attributes", "_cit_timeout")
+	if err != nil {
+		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
+	}
+
 	daisyOutsPath, err := utils.GetMetadata(ctx, "instance", "attributes", "daisy-outs-path")
 	if err != nil {
 		log.Fatalf("failed to get metadata daisy-outs-path: %v", err)
@@ -82,7 +87,7 @@ func main() {
 		log.Fatalf("failed to get metadata _test_results_url: %v", err)
 	}
 
-	var testArguments = []string{"-test.v"}
+	var testArguments = []string{"-test.v", "-test.timeout", testTimeout}
 
 	testRun, err := utils.GetMetadata(ctx, "instance", "attributes", "_test_run")
 	if err == nil && testRun != "" {
