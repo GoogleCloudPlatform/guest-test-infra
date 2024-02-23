@@ -4,9 +4,9 @@
 package network
 
 import (
-	"time"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	"github.com/go-ping/ping"
