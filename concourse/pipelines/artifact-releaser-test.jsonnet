@@ -167,6 +167,8 @@ local promote_arle_autopush_stable = {
   universes:: ['cloud-apt', 'cloud-yum', 'cloud-yuck'],
   env:: 'stable',
   topic:: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
+  artopic:: 'projects/artifact-releaser-autopush/subscriptions/artifact-registry-package-upload-autopush',
+  ostypes:: ['EL8_YUM', 'BULLSEYE_APT'],
 
   name: 'promote-arle-autopush-stable',
   plan: [
@@ -206,6 +208,31 @@ local promote_arle_autopush_stable = {
             },
           }
           for i in std.range(0, std.length(tl.repos) - 1)
+        ] + 
+        [
+          {
+            task: 'promote-registry-autopush-stable',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+              },
+              run: {
+                path: 'gcloud',
+	        args: [
+		  'pubsub',
+		  'topics',
+		  'publish',
+		  tl.artopic,
+		  '--message',
+		  '{"type": "uploadToArtifactReleaser", "request": {"ostype": "%s", "pkgname": "some-pkg", "pkgversion": "some-version", "reponame": "some-repo"}}' %
+		  [tl.ostypes[i]],
+	        ],
+              },
+            },
+          }
+          for i in std.range(0, std.length(tl.ostypes) - 1)
         ],
   on_success: publishresulttask {
     result: 'success',
