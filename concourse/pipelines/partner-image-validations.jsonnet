@@ -257,6 +257,7 @@ local imagevalidationjob = {
           },
         ],
       },
+      attempts: 3,
       config: imagetesttask {
         images: '((.:partial))',
         extra_args: tl.extra_args,
