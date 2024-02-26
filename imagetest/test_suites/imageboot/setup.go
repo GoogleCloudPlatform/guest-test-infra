@@ -25,7 +25,7 @@ var sbUnsupported = []*regexp.Regexp{
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("boot")
 	if err != nil {
 		return err
 	}
@@ -34,13 +34,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestGuestBoot|TestGuestReboot$")
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVM("guestreboot")
 	if err != nil {
 		return err
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	vm3, err := t.CreateTestVM("vm3")
+	vm3, err := t.CreateTestVM("bootime")
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if !utils.HasFeature(t.Image, "UEFI_COMPATIBLE") {
 		return nil
 	}
-	vm4, err := t.CreateTestVM("vm4")
+	vm4, err := t.CreateTestVM("secureboot")
 	if err != nil {
 		return err
 	}
