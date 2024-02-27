@@ -4,6 +4,7 @@
 package imageboot
 
 import (
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -50,6 +51,10 @@ func TestSuspend(t *testing.T) {
 	op.Wait(ctx) // We can't really check the error here, we want to attempt to wait until its suspended but the wait operation will likely error out due to being interrupted by the suspension
 	if _, err := os.Stat(marker); err != nil {
 		t.Fatalf("could not confirm suspend testing has started ok: %v", err)
+	}
+	_, err = http.Get("https://cloud.google.com")
+	if err != nil {
+		t.Errorf("no network connectivity after resume: %v", err)
 	}
 }
 
