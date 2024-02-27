@@ -3,10 +3,13 @@ package imageboot
 import (
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -25,7 +28,7 @@ var sbUnsupported = []*regexp.Regexp{
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("boot")
 	if err != nil {
 		return err
 	}
@@ -34,18 +37,45 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm.RunTests("TestGuestBoot|TestGuestReboot$")
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVM("guestreboot")
 	if err != nil {
 		return err
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	vm3, err := t.CreateTestVM("vm3")
+	vm3, err := t.CreateTestVM("bootime")
 	if err != nil {
 		return err
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.RunTests("TestStartTime|TestBootTime")
+
+	if !strings.Contains(t.Image.Name, "sles") && !strings.Contains(t.Image.Name, "rhel-8-2-sap") && !strings.Contains(t.Image.Name, "rhel-8-1-sap") && !strings.Contains(t.Image.Name, "debian-10") {
+		suspend := &daisy.Instance{}
+		suspend.Scopes = append(suspend.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		suspendvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "suspend"}}, suspend)
+		if err != nil {
+			return err
+		}
+		suspendvm.RunTests("TestSuspend")
+
+		resume := &daisy.Instance{}
+		resume.Scopes = append(resume.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		resumevm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "resume"}}, resume)
+		if err != nil {
+			return err
+		}
+		resumevm.RunTests("TestResume")
+	}
+
+	lm := &daisy.Instance{}
+	lm.Scopes = append(lm.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+	lm.Scheduling = &compute.Scheduling{OnHostMaintenance: "MIGRATE"}
+	lmvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "livemigrate"}}, lm)
+	if err != nil {
+		return err
+	}
+	lmvm.RunTests("TestLiveMigrate")
 
 	for _, r := range sbUnsupported {
 		if r.MatchString(t.Image.Name) {
@@ -55,7 +85,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if !utils.HasFeature(t.Image, "UEFI_COMPATIBLE") {
 		return nil
 	}
-	vm4, err := t.CreateTestVM("vm4")
+	vm4, err := t.CreateTestVM("secureboot")
 	if err != nil {
 		return err
 	}
