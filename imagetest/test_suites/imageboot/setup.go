@@ -3,10 +3,13 @@ package imageboot
 import (
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"google.golang.org/api/compute/v1"
 )
 
 // Name is the name of the test package. It must match the directory name.
@@ -46,6 +49,33 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.RunTests("TestStartTime|TestBootTime")
+
+	if !strings.Contains(t.Image.Name, "sles") && !strings.Contains(t.Image.Name, "rhel-8-2-sap") && !strings.Contains(t.Image.Name, "rhel-8-1-sap") && !strings.Contains(t.Image.Name, "debian-10") {
+		suspend := &daisy.Instance{}
+		suspend.Scopes = append(suspend.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		suspendvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "suspend"}}, suspend)
+		if err != nil {
+			return err
+		}
+		suspendvm.RunTests("TestSuspend")
+
+		resume := &daisy.Instance{}
+		resume.Scopes = append(resume.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+		resumevm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "resume"}}, resume)
+		if err != nil {
+			return err
+		}
+		resumevm.RunTests("TestResume")
+	}
+
+	lm := &daisy.Instance{}
+	lm.Scopes = append(lm.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+	lm.Scheduling = &compute.Scheduling{OnHostMaintenance: "MIGRATE"}
+	lmvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "livemigrate"}}, lm)
+	if err != nil {
+		return err
+	}
+	lmvm.RunTests("TestLiveMigrate")
 
 	for _, r := range sbUnsupported {
 		if r.MatchString(t.Image.Name) {
