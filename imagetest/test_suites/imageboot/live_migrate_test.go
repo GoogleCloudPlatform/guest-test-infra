@@ -15,6 +15,9 @@ import (
 
 func TestLiveMigrate(t *testing.T) {
 	marker := "/var/lm-test-start"
+	if utils.IsWindows() {
+		marker = `C:\lm-test-start`
+	}
 	if _, err := os.Stat(marker); err != nil && !os.IsNotExist(err) {
 		t.Fatalf("could not determine if live migrate testing has already started: %v", err)
 	} else if err == nil {

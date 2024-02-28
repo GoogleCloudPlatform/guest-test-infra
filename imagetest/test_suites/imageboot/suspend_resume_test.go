@@ -16,6 +16,9 @@ import (
 
 func TestSuspend(t *testing.T) {
 	marker := "/var/suspend-test-start"
+	if utils.IsWindows() {
+		marker = `C:\suspend-test-start`
+	}
 	if _, err := os.Stat(marker); err != nil && !os.IsNotExist(err) {
 		t.Fatalf("could not determine if suspend testing has already started: %v", err)
 	} else if err == nil {
