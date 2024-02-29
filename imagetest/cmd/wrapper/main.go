@@ -39,7 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
 	}
-	d, err := time.PaseDuration(testTimeout)
+	d, err := time.ParseDuration(testTimeout)
 	if err != nil {
 		log.Fatalf("_cit_timeout %v is not a valid duration: %v", testTimeout, err)
 	}
@@ -121,6 +121,7 @@ func main() {
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
+	client.Close()
 
 	log.Printf("sleep 30s to allow environment to stabilize")
 	time.Sleep(30 * time.Second)
@@ -136,6 +137,11 @@ func main() {
 
 	log.Printf("command output:\n%s\n", out)
 
+	client, err = storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("failed to create cloud storage client: %v", err)
+	}
+	defer client.Close()
 	if err = uploadGCSObject(ctx, client, resultsURL, bytes.NewReader(out)); err != nil {
 		log.Fatalf("failed to upload test result: %v", err)
 	}
