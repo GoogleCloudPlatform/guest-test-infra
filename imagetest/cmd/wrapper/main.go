@@ -34,10 +34,23 @@ func checkFirstBootSpecialGA(ctx context.Context) bool {
 
 func main() {
 	ctx := context.Background()
+
+	testTimeout, err := utils.GetMetadata(ctx, "instance", "attributes", "_cit_timeout")
+	if err != nil {
+		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
+	}
+	d, err := time.PaseDuration(testTimeout)
+	if err != nil {
+		log.Fatalf("_cit_timeout %v is not a valid duration: %v", testTimeout, err)
+	}
+	ctx, cancel := context.WithTimeout(ctx, d)
+	defer cancel()
+
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
+
 	log.Printf("FINISHED-BOOTING")
 	firstBootSpecialAttribute := checkFirstBootSpecialGA(ctx)
 	// firstBootSpecialGA should be true if we need to match a different guest attribute than the usual guest attribute
@@ -66,10 +79,6 @@ func main() {
 		}
 	}(ctx, firstBootSpecialAttribute)
 
-	testTimeout, err := utils.GetMetadata(ctx, "instance", "attributes", "_cit_timeout")
-	if err != nil {
-		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
-	}
 
 	daisyOutsPath, err := utils.GetMetadata(ctx, "instance", "attributes", "daisy-outs-path")
 	if err != nil {
