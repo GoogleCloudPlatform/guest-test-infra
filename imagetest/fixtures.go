@@ -519,6 +519,48 @@ func (t *TestVM) Reboot() error {
 	return nil
 }
 
+// Resume waits for the vm to be SUSPENDED, then resumes it. It does not handle suspension.
+func (t *TestVM) Resume() error {
+	// TODO: better solution than a shared counter for name collisions.
+	t.testWorkflow.counter++
+	stepSuffix := fmt.Sprintf("%s-%d", t.name, t.testWorkflow.counter)
+
+	lastStep, err := t.testWorkflow.getLastStepForVM(t.name)
+	if err != nil {
+		return fmt.Errorf("failed resolve last step")
+	}
+
+	waitSuspended, err := t.testWorkflow.wf.NewStep(fmt.Sprintf("wait-suspended-%s", stepSuffix))
+	if err != nil {
+		return err
+	}
+	waitSuspended.WaitForInstancesSignal = &daisy.WaitForInstancesSignal{
+		{Name: t.name, Status: []string{"SUSPENDED"}},
+	}
+
+	createStep := t.testWorkflow.wf.Steps[createVMsStepName]
+
+	if err := t.testWorkflow.wf.AddDependency(waitSuspended, createStep); err != nil {
+		return err
+	}
+
+	resume, err := t.testWorkflow.wf.NewStep(fmt.Sprintf("resume-%s", stepSuffix))
+	if err != nil {
+		return err
+	}
+	resume.Resume = &daisy.Resume{
+		Instance: t.name,
+	}
+	if err := t.testWorkflow.wf.AddDependency(resume, waitSuspended); err != nil {
+		return err
+	}
+	if err := t.testWorkflow.wf.AddDependency(lastStep, resume); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ResizeDiskAndReboot resize the disk of the current test VMs and reboot
 func (t *TestVM) ResizeDiskAndReboot(diskSize int) error {
 	t.testWorkflow.counter++

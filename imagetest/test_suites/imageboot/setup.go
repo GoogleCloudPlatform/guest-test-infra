@@ -43,7 +43,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	}
 	vm2.RunTests("TestGuestRebootOnHost")
 
-	vm3, err := t.CreateTestVM("bootime")
+	vm3, err := t.CreateTestVM("boottime")
 	if err != nil {
 		return err
 	}
@@ -58,14 +58,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			return err
 		}
 		suspendvm.RunTests("TestSuspend")
-
-		resume := &daisy.Instance{}
-		resume.Scopes = append(resume.Scopes, "https://www.googleapis.com/auth/cloud-platform")
-		resumevm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "resume"}}, resume)
-		if err != nil {
-			return err
-		}
-		resumevm.RunTests("TestResume")
+		suspendvm.Resume()
 	}
 
 	lm := &daisy.Instance{}

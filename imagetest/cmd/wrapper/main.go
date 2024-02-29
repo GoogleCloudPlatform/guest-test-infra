@@ -79,7 +79,6 @@ func main() {
 		}
 	}(ctx, firstBootSpecialAttribute)
 
-
 	daisyOutsPath, err := utils.GetMetadata(ctx, "instance", "attributes", "daisy-outs-path")
 	if err != nil {
 		log.Fatalf("failed to get metadata daisy-outs-path: %v", err)
