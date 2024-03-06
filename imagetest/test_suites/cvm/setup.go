@@ -3,6 +3,7 @@ package cvm
 import (
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
 )
@@ -24,7 +25,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				ConfidentialInstanceType:  "SEV",
 				EnableConfidentialCompute: true,
 			}
-			vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
+			if utils.HasFeature(t.Image, "SEV_LIVE_MIGRATABLE_V2") {
+				sevtests += "|TestLiveMigrate"
+				vm.Scopes = append(vm.Scopes, "https://www.googleapis.com/auth/cloud-platform")
+				vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "MIGRATE"}
+			} else {
+				vm.Scheduling = &computeBeta.Scheduling{OnHostMaintenance: "TERMINATE"}
+			}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
 			disks := []*compute.Disk{{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
