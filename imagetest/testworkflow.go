@@ -628,7 +628,6 @@ func NewTestWorkflow(client daisycompute.Client, computeEndpointOverride, name, 
 	t.wf.DefaultTimeout = timeout
 	t.wf.Zone = zone
 
-	t.wf.DisableGCSLogging()
 	t.wf.DisableCloudLogging()
 	t.wf.DisableStdoutLogging()
 
