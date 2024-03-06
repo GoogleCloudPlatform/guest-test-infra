@@ -20,12 +20,14 @@ func TestWindowsActivationStatus(t *testing.T) {
 		t.Skip("Activation status only checked on server images.")
 	}
 
-	activationStatus, err := utils.RunPowershellCmd(`(Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Activation').ProductActivationResult`)
+	command := "cscript C:\\Windows\\system32\\slmgr.vbs /dli"
+	output, err := utils.RunPowershellCmd(command)
 	if err != nil {
-		t.Fatalf("could not check activation status: %v", err)
+		t.Fatalf("Error getting license status: %v", err)
 	}
-	if strings.TrimSpace(activationStatus.Stdout) != "0" {
-		t.Errorf("unexpected activation status, got %s want 0", strings.TrimSpace(activationStatus.Stdout))
+
+	if !strings.Contains(output.Stdout, "License Status: Licensed") {
+		t.Fatalf("Activation info does not contain 'Licensed': %s", output.Stdout)
 	}
 }
 
