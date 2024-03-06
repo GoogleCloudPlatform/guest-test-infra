@@ -141,6 +141,8 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 			requiredLicenses = []string{fmt.Sprintf(licenseURLTmpl, project, "windows-server-"+regexp.MustCompile("[0-9]{4}").FindString(image.Family)+"-dc")}
 			if strings.Contains(image.Name, "core") {
 				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, "windows-server-core"))
+			} else if strings.Contains(image.Name, "bios") {
+				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, "google.com:windows-internal", "internal-windows"))
 			}
 		}
 	default:
