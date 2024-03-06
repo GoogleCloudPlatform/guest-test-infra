@@ -34,10 +34,23 @@ func checkFirstBootSpecialGA(ctx context.Context) bool {
 
 func main() {
 	ctx := context.Background()
+
+	testTimeout, err := utils.GetMetadata(ctx, "instance", "attributes", "_cit_timeout")
+	if err != nil {
+		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
+	}
+	d, err := time.ParseDuration(testTimeout)
+	if err != nil {
+		log.Fatalf("_cit_timeout %v is not a valid duration: %v", testTimeout, err)
+	}
+	ctx, cancel := context.WithTimeout(ctx, d)
+	defer cancel()
+
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("failed to create cloud storage client: %v", err)
 	}
+
 	log.Printf("FINISHED-BOOTING")
 	firstBootSpecialAttribute := checkFirstBootSpecialGA(ctx)
 	// firstBootSpecialGA should be true if we need to match a different guest attribute than the usual guest attribute
@@ -65,11 +78,6 @@ func main() {
 			time.Sleep(1 * time.Second)
 		}
 	}(ctx, firstBootSpecialAttribute)
-
-	testTimeout, err := utils.GetMetadata(ctx, "instance", "attributes", "_cit_timeout")
-	if err != nil {
-		log.Fatalf("failed to get metadata _cit_timeout: %v", err)
-	}
 
 	daisyOutsPath, err := utils.GetMetadata(ctx, "instance", "attributes", "daisy-outs-path")
 	if err != nil {
@@ -112,6 +120,7 @@ func main() {
 	if err = utils.DownloadGCSObjectToFile(ctx, client, testPackageURL, workDir+testPackage); err != nil {
 		log.Fatalf("failed to download object: %v", err)
 	}
+	client.Close()
 
 	log.Printf("sleep 30s to allow environment to stabilize")
 	time.Sleep(30 * time.Second)
@@ -127,6 +136,11 @@ func main() {
 
 	log.Printf("command output:\n%s\n", out)
 
+	client, err = storage.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("failed to create cloud storage client: %v", err)
+	}
+	defer client.Close()
 	if err = uploadGCSObject(ctx, client, resultsURL, bytes.NewReader(out)); err != nil {
 		log.Fatalf("failed to upload test result: %v", err)
 	}

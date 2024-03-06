@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/oslogin v1.12.2
 	cloud.google.com/go/secretmanager v1.11.4
 	cloud.google.com/go/storage v1.31.0
-	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20240207005040-a283f5d80c12
+	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20240305205007-7e89d75c55e6
 	github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper v0.0.0-20231129203917-db71af465791
 	github.com/go-ping/ping v1.1.0
 	github.com/google/uuid v1.4.0

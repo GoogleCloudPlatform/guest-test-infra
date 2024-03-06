@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -58,46 +57,5 @@ func TestSuspend(t *testing.T) {
 	_, err = http.Get("https://cloud.google.com")
 	if err != nil {
 		t.Errorf("no network connectivity after resume: %v", err)
-	}
-}
-
-func TestResume(t *testing.T) {
-	target, err := utils.GetRealVMName("suspend")
-	if err != nil {
-		t.Fatalf("could not get target name: %v", err)
-	}
-	ctx := utils.Context(t)
-	prj, zone, err := utils.GetProjectZone(ctx)
-	if err != nil {
-		t.Fatalf("could not find project and zone: %v", err)
-	}
-	client, err := compute.NewInstancesRESTClient(ctx)
-	if err != nil {
-		t.Fatalf("could not make compute api client: %v", err)
-	}
-	t.Cleanup(func() { client.Close() })
-	for {
-		if ctx.Err() != nil {
-			t.Fatalf("test ended before instance %s was suspended: %v", target, err)
-		}
-		req := &computepb.GetInstanceRequest{
-			Project:  prj,
-			Zone:     zone,
-			Instance: target,
-		}
-		instance, err := client.Get(ctx, req)
-		if err == nil && *instance.Status == "SUSPENDED" {
-			break
-		}
-		time.Sleep(time.Second * 2)
-	}
-	req := &computepb.ResumeInstanceRequest{
-		Project:  prj,
-		Zone:     zone,
-		Instance: target,
-	}
-	_, err = client.Resume(ctx, req)
-	if err != nil {
-		t.Fatalf("could not resume target: %v", err)
 	}
 }

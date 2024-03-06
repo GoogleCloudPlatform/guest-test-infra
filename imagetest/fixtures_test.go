@@ -1,6 +1,7 @@
 package imagetest
 
 import (
+	"slices"
 	"testing"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -73,6 +74,46 @@ func TestReboot(t *testing.T) {
 	}
 	if step, ok := twf.wf.Steps["wait-started-vm-1"]; !ok || step != lastStep {
 		t.Error("not wait-started-vm-1 step")
+	}
+}
+
+func TestResume(t *testing.T) {
+	twf := NewTestWorkflowForUnitTest("name", "image", "30m")
+	tvm, err := twf.CreateTestVM("vm")
+	if err != nil {
+		t.Errorf("failed to create test vm: %v", err)
+	}
+	if twf.counter != 0 {
+		t.Errorf("step counter not starting at 0")
+	}
+	if err := tvm.Resume(); err != nil {
+		t.Errorf("failed to resume: %v", err)
+	}
+	if twf.counter != 1 {
+		t.Errorf("step counter not incremented")
+	}
+	if _, ok := twf.wf.Steps["wait-suspended-vm-1"]; !ok {
+		t.Errorf("wait-suspended-vm-1 step missing")
+	} else {
+		deps := twf.wf.Dependencies["wait-suspended-vm-1"]
+		if !slices.Contains(deps, createVMsStepName) {
+			t.Errorf("wait-suspended has deps %v, want a dependency on %s", deps, createVMsStepName)
+		}
+	}
+	if _, ok := twf.wf.Steps["resume-vm-1"]; !ok {
+		t.Errorf("resume-vm-1 step missing")
+	} else {
+		deps := twf.wf.Dependencies["resume-vm-1"]
+		if !slices.Contains(deps, "wait-suspended-vm-1") {
+			t.Errorf("resume has deps %v, want a dependency on wait-suspended-vm-1", deps)
+		}
+	}
+	lastStep, err := twf.getLastStepForVM("vm")
+	if err != nil {
+		t.Errorf("failed to get last step for vm: %v", err)
+	}
+	if lastStep.WaitForInstancesSignal == nil {
+		t.Error("last step for vm is not WaitForInstancesSignal")
 	}
 }
 
