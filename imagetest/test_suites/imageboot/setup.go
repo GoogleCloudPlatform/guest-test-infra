@@ -50,7 +50,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm3.AddMetadata("start-time", strconv.Itoa(time.Now().Second()))
 	vm3.RunTests("TestStartTime|TestBootTime")
 
-	if !strings.Contains(t.Image.Name, "sles") && !strings.Contains(t.Image.Name, "rhel-8-2-sap") && !strings.Contains(t.Image.Name, "rhel-8-1-sap") && !strings.Contains(t.Image.Name, "debian-10") && !strings.Contains(t.Image.Name, "ubuntu-pro-1804-lts-arm64") {
+	if !strings.Contains(t.Image.Name, "sles") && !strings.Contains(t.Image.Name, "rhel-8-2-sap") && !strings.Contains(t.Image.Name, "rhel-8-1-sap") && !strings.Contains(t.Image.Name, "debian-10") && !strings.Contains(t.Image.Family, "ubuntu-pro-1804-lts-arm64") {
 		suspend := &daisy.Instance{}
 		suspend.Scopes = append(suspend.Scopes, "https://www.googleapis.com/auth/cloud-platform")
 		suspendvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "suspend"}}, suspend)
