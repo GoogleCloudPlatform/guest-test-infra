@@ -180,6 +180,28 @@ func TestAgent(t *testing.T) {
 	}
 }
 
+func sshClient(t *testing.T, hostname string, config *ssh.ClientConfig) *ssh.Client {
+	t.Helper()
+	var client *ssh.Client
+	var err error
+
+	// Retry dialing target system for a minute.
+	for i := 0; i < 5; i++ {
+		client, err = ssh.Dial("tcp", hostname, config)
+		if err != nil {
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		break
+	}
+
+	if err != nil {
+		t.Fatalf("failed to create ssh client: %v", err)
+	}
+
+	return client
+}
+
 // Checks whether SSH-ing works correctly with OSLogin enabled.
 // After successfully creating an SSH connection, check whether OSLogin is enabled on the host VM.
 func TestSSH(t *testing.T) {
@@ -369,10 +391,7 @@ func Test2FASSH(t *testing.T) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	client, err := ssh.Dial("tcp", hostname, sshConfig)
-	if err != nil {
-		t.Fatalf("failed to create ssh client: %v", err)
-	}
+	client := sshClient(t, hostname, sshConfig)
 	defer client.Close()
 
 	if err = sessionOSLoginEnabled(client); err != nil {
@@ -473,10 +492,7 @@ func Test2FAAdminSSH(t *testing.T) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	client, err := ssh.Dial("tcp", hostname, sshConfig)
-	if err != nil {
-		t.Fatalf("failed to create ssh client: %v", err)
-	}
+	client := sshClient(t, hostname, sshConfig)
 	defer client.Close()
 
 	// Check OSLogin enabled on the server instance.
