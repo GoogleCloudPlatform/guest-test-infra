@@ -54,6 +54,7 @@ var (
 	machineType             = flag.String("machine_type", "", "deprecated, use -x86_shape and/or -arm64_shape instead")
 	x86Shape                = flag.String("x86_shape", "n1-standard-1", "default x86(-32 and -64) vm shape for tests not requiring a specific shape")
 	arm64Shape              = flag.String("arm64_shape", "t2a-standard-1", "default arm64 vm shape for tests not requiring a specific shape")
+	setExitStatus           = flag.Bool("set_exit_status", true, "Exit with non-zero exit code if test suites are failing")
 )
 
 var (
@@ -327,7 +328,7 @@ func main() {
 	outFile.Write([]byte{'\n'})
 	fmt.Printf("%s\n", bytes)
 
-	if suites.Errors != 0 || suites.Failures != 0 {
+	if *setExitStatus && suites.Errors != 0 || suites.Failures != 0 {
 		log.Fatalf("test suite has error or failure")
 	}
 }
