@@ -328,7 +328,7 @@ func main() {
 	outFile.Write([]byte{'\n'})
 	fmt.Printf("%s\n", bytes)
 
-	if *setExitStatus && suites.Errors != 0 || suites.Failures != 0 {
+	if *setExitStatus && (suites.Errors != 0 || suites.Failures != 0) {
 		log.Fatalf("test suite has error or failure")
 	}
 }
