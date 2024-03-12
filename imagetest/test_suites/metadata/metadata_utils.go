@@ -4,10 +4,43 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
+
+// yumDnfRunPackageRepoQuery is a common utility between yum and dnf to run the query command
+// provided in the cmd argument and parses its output. The output format is the same both for
+// yum and dnf (hence the common utility code).
+func yumDnfRunPackageRepoQuery(cmd *exec.Cmd) (string, error) {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to run package manager command: %v", err)
+	}
+
+	for _, line := range strings.Split(string(output), "\n") {
+		if strings.HasPrefix(line, "From repo") {
+			fields := strings.Fields(line)
+			if len(fields) != 4 {
+				return "", fmt.Errorf("invalid \"From repo\" line, got %d fields, expected 4", len(fields))
+			}
+			return fields[3], nil
+		}
+	}
+
+	return "", nil
+}
+
+// yumGetPackageRepo queries the yum package database for the repository pkg was installed from.
+func yumGetPackageRepo(pkg string) (string, error) {
+	return yumDnfRunPackageRepoQuery(exec.Command("yum", "info", "-C", pkg))
+}
+
+// dnfGetPackageRepo queries the dnf package database for the repository pkg was installed from.
+func dnfGetPackageRepo(pkg string) (string, error) {
+	return yumDnfRunPackageRepoQuery(exec.Command("dnf", "info", "-C", "--installed", pkg))
+}
 
 func reinstallPackage(pkg string) error {
 	if utils.IsWindows() {
@@ -31,11 +64,41 @@ func reinstallPackage(pkg string) error {
 		cmd = exec.Command("apt", "reinstall", "-y", pkg)
 		fallback = exec.Command("apt", "install", "-y", "--reinstall", pkg)
 	case utils.CheckLinuxCmdExists("dnf"):
-		cmd = exec.Command("dnf", "-y", "reinstall", pkg)
-		fallback = exec.Command("dnf", "-y", "upgrade", pkg)
+		repo, err := dnfGetPackageRepo(pkg)
+		if err != nil {
+			return err
+		}
+
+		repoArg := fmt.Sprintf("--enable-repo=%s", repo)
+		cmdTokens := []string{"dnf", "-y", "reinstall", pkg}
+		if repo != "" {
+			cmdTokens = append(cmdTokens, repoArg)
+		}
+		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+
+		cmdTokens = []string{"dnf", "-y", "upgrade", pkg}
+		if repo != "" {
+			cmdTokens = append(cmdTokens, repoArg)
+		}
+		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("yum"):
-		cmd = exec.Command("yum", "-y", "reinstall", pkg)
-		fallback = exec.Command("yum", "-y", "upgrade", pkg)
+		repo, err := yumGetPackageRepo(pkg)
+		if err != nil {
+			return err
+		}
+
+		repoArg := fmt.Sprintf("--enable-repo=%s", repo)
+		cmdTokens := []string{"yum", "-y", "reinstall", pkg}
+		if repo != "" {
+			cmdTokens = append(cmdTokens, repoArg)
+		}
+		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+
+		cmdTokens = []string{"yum", "-y", "upgrade", pkg}
+		if repo != "" {
+			cmdTokens = append(cmdTokens, repoArg)
+		}
+		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("zypper"):
 		cmd = exec.Command("zypper", "--non-interactive", "install", "--force", pkg)
 		fallback = exec.Command("zypper", "--non-interactive", "install", "--force", pkg)
