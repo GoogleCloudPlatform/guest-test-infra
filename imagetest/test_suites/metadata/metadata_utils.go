@@ -16,7 +16,7 @@ import (
 func yumDnfRunPackageRepoQuery(cmd *exec.Cmd) (string, error) {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to run package manager command: %v", err)
+		return "", fmt.Errorf("failed to run package manager command: %v, output: %s", err, string(output))
 	}
 
 	for _, line := range strings.Split(string(output), "\n") {
@@ -69,7 +69,7 @@ func reinstallPackage(pkg string) error {
 			return err
 		}
 
-		repoArg := fmt.Sprintf("--enable-repo=%s", repo)
+		repoArg := fmt.Sprintf("--enablerepo=%s", repo)
 		cmdTokens := []string{"dnf", "-y", "reinstall", pkg}
 		if repo != "" {
 			cmdTokens = append(cmdTokens, repoArg)
@@ -87,7 +87,7 @@ func reinstallPackage(pkg string) error {
 			return err
 		}
 
-		repoArg := fmt.Sprintf("--enable-repo=%s", repo)
+		repoArg := fmt.Sprintf("--enablerepo=%s", repo)
 		cmdTokens := []string{"yum", "-y", "reinstall", pkg}
 		if repo != "" {
 			cmdTokens = append(cmdTokens, repoArg)
@@ -110,14 +110,19 @@ func reinstallPackage(pkg string) error {
 			return fmt.Errorf("could not prep to reinstall %s: %v", pkg, err)
 		}
 	}
-	if err := cmd.Run(); err != nil {
+
+	cmdOutput, err := cmd.CombinedOutput()
+	if err != nil {
 		if fallback != nil {
-			if err := fallback.Run(); err != nil {
-				return fmt.Errorf("could not reinstall %s with fallback: %s", pkg, err)
+			fallbackOutput, err := fallback.CombinedOutput()
+			if err != nil {
+				return fmt.Errorf("could not reinstall %s with fallback: %s, output: %s",
+					pkg, err, string(fallbackOutput))
 			}
 		} else {
-			return fmt.Errorf("could not reinstall %s: %s", pkg, err)
+			return fmt.Errorf("could not reinstall %s: %s, output: %s", pkg, err, string(cmdOutput))
 		}
 	}
+
 	return nil
 }
