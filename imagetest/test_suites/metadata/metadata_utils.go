@@ -34,7 +34,7 @@ func yumDnfRunPackageRepoQuery(cmd *exec.Cmd) (string, error) {
 
 // yumGetPackageRepo queries the yum package database for the repository pkg was installed from.
 func yumGetPackageRepo(pkg string) (string, error) {
-	return yumDnfRunPackageRepoQuery(exec.Command("yum", "info", "-C", pkg))
+	return yumDnfRunPackageRepoQuery(exec.Command("yum", "info", pkg))
 }
 
 // dnfGetPackageRepo queries the dnf package database for the repository pkg was installed from.
