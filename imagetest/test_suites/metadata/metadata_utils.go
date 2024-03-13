@@ -69,7 +69,7 @@ func reinstallPackage(pkg string) error {
 			return err
 		}
 
-		repoArg := fmt.Sprintf("--enablerepo=%s", repo)
+		repoArg := fmt.Sprintf("--repo=%s", repo)
 		cmdTokens := []string{"dnf", "-y", "reinstall", pkg}
 		if repo != "" {
 			cmdTokens = append(cmdTokens, repoArg)
@@ -87,16 +87,16 @@ func reinstallPackage(pkg string) error {
 			return err
 		}
 
-		repoArg := fmt.Sprintf("--enablerepo=%s", repo)
+		repoArgs := []string{"--disablerepo='*'", fmt.Sprintf("--enablerepo=%s", repo)}
 		cmdTokens := []string{"yum", "-y", "reinstall", pkg}
 		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArg)
+			cmdTokens = append(cmdTokens, repoArgs...)
 		}
 		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 
 		cmdTokens = []string{"yum", "-y", "upgrade", pkg}
 		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArg)
+			cmdTokens = append(cmdTokens, repoArgs...)
 		}
 		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("zypper"):
