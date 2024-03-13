@@ -53,11 +53,14 @@ func TestWinrmConnection(t *testing.T) {
 			break
 		}
 	}
-	out, err := utils.RunPowershellCmd(fmt.Sprintf(`Invoke-Command -SessionOption(New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck) -ScriptBlock{ hostname } -ComputerName %s -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "%s\%s", (ConvertTo-SecureString -String '%s' -AsPlainText -Force))`, target, target, user, passwd))
-	if err != nil {
-		t.Errorf("could not run remote powershell command: %s %s %v", out.Stdout, out.Stderr, err)
-	}
-	if !strings.Contains(out.Stdout, "server-winrm") {
-		t.Errorf("unexpected hostname from remote powershell command, got %s want something that contains server-winrm", out.Stdout)
+	for {
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("test context expired before successful winrm connection: %v", err)
+		}
+		out, err := utils.RunPowershellCmd(fmt.Sprintf(`Invoke-Command -SessionOption(New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck) -ScriptBlock{ hostname } -ComputerName %s -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "%s\%s", (ConvertTo-SecureString -String '%s' -AsPlainText -Force))`, target, target, user, passwd))
+		if err == nil && strings.Contains(out.Stdout, "server-winrm") {
+			break
+		}
+		time.Sleep(time.Minute)
 	}
 }
