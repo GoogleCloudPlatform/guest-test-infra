@@ -841,6 +841,16 @@ func (s *Subnetwork) SetRegion(region string) {
 	s.subnetwork.Region = region
 }
 
+// SetPurpose sets the subnetwork purpose
+func (s *Subnetwork) SetPurpose(purpose string) {
+	s.subnetwork.Purpose = purpose
+}
+
+// SetRole sets the subnetwork role
+func (s *Subnetwork) SetRole(role string) {
+	s.subnetwork.Role = role
+}
+
 // AddSecondaryRange add secondary IP range to Subnetwork
 func (s Subnetwork) AddSecondaryRange(rangeName, ipRange string) {
 	s.subnetwork.SecondaryIpRanges = append(s.subnetwork.SecondaryIpRanges, &compute.SubnetworkSecondaryRange{
