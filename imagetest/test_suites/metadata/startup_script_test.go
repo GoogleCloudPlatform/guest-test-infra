@@ -85,15 +85,11 @@ func TestStartupScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to clear startup script result: %s", err)
 	}
-	if utils.IsWindows() {
-		if err := reinstallPackage("google-compute-engine-windows"); err != nil {
-			t.Fatal(err)
-		}
-	} else {
-		if err := reinstallPackage("google-guest-agent"); err != nil {
-			t.Fatal(err)
-		}
+
+	if err := reinstallGuestAgent(); err != nil {
+		t.Fatal(err)
 	}
+
 	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read startup script result key: %v", err)

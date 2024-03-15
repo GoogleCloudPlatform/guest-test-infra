@@ -4,45 +4,20 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
-// yumDnfRunPackageRepoQuery is a common utility between yum and dnf to run the query command
-// provided in the cmd argument and parses its output. The output format is the same both for
-// yum and dnf (hence the common utility code).
-func yumDnfRunPackageRepoQuery(cmd *exec.Cmd) (string, error) {
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to run package manager command: %v, output: %s", err, string(output))
+func guestAgentPackageName() string {
+	if utils.IsWindows() {
+		return "google-compute-engine-windows"
 	}
-
-	for _, line := range strings.Split(string(output), "\n") {
-		if strings.HasPrefix(line, "From repo") {
-			fields := strings.Fields(line)
-			if len(fields) != 4 {
-				return "", fmt.Errorf("invalid \"From repo\" line, got %d fields, expected 4", len(fields))
-			}
-			return fields[3], nil
-		}
-	}
-
-	return "", nil
+	return "google-guest-agent"
 }
 
-// yumGetPackageRepo queries the yum package database for the repository pkg was installed from.
-func yumGetPackageRepo(pkg string) (string, error) {
-	return yumDnfRunPackageRepoQuery(exec.Command("yum", "info", pkg))
-}
-
-// dnfGetPackageRepo queries the dnf package database for the repository pkg was installed from.
-func dnfGetPackageRepo(pkg string) (string, error) {
-	return yumDnfRunPackageRepoQuery(exec.Command("dnf", "info", "-C", "--installed", pkg))
-}
-
-func reinstallPackage(pkg string) error {
+func reinstallGuestAgent() error {
+	pkg := guestAgentPackageName()
 	if utils.IsWindows() {
 		cmd := exec.Command("googet", "install", "-reinstall", pkg)
 		stdin, err := cmd.StdinPipe()
@@ -64,40 +39,20 @@ func reinstallPackage(pkg string) error {
 		cmd = exec.Command("apt", "reinstall", "-y", pkg)
 		fallback = exec.Command("apt", "install", "-y", "--reinstall", pkg)
 	case utils.CheckLinuxCmdExists("dnf"):
-		repo, err := dnfGetPackageRepo(pkg)
-		if err != nil {
-			return err
-		}
-
-		repoArg := fmt.Sprintf("--repo=%s", repo)
-		cmdTokens := []string{"dnf", "-y", "reinstall", pkg}
-		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArg)
-		}
+		repoArg := "--repo=google-compute-engine"
+		cmdTokens := []string{"dnf", "-y", "reinstall", pkg, repoArg}
 		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 
-		cmdTokens = []string{"dnf", "-y", "upgrade", pkg}
-		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArg)
-		}
+		cmdTokens = []string{"dnf", "-y", "upgrade", pkg, repoArg}
 		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("yum"):
-		repo, err := yumGetPackageRepo(pkg)
-		if err != nil {
-			return err
-		}
-
-		repoArgs := []string{"--disablerepo='*'", fmt.Sprintf("--enablerepo=%s", repo)}
+		repoArgs := []string{"--disablerepo='*'", "--enablerepo=google-compute-engine"}
 		cmdTokens := []string{"yum", "-y", "reinstall", pkg}
-		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArgs...)
-		}
+		cmdTokens = append(cmdTokens, repoArgs...)
 		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 
 		cmdTokens = []string{"yum", "-y", "upgrade", pkg}
-		if repo != "" {
-			cmdTokens = append(cmdTokens, repoArgs...)
-		}
+		cmdTokens = append(cmdTokens, repoArgs...)
 		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("zypper"):
 		cmd = exec.Command("zypper", "--non-interactive", "install", "--force", pkg)
