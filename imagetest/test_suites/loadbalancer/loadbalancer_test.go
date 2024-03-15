@@ -47,26 +47,43 @@ func runBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get hostname: %v", err)
 	}
-	var srv http.Server
 	var mu sync.RWMutex
-	ch := make(chan struct{})
+	var srv http.Server
+	var count int
+	c := make(chan struct{})
+	stop := make(chan struct{})
 	go func() {
-		<-ch
+	countloop:
+		for {
+			select {
+			case <-c:
+				count++
+			case <-stop:
+				break countloop
+			}
+		}
 		mu.Lock()
+		defer mu.Unlock()
 		srv.Shutdown(ctx)
 	}()
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		mu.RLock()
 		defer mu.RUnlock()
+		if req.Host == l3IlbIP4Addr || req.Host == l7IlbIP4Addr {
+			c <- struct{}{}
+		}
 		body, err := io.ReadAll(req.Body)
 		io.WriteString(w, host)
 		w.WriteHeader(http.StatusOK)
 		if err == nil && string(body) == "stop" {
-			ch <- struct{}{}
+			stop <- struct{}{}
 		}
 	})
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		t.Errorf("Failed to serve http: %v", err)
+	}
+	if count < 1 {
+		t.Errorf("Receieved zero requests through load balancer")
 	}
 }
 
