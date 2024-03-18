@@ -138,7 +138,7 @@ func requiredLicenseList(image *compute.Image) ([]string, error) {
 	case strings.Contains(image.Name, "windows"):
 		project = "windows-cloud"
 		transform = func() {
-			requiredLicenses = []string{fmt.Sprintf(licenseURLTmpl, project, "windows-server-"+regexp.MustCompile("[0-9]{4}").FindString(image.Family)+"-dc")}
+			requiredLicenses = []string{fmt.Sprintf(licenseURLTmpl, project, "windows-server-"+regexp.MustCompile("[0-9]{4}(-r[0-9])?").FindString(image.Family)+"-dc")}
 			if strings.Contains(image.Name, "core") {
 				requiredLicenses = append(requiredLicenses, fmt.Sprintf(licenseURLTmpl, project, "windows-server-core"))
 			} else if strings.Contains(image.Name, "bios") {
