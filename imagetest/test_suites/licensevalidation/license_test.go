@@ -72,7 +72,7 @@ func TestLicenses(t *testing.T) {
 	}
 	for i := range expectedLicenseCodes {
 		if expectedLicenseCodes[i] != actualLicenseCodes[i] {
-			t.Errorf("unexpected license code at pos %d, got %s want %s", i, expectedLicenseCodes[i], actualLicenseCodes[i])
+			t.Errorf("unexpected license code at pos %d, got %s want %s", i, actualLicenseCodes[i], expectedLicenseCodes[i])
 		}
 	}
 
@@ -83,7 +83,7 @@ func TestLicenses(t *testing.T) {
 	}
 	for i := range expectedLicenses {
 		if expectedLicenses[i] != actualLicenses[i] {
-			t.Errorf("unexpected license at pos %d, got %s want %s", i, expectedLicenses[i], actualLicenses[i])
+			t.Errorf("unexpected license at pos %d, got %s want %s", i, actualLicenses[i], expectedLicenses[i])
 		}
 	}
 }
