@@ -20,6 +20,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/hotattach"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/imageboot"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/licensevalidation"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/livemigrate"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/loadbalancer"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/metadata"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/network"
@@ -31,6 +32,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/sql"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/ssh"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/storageperf"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/suspendresume"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/windowscontainers"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/test_suites/winrm"
 	"google.golang.org/api/option"
@@ -140,6 +142,14 @@ func main() {
 		{
 			cvm.Name,
 			cvm.TestSetup,
+		},
+		{
+			livemigrate.Name,
+			livemigrate.TestSetup,
+		},
+		{
+			suspendresume.Name,
+			suspendresume.TestSetup,
 		},
 		{
 			networkperf.Name,
