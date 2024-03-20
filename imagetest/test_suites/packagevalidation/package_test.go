@@ -49,6 +49,10 @@ func TestStandardPrograms(t *testing.T) {
 		// SLES/SUSE does not have the Google Cloud SDK installed.
 		t.Skip("Cloud SDK Not supported on SLES/SUSE")
 	}
+	if strings.Contains(image, "cos") {
+		// COS does not have the Google Cloud SDK installed.
+		t.Skip("Cloud SDK Not supported on COS")
+	}
 
 	cmd := exec.Command("gcloud", "-h")
 	cmd.Start()
