@@ -1,11 +1,12 @@
 //go:build cit
 // +build cit
 
-package imageboot
+package suspendresume
 
 import (
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	compute "cloud.google.com/go/compute/apiv1"
@@ -14,6 +15,30 @@ import (
 )
 
 func TestSuspend(t *testing.T) {
+	if utils.IsWindows() {
+		out, err := utils.RunPowershellCmd(`$TurnOffSettingCount=0;
+ $SleepButtonSettingCount=0;
+ Get-CimInstance -Namespace root\cimv2\power -ClassName Win32_PowerSettingDataIndex | ForEach-Object {
+   $power_setting = $_ | Get-CimAssociatedInstance -ResultClassName Win32_PowerSetting -OperationTimeoutSec 10;
+   if ($power_setting -and $power_setting.ElementName -eq "Turn off display after") {
+     if ($_.SettingIndexValue -ne 0) {
+       $TurnOffSettingCount=$TurnOffSettingCount+1;
+     }
+   }
+   if ($power_setting -and $power_setting.ElementName -eq "Sleep button action") {
+     if ($_.SettingIndexValue -ne 1) {
+       $SleepButtonSettingCount=$SleepButtonSettingCount+1;
+     }
+   }
+ };
+ Return "TurnOffDisplay:"+$TurnOffSettingCount+" SleepButton:"+$SleepButtonSettingCount;+""`)
+		if err != nil {
+			t.Errorf("could not check power settings: %s %s %v", out.Stdout, out.Stderr, err)
+		}
+		if !strings.Contains(out.Stdout, "TurnOffDisplay:0") || !strings.Contains(out.Stdout, "SleepButton:0") {
+			t.Errorf("found misconfigured power settings, want 0 each but got %s", out.Stdout)
+		}
+	}
 	marker := "/var/suspend-test-start"
 	if utils.IsWindows() {
 		marker = `C:\suspend-test-start`

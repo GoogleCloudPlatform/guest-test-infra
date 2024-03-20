@@ -1,7 +1,7 @@
 //go:build cit
 // +build cit
 
-package imageboot
+package livemigrate
 
 import (
 	"net/http"
