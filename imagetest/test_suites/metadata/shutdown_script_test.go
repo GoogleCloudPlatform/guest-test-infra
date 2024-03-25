@@ -94,7 +94,7 @@ func TestShutdownScripts(t *testing.T) {
 		t.Fatalf("failed to clear shutdown script result: %s", err)
 	}
 
-	if err := reinstallGuestAgent(); err != nil {
+	if err := reinstallGuestAgent(ctx); err != nil {
 		t.Fatal(err)
 	}
 
