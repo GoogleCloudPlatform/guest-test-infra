@@ -88,7 +88,7 @@ func checkCredsPresentWindows(t *testing.T) {
 func TestMTLSCredsExists(t *testing.T) {
 	checkMTLSAvailable(t)
 	ctx := utils.Context(t)
-	var rootKeyFile,clientKeyFile string
+	var rootKeyFile, clientKeyFile string
 	if utils.IsWindows() {
 		rootKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-root.crt")
 		clientKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-client.crt")
@@ -111,7 +111,7 @@ func TestMTLSCredsExists(t *testing.T) {
 	client := http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: caCertPool,
+				RootCAs:      caCertPool,
 				Certificates: []tls.Certificate{certPair},
 			},
 		},
