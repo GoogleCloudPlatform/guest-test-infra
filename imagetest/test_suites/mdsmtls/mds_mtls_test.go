@@ -12,17 +12,31 @@
 //go:build cit
 // +build cit
 
-package guestagent
+package mdsmtls
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
+
+func checkMTLSAvailable(t *testing.T) {
+	t.Helper()
+	ctx := utils.Context(t)
+	if _, err := utils.GetMetadata(ctx, "instance", "credentials", "certs"); err != nil {
+		t.Skip("MTLs certs are not available from the MDS")
+	}
+}
 
 // checkCredsPresent checks mTLS creds exist on Linux based OSs.
 // metadata-script-runner has service dependency and is guaranteed to run after guest-agent.
@@ -72,9 +86,61 @@ func checkCredsPresentWindows(t *testing.T) {
 }
 
 func TestMTLSCredsExists(t *testing.T) {
+	checkMTLSAvailable(t)
+	ctx := utils.Context(t)
+	var rootKeyFile, clientKeyFile string
 	if utils.IsWindows() {
+		rootKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-root.crt")
+		clientKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-client.key")
 		checkCredsPresentWindows(t)
 	} else {
+		rootKeyFile = filepath.Join("run", "google-mds-mtls", "root.crt")
+		clientKeyFile = filepath.Join("run", "google-mds-mtls", "client.key")
 		checkCredsPresent(t)
+	}
+	certPair, err := tls.LoadX509KeyPair(rootKeyFile, clientKeyFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootKey, err := ioutil.ReadFile(rootKeyFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(rootKey)
+	client := http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{certPair},
+			},
+		},
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://169.254.169.254/computeMetadata/v1/instance/hostname", nil)
+	if err != nil {
+		t.Fatalf("could not make http request: %v", err)
+	}
+	req.Header.Add("Metadata-Flavor", "Google")
+	resp, err := client.Do(req)
+	if resp.TLS == nil {
+		t.Errorf("Metadata response was sent unencrypted")
+	}
+}
+
+func TestMTLSJobScheduled(t *testing.T) {
+	checkMTLSAvailable(t)
+	ctx := utils.Context(t)
+	var cmd *exec.Cmd
+	if utils.IsWindows() {
+		cmd = exec.CommandContext(ctx, "powershell.exe", "-NonInteractive", "Get-WinEvent", "-Providername", "GCEGuestAgent")
+	} else {
+		cmd = exec.CommandContext(ctx, "journalctl", "-o", "cat", "-eu", "google-guest-agent")
+	}
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("could not get agent output: %v", err)
+	}
+	if !strings.Contains(string(out), "Successfully scheduled job MTLS_MDS_Credential_Boostrapper") {
+		t.Errorf("guest agent has not scheduled the mtls credential bootstrapper")
 	}
 }
