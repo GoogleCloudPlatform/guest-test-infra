@@ -91,11 +91,11 @@ func TestMTLSCredsExists(t *testing.T) {
 	var rootKeyFile, clientKeyFile string
 	if utils.IsWindows() {
 		rootKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-root.crt")
-		clientKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-client.crt")
+		clientKeyFile = filepath.Join(os.Getenv("ProgramData"), "Google", "Compute Engine", "mds-mtls-client.key")
 		checkCredsPresentWindows(t)
 	} else {
 		rootKeyFile = filepath.Join("run", "google-mds-mtls", "root.crt")
-		clientKeyFile = filepath.Join("run", "google-mds-mtls", "client.crt")
+		clientKeyFile = filepath.Join("run", "google-mds-mtls", "client.key")
 		checkCredsPresent(t)
 	}
 	certPair, err := tls.LoadX509KeyPair(rootKeyFile, clientKeyFile)
