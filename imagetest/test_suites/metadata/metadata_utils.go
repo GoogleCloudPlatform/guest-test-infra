@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
@@ -16,10 +17,10 @@ func guestAgentPackageName() string {
 	return "google-guest-agent"
 }
 
-func reinstallGuestAgent() error {
+func reinstallGuestAgent(ctx context.Context) error {
 	pkg := guestAgentPackageName()
 	if utils.IsWindows() {
-		cmd := exec.Command("googet", "install", "-reinstall", pkg)
+		cmd := exec.CommandContext(ctx, "googet", "install", "-reinstall", pkg)
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
 			return err
@@ -35,28 +36,29 @@ func reinstallGuestAgent() error {
 	var cmd, fallback, prep *exec.Cmd
 	switch {
 	case utils.CheckLinuxCmdExists("apt"):
-		prep = exec.Command("apt", "update", "-y")
-		cmd = exec.Command("apt", "reinstall", "-y", pkg)
-		fallback = exec.Command("apt", "install", "-y", "--reinstall", pkg)
+		prep = exec.CommandContext(ctx, "apt", "update", "-y")
+		cmd = exec.CommandContext(ctx, "apt", "reinstall", "-y", pkg)
+		fallback = exec.CommandContext(ctx, "apt", "install", "-y", "--reinstall", pkg)
 	case utils.CheckLinuxCmdExists("dnf"):
 		repoArg := "--repo=google-compute-engine"
 		cmdTokens := []string{"dnf", "-y", "reinstall", pkg, repoArg}
-		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+		cmd = exec.CommandContext(ctx, cmdTokens[0], cmdTokens[1:]...)
 
 		cmdTokens = []string{"dnf", "-y", "upgrade", pkg, repoArg}
-		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+		fallback = exec.CommandContext(ctx, cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("yum"):
 		repoArgs := []string{"--disablerepo='*'", "--enablerepo=google-compute-engine"}
 		cmdTokens := []string{"yum", "-y", "reinstall", pkg}
 		cmdTokens = append(cmdTokens, repoArgs...)
-		cmd = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+		cmd = exec.CommandContext(ctx, cmdTokens[0], cmdTokens[1:]...)
 
 		cmdTokens = []string{"yum", "-y", "upgrade", pkg}
 		cmdTokens = append(cmdTokens, repoArgs...)
-		fallback = exec.Command(cmdTokens[0], cmdTokens[1:]...)
+		fallback = exec.CommandContext(ctx, cmdTokens[0], cmdTokens[1:]...)
 	case utils.CheckLinuxCmdExists("zypper"):
-		cmd = exec.Command("zypper", "--non-interactive", "install", "--force", pkg)
-		fallback = exec.Command("zypper", "--non-interactive", "install", "--force", pkg)
+		cmd = exec.CommandContext(ctx, "zypper", "--non-interactive", "install", "--force", pkg)
+		fallback = exec.CommandContext(ctx, "zypper", "--non-interactive", "install", "--force", pkg)
+		fallback.Env = append(fallback.Env, "ZYPP_LOCK_TIMEOUT=5184000") // A negative value is supposed to wait forever but older versions of libzypp are bugged. This will wait for 24 hours.
 	default:
 		return fmt.Errorf("could not find a package manager to reinstall %s with", pkg)
 	}

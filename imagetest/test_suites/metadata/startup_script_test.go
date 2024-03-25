@@ -74,23 +74,24 @@ func testDaemonScriptWindows() error {
 // by checking the output content of the Startup script. It also checks that
 // the script does not run after a reinstall/upgrade of guest agent.
 func TestStartupScripts(t *testing.T) {
-	result, err := utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
+	ctx := utils.Context(t)
+	result, err := utils.GetMetadata(ctx, "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read startup script result key: %v", err)
 	}
 	if result != expectedStartupContent {
 		t.Fatalf(`startup script output expected "%s", got "%s".`, expectedStartupContent, result)
 	}
-	err = utils.PutMetadata(utils.Context(t), path.Join("instance", "guest-attributes", "testing", "result"), "")
+	err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", "testing", "result"), "")
 	if err != nil {
 		t.Fatalf("failed to clear startup script result: %s", err)
 	}
 
-	if err := reinstallGuestAgent(); err != nil {
+	if err := reinstallGuestAgent(ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	result, err = utils.GetMetadata(utils.Context(t), "instance", "guest-attributes", "testing", "result")
+	result, err = utils.GetMetadata(ctx, "instance", "guest-attributes", "testing", "result")
 	if err != nil {
 		t.Fatalf("failed to read startup script result key: %v", err)
 	}
