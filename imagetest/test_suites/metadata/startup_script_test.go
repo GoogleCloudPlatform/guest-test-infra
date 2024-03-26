@@ -82,6 +82,12 @@ func TestStartupScripts(t *testing.T) {
 	if result != expectedStartupContent {
 		t.Fatalf(`startup script output expected "%s", got "%s".`, expectedStartupContent, result)
 	}
+	image, err := utils.GetMetadata(ctx, "instance", "image")
+	if err != nil {
+		t.Fatalf("could not determine image: %v", err)
+	} else if strings.Contains(image, "sles") || strings.Contains(image, "suse") {
+		t.Skipf("image %s has known issues with metadata scripts on reinstall", image)
+	}
 	err = utils.PutMetadata(ctx, path.Join("instance", "guest-attributes", "testing", "result"), "")
 	if err != nil {
 		t.Fatalf("failed to clear startup script result: %s", err)
