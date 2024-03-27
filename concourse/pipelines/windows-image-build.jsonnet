@@ -12,6 +12,16 @@ local windows_install_media_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
+local imagetesttask = common.imagetesttask {
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+  extra_args: [ '-x86_shape=n1-standard-4' ],
+};
+
+local prepublishtesttask = common.imagetesttask {
+  filter: '(shapevalidation)',
+  extra_args: [ '-shapevalidation_test_filter=^[A-Z][0-3]' ],
+};
+
 local imgbuildjob = {
   local job = self,
 
@@ -466,6 +476,10 @@ local imgpublishjob = {
     else if job.env == 'client' then true
     else false,
 
+  // Run tests on server and sql images
+  runtests:: if std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0 then true
+  else false,
+
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
   on_success: {
@@ -515,30 +529,57 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-    // Different publish step in prod
-    if job.env == 'prod' then
-      {
-        task: 'arle-publish-' + job.image,
-        config: arle.arlepublishtask {
-          gcs_image_path: job.gcs,
-          source_version: 'v((.:source-version))',
-          publish_version: '((.:publish-version))',
-          wf: job.workflow,
-          image_name: job.image,
-        },
-      }
-    else
-      {
-        task: 'gce-image-publish-' + job.image,
-        config: arle.gcepublishtask {
-          source_gcs_path: job.gcs,
-          source_version: 'v((.:source-version))',
-          publish_version: '((.:publish-version))',
-          wf: job.workflow,
-          environment: if job.env == 'testing' then 'test' else job.env,
-        },
+  ] +
+  if job.env == 'prod' && job.runtests then
+  [
+    {
+      task: 'prepublish-test-' + job.image,
+      config: prepublishtesttask {
+        images: 'projects/bct-prod-images/gloval/images/%s-((.:publish-version))' % job.image,
       },
-  ],
+      attempts: 3,
+    }
+  ]
+  else
+  [] +
+  if job.env == 'prod' then
+  [
+    {
+      task: 'arle-publish-' + job.image,
+      config: arle.arlepublishtask {
+        gcs_image_path: job.gcs,
+        source_version: 'v((.:source-version))',
+        publish_version: '((.:publish-version))',
+        wf: job.workflow,
+        image_name: job.image,
+      },
+    }
+  ]
+  else
+  [
+    {
+      task: 'gce-image-publish-' + job.image,
+      config: arle.gcepublishtask {
+        source_gcs_path: job.gcs,
+        source_version: 'v((.:source-version))',
+        publish_version: '((.:publish-version))',
+        wf: job.workflow,
+        environment: if job.env == 'testing' then 'test' else job.env,
+      },
+    },
+  ] +
+  if job.env != 'prod' && job.runtests then
+  [
+    {
+      task: 'image-test-' + job.image,
+      config: imagetesttask {
+        images: 'projects/bct-prod/images/global/images/%s-((.:publish-version))' % job.image,
+      },
+      attempts: 3,
+    },
+  ]
+  else
+  [],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {

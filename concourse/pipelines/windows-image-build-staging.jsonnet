@@ -6,6 +6,11 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
+local imagetesttask = common.imagetesttask {
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+  extra_args: [ '-x86_shape=n1-standard-4' ],
+};
+
 local imgbuildjob = {
   local job = self,
 
@@ -383,6 +388,10 @@ local imgpublishjob = {
   // Builds are automatically pushed to testing.
   trigger:: true,
 
+  // Run CIT by default on server and sql
+  runtests:: if std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0 then true
+  else false,
+
   // Start of job.
   name: 'publish-to-testing-%s' % [job.image],
   plan: [
@@ -424,7 +433,19 @@ local imgpublishjob = {
         environment: 'test',
       },
     },
-  ],
+  ] +
+  if job.runtests then
+    [
+      {
+        task: 'image-test-' + job.image,
+        config: imagetesttask {
+          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image
+        },
+        attempts: 3,
+      }
+    ]
+  else
+    [],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
