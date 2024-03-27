@@ -9,31 +9,14 @@ local sql_envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
+local imagetesttask = common.imagetesttask {
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+  extra_args: [ '-x86_shape=n1-standard-4' ],
+};
 
-local prepublishtesttask = {
-  local task = self,
-
-  images:: error 'must set images in prepublishtesttask',
-  extra_args:: [],
-
-  // Start of task
-  platform: 'linux',
-  image_resource: {
-    type: 'registry-image',
-    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-  },
-  run: {
-    path: '/manager',
-    args: [
-      '-project=gcp-guest',
-      '-zone=us-central1-a',
-      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      // Run tests not ran in publish-to-testing
-      '-filter=(shapevalidation)',
-      '-shapevalidation_test_filter=^[A-Z][0-3]',
-      '-images=' + task.images,
-    ] + task.extra_args,
-  },
+local prepublishtesttask = common.imagetesttask {
+  filter: '(shapevalidation)',
+  extra_args: [ '-shapevalidation_test_filter=^[A-Z][0-3]' ],
 };
 
 local imgbuildjob = {
@@ -445,6 +428,13 @@ local imgpublishjob = {
           wf: job.workflow,
           environment: if job.env == 'testing' then 'test' else job.env,
         },
+      },
+      {
+        task: 'image-test-' + job.image,
+        config: imagetesttask {
+          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
+        },
+        attempts: 3,
       },
   ],
 };

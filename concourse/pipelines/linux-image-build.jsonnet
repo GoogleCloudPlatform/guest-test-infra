@@ -14,55 +14,13 @@ local imgbuildtask = daisy.daisyimagetask {
   sbom_destination: '((.:sbom-destination))',
 };
 
-local imagetesttask = {
-  local task = self,
-
-  images:: error 'must set images in imagetesttask',
-  extra_args:: [],
-
-  // Start of task
-  platform: 'linux',
-  image_resource: {
-    type: 'registry-image',
-    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-  },
-  run: {
-    path: '/manager',
-    args: [
-      '-project=gcp-guest',
-      '-zone=us-central1-b',
-      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
-      '-images=' + task.images,
-    ] + task.extra_args,
-  },
+local imagetesttask = common.imagetesttask {
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
 };
 
-local prepublishtesttask = {
-  local task = self,
-
-  images:: error 'must set images in prepublishtesttask',
-  extra_args:: [],
-
-  // Start of task
-  platform: 'linux',
-  image_resource: {
-    type: 'registry-image',
-    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-  },
-  run: {
-    path: '/manager',
-    args: [
-      '-project=gcp-guest',
-      '-zone=us-central1-b',
-      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      // Run tests not ran in publish-to-testing
-      // TODO enable oslogin
-      '-filter=(shapevalidation)',
-      '-shapevalidation_test_filter=^[A-Z][0-3]',
-      '-images=' + task.images,
-    ] + task.extra_args,
-  },
+local prepublishtesttask = common.imagetesttask {
+  filter: '(shapevalidation)', // TODO enable oslogin
+  extra_args: [ '-shapevalidation_test_filter=^[A-Z][0-3]' ],
 };
 
 local imgbuildjob = {
