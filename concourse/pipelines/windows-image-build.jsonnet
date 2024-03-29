@@ -573,7 +573,7 @@ local imgpublishjob = {
     {
       task: 'image-test-' + job.image,
       config: imagetesttask {
-        images: 'projects/bct-prod/images/global/images/%s-((.:publish-version))' % job.image,
+        images: 'projects/bct-prod-images/images/global/images/%s-((.:publish-version))' % job.image,
       },
       attempts: 3,
     },
