@@ -873,6 +873,26 @@ func parseResult(res testResult, localPath string) *testSuite {
 	case res.workflowSuccess:
 		// Workflow completed without error. Only in this case do we try to parse the result.
 		ret = convertToTestSuite(res.results, name)
+		// Tests handled by a suite but not executed or skipped should be marked disabled
+		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
+			hasResult := false
+			for _, tc := range ret.TestCase {
+				if tc.Name == test {
+					hasResult = true
+					break
+				}
+			}
+			if hasResult {
+				continue
+			}
+			newTc := &testCase{}
+			newTc.Classname = name
+			newTc.Name = test
+			newTc.Disabled = &junitDisabled{fmt.Sprintf("%s disabled on %s", test, res.testWorkflow.ImageURL)}
+			ret.TestCase = append(ret.TestCase, newTc)
+			ret.Tests++
+			ret.Disabled++
+		}
 	default:
 		var status string
 		if res.err != nil {

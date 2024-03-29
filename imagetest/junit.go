@@ -52,12 +52,17 @@ type testSuite struct {
 }
 
 type testCase struct {
-	Classname string        `xml:"classname,attr"`
-	Name      string        `xml:"name,attr"`
-	Time      float64       `xml:"time,attr"`
-	Skipped   *junitSkipped `xml:"skipped,omitempty"`
-	Failure   *junitFailure `xml:"failure,omitempty"`
-	SystemOut string        `xml:"system-out,omitempty"`
+	Classname string         `xml:"classname,attr"`
+	Name      string         `xml:"name,attr"`
+	Time      float64        `xml:"time,attr"`
+	Skipped   *junitSkipped  `xml:"skipped,omitempty"`
+	Disabled  *junitDisabled `xml:"disabled,omitempty"`
+	Failure   *junitFailure  `xml:"failure,omitempty"`
+	SystemOut string         `xml:"system-out,omitempty"`
+}
+
+type junitDisabled struct {
+	Message string `xml:"message,attr"`
 }
 
 type junitSkipped struct {

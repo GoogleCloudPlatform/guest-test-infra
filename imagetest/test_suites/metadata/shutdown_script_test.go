@@ -132,7 +132,7 @@ func TestShutdownURLScripts(t *testing.T) {
 }
 
 // Determine if the OS is Windows or Linux and run the appropriate shutdown time test.
-func TestShutDownScriptTime(t *testing.T) {
+func TestShutdownScriptTime(t *testing.T) {
 	if utils.IsWindows() {
 		if err := testShutdownScriptTimeWindows(); err != nil {
 			t.Fatalf("Shutdown script time test failed with error: %v", err)
