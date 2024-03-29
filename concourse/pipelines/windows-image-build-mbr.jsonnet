@@ -7,27 +7,9 @@ local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
-local imagetesttask = {
-  local task = self,
-
-  images:: error 'must set images in imagetesttask',
-
-  // Start of task
-  platform: 'linux',
-  image_resource: {
-    type: 'registry-image',
-    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-  },
-  run: {
-    path: '/manager',
-    args: [
-      '-project=gcp-guest',
-      '-zone=us-central1-a',
-      '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-      '-exclude=(networkperf)|(oslogin)|(security)|(shapevalidation)|(sql)|(storageperf)|(windowscontainers)',
-      '-images=' + task.images,
-    ]
-  },
+local imagetesttask = common.imagetesttask {
+  exclude: '(networkperf)|(oslogin)|(security)|(shapevalidation)|(sql)|(storageperf)|(windowscontainers)',
+  extra_args: [ '-x86_shape=n1-standard-4' ],
 };
 
 // Templates.
@@ -190,7 +172,7 @@ local imgpublishjob = {
   // Builds are automatically pushed to testing.
   trigger:: if job.env == 'testing' then true
     else false,
-  
+
   runtests:: if job.env == 'testing' then true
     else false,
 

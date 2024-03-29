@@ -84,6 +84,33 @@
     sbom_destination: sbom_destination,
   },
 
+  imagetesttask:: {
+    local task = self,
+    images:: error 'must set images in imagetesttask',
+    exclude:: if task.filter == '' then error 'must set one of filter or exclude in imagetesttask' else '',
+    filter:: if task.exclude == '' then error 'must set one of filter or exclude in imagetesttask' else '',
+    project:: 'gcp-guest',
+    zone:: 'us-central1-b',
+    test_projects:: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+    extra_args:: [],
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+    },
+    run: {
+      path: '/manager',
+      args: [
+        '-project=%s' % task.project,
+        '-zone=%s' % task.zone,
+        '-test_projects=%s' % task.test_projects,
+        '-exclude=%s' % task.exclude,
+        '-filter=%s' % task.filter,
+        '-images=' + task.images,
+      ] + task.extra_args,
+    },
+  },
+
   publishresulttask:: {
     local task = self,
 
