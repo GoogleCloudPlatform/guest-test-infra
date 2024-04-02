@@ -117,6 +117,21 @@ func TestGuestPackages(t *testing.T) {
 		}
 	}
 
+	if strings.Contains(image, "cos") {
+                listPkgs = func() ([]string, error) {
+                        o, err := os.ReadFile("/etc/cos-package-info.json")
+                        pkgs := []string{}
+                        for _, line := range strings.Split(string(o), "\n") {
+                                if strings.Contains(line, "name\": ") {
+                                        pkgField := strings.Split(line, ":")[1]
+                                        pkg := strings.Split(pkgField, "\"")[1]
+                                        pkgs = append(pkgs, pkg)
+                                }
+                        }
+                        return pkgs, err
+                }
+        }
+
 	pkgs := []*osPackage{
 		{
 			name: "google-guest-agent",
@@ -126,7 +141,7 @@ func TestGuestPackages(t *testing.T) {
 		},
 		{
 			name:       "google-compute-engine",
-			imagesSkip: []string{"sles", "suse"},
+			imagesSkip: []string{"sles", "suse", "cos"},
 		},
 		{
 			name:   "google-guest-configs",
@@ -137,16 +152,20 @@ func TestGuestPackages(t *testing.T) {
 			images: []string{"sles", "suse"},
 		},
 		{
+                        name: "oslogin",
+                        images: []string{"cos"},
+                },
+		{
 			name:       "gce-disk-expand",
-			imagesSkip: []string{"sles", "suse", "ubuntu"},
+			imagesSkip: []string{"sles", "suse", "ubuntu", "cos"},
 		},
 		{
 			name:       "google-cloud-cli",
-			imagesSkip: []string{"sles", "suse", "ubuntu-1604", "ubuntu-pro-1604"},
+			imagesSkip: []string{"sles", "suse", "ubuntu-1604", "ubuntu-pro-1604", "cos"},
 		},
 		{
 			name:       "google-compute-engine-oslogin",
-			imagesSkip: []string{"sles", "suse"},
+			imagesSkip: []string{"sles", "suse", "cos"},
 		},
 		{
 			name:   "epel-release",
@@ -158,7 +177,7 @@ func TestGuestPackages(t *testing.T) {
 		},
 		{
 			name:   "net-tools",
-			images: []string{"debian"},
+			images: []string{"debian", "cos"},
 		},
 		{
 			name:   "google-cloud-packages-archive-keyring",
