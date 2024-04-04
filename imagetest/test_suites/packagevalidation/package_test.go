@@ -118,19 +118,19 @@ func TestGuestPackages(t *testing.T) {
 	}
 
 	if strings.Contains(image, "cos") {
-                listPkgs = func() ([]string, error) {
-                        o, err := os.ReadFile("/etc/cos-package-info.json")
-                        pkgs := []string{}
-                        for _, line := range strings.Split(string(o), "\n") {
-                                if strings.Contains(line, "name\": ") {
-                                        pkgField := strings.Split(line, ":")[1]
-                                        pkg := strings.Split(pkgField, "\"")[1]
-                                        pkgs = append(pkgs, pkg)
-                                }
-                        }
-                        return pkgs, err
-                }
-        }
+		listPkgs = func() ([]string, error) {
+			o, err := os.ReadFile("/etc/cos-package-info.json")
+			pkgs := []string{}
+			for _, line := range strings.Split(string(o), "\n") {
+				if strings.Contains(line, "name\": ") {
+					pkgField := strings.Split(line, ":")[1]
+					pkg := strings.Split(pkgField, "\"")[1]
+					pkgs = append(pkgs, pkg)
+				}
+			}
+			return pkgs, err
+		}
+	}
 
 	pkgs := []*osPackage{
 		{
