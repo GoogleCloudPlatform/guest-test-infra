@@ -1,6 +1,8 @@
 package disk
 
 import (
+	"strings"
+
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -28,7 +30,6 @@ var (
 )
 
 const (
-	vmName         = "vm"
 	resizeDiskSize = 200
 )
 
@@ -36,7 +37,7 @@ const (
 func TestSetup(t *imagetest.TestWorkflow) error {
 	rebootInst := &daisy.Instance{}
 	rebootInst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: vmName}}, rebootInst)
+	vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "resize"}}, rebootInst)
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,8 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			}
 			inst := &daisy.Instance{}
 			inst.MachineType = tc.machineType
-			inst.Name = "test-block-naming-" + tc.machineType
+			series, _, _ := strings.Cut(tc.machineType, "-")
+			inst.Name = "blockNaming" + strings.ToUpper(series)
 			vm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: inst.Name, Type: imagetest.PdBalanced}, {Name: "secondary", Type: imagetest.PdBalanced, SizeGb: 10}}, inst)
 			if err != nil {
 				return err

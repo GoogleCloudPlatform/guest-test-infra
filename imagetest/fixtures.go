@@ -897,7 +897,7 @@ func (t *TestWorkflow) appendCreateFirewallStep(firewallName, networkName, proto
 
 // AddSSHKey generate ssh key pair and return public key.
 func (t *TestWorkflow) AddSSHKey(user string) (string, error) {
-	keyFileName := "/id_rsa_" + uuid.New().String()
+	keyFileName := os.TempDir() + "/id_rsa_" + uuid.New().String()
 	if _, err := os.Stat(keyFileName); os.IsExist(err) {
 		os.Remove(keyFileName)
 	}

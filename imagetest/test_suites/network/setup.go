@@ -1,6 +1,7 @@
 package network
 
 import (
+	"regexp"
 	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -18,8 +19,8 @@ type InstanceConfig struct {
 	ip   string
 }
 
-var vm1Config = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
-var vm2Config = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
+var vm1Config = InstanceConfig{name: "ping1", ip: "192.168.0.2"}
+var vm2Config = InstanceConfig{name: "ping2", ip: "192.168.0.3"}
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
@@ -64,7 +65,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
 
 	multinictests := "TestStaticIP"
-	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") && !strings.Contains(t.Image.Name, "ubuntu-pro-1604") {
+	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") && !strings.Contains(t.Image.Name, "ubuntu-pro-1604") && !strings.Contains(t.Image.Name, "cos") {
 		multinictests += "|TestAlias"
 	}
 
@@ -91,11 +92,21 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-	if utils.HasFeature(t.Image, "GVNIC") {
+	el7Re := regexp.MustCompile(`(centos|rhel)-7`)
+	if utils.HasFeature(t.Image, "GVNIC") && !el7Re.MatchString(t.Image.Family) {
 		multinictests += "|TestGVNIC"
 		vm2.UseGVNIC()
 	}
 	vm2.RunTests(multinictests)
+
+	if el7Re.MatchString(t.Image.Family) {
+		vm3, err := t.CreateTestVM("testGVNICEl7")
+		if err != nil {
+			return err
+		}
+		vm3.RunTests("TestGVNIC")
+		vm3.UseGVNIC()
+	}
 
 	return nil
 }

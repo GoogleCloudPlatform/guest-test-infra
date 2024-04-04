@@ -89,6 +89,9 @@ func (t *TestWorkflow) appendCreateVMStep(disks []*compute.Disk, instanceParams 
 	}
 	// The boot disk is the first disk, and the VM name comes from that
 	name := disks[0].Name
+	if strings.Contains(name, "-") {
+		return nil, nil, fmt.Errorf("dashes are disallowed in testworkflow vm names: %s", name)
+	}
 
 	var suffix string
 	if utils.HasFeature(t.Image, "WINDOWS") {

@@ -33,14 +33,14 @@ var scripts embed.FS
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 
-	vm, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("mdscommunication")
 	if err != nil {
 		return err
 	}
 
 	vm2Inst := &daisy.Instance{}
 	vm2Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm2"}}, vm2Inst)
+	vm2, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "shutdownscripts"}}, vm2Inst)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm3Inst := &daisy.Instance{}
 	vm3Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm3, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm3"}}, vm3Inst)
+	vm3, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "shutdownscriptsfailed"}}, vm3Inst)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	vm4Inst := &daisy.Instance{}
 	vm4Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm4, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "vm4"}}, vm4Inst)
+	vm4, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "shutdownurlscripts"}}, vm4Inst)
 	if err != nil {
 		return err
 	}
@@ -71,19 +71,19 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm6, err := t.CreateTestVM("vm6")
+	vm6, err := t.CreateTestVM("startupscripts")
 	if err != nil {
 		return err
 	}
 	vm6.AddMetadata("enable-guest-attributes", "TRUE")
 
-	vm7, err := t.CreateTestVM("vm7")
+	vm7, err := t.CreateTestVM("startupscriptsfailed")
 	if err != nil {
 		return err
 	}
 	vm7.AddMetadata("enable-guest-attributes", "TRUE")
 
-	vm8, err := t.CreateTestVM("vm8")
+	vm8, err := t.CreateTestVM("daemonscripts")
 	if err != nil {
 		return err
 	}
