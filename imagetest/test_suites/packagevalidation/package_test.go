@@ -5,6 +5,7 @@ package packagevalidation
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
