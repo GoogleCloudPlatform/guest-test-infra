@@ -11,7 +11,6 @@ import (
 var Name = "hotattach"
 
 const (
-	instanceName   = "hotattachvm"
 	bootDiskSizeGB = 10
 
 	// the path to write the file on linux
@@ -25,7 +24,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	hotattachInst := &daisy.Instance{}
 	hotattachInst.Scopes = append(hotattachInst.Scopes, "https://www.googleapis.com/auth/cloud-platform")
 
-	hotattach, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: instanceName + "-pdbalanced", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: "hotattachmount", Type: imagetest.PdBalanced, SizeGb: 30}}, hotattachInst)
+	hotattach, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "reattachPDBalanced", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}, {Name: "hotattachmount", Type: imagetest.PdBalanced, SizeGb: 30}}, hotattachInst)
 	if err != nil {
 		return err
 	}
@@ -37,7 +36,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		lssdMountInst.Zone = "us-east4-b"
 		lssdMountInst.MachineType = "c3-standard-8-lssd"
 
-		lssdMount, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Zone: "us-east4-b", Name: instanceName + "-lssd", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}}, lssdMountInst)
+		lssdMount, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Zone: "us-east4-b", Name: "remountLSSD", Type: imagetest.PdBalanced, SizeGb: bootDiskSizeGB}}, lssdMountInst)
 		if err != nil {
 			return err
 		}

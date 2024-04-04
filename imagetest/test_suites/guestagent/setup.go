@@ -26,7 +26,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	telemetrydisabledinst := &daisy.Instance{}
 	telemetrydisabledinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
-	telemetrydisabledinst.Name = "telemetry-disabled"
+	telemetrydisabledinst.Name = "telemetryDisabled"
 	telemetrydisabledvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: telemetrydisabledinst.Name, Type: imagetest.PdBalanced}}, telemetrydisabledinst)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	telemetryenabledinst := &daisy.Instance{}
 	telemetryenabledinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
-	telemetryenabledinst.Name = "telemetry-enabled"
+	telemetryenabledinst.Name = "telemetryEnabled"
 	telemetryenabledvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: telemetryenabledinst.Name, Type: imagetest.PdBalanced}}, telemetryenabledinst)
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 
 	snapshotinst := &daisy.Instance{}
 	snapshotinst.Scopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
-	snapshotinst.Name = "snapshot-scripts"
+	snapshotinst.Name = "snapshotScripts"
 	snapshotvm, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: snapshotinst.Name, Type: imagetest.PdBalanced}}, snapshotinst)
 	if err != nil {
 		return err
