@@ -1,6 +1,7 @@
 package network
 
 import (
+	"regexp"
 	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
@@ -91,11 +92,21 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm2.Reboot(); err != nil {
 		return err
 	}
-	if utils.HasFeature(t.Image, "GVNIC") {
+	el7Re := regexp.MustCompile(`(centos|rhel)-7`)
+	if utils.HasFeature(t.Image, "GVNIC") && !el7Re.MatchString(t.Image.Family) {
 		multinictests += "|TestGVNIC"
 		vm2.UseGVNIC()
 	}
 	vm2.RunTests(multinictests)
+
+	if el7Re.MatchString(t.Image.Family) {
+		vm3, err := t.CreateTestVM("testGVNICEl7")
+		if err != nil {
+			return err
+		}
+		vm3.RunTests("TestGVNIC")
+		vm3.UseGVNIC()
+	}
 
 	return nil
 }
