@@ -11,8 +11,6 @@ import (
 // Name is the name of the test package. It must match the directory name.
 var Name = "cvm"
 
-const vmName = "vm"
-
 // TestSetup sets up test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
 	for _, feature := range t.Image.GuestOsFeatures {
@@ -20,7 +18,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		case "SEV_CAPABLE":
 			sevtests := "TestSEVEnabled"
 			vm := &daisy.InstanceBeta{}
-			vm.Name = vmName + "-SEV"
+			vm.Name = "sev"
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
 				ConfidentialInstanceType:  "SEV",
 				EnableConfidentialCompute: true,
@@ -34,7 +32,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			}
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
-			disks := []*compute.Disk{{Name: vmName + "-SEV", Type: imagetest.PdBalanced}}
+			disks := []*compute.Disk{{Name: vm.Name, Type: imagetest.PdBalanced}}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
 				return err
@@ -42,7 +40,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			tvm.RunTests(sevtests)
 		case "SEV_SNP_CAPABLE":
 			vm := &daisy.InstanceBeta{}
-			vm.Name = vmName + "-SEVSNP"
+			vm.Name = "sevsnp"
 			vm.Zone = "us-central1-a" // SEV_SNP not available in all regions
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
 				ConfidentialInstanceType:  "SEV_SNP",
@@ -52,7 +50,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.MachineType = "n2d-standard-2"
 			vm.MinCpuPlatform = "AMD Milan"
 			disks := []*compute.Disk{
-				{Name: vmName + "-SEVSNP", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				{Name: vm.Name, Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {
@@ -61,7 +59,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			tvm.RunTests("TestSEVSNPEnabled")
 		case "TDX_CAPABLE":
 			vm := &daisy.InstanceBeta{}
-			vm.Name = vmName + "-TDX"
+			vm.Name = "tdx"
 			vm.Zone = "us-central1-a" // TDX not available in all regions
 			vm.ConfidentialInstanceConfig = &computeBeta.ConfidentialInstanceConfig{
 				ConfidentialInstanceType:  "TDX",
@@ -71,7 +69,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			vm.MachineType = "c3-standard-2"
 			vm.MinCpuPlatform = "Intel Sapphire Rapids"
 			disks := []*compute.Disk{
-				{Name: vmName + "-TDX", Type: imagetest.PdBalanced, Zone: "us-central1-a"},
+				{Name: vm.Name, Type: imagetest.PdBalanced, Zone: "us-central1-a"},
 			}
 			tvm, err := t.CreateTestVMFromInstanceBeta(vm, disks)
 			if err != nil {

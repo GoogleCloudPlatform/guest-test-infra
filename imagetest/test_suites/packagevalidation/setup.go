@@ -10,7 +10,7 @@ var Name = "packagevalidation"
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {
-	vm1, err := t.CreateTestVM("vm1")
+	vm1, err := t.CreateTestVM("installedPackages")
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	// are only used to run windows tests. The tests themselves
 	// have components which need to be run on different vms.
 	if utils.HasFeature(t.Image, "WINDOWS") {
-		vm2, err := t.CreateTestVM("vm2")
+		vm2, err := t.CreateTestVM("googetFunctionality")
 		if err != nil {
 			return err
 		}
@@ -31,14 +31,14 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 			return err
 		}
 		vm3.RunTests("TestRepoManagement")
-		vm4, err := t.CreateTestVM("vm4")
+		vm4, err := t.CreateTestVM("repoManagement")
 		if err != nil {
 			return err
 		}
 		vm4.RunTests("TestNetworkDriverLoaded|TestDriversInstalled|TestDriversRemoved")
 		// the former windows_image_validation test suite tests are run by this VM.
 		// It may make sense to move some of these tests to other suites in the future.
-		vm5, err := t.CreateTestVM("vm5")
+		vm5, err := t.CreateTestVM("drivers")
 		if err != nil {
 			return err
 		}

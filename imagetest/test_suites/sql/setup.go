@@ -17,8 +17,8 @@ type InstanceConfig struct {
 	ip   string
 }
 
-var serverConfig = InstanceConfig{name: "server-vm", ip: "192.168.0.10"}
-var clientConfig = InstanceConfig{name: "client-vm", ip: "192.168.0.11"}
+var serverConfig = InstanceConfig{name: "server", ip: "192.168.0.10"}
+var clientConfig = InstanceConfig{name: "client", ip: "192.168.0.11"}
 
 //go:embed *
 var scripts embed.FS
@@ -85,7 +85,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		serverVM.AddMetadata("windows-startup-script-ps1", serverStartup)
 		clientVM.AddMetadata("windows-startup-script-ps1", clientStartup)
 
-		vm1, err := t.CreateTestVM("vm1")
+		vm1, err := t.CreateTestVM("settings")
 		if err != nil {
 			return err
 		}

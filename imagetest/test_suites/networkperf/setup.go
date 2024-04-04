@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"strings"
 
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
@@ -298,7 +299,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				defaultPerfTarget := fmt.Sprint(defaultPerfTargetInt)
 
 				// Default VMs.
-				serverDisk := compute.Disk{Name: serverConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				serverDisk := compute.Disk{Name: strings.ReplaceAll(serverConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				serverVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&serverDisk}, nil)
 				if err != nil {
 					return err
@@ -312,7 +313,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				clientDisk := compute.Disk{Name: clientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				clientDisk := compute.Disk{Name: strings.ReplaceAll(clientConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				clientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&clientDisk}, nil)
 				if err != nil {
 					return err
@@ -331,7 +332,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				clientVM.AddMetadata("network-tier", net)
 
 				// Jumbo frames VMs.
-				jfServerDisk := compute.Disk{Name: jfServerConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				jfServerDisk := compute.Disk{Name: strings.ReplaceAll(jfServerConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				jfServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfServerDisk}, nil)
 				if err != nil {
 					return err
@@ -345,7 +346,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 					return err
 				}
 
-				jfClientDisk := compute.Disk{Name: jfClientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				jfClientDisk := compute.Disk{Name: strings.ReplaceAll(jfClientConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				jfClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&jfClientDisk}, nil)
 				jfClientVM.ForceMachineType(tc.machineType)
 				jfClientVM.ForceZone(zone)
@@ -408,7 +409,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				tier1PerfTarget := fmt.Sprint(tier1PerfTargetInt)
 
 				// Tier 1 VMs.
-				t1ServerDisk := compute.Disk{Name: tier1ServerConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				t1ServerDisk := compute.Disk{Name: strings.ReplaceAll(tier1ServerConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				tier1ServerVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ServerDisk}, nil)
 				if err != nil {
 					return err
@@ -423,7 +424,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 				}
 				tier1ServerVM.SetNetworkPerformanceTier("TIER_1")
 
-				t1ClientDisk := compute.Disk{Name: tier1ClientConfig.name + "-" + tc.machineType, Type: diskType, Zone: zone}
+				t1ClientDisk := compute.Disk{Name: strings.ReplaceAll(tier1ClientConfig.name+"-"+tc.machineType, "-", ""), Type: diskType, Zone: zone}
 				tier1ClientVM, err := t.CreateTestVMMultipleDisks([]*compute.Disk{&t1ClientDisk}, nil)
 				if err != nil {
 					return err

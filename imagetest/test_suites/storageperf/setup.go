@@ -185,7 +185,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if bootdiskSizeGB == mountdiskSizeGB {
 			mountdiskSizeGB++
 		}
-		bootDisk := &compute.Disk{Name: vmName + tc.machineType + tc.diskType, Type: tc.bootDiskType, SizeGb: bootdiskSizeGB, Zone: tc.zone}
+		bootDisk := &compute.Disk{Name: strings.ReplaceAll(tc.machineType+tc.diskType, "-", ""), Type: tc.bootDiskType, SizeGb: bootdiskSizeGB, Zone: tc.zone}
 		disks := []*compute.Disk{bootDisk}
 
 		if tc.diskType != "lssd" {

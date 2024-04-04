@@ -18,8 +18,8 @@ type InstanceConfig struct {
 	ip   string
 }
 
-var vm1Config = InstanceConfig{name: "vm1", ip: "192.168.0.2"}
-var vm2Config = InstanceConfig{name: "vm2", ip: "192.168.0.3"}
+var vm1Config = InstanceConfig{name: "ping1", ip: "192.168.0.2"}
+var vm2Config = InstanceConfig{name: "ping2", ip: "192.168.0.3"}
 
 // TestSetup sets up the test workflow.
 func TestSetup(t *imagetest.TestWorkflow) error {

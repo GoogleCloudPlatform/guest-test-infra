@@ -16,7 +16,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	vm, err := t.CreateTestVM("vm")
+	vm, err := t.CreateTestVM("client")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm.AddMetadata("sysprep-specialize-script-cmd", "googet -noconfirm=true install google-compute-engine-ssh")
 	vm.RunTests("TestSSHInstanceKey|TestHostKeysAreUnique|TestMatchingKeysInGuestAttributes")
 
-	vm2, err := t.CreateTestVM("vm2")
+	vm2, err := t.CreateTestVM("server")
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.AddMetadata("sysprep-specialize-script-cmd", "googet -noconfirm=true install google-compute-engine-ssh")
 	vm2.RunTests("TestEmptyTest")
 
-	vm3, err := t.CreateTestVM("vm3")
+	vm3, err := t.CreateTestVM("hostkeysafteragentrestart")
 	if err != nil {
 		return err
 	}
