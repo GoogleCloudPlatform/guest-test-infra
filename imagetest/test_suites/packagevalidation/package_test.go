@@ -152,7 +152,7 @@ func TestGuestPackages(t *testing.T) {
 			images: []string{"sles", "suse"},
 		},
 		{
-			name: "oslogin",
+			name:   "oslogin",
 			images: []string{"cos"},
 		},
 		{
@@ -160,7 +160,7 @@ func TestGuestPackages(t *testing.T) {
 			imagesSkip: []string{"sles", "suse", "ubuntu", "cos"},
 		},
 		{
-			name: "cloud-disk-resize",
+			name:   "cloud-disk-resize",
 			images: []string{"cos"},
 		},
 		{
