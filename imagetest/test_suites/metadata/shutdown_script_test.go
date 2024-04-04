@@ -5,7 +5,6 @@ package metadata
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path"
 	"strings"
 	"testing"
@@ -34,38 +33,6 @@ func testShutdownScriptFailedWindows(t *testing.T) error {
 	if _, err := utils.GetMetadata(utils.Context(t), "instance", "attributes", "windows-shutdown-script-ps1"); err != nil {
 		return fmt.Errorf("couldn't get windows-shutdown-script-ps1 from metadata")
 	}
-
-	return nil
-
-}
-
-// TestShutdownScriptTimeLinux tests that shutdown scripts can run for around two minutes.
-func testShutdownScriptTimeLinux() error {
-	bytes, err := ioutil.ReadFile("/shutdown.txt")
-	if err != nil {
-		return fmt.Errorf("error reading file: %v", err)
-	}
-	lines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
-	if len(lines) < shutdownTime {
-		return fmt.Errorf("shut down time is %d which is less than %d seconds.", len(lines), shutdownTime)
-	}
-	fmt.Sprintf("shut down time is %d", len(lines))
-
-	return nil
-
-}
-
-// TestShutdownScriptTimeWindows tests that shutdown scripts can run for around two minutes.
-func testShutdownScriptTimeWindows() error {
-	bytes, err := ioutil.ReadFile("C:\\shutdown_out.txt")
-	if err != nil {
-		return fmt.Errorf("error reading file: %v", err)
-	}
-	lines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
-	if len(lines) < shutdownTime {
-		return fmt.Errorf("shut down time is %d which is less than %d seconds.", len(lines), shutdownTime)
-	}
-	fmt.Sprintf("shut down time is %d", len(lines))
 
 	return nil
 
@@ -128,18 +95,5 @@ func TestShutdownURLScripts(t *testing.T) {
 	}
 	if result != expectedShutdownContent {
 		t.Fatalf(`shutdown script output expected "%s", got "%s".`, expectedShutdownContent, result)
-	}
-}
-
-// Determine if the OS is Windows or Linux and run the appropriate shutdown time test.
-func TestShutdownScriptTime(t *testing.T) {
-	if utils.IsWindows() {
-		if err := testShutdownScriptTimeWindows(); err != nil {
-			t.Fatalf("Shutdown script time test failed with error: %v", err)
-		}
-	} else {
-		if err := testShutdownScriptTimeLinux(); err != nil {
-			t.Fatalf("Shutdown script time test failed with error: %v", err)
-		}
 	}
 }

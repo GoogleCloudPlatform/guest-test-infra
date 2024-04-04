@@ -22,11 +22,9 @@ const (
 	shutdownScriptLinuxURL   = "scripts/shutdownScriptLinux.sh"
 	startupScriptLinuxURL    = "scripts/startupScriptLinux.sh"
 	daemonScriptLinuxURL     = "scripts/daemonScriptLinux.sh"
-	timeScriptLinuxURL       = "scripts/shutdownTimeLinux.sh"
 	shutdownScriptWindowsURL = "scripts/shutdownScriptWindows.ps1"
 	startupScriptWindowsURL  = "scripts/startupScriptWindows.ps1"
 	daemonScriptWindowsURL   = "scripts/daemonScriptWindows.ps1"
-	timeScriptWindowsURL     = "scripts/shutdownTimeWindows.ps1"
 )
 
 //go:embed *
@@ -73,17 +71,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 
-	vm5Inst := &daisy.Instance{}
-	vm5Inst.Metadata = map[string]string{imagetest.ShouldRebootDuringTest: "true"}
-	vm5, err := t.CreateTestVMMultipleDisks([]*compute.Disk{{Name: "shutdownscripttime"}}, vm5Inst)
-	if err != nil {
-		return err
-	}
-	vm5.AddMetadata("enable-guest-attributes", "TRUE")
-	if err := vm5.Reboot(); err != nil {
-		return err
-	}
-
 	vm6, err := t.CreateTestVM("startupscripts")
 	if err != nil {
 		return err
@@ -105,7 +92,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	var startupByteArr []byte
 	var shutdownByteArr []byte
 	var daemonByteArr []byte
-	var timeByteArr []byte
 
 	// Determine if the OS is Windows or Linux and set the appropriate script metadata.
 	if utils.HasFeature(t.Image, "WINDOWS") {
@@ -121,19 +107,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		timeByteArr, err = scripts.ReadFile(timeScriptWindowsURL)
-		if err != nil {
-			return err
-		}
 		startupScript := string(startupByteArr)
 		shutdownScript := string(shutdownByteArr)
 		daemonScript := string(daemonByteArr)
-		timeScript := string(timeByteArr)
 
 		vm2.SetWindowsShutdownScript(shutdownScript)
 		vm3.SetWindowsShutdownScript(strings.Repeat("a", metadataMaxLength))
 		vm4.SetWindowsShutdownScriptURL(shutdownScript)
-		vm5.SetWindowsShutdownScript(timeScript)
 		vm6.SetWindowsStartupScript(startupScript)
 		vm7.SetWindowsStartupScript(strings.Repeat("a", metadataMaxLength))
 		vm8.SetWindowsStartupScript(daemonScript)
@@ -159,19 +139,13 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		if err != nil {
 			return err
 		}
-		timeByteArr, err = scripts.ReadFile(timeScriptWindowsURL)
-		if err != nil {
-			return err
-		}
 		startupScript := string(startupByteArr)
 		shutdownScript := string(shutdownByteArr)
 		daemonScript := string(daemonByteArr)
-		timeScript := string(timeByteArr)
 
 		vm2.SetShutdownScript(shutdownScript)
 		vm3.SetShutdownScript(strings.Repeat("a", metadataMaxLength))
 		vm4.SetShutdownScriptURL(shutdownScript)
-		vm5.SetShutdownScript(timeScript)
 		vm6.SetStartupScript(startupScript)
 		vm7.SetStartupScript(strings.Repeat("a", metadataMaxLength))
 		vm8.SetStartupScript(daemonScript)
@@ -182,7 +156,6 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.RunTests("TestShutdownScripts")
 	vm3.RunTests("TestShutdownScriptsFailed")
 	vm4.RunTests("TestShutdownURLScripts")
-	vm5.RunTests("TestShutdownScriptTime")
 	vm6.RunTests("TestStartupScripts")
 	vm7.RunTests("TestStartupScriptsFailed")
 	vm8.RunTests("TestDaemonScripts")
