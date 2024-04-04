@@ -145,7 +145,7 @@ func TestGuestPackages(t *testing.T) {
 		},
 		{
 			name:   "google-guest-configs",
-			images: []string{"sles", "suse"},
+			images: []string{"sles", "suse", "cos"},
 		},
 		{
 			name:   "google-guest-oslogin",
