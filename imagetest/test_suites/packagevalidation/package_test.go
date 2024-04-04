@@ -152,16 +152,16 @@ func TestGuestPackages(t *testing.T) {
 			images: []string{"sles", "suse"},
 		},
 		{
-                        name: "oslogin",
-                        images: []string{"cos"},
+			name: "oslogin",
+			images: []string{"cos"},
                 },
 		{
 			name:       "gce-disk-expand",
 			imagesSkip: []string{"sles", "suse", "ubuntu", "cos"},
 		},
 		{
-                        name: "cloud-disk-resize",
-                        images: []string{"cos"},
+			name: "cloud-disk-resize",
+			images: []string{"cos"},
                 },
 		{
 			name:       "google-cloud-cli",
