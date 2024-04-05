@@ -23,7 +23,7 @@ func TestEmptyTest(t *testing.T) {
 
 // TestSSHInstanceKey test SSH completes successfully for an instance metadata key.
 func TestSSHInstanceKey(t *testing.T) {
-	vmname, err := utils.GetRealVMName("vm2")
+	vmname, err := utils.GetRealVMName("server")
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
