@@ -212,7 +212,7 @@ func TestWindowsPasswordReset(t *testing.T) {
 	if !strings.Contains(userList, user) {
 		t.Fatalf("user %s not found in userlist: %s", user, userList)
 	}
-	verificationCmd := fmt.Sprintf("Start-Process -Credential (New-Object System.Management.Automation.PSCredential(\"%s\", (\"%s\" | ConvertTo-SecureString -AsPlainText -Force))) -WorkingDirectory C:\\Windows\\System32 -FilePath cmd.exe", user, decryptedPassword)
+	verificationCmd := fmt.Sprintf("Start-Process -Credential (New-Object System.Management.Automation.PSCredential(\"%s\", ('%s' | ConvertTo-SecureString -AsPlainText -Force))) -WorkingDirectory C:\\Windows\\System32 -FilePath cmd.exe", user, decryptedPassword)
 	// The process "Credential" in powershell does not print anything on success
 	verifyPowershellCmd(t, verificationCmd)
 }
