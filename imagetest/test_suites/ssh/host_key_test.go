@@ -48,7 +48,7 @@ func TestMatchingKeysInGuestAttributes(t *testing.T) {
 
 // TestHostKeysAreUnique validate that host keys from disk is unique between instances.
 func TestHostKeysAreUnique(t *testing.T) {
-	vmname, err := utils.GetRealVMName("vm2")
+	vmname, err := utils.GetRealVMName("server")
 	if err != nil {
 		t.Fatalf("failed to get real vm name: %v", err)
 	}
