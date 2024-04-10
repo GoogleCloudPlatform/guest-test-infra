@@ -115,7 +115,7 @@ func TestConvertToTestCase(t *testing.T) {
 			testFail,
 			[]junit.Testcase{
 				{Time: "0.000", Name: "TestAlwaysFails", Failure: &junit.Result{
-					Message: "main_test.go:47: failed, message: heh\nmain_test.go:47: failed, message: heh2\nmain_test.go:47: failed, message: heh again"},
+					Data: "    main_test.go:47: failed, message: heh\n    main_test.go:47: failed, message: heh2\n    main_test.go:47: failed, message: heh again"},
 				},
 			{Time: "0.000", Name: "TestUpdateNSSwitchConfig"},
 				{Time: "0.000", Name: "TestUpdateSSHConfig"},
@@ -146,8 +146,8 @@ func TestConvertToTestCase(t *testing.T) {
 				t.Errorf("test %d mismatched Skipped in test case %d. got: %v but want: %v", idx, i, tcs[i].Skipped, tt.tcs[i].Skipped)
 			case (tcs[i].Failure != nil && tt.tcs[i].Failure == nil) || (tcs[i].Failure == nil && tt.tcs[i].Failure != nil) :
 				t.Errorf("test %d mismatched Failure status in test case %d. got: %v but want: %v", idx, i, tcs[i].Failure, tt.tcs[i].Failure)
-			case tcs[i].Failure != nil && tcs[i].Failure.Message != tt.tcs[i].Failure.Message:
-				t.Errorf("test %d mismatched Failure Message in test case %d. got: %v but want: %v", idx, i, tcs[i].Failure.Message, tt.tcs[i].Failure.Message)
+			case tcs[i].Failure != nil && tcs[i].Failure.Data != tt.tcs[i].Failure.Data :
+				t.Errorf("test %d mismatched Failure Data in test case %d. got: %v but want: %v", idx, i, tcs[i].Failure.Data, tt.tcs[i].Failure.Data)
 			case tcs[i].SystemOut != tt.tcs[i].SystemOut:
 				t.Errorf("test %d mismatched SystemOut in test case %d. got: %v but want: %v", idx, i, tcs[i].SystemOut, tt.tcs[i].SystemOut)
 			}

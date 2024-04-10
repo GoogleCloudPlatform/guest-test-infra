@@ -868,7 +868,7 @@ func parseResult(res testResult, localPath string) junit.Testsuite {
 			tc := junit.Testcase{}
 			tc.Classname = name
 			tc.Name = test
-			tc.Skipped = &junit.Result{Message: res.testWorkflow.SkippedMessage()}
+			tc.Skipped = &junit.Result{Data: res.testWorkflow.SkippedMessage()}
 			ret.Testcases = append(ret.Testcases, tc)
 
 			ret.Tests++
@@ -892,7 +892,7 @@ func parseResult(res testResult, localPath string) junit.Testsuite {
 			newTc := junit.Testcase{}
 			newTc.Classname = name
 			newTc.Name = test
-			newTc.Skipped = &junit.Result{Message: fmt.Sprintf("%s disabled on %s", test, res.testWorkflow.ImageURL)}
+			newTc.Skipped = &junit.Result{Data: fmt.Sprintf("%s disabled on %s", test, res.testWorkflow.ImageURL)}
 			ret.Testcases = append(ret.Testcases, newTc)
 			ret.Tests++
 			ret.Skipped++
@@ -908,7 +908,7 @@ func parseResult(res testResult, localPath string) junit.Testsuite {
 			tc := junit.Testcase{}
 			tc.Classname = name
 			tc.Name = test
-			tc.Failure = &junit.Result{Message: status, Type: "Failure"}
+			tc.Failure = &junit.Result{Data: status, Type: "Failure"}
 			ret.Testcases = append(ret.Testcases, tc)
 
 			ret.Tests++
