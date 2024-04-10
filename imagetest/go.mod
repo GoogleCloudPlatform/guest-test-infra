@@ -11,7 +11,7 @@ require (
 	github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper v0.0.0-20231129203917-db71af465791
 	github.com/go-ping/ping v1.1.0
 	github.com/google/uuid v1.4.0
-	github.com/jstemmer/go-junit-report v1.0.0
+	github.com/jstemmer/go-junit-report/v2 v2.1.0
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/crypto v0.17.0
 	google.golang.org/api v0.152.0
@@ -31,7 +31,6 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/jstemmer/go-junit-report/v2 v2.1.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
