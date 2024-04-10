@@ -31,6 +31,7 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	computeBeta "google.golang.org/api/compute/v0.beta"
+ 	"github.com/jstemmer/go-junit-report/v2/junit"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )
@@ -697,14 +698,14 @@ func daisyBucket(ctx context.Context, client *storage.Client, project string) (s
 }
 
 // RunTests runs all test workflows.
-func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string, parallelCount int, parallelStagger string, testProjects []string) (*TestSuites, error) {
+func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows []*TestWorkflow, project, zone, gcsPath, localPath string, parallelCount int, parallelStagger string, testProjects []string) (junit.Testsuites, error) {
 	gcsPrefix, err := getGCSPrefix(ctx, storageClient, project, gcsPath)
 	if err != nil {
-		return nil, err
+		return junit.Testsuites{}, err
 	}
 	stagger, err := time.ParseDuration(parallelStagger)
 	if err != nil {
-		return nil, err
+		return junit.Testsuites{}, err
 	}
 
 	finalizeWorkflows(ctx, testWorkflows, zone, gcsPrefix, localPath)
@@ -772,11 +773,11 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 	close(testchan)
 	wg.Wait()
 
-	var suites TestSuites
+	var suites junit.Testsuites
 	for i := 0; i < len(testWorkflows); i++ {
-		suites.TestSuite = append(suites.TestSuite, parseResult(<-testResults, localPath))
+		suites.Suites = append(suites.Suites, parseResult(<-testResults, localPath))
 	}
-	for _, suite := range suites.TestSuite {
+	for _, suite := range suites.Suites {
 		suites.Errors += suite.Errors
 		suites.Failures += suite.Failures
 		suites.Tests += suite.Tests
@@ -785,7 +786,7 @@ func RunTests(ctx context.Context, storageClient *storage.Client, testWorkflows 
 		suites.Time += suite.Time
 	}
 
-	return &suites, nil
+	return suites, nil
 }
 
 func formatTimeDelta(format string, t time.Duration) string {
@@ -855,8 +856,8 @@ func cleanTestWorkflow(test *TestWorkflow) (totalCleaned []string, totalErrs []e
 }
 
 // gets result struct and converts to a jUnit TestSuite
-func parseResult(res testResult, localPath string) *testSuite {
-	ret := &testSuite{}
+func parseResult(res testResult, localPath string) junit.Testsuite {
+	ret := junit.Testsuite{}
 	// Use ImageURL instead of the name or family to display results the same way
 	// as the user entered them.
 	name := fmt.Sprintf("%s-%s", res.testWorkflow.Name, strings.Split(res.testWorkflow.ImageURL, "/")[len(strings.Split(res.testWorkflow.ImageURL, "/"))-1])
@@ -864,11 +865,11 @@ func parseResult(res testResult, localPath string) *testSuite {
 	switch {
 	case res.skipped:
 		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
-			tc := &testCase{}
+			tc := junit.Testcase{}
 			tc.Classname = name
 			tc.Name = test
-			tc.Skipped = &junitSkipped{res.testWorkflow.SkippedMessage()}
-			ret.TestCase = append(ret.TestCase, tc)
+			tc.Skipped = &junit.Result{Message: res.testWorkflow.SkippedMessage()}
+			ret.Testcases = append(ret.Testcases, tc)
 
 			ret.Tests++
 			ret.Skipped++
@@ -879,7 +880,7 @@ func parseResult(res testResult, localPath string) *testSuite {
 		// Tests handled by a suite but not executed or skipped should be marked disabled
 		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
 			hasResult := false
-			for _, tc := range ret.TestCase {
+			for _, tc := range ret.Testcases {
 				if tc.Name == test {
 					hasResult = true
 					break
@@ -888,13 +889,13 @@ func parseResult(res testResult, localPath string) *testSuite {
 			if hasResult {
 				continue
 			}
-			newTc := &testCase{}
+			newTc := junit.Testcase{}
 			newTc.Classname = name
 			newTc.Name = test
-			newTc.Disabled = &junitDisabled{fmt.Sprintf("%s disabled on %s", test, res.testWorkflow.ImageURL)}
-			ret.TestCase = append(ret.TestCase, newTc)
+			newTc.Skipped = &junit.Result{Message: fmt.Sprintf("%s disabled on %s", test, res.testWorkflow.ImageURL)}
+			ret.Testcases = append(ret.Testcases, newTc)
 			ret.Tests++
-			ret.Disabled++
+			ret.Skipped++
 		}
 	default:
 		var status string
@@ -904,11 +905,11 @@ func parseResult(res testResult, localPath string) *testSuite {
 			status = "Unknown status"
 		}
 		for _, test := range getTestsBySuiteName(res.testWorkflow.Name, localPath) {
-			tc := &testCase{}
+			tc := junit.Testcase{}
 			tc.Classname = name
 			tc.Name = test
-			tc.Failure = &junitFailure{status, "Failure"}
-			ret.TestCase = append(ret.TestCase, tc)
+			tc.Failure = &junit.Result{Message: status, Type: "Failure"}
+			ret.Testcases = append(ret.Testcases, tc)
 
 			ret.Tests++
 			ret.Failures++

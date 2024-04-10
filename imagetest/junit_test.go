@@ -15,6 +15,7 @@
 package imagetest
 
 import (
+	"github.com/jstemmer/go-junit-report/v2/junit"
 	"testing"
 )
 
@@ -32,10 +33,10 @@ PASS
 `
 	testFail = `
 === RUN   TestAlwaysFails
---- FAIL: TestAlwaysFails (0.00s)
     main_test.go:47: failed, message: heh
     main_test.go:47: failed, message: heh2
     main_test.go:47: failed, message: heh again
+--- FAIL: TestAlwaysFails (0.00s)
 === RUN   TestUpdateNSSwitchConfig
 --- PASS: TestUpdateNSSwitchConfig (0.00s)
 === RUN   TestUpdateSSHConfig
@@ -51,30 +52,28 @@ FAIL
 func TestConvertToTestSuite(t *testing.T) {
 	tests := []struct {
 		results []string
-		ts      *testSuite
+		ts      junit.Testsuite
 	}{
 		{
 			[]string{testPass},
-			&testSuite{Tests: 4},
+			junit.Testsuite{Tests: 4},
 		},
 		{
 			[]string{testFail},
-			&testSuite{Tests: 5, Failures: 1},
+			junit.Testsuite{Tests: 5, Failures: 1},
 		},
 		{
 			[]string{testPass, testPass},
-			&testSuite{Tests: 8},
+			junit.Testsuite{Tests: 8},
 		},
 		{
 			[]string{testPass, testFail},
-			&testSuite{Tests: 9, Failures: 1},
+			junit.Testsuite{Tests: 9, Failures: 1},
 		},
 	}
 	for idx, tt := range tests {
 		ts := convertToTestSuite(tt.results, "")
 		switch {
-		case ts.XMLName != tt.ts.XMLName:
-			fallthrough
 		case ts.Name != tt.ts.Name:
 			fallthrough
 		case ts.Tests != tt.ts.Tests:
@@ -93,7 +92,7 @@ func TestConvertToTestSuite(t *testing.T) {
 			fallthrough
 		case ts.SystemErr != tt.ts.SystemErr:
 			fallthrough
-		case len(ts.TestCase) != tt.ts.Tests:
+		case len(ts.Testcases) != tt.ts.Tests:
 			t.Errorf("test %d expected: %+v got: %+v", idx, tt.ts, ts)
 		}
 	}
@@ -102,26 +101,26 @@ func TestConvertToTestSuite(t *testing.T) {
 func TestConvertToTestCase(t *testing.T) {
 	tests := []struct {
 		result string
-		tcs    []*testCase
+		tcs    []junit.Testcase
 	}{
 		{
 			testPass,
-			[]*testCase{
-				{Name: "TestUpdateNSSwitchConfig"},
-				{Name: "TestUpdateSSHConfig"},
-				{Name: "TestUpdatePAMsshd"},
-				{Name: "TestUpdateGroupConf"}},
+			[]junit.Testcase{
+				{Name: "TestUpdateNSSwitchConfig", Time: "0.000"},
+				{Name: "TestUpdateSSHConfig", Time: "0.000"},
+				{Name: "TestUpdatePAMsshd", Time: "0.000"},
+				{Name: "TestUpdateGroupConf", Time: "0.000"}},
 		},
 		{
 			testFail,
-			[]*testCase{
-				{Name: "TestAlwaysFails", Failure: &junitFailure{
-					FailMessage: "main_test.go:47: failed, message: heh\nmain_test.go:47: failed, message: heh2\nmain_test.go:47: failed, message: heh again"},
+			[]junit.Testcase{
+				{Time: "0.000", Name: "TestAlwaysFails", Failure: &junit.Result{
+					Message: "main_test.go:47: failed, message: heh\nmain_test.go:47: failed, message: heh2\nmain_test.go:47: failed, message: heh again"},
 				},
-				{Name: "TestUpdateNSSwitchConfig"},
-				{Name: "TestUpdateSSHConfig"},
-				{Name: "TestUpdatePAMsshd"},
-				{Name: "TestUpdateGroupConf"}},
+			{Time: "0.000", Name: "TestUpdateNSSwitchConfig"},
+				{Time: "0.000", Name: "TestUpdateSSHConfig"},
+				{Time: "0.000", Name: "TestUpdatePAMsshd"},
+				{Time: "0.000", Name: "TestUpdateGroupConf"}},
 		},
 	}
 
@@ -145,7 +144,7 @@ func TestConvertToTestCase(t *testing.T) {
 				fallthrough
 			case tcs[i].Skipped != tt.tcs[i].Skipped:
 				fallthrough
-			case tcs[i].Failure != nil && tcs[i].Failure.FailMessage != tt.tcs[i].Failure.FailMessage:
+			case tcs[i].Failure != nil && tcs[i].Failure.Message != tt.tcs[i].Failure.Message:
 				fallthrough
 			case tcs[i].SystemOut != tt.tcs[i].SystemOut:
 				t.Errorf("test %d mismatched test case %d. expected: %v got: %v", idx, i, tt.tcs[i], tcs[i])
