@@ -34,4 +34,3 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/GoogleCloudPlatform/compute-daisy => /home/acrate/guest/compute-daisy

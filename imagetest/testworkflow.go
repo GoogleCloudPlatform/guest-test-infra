@@ -28,7 +28,7 @@ import (
 	"cloud.google.com/go/storage"
 	daisy "github.com/GoogleCloudPlatform/compute-daisy"
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
-	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper"
+	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/cleanerupper"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 	computeBeta "google.golang.org/api/compute/v0.beta"
  	"github.com/jstemmer/go-junit-report/v2/junit"
