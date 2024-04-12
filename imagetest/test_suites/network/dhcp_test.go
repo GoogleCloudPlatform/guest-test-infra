@@ -30,7 +30,7 @@ func TestDHCP(t *testing.T) {
 		t.Fatalf("could not get image name: %s", err)
 	}
 
-	if strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") {
+	if strings.Contains(image, "debian-10") || strings.Contains(image, "debian-11") || strings.Contains(image, "debian-12") {
 		t.Skipf("DHCP test not supported on: %s", image)
 	}
 
