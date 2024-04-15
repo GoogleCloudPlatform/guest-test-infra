@@ -33,7 +33,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 		return err
 	}
 	subnetwork1.AddSecondaryRange("secondary-range", "10.14.0.0/16")
-	if err := network1.CreateFirewallRule("allow-icmp-net1", "icmp", nil, []string{"10.128.0.0/20"}); err != nil {
+	if err := network1.CreateFirewallRule("allow-tcp-net1", "tcp", nil, []string{"10.128.0.0/20"}); err != nil {
 		return err
 	}
 
@@ -45,7 +45,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err != nil {
 		return err
 	}
-	if err := network2.CreateFirewallRule("allow-icmp-net2", "icmp", nil, []string{"192.168.0.0/16"}); err != nil {
+	if err := network2.CreateFirewallRule("allow-tcp-net2", "tcp", nil, []string{"192.168.0.0/16"}); err != nil {
 		return err
 	}
 
@@ -62,9 +62,9 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if err := vm1.SetPrivateIP(network2, vm1Config.ip); err != nil {
 		return err
 	}
-	vm1.RunTests("TestPingVMToVM|TestDHCP|TestDefaultMTU")
+	vm1.RunTests("TestSendPing|TestDHCP|TestDefaultMTU")
 
-	multinictests := "TestStaticIP"
+	multinictests := "TestStaticIP|TestWaitForPing"
 	if !utils.HasFeature(t.Image, "WINDOWS") && !strings.Contains(t.Image.Name, "sles-15") && !strings.Contains(t.Image.Name, "opensuse-leap") && !strings.Contains(t.Image.Name, "ubuntu-1604") && !strings.Contains(t.Image.Name, "ubuntu-pro-1604") && !strings.Contains(t.Image.Name, "cos") {
 		multinictests += "|TestAlias"
 	}

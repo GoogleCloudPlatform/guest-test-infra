@@ -15,6 +15,7 @@
 package imagetest
 
 import (
+	"github.com/jstemmer/go-junit-report/v2/junit"
 	"testing"
 )
 
@@ -32,10 +33,10 @@ PASS
 `
 	testFail = `
 === RUN   TestAlwaysFails
---- FAIL: TestAlwaysFails (0.00s)
     main_test.go:47: failed, message: heh
     main_test.go:47: failed, message: heh2
     main_test.go:47: failed, message: heh again
+--- FAIL: TestAlwaysFails (0.00s)
 === RUN   TestUpdateNSSwitchConfig
 --- PASS: TestUpdateNSSwitchConfig (0.00s)
 === RUN   TestUpdateSSHConfig
@@ -51,50 +52,48 @@ FAIL
 func TestConvertToTestSuite(t *testing.T) {
 	tests := []struct {
 		results []string
-		ts      *testSuite
+		ts      junit.Testsuite
 	}{
 		{
 			[]string{testPass},
-			&testSuite{Tests: 4},
+			junit.Testsuite{Tests: 4},
 		},
 		{
 			[]string{testFail},
-			&testSuite{Tests: 5, Failures: 1},
+			junit.Testsuite{Tests: 5, Failures: 1},
 		},
 		{
 			[]string{testPass, testPass},
-			&testSuite{Tests: 8},
+			junit.Testsuite{Tests: 8},
 		},
 		{
 			[]string{testPass, testFail},
-			&testSuite{Tests: 9, Failures: 1},
+			junit.Testsuite{Tests: 9, Failures: 1},
 		},
 	}
 	for idx, tt := range tests {
 		ts := convertToTestSuite(tt.results, "")
 		switch {
-		case ts.XMLName != tt.ts.XMLName:
-			fallthrough
 		case ts.Name != tt.ts.Name:
-			fallthrough
+			t.Errorf("test %d Name got: %+v, want: %+v", idx, ts.Name, tt.ts.Name)
 		case ts.Tests != tt.ts.Tests:
-			fallthrough
+			t.Errorf("test %d Tests got: %+v, want: %+v", idx, ts.Tests, tt.ts.Tests)
 		case ts.Failures != tt.ts.Failures:
-			fallthrough
+			t.Errorf("test %d Failures got: %+v, want: %+v", idx, ts.Failures, tt.ts.Failures)
 		case ts.Errors != tt.ts.Errors:
-			fallthrough
+			t.Errorf("test %d Errors got: %+v, want: %+v", idx, ts.Errors, tt.ts.Errors)
 		case ts.Disabled != tt.ts.Disabled:
-			fallthrough
+			t.Errorf("test %d Disabled got: %+v, want: %+v", idx, ts.Disabled, tt.ts.Disabled)
 		case ts.Skipped != tt.ts.Skipped:
-			fallthrough
+			t.Errorf("test %d Skipped got: %+v, want: %+v", idx, ts.Skipped, tt.ts.Skipped)
 		case ts.Time != tt.ts.Time:
-			fallthrough
+			t.Errorf("test %d Time got: %+v, want: %+v", idx, ts.Time, tt.ts.Time)
 		case ts.SystemOut != tt.ts.SystemOut:
-			fallthrough
+			t.Errorf("test %d SystemOut got: %+v, want: %+v", idx, ts.SystemOut, tt.ts.SystemOut)
 		case ts.SystemErr != tt.ts.SystemErr:
-			fallthrough
-		case len(ts.TestCase) != tt.ts.Tests:
-			t.Errorf("test %d expected: %+v got: %+v", idx, tt.ts, ts)
+			t.Errorf("test %d SystemErr got: %+v, want: %+v", idx, ts.SystemErr, tt.ts.SystemErr)
+		case len(ts.Testcases) != tt.ts.Tests:
+			t.Errorf("test %d test length got: %+v, want: %+v", idx, ts.Tests, tt.ts.Tests)
 		}
 	}
 }
@@ -102,26 +101,26 @@ func TestConvertToTestSuite(t *testing.T) {
 func TestConvertToTestCase(t *testing.T) {
 	tests := []struct {
 		result string
-		tcs    []*testCase
+		tcs    []junit.Testcase
 	}{
 		{
 			testPass,
-			[]*testCase{
-				{Name: "TestUpdateNSSwitchConfig"},
-				{Name: "TestUpdateSSHConfig"},
-				{Name: "TestUpdatePAMsshd"},
-				{Name: "TestUpdateGroupConf"}},
+			[]junit.Testcase{
+				{Name: "TestUpdateNSSwitchConfig", Time: "0.000"},
+				{Name: "TestUpdateSSHConfig", Time: "0.000"},
+				{Name: "TestUpdatePAMsshd", Time: "0.000"},
+				{Name: "TestUpdateGroupConf", Time: "0.000"}},
 		},
 		{
 			testFail,
-			[]*testCase{
-				{Name: "TestAlwaysFails", Failure: &junitFailure{
-					FailMessage: "main_test.go:47: failed, message: heh\nmain_test.go:47: failed, message: heh2\nmain_test.go:47: failed, message: heh again"},
+			[]junit.Testcase{
+				{Time: "0.000", Name: "TestAlwaysFails", Failure: &junit.Result{
+					Data: "    main_test.go:47: failed, message: heh\n    main_test.go:47: failed, message: heh2\n    main_test.go:47: failed, message: heh again"},
 				},
-				{Name: "TestUpdateNSSwitchConfig"},
-				{Name: "TestUpdateSSHConfig"},
-				{Name: "TestUpdatePAMsshd"},
-				{Name: "TestUpdateGroupConf"}},
+				{Time: "0.000", Name: "TestUpdateNSSwitchConfig"},
+				{Time: "0.000", Name: "TestUpdateSSHConfig"},
+				{Time: "0.000", Name: "TestUpdatePAMsshd"},
+				{Time: "0.000", Name: "TestUpdateGroupConf"}},
 		},
 	}
 
@@ -138,17 +137,19 @@ func TestConvertToTestCase(t *testing.T) {
 		for i := 0; i < len(tt.tcs); i++ {
 			switch {
 			case tcs[i].Classname != tt.tcs[i].Classname:
-				fallthrough
+				t.Errorf("test %d mismatched Classname in test case %d. got: %v but want: %v", idx, i, tcs[i].Classname, tt.tcs[i].Classname)
 			case tcs[i].Name != tt.tcs[i].Name:
-				fallthrough
+				t.Errorf("test %d mismatched Name in test case %d. got: %v but want: %v", idx, i, tcs[i].Name, tt.tcs[i].Name)
 			case tcs[i].Time != tt.tcs[i].Time:
-				fallthrough
+				t.Errorf("test %d mismatched Time test case %d. got: %v but want: %v", idx, i, tcs[i].Time, tt.tcs[i].Time)
 			case tcs[i].Skipped != tt.tcs[i].Skipped:
-				fallthrough
-			case tcs[i].Failure != nil && tcs[i].Failure.FailMessage != tt.tcs[i].Failure.FailMessage:
-				fallthrough
+				t.Errorf("test %d mismatched Skipped in test case %d. got: %v but want: %v", idx, i, tcs[i].Skipped, tt.tcs[i].Skipped)
+			case (tcs[i].Failure != nil && tt.tcs[i].Failure == nil) || (tcs[i].Failure == nil && tt.tcs[i].Failure != nil):
+				t.Errorf("test %d mismatched Failure status in test case %d. got: %v but want: %v", idx, i, tcs[i].Failure, tt.tcs[i].Failure)
+			case tcs[i].Failure != nil && tcs[i].Failure.Data != tt.tcs[i].Failure.Data:
+				t.Errorf("test %d mismatched Failure Data in test case %d. got: %v but want: %v", idx, i, tcs[i].Failure.Data, tt.tcs[i].Failure.Data)
 			case tcs[i].SystemOut != tt.tcs[i].SystemOut:
-				t.Errorf("test %d mismatched test case %d. expected: %v got: %v", idx, i, tt.tcs[i], tcs[i])
+				t.Errorf("test %d mismatched SystemOut in test case %d. got: %v but want: %v", idx, i, tcs[i].SystemOut, tt.tcs[i].SystemOut)
 			}
 		}
 	}
