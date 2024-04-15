@@ -165,31 +165,31 @@ func WorkflowPolicy(id string) PolicyFunc {
 			name = r.Name
 			desc = r.Description
 		case *compute.Disk:
+			desc = r.Description
 			labels = r.Labels
 			name = r.Name
-			desc = r.Description
 		case *compute.Image:
+			desc = r.Description
 			labels = r.Labels
 			name = r.Name
-			desc = r.Description
 		case *compute.Snapshot:
+			desc = r.Description
 			labels = r.Labels
 			name = r.Name
-			desc = r.Description
 		case *compute.Instance:
+			desc = r.Description
 			if r.DeletionProtection {
 				return false
 			}
 			labels = r.Labels
 			name = r.Name
-			desc = r.Description
 		default:
 			return false
 		}
 		if _, keep := labels[keepLabel]; keep {
 			return false
 		}
-		return strings.HasSuffix(name, id) && strings.Contains(desc, `created by Daisy in workflow "`+id+`"`) && !strings.Contains(desc, keepLabel)
+		return strings.HasSuffix(name, id) && !strings.Contains(desc, keepLabel)
 	}
 }
 
