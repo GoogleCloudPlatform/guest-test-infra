@@ -30,8 +30,8 @@ import (
 	daisycompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/cleanerupper"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
+	"github.com/jstemmer/go-junit-report/v2/junit"
 	computeBeta "google.golang.org/api/compute/v0.beta"
- 	"github.com/jstemmer/go-junit-report/v2/junit"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iterator"
 )

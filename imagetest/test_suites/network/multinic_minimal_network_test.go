@@ -5,17 +5,17 @@ package network
 
 import (
 	"context"
-	"testing"
-	"time"
+	"errors"
 	"fmt"
-	"strings"
-	"sync"
+	"io"
+	"io/fs"
 	"net"
 	"net/http"
-	"io"
 	"os"
-	"errors"
-	"io/fs"
+	"strings"
+	"sync"
+	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -47,14 +47,14 @@ func TestSendPing(t *testing.T) {
 // expired, fail early if we succesfully connect with an unexpected response.
 func pingTarget(ctx context.Context, source, target string) error {
 	d := net.Dialer{
-		Timeout: 5 * time.Second,
+		Timeout:   5 * time.Second,
 		LocalAddr: &net.TCPAddr{IP: net.ParseIP(source), Port: 0},
 		DualStack: false,
 	}
 	client := http.Client{
 		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
-	    	DialContext: d.DialContext,
+			DialContext: d.DialContext,
 		},
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("http://%s:8080/", target), strings.NewReader("echo"))
