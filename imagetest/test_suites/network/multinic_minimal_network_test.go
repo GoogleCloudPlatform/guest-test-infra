@@ -82,6 +82,9 @@ func pingTarget(ctx context.Context, source, target string) error {
 
 func TestWaitForPing(t *testing.T) {
 	marker := "/var/ping-boot-marker"
+	if utils.IsWindows() {
+		marker = `C:\ping-boot-marker`
+	}
 	_, err := os.Stat(marker)
 	if errors.Is(err, fs.ErrNotExist) {
 		t.Log("first boot, not waiting for echo")
