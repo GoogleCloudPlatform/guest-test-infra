@@ -30,6 +30,9 @@ gsutil cp "${SRC_PATH}/common.sh" ./
 
 deploy_sbomutil
 
+# disable the backports repo for debian-10
+sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
+
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 
