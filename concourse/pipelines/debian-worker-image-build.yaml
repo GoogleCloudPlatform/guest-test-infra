@@ -217,7 +217,7 @@ jobs:
     get_params:
       skip_download: "true"
   - load_var: gcs-url
-    file: debian-11-worker-gcs/url
+    file: debian-12-worker-gcs/url
   - task: generate-build-date
     file: guest-test-infra/concourse/tasks/generate-version.yaml
   - load_var: build-date
