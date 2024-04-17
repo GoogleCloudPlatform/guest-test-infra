@@ -31,16 +31,16 @@ resources:
   source:
     bucket: artifact-releaser-prod-rtp
     regexp: "debian-worker/debian-11-worker-arm64-v([0-9]+).tar.gz"
-- name: debian-11-worker-gcs
+- name: debian-12-worker-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    regexp: "debian-worker/debian-11-worker-v([0-9]+).tar.gz"
-- name: debian-11-worker-arm64-gcs
+    regexp: "debian-worker/debian-12-worker-v([0-9]+).tar.gz"
+- name: debian-12-worker-arm64-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
-    regexp: "debian-worker/debian-11-worker-arm64-v([0-9]+).tar.gz"
+    regexp: "debian-worker/debian-12-worker-arm64-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
