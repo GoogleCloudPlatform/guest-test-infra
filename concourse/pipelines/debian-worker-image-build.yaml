@@ -31,6 +31,16 @@ resources:
   source:
     bucket: artifact-releaser-prod-rtp
     regexp: "debian-worker/debian-11-worker-arm64-v([0-9]+).tar.gz"
+- name: debian-12-worker-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    regexp: "debian-worker/debian-12-worker-v([0-9]+).tar.gz"
+- name: debian-12-worker-arm64-gcs
+  type: gcs
+  source:
+    bucket: artifact-releaser-prod-rtp
+    regexp: "debian-worker/debian-12-worker-arm64-v([0-9]+).tar.gz"
 
 jobs:
 # Build jobs
@@ -184,6 +194,106 @@ jobs:
       job: "build-debian-11-worker-arm64"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
+- name: build-debian-12-worker
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      id: '((.:id))'
+      prefix: "debian-12-worker"
+  - put: debian-12-worker-gcs
+    params:
+      file: build-id-dir/debian-12-worker*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: debian-12-worker-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: daisy-build-debian-12-worker
+    file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
+    vars:
+      wf: "debian/debian_12_worker.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "build-debian-12-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "build-debian-12-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: build-debian-12-worker-arm64
+  plan:
+  - get: compute-image-tools
+  - get: guest-test-infra
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - task: generate-id
+    file: guest-test-infra/concourse/tasks/generate-id.yaml
+  - load_var: id
+    file: generate-id/id
+  - task: generate-build-id
+    file: guest-test-infra/concourse/tasks/generate-build-id.yaml
+    vars:
+      id: '((.:id))'
+      prefix: "debian-12-worker-arm64"
+  - put: debian-12-worker-arm64-gcs
+    params:
+      file: build-id-dir/debian-12-worker-arm64*
+    get_params:
+      skip_download: "true"
+  - load_var: gcs-url
+    file: debian-12-worker-arm64-gcs/url
+  - task: generate-build-date
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: build-date
+    file: publish-version/version
+  - task: daisy-build-debian-12-worker-arm64
+    file: guest-test-infra/concourse/tasks/daisy-build-images-debian.yaml
+    vars:
+      wf: "debian/debian_12_worker_arm64.wf.json"
+      gcs_url: ((.:gcs-url))
+      build_date: ((.:build-date))
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "build-debian-12-worker-arm64"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "build-debian-12-worker-arm64"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
 # Publish jobs
 - name: publish-to-testing-debian-10-worker
   plan:
@@ -312,6 +422,92 @@ jobs:
     vars:
       pipeline: "debian-worker-image-build"
       job: "publish-to-testing-debian-11-worker-arm64"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: publish-to-testing-debian-12-worker
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - get: debian-12-worker-gcs
+    passed: [build-debian-12-worker]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-12-worker-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-12-worker
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_12_worker.publish.json"
+      environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-testing-debian-12-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-testing-debian-12-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: publish-to-testing-debian-12-worker-arm64
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - get: debian-12-worker-arm64-gcs
+    passed: [build-debian-12-worker-arm64]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-12-worker-arm64-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-12-worker-arm64
+    file: guest-test-infra/concourse/tasks/daisy-publish-images.yaml
+    vars:
+      source_gcs_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_12_worker_arm64.publish.json"
+      environment: "test"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-testing-debian-12-worker-arm64"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-testing-debian-12-worker-arm64"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
 - name: publish-to-prod-debian-10-worker
@@ -447,5 +643,95 @@ jobs:
     vars:
       pipeline: "debian-worker-image-build"
       job: "publish-to-prod-debian-11-worker-arm64"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: publish-to-prod-debian-12-worker
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - get: debian-12-worker-gcs
+    passed: [publish-to-testing-debian-12-worker]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-12-worker-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-12-worker
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_12_worker.publish.json"
+      release_notes: ""
+      image_name: "debian_12_worker"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-prod-debian-12-worker"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-prod-debian-12-worker"
+      result_state: "failure"
+      start_timestamp: ((.:start-timestamp-ms))
+- name: publish-to-prod-debian-12-worker-arm64
+  plan:
+  - get: guest-test-infra
+  - get: compute-image-tools
+  - task: generate-timestamp
+    file: guest-test-infra/concourse/tasks/generate-timestamp.yaml
+  - load_var: start-timestamp-ms
+    file: timestamp/timestamp-ms
+  - get: debian-12-worker-arm64-gcs
+    passed: [publish-to-testing-debian-12-worker-arm64]
+    trigger: false
+    params:
+      skip_download: "true"
+  - load_var: source-version
+    file: debian-12-worker-arm64-gcs/version
+  - task: generate-version
+    file: guest-test-infra/concourse/tasks/generate-version.yaml
+  - load_var: publish-version
+    file: publish-version/version # produced from generate-version task
+  - task: publish-debian-12-worker-arm64
+    file: guest-test-infra/concourse/tasks/gcloud-publish-image.yaml
+    vars:
+      gcs_image_path: "gs://artifact-releaser-prod-rtp/debian-worker"
+      source_version: v((.:source-version))
+      publish_version: ((.:publish-version))
+      wf: "debian/debian_12_worker_arm64.publish.json"
+      release_notes: ""
+      image_name: "debian_12_worker_arm64"
+      topic: "projects/artifact-releaser-prod/topics/gcp-guest-image-release-prod"
+  on_success:
+    task: success
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-prod-debian-12-worker-arm64"
+      result_state: "success"
+      start_timestamp: ((.:start-timestamp-ms))
+  on_failure:
+    task: failure
+    file: guest-test-infra/concourse/tasks/publish-job-result.yaml
+    vars:
+      pipeline: "debian-worker-image-build"
+      job: "publish-to-prod-debian-12-worker-arm64"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
