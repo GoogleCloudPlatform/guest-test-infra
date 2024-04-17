@@ -2,9 +2,9 @@ package metadata
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os/exec"
+	"testing"
 	"time"
 
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
@@ -17,21 +17,25 @@ func guestAgentPackageName() string {
 	return "google-guest-agent"
 }
 
-func reinstallGuestAgent(ctx context.Context) error {
+func reinstallGuestAgent(ctx context.Context, t *testing.T) {
+	t.Helper()
 	pkg := guestAgentPackageName()
 	if utils.IsWindows() {
 		cmd := exec.CommandContext(ctx, "googet", "install", "-reinstall", pkg)
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
 		if err := cmd.Start(); err != nil {
-			return err
+			t.Fatal(err)
 		}
 		time.Sleep(time.Second)
 		// Respond to "Reinstall pkg? (y/N):" prompt
 		io.WriteString(stdin, "y\r\n")
-		return cmd.Wait()
+		if err := cmd.Wait(); err != nil {
+			t.Fatalf("Failed waiting to reinstall agent: %v", err)
+		}
+		return
 	}
 	var cmd, fallback, prep *exec.Cmd
 	switch {
@@ -60,11 +64,12 @@ func reinstallGuestAgent(ctx context.Context) error {
 		fallback = exec.CommandContext(ctx, "zypper", "--non-interactive", "install", "--force", pkg)
 		fallback.Env = append(fallback.Env, "ZYPP_LOCK_TIMEOUT=5184000") // A negative value is supposed to wait forever but older versions of libzypp are bugged. This will wait for 24 hours.
 	default:
-		return fmt.Errorf("could not find a package manager to reinstall %s with", pkg)
+		t.Fatalf("could not find a package manager to reinstall %s with", pkg)
+		return
 	}
 	if prep != nil {
 		if err := prep.Run(); err != nil {
-			return fmt.Errorf("could not prep to reinstall %s: %v", pkg, err)
+			t.Logf("could not prep to reinstall %s: %v", pkg, err)
 		}
 	}
 
@@ -73,13 +78,11 @@ func reinstallGuestAgent(ctx context.Context) error {
 		if fallback != nil {
 			fallbackOutput, err := fallback.CombinedOutput()
 			if err != nil {
-				return fmt.Errorf("could not reinstall %s with fallback: %s, output: %s",
+				t.Fatalf("could not reinstall %s with fallback: %s, output: %s",
 					pkg, err, string(fallbackOutput))
 			}
 		} else {
-			return fmt.Errorf("could not reinstall %s: %s, output: %s", pkg, err, string(cmdOutput))
+			t.Fatalf("could not reinstall %s: %s, output: %s", pkg, err, string(cmdOutput))
 		}
 	}
-
-	return nil
 }
