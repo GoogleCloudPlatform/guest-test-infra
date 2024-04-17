@@ -93,9 +93,7 @@ func TestStartupScripts(t *testing.T) {
 		t.Fatalf("failed to clear startup script result: %s", err)
 	}
 
-	if err := reinstallGuestAgent(ctx); err != nil {
-		t.Fatal(err)
-	}
+	reinstallGuestAgent(ctx, t)
 
 	result, err = utils.GetMetadata(ctx, "instance", "guest-attributes", "testing", "result")
 	if err != nil {
