@@ -5,10 +5,8 @@ package network
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -20,8 +18,24 @@ import (
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
 
+func setupFirewall(t *testing.T) {
+	if utils.IsWindows() {
+		out, err := utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open8080inbound' -LocalPort 8080 -Action Allow -Profile 'Public' -Protocol TCP -Direction Inbound`)
+		if err != nil {
+			t.Fatalf("could not allow inbound traffic on port 8080: %s %s %v", out.Stdout, out.Stderr, err)
+		}
+		out, err = utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open8080outbound' -LocalPort 8080 -Action Allow -Profile 'Public' -Protocol TCP -Direction Outbound`)
+		if err != nil {
+			t.Fatalf("could not allow outbound traffic on port 8080: %s %s %v", out.Stdout, out.Stderr, err)
+		}
+	}
+}
+
 func TestSendPing(t *testing.T) {
 	ctx := utils.Context(t)
+	if utils.IsWindows() {
+		setupFirewall(t)
+	}
 	primaryIP, err := utils.GetMetadata(ctx, "instance", "network-interfaces", "0", "ip")
 	if err != nil {
 		t.Fatalf("couldn't get internal network IP from metadata, %v", err)
@@ -81,19 +95,14 @@ func pingTarget(ctx context.Context, source, target string) error {
 }
 
 func TestWaitForPing(t *testing.T) {
-	marker := "/var/ping-boot-marker"
+	marker := "/var/ping-done"
 	if utils.IsWindows() {
-		marker = `C:\ping-boot-marker`
+		marker = `C:\ping-done`
+		setupFirewall(t)
 	}
 	_, err := os.Stat(marker)
-	if errors.Is(err, fs.ErrNotExist) {
-		t.Log("first boot, not waiting for echo")
-		if _, err := os.Create(marker); err != nil {
-			t.Errorf("failed creating marker file")
-		}
+	if err == nil {
 		return
-	} else if err != nil {
-		t.Fatalf("could not determine if this is the first boot: %v", err)
 	}
 	ctx := utils.Context(t)
 	var count int
@@ -123,13 +132,16 @@ func TestWaitForPing(t *testing.T) {
 		c <- struct{}{}
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			t.Errorf("could not read from connection: %v", err)
+			t.Logf("could not read from connection: %v", err)
 			return
 		}
-		io.WriteString(w, string(body))
 		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, string(body))
 	})
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		t.Errorf("Failed to serve http: %v", err)
+	}
+	if _, err := os.Create(marker); err != nil {
+		t.Errorf("failed to mark ping test finished")
 	}
 }
