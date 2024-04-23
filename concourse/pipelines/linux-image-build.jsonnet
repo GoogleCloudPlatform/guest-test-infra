@@ -20,7 +20,7 @@ local imagetesttask = common.imagetesttask {
 
 local prepublishtesttask = common.imagetesttask {
   filter: '(shapevalidation)', // TODO enable oslogin
-  extra_args: [ '-shapevalidation_test_filter=^[A-Z][0-3]' ],
+  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
 local imgbuildjob = {
