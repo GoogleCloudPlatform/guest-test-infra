@@ -429,13 +429,13 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
         },
       },
-/*      {
+      {
         task: 'image-test-' + job.image,
         config: imagetesttask {
           images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
         },
         attempts: 3,
-      },*/
+      },
   ],
 };
 
