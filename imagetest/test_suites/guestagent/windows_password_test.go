@@ -156,12 +156,15 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	var trys int
 	var ep string
 	for {
-		time.Sleep(1 * time.Second)
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("context expired before successfully fetching encrypted password: %v", err)
+		}
+		time.Sleep(time.Minute)
 		ep, err = getEncryptedPassword(client, winKey.Modulus, instanceName, projectID, zone)
 		if err == nil {
 			break
 		}
-		if trys > 10 {
+		if trys > 5 {
 			return "", err
 		}
 		trys++
