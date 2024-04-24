@@ -542,6 +542,10 @@ func validateSocketsWindows(t *testing.T) {
 			continue
 		case 445: // microsoft-ds
 			continue
+		case 1433: // sql server
+			continue
+		case 1434: // sql server
+			continue
 		case 3389: // rdp
 			continue
 		case 5985: // winrm
