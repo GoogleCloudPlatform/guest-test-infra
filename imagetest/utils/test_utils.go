@@ -3,11 +3,13 @@ package utils
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"net"
 	"net/url"
 	"os"
@@ -543,4 +545,54 @@ func Context(t *testing.T) context.Context {
 	// If there's not deadline defined then we just use a
 	// plain background context as we won't need to cancel it.
 	return context.Background()
+}
+
+// ValidWindowsPassword returns a random password of the given length which
+// meets Windows complexity requirements.
+func ValidWindowsPassword(userPwLgth int) string {
+	var pwLgth int
+	minPwLgth := 15
+	maxPwLgth := 255
+	lower := []byte("abcdefghijklmnopqrstuvwxyz")
+	upper := []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	numbers := []byte("0123456789")
+	special := []byte(`~!@#$%^&*_-+=|(){}[]:;<>,.?`)
+	chars := bytes.Join([][]byte{lower, upper, numbers, special}, nil)
+	pwLgth = minPwLgth
+	if userPwLgth > minPwLgth {
+		pwLgth = userPwLgth
+	}
+	if userPwLgth > maxPwLgth {
+		pwLgth = maxPwLgth
+	}
+
+	for {
+		b := make([]byte, pwLgth)
+		for i := range b {
+			ci, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+			if err != nil {
+				continue
+			}
+			b[i] = chars[ci.Int64()]
+		}
+
+		var l, u, n, s int
+		if bytes.ContainsAny(lower, string(b)) {
+			l = 1
+		}
+		if bytes.ContainsAny(upper, string(b)) {
+			u = 1
+		}
+		if bytes.ContainsAny(numbers, string(b)) {
+			n = 1
+		}
+		if bytes.ContainsAny(special, string(b)) {
+			s = 1
+		}
+		// If the password does not meet Windows complexity requirements, try again.
+		// https://technet.microsoft.com/en-us/library/cc786468
+		if l+u+n+s >= 3 {
+			return string(b)
+		}
+	}
 }

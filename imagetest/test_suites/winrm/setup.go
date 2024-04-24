@@ -1,8 +1,6 @@
 package winrm
 
 import (
-	"math/rand"
-
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest"
 	"github.com/GoogleCloudPlatform/guest-test-infra/imagetest/utils"
 )
@@ -17,7 +15,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if !utils.HasFeature(t.Image, "WINDOWS") {
 		return nil
 	}
-	passwd := genPw(14)
+	passwd := utils.ValidWindowsPassword(15)
 
 	vm, err := t.CreateTestVM("client")
 	if err != nil {
@@ -34,15 +32,4 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	vm2.RunTests("TestWaitForWinrmConnection")
 
 	return nil
-}
-
-func genPw(length int) string {
-	const allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-!@#$%^&*+"
-
-	str := make([]byte, length)
-	for i := 0; i < length; i++ {
-		str[i] = allowedChars[rand.Intn(len(allowedChars))]
-	}
-
-	return string(str)
 }
