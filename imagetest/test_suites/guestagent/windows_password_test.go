@@ -153,7 +153,7 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 	t.Logf("Set new 'windows-keys' metadata to %s", winKeys)
 
 	t.Log("Fetching encrypted password")
-	var trys int
+	var attempts int
 	var ep string
 	for {
 		if err := ctx.Err(); err != nil {
@@ -164,10 +164,10 @@ func resetPassword(client daisyCompute.Client, t *testing.T) (string, error) {
 		if err == nil {
 			break
 		}
-		if trys > 5 {
+		if attempts > 5 {
 			return "", err
 		}
-		trys++
+		attempts++
 	}
 
 	t.Log("Decrypting password")
