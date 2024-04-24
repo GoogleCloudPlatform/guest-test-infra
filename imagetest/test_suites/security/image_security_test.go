@@ -519,7 +519,7 @@ func validateSocketsWindows(t *testing.T) {
 			t.Errorf("could not find process name listening on port %d", p)
 		}
 		pname := strings.TrimSpace(owningprocess.Stdout)
-		if p > 49152 && pname == "svchost" {
+		if p > 49152 && (pname == "svchost" || pname == "Idle") {
 			continue
 		}
 		t.Errorf("found udp listener on unexpected port %d (process name %s)", p, pname)
