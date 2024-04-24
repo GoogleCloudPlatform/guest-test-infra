@@ -237,14 +237,21 @@ func TestServicesState(t *testing.T) {
 	}
 
 	for _, service := range services {
-		command := fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop) | Select-Object Name, Status, StartType", service)
-		output, err := utils.RunPowershellCmd(command)
+		out, err := utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).Status", service))
 		if err != nil {
-			t.Fatalf("Error getting service state: %v", err)
+			t.Fatalf("Error getting service status: %v %v", err, out.Stderr)
 		}
-
-		if !strings.Contains(output.Stdout, "Running") || !strings.Contains(output.Stdout, "Automatic") {
-			t.Fatalf("'Running' or 'Automatic not found in service state for %s: %s", service, output.Stdout)
+		status := strings.TrimSpace(out.Stdout)
+		out, err = utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).StartType", service))
+		if err != nil {
+			t.Fatalf("Error getting service starttype: %v %v", err, out.Stderr)
+		}
+		startType := strings.TrimSpace(out.Stdout)
+		if status != "Running" {
+			t.Errorf("service %s has unexpected Status, got %s want Running", service, status)
+		}
+		if startType != "Automatic" {
+			t.Errorf("service %s has unexpected StartType, got %s want Automatic", service, startType)
 		}
 	}
 }
