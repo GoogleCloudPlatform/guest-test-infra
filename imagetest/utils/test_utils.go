@@ -551,7 +551,7 @@ func Context(t *testing.T) context.Context {
 // meets Windows complexity requirements.
 func ValidWindowsPassword(userPwLgth int) string {
 	var pwLgth int
-	minPwLgth := 15
+	minPwLgth := 14
 	maxPwLgth := 255
 	lower := []byte("abcdefghijklmnopqrstuvwxyz")
 	upper := []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ")

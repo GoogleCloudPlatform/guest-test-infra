@@ -15,7 +15,7 @@ func TestSetup(t *imagetest.TestWorkflow) error {
 	if !utils.HasFeature(t.Image, "WINDOWS") {
 		return nil
 	}
-	passwd := utils.ValidWindowsPassword(15)
+	passwd := utils.ValidWindowsPassword(14)
 
 	vm, err := t.CreateTestVM("client")
 	if err != nil {
