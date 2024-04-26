@@ -471,7 +471,6 @@ local WindowsInstallMediaImgBuildJob(image) = windowsinstallmediaimgbuildjob {
 };
 
 local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
-  runtests: false,
   image: image,
   gcs_dir: gcs_dir,
   // build -> testing
@@ -481,7 +480,6 @@ local ImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
 };
 
 local MediaImgPublishJob(image, workflow_dir, gcs_dir) = imgpublishjob {
-  runtests: false,
   image: image,
   gcs_dir: gcs_dir,
   // build -> testing
