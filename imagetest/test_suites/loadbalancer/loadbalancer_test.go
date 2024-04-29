@@ -110,7 +110,7 @@ func checkBackendsInLoadBalancer(ctx context.Context, t *testing.T, lbip string)
 	for ctx.Err() == nil {
 		time.Sleep(3 * time.Second) // Wait enough time for the health check and load balancer to update
 		r, err := getTargetWithTimeout(ctx, t, lbip, "stop")
-		if err != nil {
+		if err != nil || r == "no healthy upstream" {
 			continue
 		}
 		if resp1 == "" {
