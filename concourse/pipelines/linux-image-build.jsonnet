@@ -360,8 +360,6 @@ local imggroup = {
   local centos_images = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
   local rhel_sap_images = [
     'rhel-7-9-sap',
-    'rhel-8-2-sap',
-    'rhel-8-2-sap-byos',
     'rhel-8-4-sap',
     'rhel-8-4-sap-byos',
     'rhel-8-6-sap',
