@@ -29,13 +29,13 @@ func TestL7Backend(t *testing.T) { runBackend(t) }
 
 func setupFirewall(t *testing.T) {
 	if utils.IsWindows() {
-		out, err := utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open80inbound' -LocalPort 80 -Action Allow -Profile 'Public' -Protocol TCP -Direction Inbound`)
+		out, err := utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open8080inbound' -LocalPort 8080 -Action Allow -Profile 'Public' -Protocol TCP -Direction Inbound`)
 		if err != nil {
-			t.Fatalf("could not allow inbound traffic on port 80: %s %s %v", out.Stdout, out.Stderr, err)
+			t.Fatalf("could not allow inbound traffic on port 8080: %s %s %v", out.Stdout, out.Stderr, err)
 		}
-		out, err = utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open80outbound' -LocalPort 80 -Action Allow -Profile 'Public' -Protocol TCP -Direction Outbound`)
+		out, err = utils.RunPowershellCmd(`New-NetFirewallRule -DisplayName 'open8080outbound' -LocalPort 8080 -Action Allow -Profile 'Public' -Protocol TCP -Direction Outbound`)
 		if err != nil {
-			t.Fatalf("could not allow outbound traffic on port 80: %s %s %v", out.Stdout, out.Stderr, err)
+			t.Fatalf("could not allow outbound traffic on port 8080: %s %s %v", out.Stdout, out.Stderr, err)
 		}
 	}
 }
@@ -48,7 +48,9 @@ func runBackend(t *testing.T) {
 		t.Fatalf("could not get hostname: %v", err)
 	}
 	var mu sync.RWMutex
-	var srv http.Server
+	srv := http.Server{
+		Addr: ":8080",
+	}
 	var count int
 	c := make(chan struct{})
 	stop := make(chan struct{})
@@ -69,7 +71,7 @@ func runBackend(t *testing.T) {
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		mu.RLock()
 		defer mu.RUnlock()
-		if req.Host == l3IlbIP4Addr || req.Host == l7IlbIP4Addr {
+		if strings.Contains(req.Host, l3IlbIP4Addr) || strings.Contains(req.Host, l7IlbIP4Addr) {
 			c <- struct{}{}
 		}
 		body, err := io.ReadAll(req.Body)
@@ -333,7 +335,7 @@ func setupLoadBalancer(ctx context.Context, t *testing.T, lbType, backend1, back
 			NetworkEndpointType: proto.String("GCE_VM_IP_PORT"),
 			Network:             &network,
 			Subnetwork:          &subnetwork,
-			DefaultPort:         proto.Int32(80),
+			DefaultPort:         proto.Int32(8080),
 		}
 		insertNegReq := &computepb.InsertNetworkEndpointGroupRequest{
 			Project:                      project,
@@ -357,10 +359,10 @@ func setupLoadBalancer(ctx context.Context, t *testing.T, lbType, backend1, back
 		Zone:    zone,
 	}
 	waitFor(negClient.AttachNetworkEndpoints(ctx, addBackendsReq))
-	// Create http health on port 80
+	// Create http health on port 8080
 	httpHc := &computepb.HTTPHealthCheck{
 		PortSpecification: proto.String("USE_FIXED_PORT"),
-		Port:              proto.Int32(80),
+		Port:              proto.Int32(8080),
 	}
 	hcRes := &computepb.HealthCheck{
 		CheckIntervalSec: proto.Int32(1),
@@ -403,7 +405,7 @@ func setupLoadBalancer(ctx context.Context, t *testing.T, lbType, backend1, back
 			BackendService:      proto.String(fmt.Sprintf("projects/%s/regions/%s/backendServices/%s", project, region, backendName)),
 			IPAddress:           &lbip,
 			IPProtocol:          proto.String("TCP"),
-			Ports:               []string{"80"},
+			Ports:               []string{"8080"},
 			Name:                &forwardingRuleName,
 		}
 		forwardingRuleReq := &computepb.InsertForwardingRuleRequest{
@@ -464,7 +466,7 @@ func setupLoadBalancer(ctx context.Context, t *testing.T, lbType, backend1, back
 			Target:              proto.String(fmt.Sprintf("projects/%s/regions/%s/targetHttpProxies/%s", project, region, httpProxyName)),
 			IPAddress:           &lbip,
 			IPProtocol:          proto.String("TCP"),
-			PortRange:           proto.String("80"),
+			PortRange:           proto.String("8080"),
 			Name:                &forwardingRuleName,
 		}
 		forwardingRuleReq := &computepb.InsertForwardingRuleRequest{
@@ -479,15 +481,15 @@ func setupLoadBalancer(ctx context.Context, t *testing.T, lbType, backend1, back
 func TestL3Client(t *testing.T) {
 	ctx := utils.Context(t)
 	setupFirewall(t)
-	waitForBackends(ctx, t, l3backendVM1IP4addr, l3backendVM2IP4addr)
+	waitForBackends(ctx, t, l3backendVM1IP4addr+":8080", l3backendVM2IP4addr+":8080")
 	setupLoadBalancer(ctx, t, "L3", "l3backend1", "l3backend2", l3IlbIP4Addr)
-	checkBackendsInLoadBalancer(ctx, t, l3IlbIP4Addr)
+	checkBackendsInLoadBalancer(ctx, t, l3IlbIP4Addr+":8080")
 }
 
 func TestL7Client(t *testing.T) {
 	ctx := utils.Context(t)
 	setupFirewall(t)
-	waitForBackends(ctx, t, l7backendVM1IP4addr, l7backendVM2IP4addr)
+	waitForBackends(ctx, t, l7backendVM1IP4addr+":8080", l7backendVM2IP4addr+":8080")
 	setupLoadBalancer(ctx, t, "L7", "l7backend1", "l7backend2", l7IlbIP4Addr)
-	checkBackendsInLoadBalancer(ctx, t, l7IlbIP4Addr)
+	checkBackendsInLoadBalancer(ctx, t, l7IlbIP4Addr+":8080")
 }

@@ -536,6 +536,8 @@ func validateSocketsWindows(t *testing.T) {
 		switch p {
 		case 22: // sshd
 			continue
+		case 80: // sql web server
+			continue
 		case 135: // msrpc
 			continue
 		case 139: // NetBIOS
@@ -545,6 +547,8 @@ func validateSocketsWindows(t *testing.T) {
 		case 1433: // sql server
 			continue
 		case 1434: // sql server
+			continue
+		case 2383: // sql server analysis service
 			continue
 		case 3389: // rdp
 			continue
