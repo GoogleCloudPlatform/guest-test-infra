@@ -515,7 +515,7 @@ local build_guest_agent = buildpackagejob {
             image_name: 'cos-113',
             source_image: 'projects/cos-cloud/global/images/family/cos-113-lts',
             dest_image: 'cos-113-((.:build-id))',
-            package_version: ((.:package-version)),
+            package_version: '((.:package-version))',
             cos_branch: 'release-R113'
           },
         ],
