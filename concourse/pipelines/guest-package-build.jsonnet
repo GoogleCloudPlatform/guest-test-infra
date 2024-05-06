@@ -370,6 +370,43 @@ local buildpackageimagetask = {
   },
 };
 
+local buildpackageimagetaskcos = {
+  local tl = self,
+
+  image_name:: error 'must set image_name in buildpackageimagetaskcos',
+  source_image:: error 'must set source_image in buildpackageimagetaskcos',
+  dest_image:: error 'must set dest_image in buildpackageimagetaskcos',
+  package_version:: error 'must set dest_image in buildpackageimagetaskcos',
+  cos_branch:: error 'must set dest_image in buildpackageimagetaskcos',
+  machine_type:: 'e2-medium',
+  worker_image:: 'projects/compute-image-tools/global/images/family/debian-11-worker',
+
+  // Start of output.
+  task: 'build-derivative-%s-image' % tl.image_name,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/daisy' },
+    },
+    inputs: [{ name: 'compute-image-tools' }],
+    run: {
+      path: '/daisy',
+      args: [
+        '-project=gcp-guest',
+        '-zone=us-central1-a',
+        '-var:source_image=' + tl.source_image,
+        '-var:dest_image=' + tl.dest_image,
+        '-var:package_version=' + tl.package_version,
+        '-var:cos_branch=' + tl.cos_branch,
+        '-var:machine_type=' + tl.machine_type,
+        '-var:worker_image=' + tl.worker_image,
+        './compute-image-tools/daisy_workflows/image_build/install_package/install_package_cos.wf.json',
+      ],
+    },
+  },
+};
+
 local build_guest_agent = buildpackagejob {
   local tl = self,
 
@@ -474,6 +511,13 @@ local build_guest_agent = buildpackagejob {
             machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
           },
+          buildpackageimagetaskcos {
+            image_name: 'cos-113',
+            source_image: 'projects/cos-cloud/global/images/family/cos-113-lts',
+            dest_image: 'cos-113-((.:build-id))',
+            package_version: '((.:package-version))',
+            cos_branch: 'release-R113'
+          },
         ],
       },
     },
@@ -495,7 +539,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id))',
                   '-exclude=(image)|(livemigrate)|(suspendresume)|(disk)|(security)|(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)|(licensevalidation)',
                 ],
               },
