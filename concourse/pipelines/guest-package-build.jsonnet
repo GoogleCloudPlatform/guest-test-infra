@@ -401,7 +401,7 @@ local buildpackageimagetaskcos = {
         '-var:cos_branch=' + tl.cos_branch,
         '-var:machine_type=' + tl.machine_type,
         '-var:worker_image=' + tl.worker_image,
-        './compute-image-tools/daisy_workflows/image_build/install_package/install_package_cos.wf.json',
+        './compute-image-tools/daisy_workflows/image_build/install_package/cos/install_package_cos.wf.json',
       ],
     },
   },
