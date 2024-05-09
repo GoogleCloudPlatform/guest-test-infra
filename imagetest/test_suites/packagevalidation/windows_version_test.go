@@ -220,6 +220,7 @@ func TestDotNETVersion(t *testing.T) {
 
 func TestServicesState(t *testing.T) {
 	utils.WindowsOnly(t)
+	ctx := utils.Context(t)
 	image, err := utils.GetMetadata(utils.Context(t), "instance", "image")
 	if err != nil {
 		t.Fatalf("Couldn't get image from metadata %v", err)
@@ -235,23 +236,41 @@ func TestServicesState(t *testing.T) {
 		services = append(services, "google_osconfig_agent")
 
 	}
-
-	for _, service := range services {
-		out, err := utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).Status", service))
-		if err != nil {
-			t.Fatalf("Error getting service status: %v %v", err, out.Stderr)
+	checkServices := func() []error {
+		var errs []error
+		for _, service := range services {
+			out, err := utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).Status", service))
+			if err != nil {
+				errs = append(errs, fmt.Errorf("Error getting service %s status: %v %v", service, err, out.Stderr))
+				return errs
+			}
+			status := strings.TrimSpace(out.Stdout)
+			out, err = utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).StartType", service))
+			if err != nil {
+				errs = append(errs, fmt.Errorf("Error getting service %s starttype: %v %v", service, err, out.Stderr))
+				return errs
+			}
+			startType := strings.TrimSpace(out.Stdout)
+			if status != "Running" {
+				errs = append(errs, fmt.Errorf("service %s has unexpected Status, got %s want Running", service, status))
+			}
+			if startType != "Automatic" {
+				errs = append(errs, fmt.Errorf("service %s has unexpected StartType, got %s want Automatic", service, startType))
+			}
 		}
-		status := strings.TrimSpace(out.Stdout)
-		out, err = utils.RunPowershellCmd(fmt.Sprintf("(Get-Service -Name %s -ErrorAction Stop).StartType", service))
-		if err != nil {
-			t.Fatalf("Error getting service starttype: %v %v", err, out.Stderr)
+		return errs
+	}
+	for {
+		errs := checkServices()
+		if len(errs) == 0 {
+			break
 		}
-		startType := strings.TrimSpace(out.Stdout)
-		if status != "Running" {
-			t.Errorf("service %s has unexpected Status, got %s want Running", service, status)
-		}
-		if startType != "Automatic" {
-			t.Errorf("service %s has unexpected StartType, got %s want Automatic", service, startType)
+		if err := ctx.Err(); err != nil {
+			var serviceStateMismatch strings.Builder
+			for _, e := range errs {
+				serviceStateMismatch.WriteString(fmt.Sprintf("%v\n", e))
+			}
+			t.Fatalf("context expired before services reached expected state: %v\nlast state mismatches:\n%s", err, serviceStateMismatch.String())
 		}
 	}
 }
