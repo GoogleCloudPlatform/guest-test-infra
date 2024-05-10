@@ -121,7 +121,6 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     BuildContainerImage('jsonnet-go'),
     BuildContainerImage('fly-validate-pipelines') { passed: 'build-jsonnet-go' },
     BuildContainerImage('pytest'),
-    BuildContainerImage('citpresubmit'),
 
     // Non-standard dockerfile location and public image.
     BuildContainerImage('registry-image-forked') {
@@ -132,8 +131,8 @@ local BuildContainerImage(image) = buildcontainerimgjob {
 
     // These build from the root of the repo.
     BuildContainerImage('cloud-image-tests') {
-      context: 'guest-test-infra',
-      dockerfile: 'imagetest/Dockerfile',
+      context: 'cloud-image-tests',
+      dockerfile: 'Dockerfile',
       // Public image.
       repo: 'gcr.io/compute-image-tools',
     },
