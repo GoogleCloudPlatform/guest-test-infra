@@ -115,12 +115,14 @@ local base_buildpackagejob = {
               '  latest_build=$((latest_build+1))',
               'fi',
               'printf "%s.%02d\n" "${todays_date}" "${latest_build}" | tee package-version/version',
+              'printf "${latest}" | tee latest/tag',
             ]),
           ],
         },
       },
     },
     { load_var: 'package-version', file: 'package-version/version' },
+    { load_var: 'latest-tag', file: 'latest/tag' },
     // Invoke daisy build workflows for all specified builds.
     {
       in_parallel: {
@@ -515,7 +517,7 @@ local build_guest_agent = buildpackagejob {
             image_name: 'cos-113',
             source_image: 'projects/cos-cloud/global/images/family/cos-113-lts',
             dest_image: 'cos-113-((.:build-id))',
-            package_version: '((.:package-version))',
+            package_version: '((.:latest-tag))',
             cos_branch: 'release-R113'
           },
         ],
