@@ -96,6 +96,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
   }],
   resources: [
+    common.GitResource('cloud-image-tests'),
     common.GitResource('guest-test-infra'),
     common.GitResource('compute-image-tools'),
     {
@@ -130,12 +131,6 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     },
 
     // These build from the root of the repo.
-    BuildContainerImage('cloud-image-tests') {
-      context: 'cloud-image-tests',
-      dockerfile: 'Dockerfile',
-      // Public image.
-      repo: 'gcr.io/compute-image-tools',
-    },
     BuildContainerImage('concourse-metrics') {
       context: 'guest-test-infra',
       dockerfile: 'guest-test-infra/container_images/concourse-metrics/Dockerfile',
@@ -165,6 +160,13 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'compute-image-tools/gce_windows_upgrade_tests.Dockerfile',
       image: 'gce_windows_upgrade_tests',
       input: 'compute-image-tools',
+    },
+    buildcontainerimgjob {
+      context: 'cloud-image-tests',
+      destination: 'gcr.io/compute-image-tools/cloud-image-tests',
+      dockerfile: 'Dockerfile',
+      input: 'cloud-image-tests',
+      image: 'cloud-image-tests',
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
