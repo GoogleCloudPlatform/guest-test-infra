@@ -96,7 +96,14 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
   }],
   resources: [
-    common.GitResource('cloud-image-tests'),
+    {
+      name: 'cloud-image-tests',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/cloud-image-tests.git',
+        branch: 'main',
+      },
+    },
     common.GitResource('guest-test-infra'),
     common.GitResource('compute-image-tools'),
     {
