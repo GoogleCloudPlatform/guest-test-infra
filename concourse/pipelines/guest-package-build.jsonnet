@@ -513,7 +513,7 @@ local build_guest_agent = buildpackagejob {
           },
           buildpackageimagetaskcos {
             image_name: 'cos-113',
-            source_image: 'projects/cos-cloud/global/images/family/cos-113-lts',
+            source_image: 'cos-113-lts',
             dest_image: 'cos-113-((.:build-id))',
             commit_sha: '((.:commit-sha))',
             cos_branch: 'release-R113'
