@@ -262,6 +262,15 @@ local imgpublishjob = {
             load_var: 'publish-version',
             file: 'publish-version/version',
           },
+	  {
+	    task: 'generate-hash',
+	    file: 'guest-test-infra/concourse/tasks/generate-hash.yaml',
+	    vars: { gcsimgfile: tl.gcs },
+	  },
+          {
+            load_var: 'sha-hash',
+            file: 'generate-hash/hash',
+          },
         ] +
         // Run prepublish tests and invoke ARLE in prod
         if tl.env == 'prod' then
@@ -278,6 +287,7 @@ local imgpublishjob = {
             config: arle.arlepublishtask {
               gcs_image_path: tl.gcs,
               gcs_sbom_path: '((.:sbom-destination))',
+              image_sha256_hash: '((.:sha-hash))',
               source_version: 'v((.:source-version))',
               publish_version: '((.:publish-version))',
               wf: tl.workflow,
