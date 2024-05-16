@@ -477,7 +477,8 @@ local imgpublishjob = {
     else false,
 
   // Run CIT on server and sql when publishing to testing
-  runtests:: if job.env == 'testing' then true else false,
+  runtests:: if job.env == 'testing' then true
+    else false,
 
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
