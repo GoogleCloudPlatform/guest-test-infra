@@ -388,9 +388,9 @@ local imgpublishjob = {
   // Builds are automatically pushed to testing.
   trigger:: true,
 
-  // Run CIT on server and sql when publishing to testing
-  runtests:: if job.env == 'testing' then true
-    else false,
+  // Run CIT by default on server and sql
+  runtests:: if std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0 then true
+  else false,
 
   // Start of job.
   name: 'publish-to-testing-%s' % [job.image],
