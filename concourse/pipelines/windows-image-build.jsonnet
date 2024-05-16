@@ -530,7 +530,7 @@ local imgpublishjob = {
       file: 'publish-version/version',
     },
   ] +
-  if job.env == 'prod' && job.runtests then
+  if job.env == 'testing' && job.runtests then
   [
     {
       task: 'prepublish-test-' + job.image,
