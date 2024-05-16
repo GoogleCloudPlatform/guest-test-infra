@@ -530,18 +530,6 @@ local imgpublishjob = {
       file: 'publish-version/version',
     },
   ] +
-  if job.env == 'prod' && job.runtests then
-  [
-    {
-      task: 'prepublish-test-' + job.image,
-      config: prepublishtesttask {
-        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
-      },
-      attempts: 3,
-    }
-  ]
-  else
-  [] +
   if job.env == 'prod' then
   [
     {
