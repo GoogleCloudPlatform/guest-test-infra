@@ -476,8 +476,8 @@ local imgpublishjob = {
     else if job.env == 'client' then true
     else false,
 
-  // Run CIT on server and sql when publishing to testing
-  runtests:: if job.env == 'testing' then true
+  // Run tests on server and sql images
+  runtests:: if (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) && job.env == 'testing' then true
     else false,
 
   // Start of job.
