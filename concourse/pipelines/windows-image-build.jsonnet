@@ -757,6 +757,10 @@ local ImgGroup(name, images, environments) = {
                for image in prerelease_images
              ] +
              [
+               common.GcsSbomResource(image, 'sql')
+               for image in prerelease_images
+             ] +
+             [
                common.GcsImgResource(image, 'windows-install-media')
                for image in windows_install_media_images
              ],
