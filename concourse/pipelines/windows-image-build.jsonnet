@@ -529,6 +529,15 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
+    {
+      task: 'generate-hash',
+      file: 'guest-test-infra/concourse/tasks/generate-hash.yaml',
+      vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [job.gcs, job.image] },
+    },
+    {
+      load_var: 'sha-hash',
+      file: 'generate-hash/hash',
+    },
   ] +
   if job.env == 'prod' then
   [
@@ -548,6 +557,7 @@ local imgpublishjob = {
     {
       task: 'gce-image-publish-' + job.image,
       config: arle.gcepublishtask {
+        image_sha256_hash: '((.:sha-hash))',
         source_gcs_path: job.gcs,
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',

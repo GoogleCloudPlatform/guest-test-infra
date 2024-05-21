@@ -262,6 +262,16 @@ local imgpublishjob = {
             load_var: 'publish-version',
             file: 'publish-version/version',
           },
+	  {
+	    task: 'generate-hash',
+	    file: 'guest-test-infra/concourse/tasks/generate-hash.yaml',
+	    // tl.gcs is gs://artifact-releaser-prod-rtp/centos if nothing is appended, how do we get the img tar file name? The output of "get-debian-10-gcs" as a task seems to have the file name, how do we get that?
+	    vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [tl.gcs, tl.image_prefix] },
+	  },
+          {
+            load_var: 'sha-hash',
+            file: 'generate-hash/hash',
+          },
         ] +
         // Run prepublish tests and invoke ARLE in prod
         if tl.env == 'prod' then
@@ -278,6 +288,7 @@ local imgpublishjob = {
             config: arle.arlepublishtask {
               gcs_image_path: tl.gcs,
               gcs_sbom_path: '((.:sbom-destination))',
+              image_sha256_hash: '((.:sha-hash))',
               source_version: 'v((.:source-version))',
               publish_version: '((.:publish-version))',
               wf: tl.workflow,

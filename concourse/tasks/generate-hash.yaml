@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: busybox
+
+outputs:
+- name: generate-hash
+
+run:
+  path: sh
+  args:
+  - -exc
+  - "gsutil cp ((gcsimgfile)) img.tar.gz; if [ $? != 0 ]; then exit 1; fi; echo $(sha256sum img.tar.gz) | tee generate-hash/hash"
