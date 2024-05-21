@@ -4,7 +4,8 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: busybox
+    repository: google/cloud-sdk
+    tag: alpine
 
 outputs:
 - name: generate-hash
