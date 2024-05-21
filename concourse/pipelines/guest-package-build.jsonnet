@@ -269,71 +269,6 @@ local uploadpackageversiontask = {
   },
 };
 
-// task which uploads a package to rapture using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
-// this is scheduled to be deprecated in favor of uploadpackageversiontask
-local uploadpackagetask = {
-  local tl = self,
-
-  package_paths:: error 'must set package_paths in uploadpackagetask',
-  sbom_file:: error 'must set sbom_file in uploadpackagetask',
-  repo:: error 'must set rapture_repo in uploadpackagetask',
-  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
-  type:: 'uploadToStaging',
-  universe:: error 'must set universe in uploadpackagetask',
-
-  task: 'upload-' + tl.repo,
-  config: {
-    platform: 'linux',
-    image_resource: {
-      type: 'registry-image',
-      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
-    },
-    run: {
-      path: 'gcloud',
-      args: [
-        'pubsub',
-        'topics',
-        'publish',
-        tl.topic,
-        '--message',
-        '{"type": "%s", "request": {"gcsfiles": [%s], "sbomfile": %s, "universe": "%s", "repo": "%s"}}' %
-        [tl.type, tl.package_paths, tl.sbom_file, tl.universe, tl.repo],
-      ],
-    },
-  },
-};
-
-// task which promotes a package using the 'promoteToStaging' ARLE RPC
-local promotepackagestagingtask = {
-  local tl = self,
-
-  repo:: error 'must set repo in promotepackagestagingtask',
-  universe:: error 'must set universe in promotepackagestagingtask',
-  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
-
-  // Start of output.
-  task: 'promote-staging-' + tl.repo,
-  config: {
-    platform: 'linux',
-    image_resource: {
-      type: 'registry-image',
-      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
-    },
-    run: {
-      path: 'gcloud',
-      args: [
-        'pubsub',
-        'topics',
-        'publish',
-        tl.topic,
-        '--message',
-        '{"type": "promoteToStaging", "request": {"gcsfiles": [], "universe": "%s", "repo": "%s"}}' %
-        [tl.universe, tl.repo],
-      ],
-    },
-  },
-};
-
 // task which builds a derivative OS image with a specific package added, for use in tests
 local buildpackageimagetask = {
   local tl = self,
@@ -574,60 +509,6 @@ local build_guest_agent = buildpackagejob {
 
 local build_and_upload_guest_agent = build_guest_agent {
   uploads: [
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-buster',
-      universe: 'cloud-apt',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-bullseye',
-      universe: 'cloud-apt',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent_((.:package-version))-g1_arm64.deb"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-bookworm',
-      universe: 'cloud-apt',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-el7',
-      universe: 'cloud-yum',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-el8',
-      universe: 'cloud-yum',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-guest-agent-((.:package-version)).sbom.json"}',
-      repo: 'google-guest-agent-el9',
-      universe: 'cloud-yum',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":""}',
-      universe: 'cloud-yuck',
-      repo: 'google-compute-engine-windows',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":""}',
-      universe: 'cloud-yuck',
-      repo: 'google-compute-engine-metadata-scripts',
-    },
-    uploadpackagetask {
-      package_paths: '{"bucket":"gcp-guest-package-uploads","object":"guest-agent/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo"}',
-      sbom_file: '{"bucket":"gcp-guest-package-uploads","object":""}',
-      universe: 'cloud-yuck',
-      repo: 'google-compute-engine-metadata-scripts',
-    },
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/guest-agent/google-guest-agent_((.:package-version))-g1_amd64.deb"',
       os_type: 'BUSTER_APT',
@@ -872,42 +753,6 @@ local build_and_upload_guest_agent = build_guest_agent {
         },
       ],
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-buster',
-          universe: 'cloud-apt',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-bullseye',
-          universe: 'cloud-apt',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-bookworm',
-          universe: 'cloud-apt',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-el7',
-          universe: 'cloud-yum',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-el8',
-          universe: 'cloud-yum',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json"}',
-          repo: 'gce-google-compute-engine-oslogin-el9',
-          universe: 'cloud-yum',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb"',
           os_type: 'BUSTER_APT',
@@ -968,55 +813,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       package: 'osconfig',
       builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-buster',
-          universe: 'cloud-apt',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-bullseye',
-          universe: 'cloud-apt',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-bookworm',
-          universe: 'cloud-apt',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-el7',
-          universe: 'cloud-yum',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el8.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-el8',
-          universe: 'cloud-yum',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version))-g1.el9.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent-((.:package-version)).sbom.json"}',
-          repo: 'google-osconfig-agent-el9',
-          universe: 'cloud-yum',
-          type: 'uploadToUnstable',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":""}',
-          repo: 'google-osconfig-agent',
-          universe: 'cloud-yuck',
-          type: 'uploadToUnstable',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
           os_type: 'BUSTER_APT',
@@ -1082,56 +878,11 @@ local build_and_upload_guest_agent = build_guest_agent {
         },
       ],
     },
-    promotepackagejob {
-      package: 'osconfig',
-      dest: 'staging',
-      promotions: [
-        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
-        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
-        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bookworm' },
-        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
-        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el8' },
-        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el9' },
-        promotepackagestagingtask { universe: 'cloud-yuck', repo: 'google-osconfig-agent' },
-      ],
-    },
     buildpackagejob {
       package: 'guest-diskexpand',
       builds: ['deb10', 'el7', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
-          repo: 'gce-disk-expand',
-          universe: 'cloud-apt',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.noarch.rpm"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-disk-expand-el7',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el8.noarch.rpm"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-disk-expand-el8',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el9.noarch.rpm"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-disk-expand-el9',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.noarch.rpm"',
           os_type: 'EL7_YUM',
@@ -1167,42 +918,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       builds: ['deb10', 'el7', 'el8', 'el9'],
       gcs_dir: 'google-compute-engine',
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-apt',
-          repo: 'gce-google-compute-engine-buster',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-apt',
-          repo: 'gce-google-compute-engine-bullseye',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-apt',
-          repo: 'gce-google-compute-engine-bookworm',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-google-compute-engine-el7',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-google-compute-engine-el8',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"google-compute-engine/google-compute-engine-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'gce-google-compute-engine-el9',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
           os_type: 'BUSTER_APT',
@@ -1264,24 +979,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       builds: ['el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'yum-plugin-artifact-registry',
       uploads: [
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.x86_64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'yum-plugin-artifact-registry-el7',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'dnf-plugin-artifact-registry-el8',
-        },
-        uploadpackagetask {
-          package_paths: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.x86_64.rpm"},{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.aarch64.rpm"}',
-          sbom_file: '{"bucket":"gcp-guest-package-uploads","object":"yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json"}',
-          universe: 'cloud-yum',
-          repo: 'dnf-plugin-artifact-registry-el9',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.x86_64.rpm"',
           os_type: 'EL7_YUM',
@@ -1315,14 +1012,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       package: 'artifact-registry-apt-transport',
       builds: ['deb10', 'deb11-arm64'],
       uploads: [
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb"},{"bucket":"gcp-guest-package-uploads","object":"apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":"apt-transport-artifact-registry/apt-transport-artifact-registry-((.:package-version)).sbom.json"}',
-          universe: 'cloud-apt',
-          repo: 'apt-transport-artifact-registry',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
           os_type: 'DEBIAN_ALL_APT',
@@ -1338,46 +1027,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       package: 'compute-image-windows',
       builds: ['goo'],
       uploads: [
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'certgen',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-auto-updater.noarch.((.:package-version))@1.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'google-compute-engine-auto-updater',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-powershell.noarch.((.:package-version))@1.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'google-compute-engine-powershell',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-sysprep.noarch.((.:package-version))@1.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'google-compute-engine-sysprep',
-        },
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-windows/google-compute-engine-ssh.x86_64.((.:package-version)).0@1.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'google-compute-engine-ssh',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
@@ -1430,14 +1079,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       builds: ['goo'],
       name: 'build-diagnostics',
       uploads: [
-        uploadpackagetask {
-          package_paths:
-            '{"bucket":"gcp-guest-package-uploads","object":"compute-image-tools/google-compute-engine-diagnostics.x86_64.((.:package-version)).0@0.goo"}',
-          sbom_file:
-            '{"bucket":"gcp-guest-package-uploads","object":""}',
-          universe: 'cloud-yuck',
-          repo: 'google-compute-engine-diagnostics',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-tools/google-compute-engine-diagnostics.x86_64.((.:package-version)).0@0.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
