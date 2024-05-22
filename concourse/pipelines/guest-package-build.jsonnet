@@ -192,44 +192,6 @@ local buildpackagejob = base_buildpackagejob {
   },
 };
 
-// job which promotes a package - individual promotion tasks are passed in.
-local promotepackagejob = {
-  local tl = self,
-
-  package:: error 'must set package in promotepackagejob',
-  promotions:: error 'must set promotions in promotepackagejob',
-  dest:: error 'must set dest in promotepackagejob',
-  passed:: 'build-' + tl.package,
-
-  // Start of output.
-  name: 'promote-%s-%s' % [tl.package, tl.dest],
-  plan: [
-    // Prep variables and content.
-    {
-      get: '%s-tag' % tl.package,
-      passed: [tl.passed],
-    },
-    {
-      get: tl.package,
-      params: { fetch_tags: true },
-    },
-    { get: 'guest-test-infra' },
-    generatetimestamptask,
-    { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
-    // Run provided promotion tasks.
-    { in_parallel: tl.promotions },
-  ],
-  // Publish success/failure metrics.
-  on_success: publishresulttask {
-    result: 'success',
-    package: tl.package,
-  },
-  on_failure: publishresulttask {
-    result: 'failure',
-    package: tl.package,
-  },
-};
-
 // task which uploads a package version using the 'uploadToArtifactReleaser' pubsub request type
 local uploadpackageversiontask = {
   local tl = self,
