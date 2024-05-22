@@ -812,7 +812,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm","gs://osconfig/google-osconfig-agent-((.:package-version))-g1.el8.aarch64.rpm"',
+          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el8.aarch64.rpm"',
           os_type: 'EL8_YUM',
           pkg_inside_name: 'google-osconfig-agent',
           pkg_name: 'google-osconfig-agent',
@@ -821,7 +821,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm","gs://osconfig/google-osconfig-agent-((.:package-version))-g1.el9.aarch64.rpm"',
+          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el9.aarch64.rpm"',
           os_type: 'EL9_YUM',
           pkg_inside_name: 'google-osconfig-agent',
           pkg_name: 'google-osconfig-agent',
