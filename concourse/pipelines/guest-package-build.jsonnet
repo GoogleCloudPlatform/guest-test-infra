@@ -192,6 +192,44 @@ local buildpackagejob = base_buildpackagejob {
   },
 };
 
+// job which promotes a package - individual promotion tasks are passed in.
+local promotepackagejob = {
+  local tl = self,
+
+  package:: error 'must set package in promotepackagejob',
+  promotions:: error 'must set promotions in promotepackagejob',
+  dest:: error 'must set dest in promotepackagejob',
+  passed:: 'build-' + tl.package,
+
+  // Start of output.
+  name: 'promote-%s-%s' % [tl.package, tl.dest],
+  plan: [
+    // Prep variables and content.
+    {
+      get: '%s-tag' % tl.package,
+      passed: [tl.passed],
+    },
+    {
+      get: tl.package,
+      params: { fetch_tags: true },
+    },
+    { get: 'guest-test-infra' },
+    generatetimestamptask,
+    { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
+    // Run provided promotion tasks.
+    { in_parallel: tl.promotions },
+  ],
+  // Publish success/failure metrics.
+  on_success: publishresulttask {
+    result: 'success',
+    package: tl.package,
+  },
+  on_failure: publishresulttask {
+    result: 'failure',
+    package: tl.package,
+  },
+};
+
 // task which uploads a package version using the 'uploadToArtifactReleaser' pubsub request type
 local uploadpackageversiontask = {
   local tl = self,
@@ -226,6 +264,71 @@ local uploadpackageversiontask = {
         '--message',
         '{"type": "%s", "request": {"ostype": "%s", "pkginsidename": "%s", "pkgname": "%s", "pkgversion": "%s", "reponame": "%s", "sbomfile": "%s", "gcsfiles": [%s]}}' %
         [tl.request_type, tl.os_type, tl.pkg_inside_name, tl.pkg_name, tl.pkg_version, tl.reponame, tl.sbom_file, tl.gcs_files],
+      ],
+    },
+  },
+};
+
+// task which uploads a package to rapture using the 'uploadToStaging' or 'uploadToUnstable' ARLE RPCs
+// this is scheduled to be deprecated in favor of uploadpackageversiontask
+local uploadpackagetask = {
+  local tl = self,
+
+  package_paths:: error 'must set package_paths in uploadpackagetask',
+  sbom_file:: error 'must set sbom_file in uploadpackagetask',
+  repo:: error 'must set rapture_repo in uploadpackagetask',
+  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
+  type:: 'uploadToStaging',
+  universe:: error 'must set universe in uploadpackagetask',
+
+  task: 'upload-' + tl.repo,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "%s", "request": {"gcsfiles": [%s], "sbomfile": %s, "universe": "%s", "repo": "%s"}}' %
+        [tl.type, tl.package_paths, tl.sbom_file, tl.universe, tl.repo],
+      ],
+    },
+  },
+};
+
+// task which promotes a package using the 'promoteToStaging' ARLE RPC
+local promotepackagestagingtask = {
+  local tl = self,
+
+  repo:: error 'must set repo in promotepackagestagingtask',
+  universe:: error 'must set universe in promotepackagestagingtask',
+  topic:: 'projects/artifact-releaser-prod/topics/gcp-guest-package-upload-prod',
+
+  // Start of output.
+  task: 'promote-staging-' + tl.repo,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'google/cloud-sdk', tag: 'alpine' },
+    },
+    run: {
+      path: 'gcloud',
+      args: [
+        'pubsub',
+        'topics',
+        'publish',
+        tl.topic,
+        '--message',
+        '{"type": "promoteToStaging", "request": {"gcsfiles": [], "universe": "%s", "repo": "%s"}}' %
+        [tl.universe, tl.repo],
       ],
     },
   },
@@ -838,6 +941,19 @@ local build_and_upload_guest_agent = build_guest_agent {
           reponame: 'google-osconfig-agent-googet',
           sbom_file: '',
         },
+      ],
+    },
+    promotepackagejob {
+      package: 'osconfig',
+      dest: 'staging',
+      promotions: [
+        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-buster' },
+        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bullseye' },
+        promotepackagestagingtask { universe: 'cloud-apt', repo: 'google-osconfig-agent-bookworm' },
+        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el7' },
+        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el8' },
+        promotepackagestagingtask { universe: 'cloud-yum', repo: 'google-osconfig-agent-el9' },
+        promotepackagestagingtask { universe: 'cloud-yuck', repo: 'google-osconfig-agent' },
       ],
     },
     buildpackagejob {
