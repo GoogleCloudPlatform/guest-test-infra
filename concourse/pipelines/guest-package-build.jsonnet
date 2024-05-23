@@ -552,6 +552,11 @@ local build_and_upload_guest_agent = build_guest_agent {
     build_and_upload_guest_agent {
       package: 'guest-agent',
     },
+    build_and_upload_guest_agent {
+      package: 'guest-agent-stable',
+      repo_name: 'guest-agent',
+      extended_tasks: [],
+    },
     build_guest_agent {
       package: 'guest-agent-dev',
       repo_name: 'guest-agent',
@@ -1063,6 +1068,15 @@ local build_and_upload_guest_agent = build_guest_agent {
   ],
   resources: [
     {
+      name: 'guest-agent-stable',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
+        branch: 'stable',
+        fetch_tags: false,
+      },
+    },
+    {
       name: 'guest-agent-dev',
       type: 'git',
       source: {
@@ -1247,6 +1261,12 @@ local build_and_upload_guest_agent = build_guest_agent {
       name: 'guest-agent',
       jobs: [
         'build-guest-agent',
+      ],
+    },
+    {
+      name: 'guest-agent-stable',
+      jobs: [
+        'build-guest-agent-stable',
       ],
     },
     {
