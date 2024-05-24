@@ -408,13 +408,6 @@ local build_guest_agent = buildpackagejob {
             machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
           },
-          buildpackageimagetaskcos {
-            image_name: 'cos-113',
-            source_image: 'cos-113-lts',
-            dest_image: 'cos-113-((.:build-id))',
-            commit_sha: '((.:commit-sha))',
-            cos_branch: 'release-R113'
-          },
         ],
       },
     },
