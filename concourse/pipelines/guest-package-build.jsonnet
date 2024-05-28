@@ -172,11 +172,11 @@ local buildpackagejob = base_buildpackagejob {
     },
     // Put the version tag onto the repo after uploads are complete.
     {
-      put: '%s-tag' % tl.repo_name,
+      put: '%s-tag' % tl.package,
       params: {
         name: 'package-version/version',
         tag: 'package-version/version',
-        commitish: '%s/.git/ref' % tl.repo_name,
+        commitish: '%s/.git/ref' % tl.package,
       },
     },
   ],
@@ -1090,6 +1090,15 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     {
       name: 'guest-agent-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'guest-agent',
+        access_token: '((github-token.token))',
+      },
+    },
+    {
+      name: 'guest-agent-stable-tag',
       type: 'github-release',
       source: {
         owner: 'GoogleCloudPlatform',
