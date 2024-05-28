@@ -550,7 +550,6 @@ local build_and_upload_guest_agent = build_guest_agent {
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
       repo_name: 'guest-agent',
-      extended_tasks: [],
     },
     build_guest_agent {
       package: 'guest-agent-dev',
