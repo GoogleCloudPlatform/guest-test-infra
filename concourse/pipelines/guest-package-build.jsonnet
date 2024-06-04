@@ -846,6 +846,15 @@ local build_and_upload_guest_agent = build_guest_agent {
       gcs_dir: 'gce-disk-expand',
       uploads: [
         uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand_((.:package-version))-g1_all.deb"',
+          os_type: 'DEBIAN_ALL_APT',
+          pkg_inside_name: 'gce-disk-expand',
+          pkg_name: 'guest-diskexpand',
+          pkg_version: '((.:package-version))',
+          reponame: 'gce-disk-expand',
+          sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
+        },
+        uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.noarch.rpm"',
           os_type: 'EL7_YUM',
           pkg_inside_name: 'gce-disk-expand',
@@ -872,7 +881,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           reponame: 'gce-disk-expand-el9',
           sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
         },
-
       ],
     },
     buildpackagejob {
@@ -981,7 +989,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_name: 'artifact-registry-apt-transport',
           pkg_version: '((.:package-version))',
           reponame: 'apt-transport-artifact-registry',
-          sbom_file: '',
+          sbom_file: 'gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry-((.:package-version)).sbom.json',
         },
       ],
     },
