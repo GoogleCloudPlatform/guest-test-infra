@@ -947,7 +947,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_inside_name: 'yum-plugin-artifact-registry',
           pkg_name: 'artifact-registry-yum-plugin',
           pkg_version: '((.:package-version))',
-          reponame: 'yum-plugin-artifact-registry',
+          reponame: 'yum-plugin-artifact-registry-el7',
           sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
