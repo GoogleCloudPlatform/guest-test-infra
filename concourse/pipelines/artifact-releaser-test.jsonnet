@@ -329,7 +329,7 @@ local pkggroup = {
   // Linux images.
   local almalinux = ['almalinux-8', 'almalinux-9'],
   local debian = ['debian-10', 'debian-11', 'debian-11-arm64', 'debian-12', 'debian-12-arm64'],
-  local centos = ['centos-7', 'centos-stream-8', 'centos-stream-9'],
+  local centos = ['centos-7', 'centos-stream-9'],
   local rhel = [
     'rhel-7',
     'rhel-7-byos',
