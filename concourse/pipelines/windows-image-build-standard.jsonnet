@@ -346,7 +346,7 @@ local imgpublishjob = {
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
 
-  runtests:: if job.env == 'prod' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
+  runtests:: if job.env == 'testing' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
     else false,
 
   // Publish can proceed if build passes.

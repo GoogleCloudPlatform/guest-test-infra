@@ -472,7 +472,7 @@ local imgpublishjob = {
     else false,
 
   // Run tests on server and sql images
-  runtests:: if job.env == 'prod' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
+  runtests:: if job.env == 'testing' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
     else false,
 
   // Start of job.
