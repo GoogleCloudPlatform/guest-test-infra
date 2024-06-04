@@ -472,7 +472,7 @@ local imgpublishjob = {
     else false,
 
   // Run tests on server and sql images
-  runtests:: if (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) && job.env == 'testing' then true
+  runtests:: if job.env == 'prod' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
     else false,
 
   // Start of job.
@@ -534,7 +534,7 @@ local imgpublishjob = {
       file: 'generate-hash/hash',
     },
   ] +
-  if job.env == 'prod' then
+  (if job.env == 'prod' then
   [
     {
       task: 'arle-publish-' + job.image,
@@ -545,7 +545,7 @@ local imgpublishjob = {
         wf: job.workflow,
         image_name: job.image,
       },
-    }
+    },
   ]
   else
   [
@@ -560,8 +560,8 @@ local imgpublishjob = {
         environment: if job.env == 'testing' then 'test' else job.env,
       },
     },
-  ] +
-  if job.env == 'prod' && job.runtests then
+  ]) +
+  (if job.runtests then
   [
     {
       task: 'image-test-' + job.image,
@@ -569,10 +569,10 @@ local imgpublishjob = {
         images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
       },
       attempts: 3,
-    },
+    }
   ]
   else
-  [],
+  []),
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
