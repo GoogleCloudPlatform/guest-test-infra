@@ -785,7 +785,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"',
           os_type: 'BULLSEYE_APT',
           pkg_inside_name: 'google-osconfig-agent',
           pkg_name: 'google-osconfig-agent',
@@ -794,7 +794,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"',
           os_type: 'BOOKWORM_APT',
           pkg_inside_name: 'google-osconfig-agent',
           pkg_name: 'google-osconfig-agent',
