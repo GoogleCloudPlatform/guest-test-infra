@@ -8,8 +8,8 @@ local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local imagetesttask = common.imagetesttask {
-  exclude: '(networkperf)|(oslogin)|(security)|(shapevalidation)|(sql)|(storageperf)|(windowscontainers)',
-  extra_args: [ '-x86_shape=n1-standard-4' ],
+  exclude: '(networkperf)|(oslogin)|(security)|(sql)|(storageperf)|(windowscontainers)',
+  extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
 // Templates.
@@ -218,7 +218,7 @@ local imgpublishjob = {
       },
     },
   ] +
-  if job.runtests then
+  if job.env == 'testing' && job.runtests then
     [
       {
         task: 'image-test-' + job.image,

@@ -10,13 +10,8 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetesttask = common.imagetesttask {
-  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
-  extra_args: [ '-x86_shape=n1-standard-4' ],
-};
-
-local prepublishtesttask = common.imagetesttask {
-  filter: '(shapevalidation)',
-  extra_args: [ '-shapevalidation_test_filter=^[A-Z][0-3]' ],
+  exclude: '(oslogin)|(storageperf)|(networkperf)',
+  extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
 local imgbuildjob = {
@@ -350,6 +345,7 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
+  runtests:: true,
 
   // Publish can proceed if build passes.
   passed:: if job.env == 'testing' then
@@ -394,17 +390,9 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-  ] +
-  // Run prepublish tests in prod
+ ] +
   if job.env == 'prod' then
   [
-    {
-      task: 'prepublish-test-' + job.image,
-      config: prepublishtesttask {
-        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
-      },
-      attempts: 3,
-    },
     // Different publish step in prod
     {
       task: 'arle-publish-' + job.image,
@@ -429,14 +417,20 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
         },
       },
+  ]
+  +
+  if job.env == 'prod' && job.runtests then
+  [
       {
         task: 'image-test-' + job.image,
         config: imagetesttask {
           images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
         },
         attempts: 3,
-      },
-  ],
+    },
+  ]
+  else
+  [],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
