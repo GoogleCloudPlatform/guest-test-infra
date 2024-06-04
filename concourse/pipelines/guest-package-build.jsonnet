@@ -830,7 +830,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo"',
+          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent.x86_64.((.:package-version)).0@1.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
           pkg_inside_name: 'google-osconfig-agent',
           pkg_name: 'google-osconfig-agent',
