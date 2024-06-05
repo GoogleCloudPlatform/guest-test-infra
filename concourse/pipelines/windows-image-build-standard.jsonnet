@@ -345,7 +345,9 @@ local imgpublishjob = {
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   topic:: common.prod_topic,
-  runtests:: true,
+
+  runtests:: if job.env == 'testing' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
+    else false,
 
   // Publish can proceed if build passes.
   passed:: if job.env == 'testing' then
@@ -391,7 +393,7 @@ local imgpublishjob = {
       file: 'publish-version/version',
     },
  ] +
-  if job.env == 'prod' then
+  (if job.env == 'prod' then
   [
     // Different publish step in prod
     {
@@ -417,9 +419,9 @@ local imgpublishjob = {
           environment: if job.env == 'testing' then 'test' else job.env,
         },
       },
-  ]
+  ])
   +
-  if job.env == 'prod' && job.runtests then
+  (if job.runtests then
   [
       {
         task: 'image-test-' + job.image,
@@ -430,7 +432,7 @@ local imgpublishjob = {
     },
   ]
   else
-  [],
+  []),
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {

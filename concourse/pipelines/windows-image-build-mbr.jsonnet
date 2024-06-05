@@ -173,7 +173,7 @@ local imgpublishjob = {
   trigger:: if job.env == 'testing' then true
     else false,
 
-  runtests:: if job.env == 'testing' then true
+  runtests:: if job.env == 'testing' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
     else false,
 
   // Start of job.
@@ -218,7 +218,7 @@ local imgpublishjob = {
       },
     },
   ] +
-  if job.env == 'testing' && job.runtests then
+  if job.runtests then
     [
       {
         task: 'image-test-' + job.image,
