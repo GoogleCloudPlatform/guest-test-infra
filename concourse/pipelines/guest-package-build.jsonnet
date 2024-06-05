@@ -983,7 +983,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       builds: ['deb10', 'deb11-arm64'],
       uploads: [
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
           os_type: 'DEBIAN_ALL_APT',
           pkg_inside_name: 'apt-transport-artifact-registry',
           pkg_name: 'artifact-registry-apt-transport',
