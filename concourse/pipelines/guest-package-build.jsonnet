@@ -989,7 +989,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_name: 'artifact-registry-apt-transport',
           pkg_version: '((.:package-version))',
           reponame: 'apt-transport-artifact-registry',
-          sbom_file: 'gs://gcp-guest-package-uploads/apt-transport-artifact-registry/apt-transport-artifact-registry-((.:package-version)).sbom.json',
+          sbom_file: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry-((.:package-version)).sbom.json',
         },
       ],
     },
