@@ -527,7 +527,7 @@ local imgpublishjob = {
     {
       task: 'generate-hash',
       file: 'guest-test-infra/concourse/tasks/generate-hash.yaml',
-      vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [job.gcs, job.image], localfile: '((.:start-timestamp-ms))' },
+      vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [job.gcs, job.image], localfile: job.image + '((.:start-timestamp-ms))' },
     },
     {
       load_var: 'sha-hash',
