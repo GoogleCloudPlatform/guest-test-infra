@@ -266,7 +266,7 @@ local imgpublishjob = {
 	    task: 'generate-hash',
 	    file: 'guest-test-infra/concourse/tasks/generate-hash.yaml',
 	    // tl.gcs is gs://artifact-releaser-prod-rtp/centos if nothing is appended, how do we get the img tar file name? The output of "get-debian-10-gcs" as a task seems to have the file name, how do we get that?
-	    vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [tl.gcs, tl.image_prefix] },
+	    vars: { gcsimgfile: '%s/%s-v((.:source-version)).tar.gz' % [tl.gcs, tl.image_prefix], localfile: tl.image + '((.:start-timestamp-ms))' },
 	  },
           {
             load_var: 'sha-hash',
