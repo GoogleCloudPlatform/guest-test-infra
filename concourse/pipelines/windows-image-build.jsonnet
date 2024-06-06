@@ -540,6 +540,7 @@ local imgpublishjob = {
       task: 'arle-publish-' + job.image,
       config: arle.arlepublishtask {
         gcs_image_path: job.gcs,
+        image_sha256_hash: '((.:sha-hash))',
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
         wf: job.workflow,
