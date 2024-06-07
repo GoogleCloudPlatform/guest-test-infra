@@ -14,4 +14,4 @@ run:
   path: sh
   args:
   - -exc
-  - "gcloud storage cp ((gcsimgfile)) ((localfile)).tar.gz; if [ $? != 0 ]; then exit 1; fi; echo $(sha256sum ((localfile)).tar.gz) | tee generate-hash/hash"
+  - "gcloud storage cp ((gcsimgfile)) ((localfile)).tar.gz; if [ $? != 0 ]; then exit 1; fi; imghash=$(sha256sum ((localfile)).tar.gz | awk '{print $1;}'); echo $imghash | tee generate-hash/hash"
