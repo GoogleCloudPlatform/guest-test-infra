@@ -377,6 +377,8 @@ local imggroup = {
     'rhel-8-6-sap-byos',
     'rhel-8-8-sap',
     'rhel-8-8-sap-byos',
+    'rhel-8-10-sap',
+    'rhel-8-10-sap-byos',
     'rhel-9-0-sap',
     'rhel-9-0-sap-byos',
     'rhel-9-2-sap',
