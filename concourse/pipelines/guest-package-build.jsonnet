@@ -966,7 +966,7 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.aarch64.rpm"',
+          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.aarch64.rpm"',
           os_type: 'EL9_YUM',
           pkg_inside_name: 'dnf-plugin-artifact-registry',
           pkg_name: 'artifact-registry-dnf-plugin',
