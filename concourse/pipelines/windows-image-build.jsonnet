@@ -97,6 +97,11 @@ local imgbuildjob = {
       file: '%s-sbom/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
       put: job.image + '-shasum',
       params: {
         file: 'build-id-dir-shasum/%s*' % job.image,
@@ -271,6 +276,11 @@ local sqlimgbuildjob = {
     {
       load_var: 'sbom-destination',
       file: '%s-sbom/url' % job.image,
+    },
+    {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
     },
     {
       put: job.image + '-shasum',

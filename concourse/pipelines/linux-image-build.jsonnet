@@ -108,6 +108,11 @@ local imgbuildjob = {
       file: '%s-sbom/url' % tl.image,
     },
     {
+      task: 'generate-build-id-shaum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shaum.yaml',
+      vars: { prefix: tl.image_prefix, id: '((.:id))' },
+    },
+    {
       put: tl.image + '-shasum',
       params: {
         // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107-1681318938.txt'
