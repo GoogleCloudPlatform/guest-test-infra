@@ -84,6 +84,33 @@
     sbom_destination: sbom_destination,
   },
 
+
+  gcsshasumresource:: {
+    local resource = self,
+
+    regexp:: if self.shasum_destination != '' then
+      'sboms/%s/%s/%s-v([0-9]+)-([0-9]+)-shasum.txt' % [self.shasum_destination, self.image_prefix, self.image_prefix]
+    else
+      error 'must set regexp or shasum_destination in gcsshasumresource',
+
+    shasum_destination:: '',
+    image_prefix:: self.image,
+    image:: error 'must set image in gcsshasumresource template',
+    bucket:: tl.sbom_bucket,
+
+    name: self.image + '-shasum',
+    type: 'gcs',
+    source: {
+      bucket: resource.bucket,
+      regexp: resource.regexp,
+    },
+  },
+
+  GcsShasumResource(image, shasum_destination):: self.gcsshasumresource {
+    image: image,
+    shasum_destination: shasum_destination,
+  },
+
   imagetesttask:: {
     local task = self,
     images:: error 'must set images in imagetesttask',

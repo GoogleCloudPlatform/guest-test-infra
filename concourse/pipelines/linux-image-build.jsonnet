@@ -108,6 +108,20 @@ local imgbuildjob = {
       file: '%s-sbom/url' % tl.image,
     },
     {
+      put: tl.image + '-shasum',
+      params: {
+        // empty file written to GCS e.g. 'build-id-dir/centos-7-v20210107-1681318938.txt'
+        file: 'build-id-dir-shasum/%s*' % tl.image_prefix,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'shasum-destination',
+      file: '%s-shasum/url' % tl.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -251,6 +265,10 @@ local imgpublishjob = {
             file: '%s-sbom/url' % tl.image,
           },
           {
+            load_var: 'shasum-destination',
+            file: '%s-shasum/url' % tl.image,
+          },
+          {
             load_var: 'source-version',
             file: tl.image + '-gcs/version',
           },
@@ -278,6 +296,7 @@ local imgpublishjob = {
             config: arle.arlepublishtask {
               gcs_image_path: tl.gcs,
               gcs_sbom_path: '((.:sbom-destination))',
+              image_sha256_hash_txt: '((.:shasum-destination))',
               source_version: 'v((.:source-version))',
               publish_version: '((.:publish-version))',
               wf: tl.workflow,
@@ -419,8 +438,10 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -433,10 +454,17 @@ local imggroup = {
                image_prefix: common.debian_image_prefixes[image],
                sbom_destination: 'debian',
              } for image in debian_images] +
+             [common.gcsshasumresource {
+               image: image,
+               image_prefix: common.debian_image_prefixes[image],
+               shasum_destination: 'debian',
+             } for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images],
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] + 
+             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // Debian build jobs
           debianimgbuildjob {
