@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: busybox
+
+outputs:
+- name: build-id-dir-shasum
+
+run:
+  path: sh
+  args:
+  - -exc
+  - "buildid=((id)); uuid=$(date '+%s'); echo $buildid | tee build-id-dir-shasum/build-id-shasum; touch build-id-dir-shasum/((prefix))-v${buildid}-${uuid}.txt"

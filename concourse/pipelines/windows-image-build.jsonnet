@@ -97,6 +97,24 @@ local imgbuildjob = {
       file: '%s-sbom/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-shasum',
+      params: {
+        file: 'build-id-dir-shasum/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -158,6 +176,7 @@ local imgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
+        sha256_txt: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
@@ -259,6 +278,24 @@ local sqlimgbuildjob = {
       file: '%s-sbom/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-shasum',
+      params: {
+        file: 'build-id-dir-shasum/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -295,6 +332,7 @@ local sqlimgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
+        sha256_txt: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
@@ -456,7 +494,9 @@ local imgpublishjob = {
   workflow:: error 'must set workflow in imgpublishjob',
   gcs_dir:: error 'must set gcs_dir in imgpublishjob',
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
+  gcs_shasum:: 'gs://%s/%s' % [self.gcs_sbom_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
+  gcs_sbom_bucket:: common.sbom_bucket,
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
@@ -524,6 +564,10 @@ local imgpublishjob = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
   ] +
   (if job.env == 'prod' then
   [
@@ -531,6 +575,7 @@ local imgpublishjob = {
       task: 'arle-publish-' + job.image,
       config: arle.arlepublishtask {
         gcs_image_path: job.gcs,
+        image_sha256_hash_txt: '((.:sha256-txt))',
         source_version: 'v((.:source-version))',
         publish_version: '((.:publish-version))',
         wf: job.workflow,
@@ -744,6 +789,18 @@ local ImgGroup(name, images, environments) = {
                for image in sql_images
              ] +
              [
+               common.GcsShasumResource(image, 'windows-client')
+               for image in windows_client_images
+             ] +
+             [
+               common.GcsShasumResource(image, 'windows-server')
+               for image in windows_server_images
+             ] +
+             [
+               common.GcsShasumResource(image, 'sql')
+               for image in sql_images
+             ] +
+             [
                common.GcsImgResource(image, 'sqlserver-uefi')
                for image in sql_images
              ] +
@@ -753,6 +810,10 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsSbomResource(image, 'sql')
+               for image in prerelease_images
+             ] +
+             [
+               common.GcsShasumResource(image, 'sql')
                for image in prerelease_images
              ] +
              [
