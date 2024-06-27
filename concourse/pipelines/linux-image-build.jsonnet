@@ -108,8 +108,8 @@ local imgbuildjob = {
       file: '%s-sbom/url' % tl.image,
     },
     {
-      task: 'generate-build-id-shaum',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id-shaum.yaml',
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
       vars: { prefix: tl.image_prefix, id: '((.:id))' },
     },
     {
