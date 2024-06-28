@@ -176,7 +176,7 @@ local imgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
-        sha256_txt: '((.:sha256-txt))',
+        shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
@@ -332,7 +332,7 @@ local sqlimgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
-        sha256_txt: '((.:sha256-txt))',
+        shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
