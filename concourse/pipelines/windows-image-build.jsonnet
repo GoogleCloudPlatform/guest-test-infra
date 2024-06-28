@@ -553,12 +553,6 @@ local imgpublishjob = {
       trigger: job.trigger,
     },
     {
-      get: '%s-shasum' % job.image,
-      params: { skip_download: 'true' },
-      passed: [job.passed],
-      trigger: job.trigger,
-    },
-    {
       load_var: 'source-version',
       file: '%s-gcs/version' % job.image,
     },
@@ -569,6 +563,12 @@ local imgpublishjob = {
     {
       load_var: 'publish-version',
       file: 'publish-version/version',
+    },
+    {
+      get: '%s-shasum' % job.image,
+      params: { skip_download: 'true' },
+      passed: [job.passed],
+      trigger: job.trigger,
     },
     {
       load_var: 'sha256-txt',
