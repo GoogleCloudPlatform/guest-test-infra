@@ -12,6 +12,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
   sbom_destination: '((.:sbom-destination))',
+  shasum_destination: '((.:shasum-destination))',
 };
 
 local imagetesttask = common.imagetesttask {
