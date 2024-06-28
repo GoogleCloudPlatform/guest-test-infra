@@ -255,6 +255,8 @@ local imgpublishjob = {
             load_var: 'start-timestamp-ms',
             file: 'timestamp/timestamp-ms',
           },
+          // all the "get" steps must happen before loading them, otherwise concourse seems to
+          // erase all the other "get" steps
           {
             get: tl.image + '-gcs',
             passed: [tl.passed],
