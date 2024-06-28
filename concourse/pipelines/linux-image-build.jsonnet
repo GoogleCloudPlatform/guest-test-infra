@@ -267,6 +267,11 @@ local imgpublishjob = {
             params: { skip_download: 'true' },
           },
           {
+            get: tl.image + '-shasum',
+            passed: [tl.passed],
+            params: { skip_download: 'true' },
+          },
+          {
             load_var: 'sbom-destination',
             file: '%s-sbom/url' % tl.image,
           },
