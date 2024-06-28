@@ -405,6 +405,24 @@ local windowsinstallmediaimgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-shasum',
+      params: {
+        file: 'build-id-dir-shasum/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
+    {
       task: 'get-secret-iso-path-2022',
       config: gcp_secret_manager.getsecrettask { secret_name: 'win2022-64' },
     },
