@@ -405,24 +405,6 @@ local windowsinstallmediaimgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
-      task: 'generate-build-id-shasum',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
-      vars: { prefix: job.image, id: '((.:id))'},
-    },
-    {
-      put: job.image + '-shasum',
-      params: {
-        file: 'build-id-dir-shasum/%s*' % job.image,
-      },
-      get_params: {
-        skip_download: 'true',
-      },
-    },
-    {
-      load_var: 'sha256-txt',
-      file: '%s-shasum/url' % job.image,
-    },
-    {
       task: 'get-secret-iso-path-2022',
       config: gcp_secret_manager.getsecrettask { secret_name: 'win2022-64' },
     },
@@ -515,6 +497,7 @@ local imgpublishjob = {
   gcs_shasum:: 'gs://%s/%s' % [self.gcs_sbom_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   gcs_sbom_bucket:: common.sbom_bucket,
+  generate_shasum:: true,
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
@@ -581,7 +564,9 @@ local imgpublishjob = {
     {
       load_var: 'publish-version',
       file: 'publish-version/version',
-    },
+    }, ] + 
+  (if job.generate_shasum then
+  [
     {
       get: '%s-shasum' % job.image,
       params: { skip_download: 'true' },
@@ -592,7 +577,9 @@ local imgpublishjob = {
       load_var: 'sha256-txt',
       file: '%s-shasum/url' % job.image,
     },
-  ] +
+  ] 
+  else 
+  []) +
   (if job.env == 'prod' then
   [
     {
@@ -677,6 +664,7 @@ local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
+  generate_shasum: false,
   // build -> testing -> prod
   passed:: if env == 'testing' then
              'build-' + image
@@ -842,12 +830,6 @@ local ImgGroup(name, images, environments) = {
              ] +
              [
                common.GcsImgResource(image, 'windows-install-media')
-               for image in windows_install_media_images
-             ] +
-             // windows install media images use imgpublishjob. To ensure the pipeline compiles, this 
-             // shasumresource is needed, even though the media images do not have a sbom or shasum.
-             [
-               common.GcsShasumResource(image, 'windows-install-media')
                for image in windows_install_media_images
              ],
   jobs: [
