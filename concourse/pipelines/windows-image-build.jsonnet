@@ -843,6 +843,12 @@ local ImgGroup(name, images, environments) = {
              [
                common.GcsImgResource(image, 'windows-install-media')
                for image in windows_install_media_images
+             ] +
+             // windows install media images use imgpublishjob. To ensure the pipeline compiles, this 
+             // shasumresource is needed, even though the media images do not have a sbom or shasum.
+             [
+               common.GcsShasumResource(image, 'windows-install-media')
+               for image in windows_install_media_images
              ],
   jobs: [
           // Windows builds
