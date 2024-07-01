@@ -497,6 +497,7 @@ local imgpublishjob = {
   gcs_shasum:: 'gs://%s/%s' % [self.gcs_sbom_bucket, self.gcs_dir],
   gcs_bucket:: common.prod_bucket,
   gcs_sbom_bucket:: common.sbom_bucket,
+  generate_shasum:: true,
   topic:: common.prod_topic,
 
   // Publish can proceed if build passes.
@@ -563,12 +564,22 @@ local imgpublishjob = {
     {
       load_var: 'publish-version',
       file: 'publish-version/version',
+    }, ] + 
+  (if job.generate_shasum then
+  [
+    {
+      get: '%s-shasum' % job.image,
+      params: { skip_download: 'true' },
+      passed: [job.passed],
+      trigger: job.trigger,
     },
     {
       load_var: 'sha256-txt',
       file: '%s-shasum/url' % job.image,
     },
-  ] +
+  ] 
+  else 
+  []) +
   (if job.env == 'prod' then
   [
     {
@@ -653,6 +664,7 @@ local MediaImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
+  generate_shasum: false,
   // build -> testing -> prod
   passed:: if env == 'testing' then
              'build-' + image
