@@ -843,10 +843,6 @@ local ImgGroup(name, images, environments) = {
              [
                common.GcsImgResource(image, 'windows-install-media')
                for image in windows_install_media_images
-             ] +
-             [
-               common.GcsShasumResource(image, 'windows-install-media')
-               for image in windows_install_media_images
              ],
   jobs: [
           // Windows builds
