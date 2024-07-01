@@ -306,7 +306,7 @@ local build_guest_agent = buildpackagejob {
   local tl = self,
 
   uploads: [],
-  builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -332,12 +332,6 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         steps: [
-          buildpackageimagetask {
-            image_name: 'debian-10',
-            source_image: 'projects/debian-cloud/global/images/family/debian-10',
-            dest_image: 'debian-10-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
-          },
           buildpackageimagetask {
             image_name: 'debian-11',
             source_image: 'projects/debian-cloud/global/images/family/debian-11',
@@ -365,18 +359,6 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
             machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
-          },
-          buildpackageimagetask {
-            image_name: 'centos-7',
-            source_image: 'projects/centos-cloud/global/images/family/centos-7',
-            dest_image: 'centos-7-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm' % [tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'rhel-7',
-            source_image: 'projects/rhel-cloud/global/images/family/rhel-7',
-            dest_image: 'rhel-7-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
             image_name: 'rhel-8',
@@ -427,7 +409,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                   '-exclude=(image)|(livemigrate)|(suspendresume)|(disk)|(security)|(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)|(licensevalidation)',
                   '-parallel_count=15',
                 ],
@@ -492,15 +474,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       sbom_file: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version)).sbom.json',
     },
     uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el7.x86_64.rpm"',
-      os_type: 'EL7_YUM',
-      pkg_inside_name: 'google-guest-agent',
-      pkg_name: 'guest-agent',
-      pkg_version: '((.:package-version))',
-      reponame: 'google-guest-agent-el7',
-      sbom_file: 'gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version)).sbom.json',
-    },
-    uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm","gs://gcp-guest-package-uploads/guest-agent/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm"',
       os_type: 'EL8_YUM',
       pkg_inside_name: 'google-guest-agent',
@@ -557,7 +530,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb10', 'deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       extra_tasks: [
         {
@@ -585,12 +558,6 @@ local build_and_upload_guest_agent = build_guest_agent {
             fail_fast: true,
             steps: [
               buildpackageimagetask {
-                image_name: 'debian-10',
-                source_image: 'projects/debian-cloud/global/images/family/debian-10',
-                dest_image: 'debian-10-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb',
-              },
-              buildpackageimagetask {
                 image_name: 'debian-11',
                 source_image: 'projects/debian-cloud/global/images/family/debian-11',
                 dest_image: 'debian-11-((.:build-id))',
@@ -617,18 +584,6 @@ local build_and_upload_guest_agent = build_guest_agent {
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
-              },
-              buildpackageimagetask {
-                image_name: 'centos-7',
-                source_image: 'projects/centos-cloud/global/images/family/centos-7',
-                dest_image: 'centos-7-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm',
-              },
-              buildpackageimagetask {
-                image_name: 'rhel-7',
-                source_image: 'projects/rhel-cloud/global/images/family/rhel-7',
-                dest_image: 'rhel-7-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm',
               },
               buildpackageimagetask {
                 image_name: 'rhel-8',
@@ -679,7 +634,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-10-((.:build-id)),projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/centos-7-((.:build-id)),projects/gcp-guest/global/images/rhel-7-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-parallel_count=2',
                       '-filter=oslogin',
                     ],
@@ -714,15 +669,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       ],
       uploads: [
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb10_amd64.deb"',
-          os_type: 'BUSTER_APT',
-          pkg_inside_name: 'google-compute-engine-oslogin',
-          pkg_name: 'guest-oslogin',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-oslogin-buster',
-          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"',
           os_type: 'BULLSEYE_APT',
           pkg_inside_name: 'google-compute-engine-oslogin',
@@ -738,15 +684,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_name: 'guest-oslogin',
           pkg_version: '((.:package-version))',
           reponame: 'gce-google-compute-engine-oslogin-bookworm',
-          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el7.x86_64.rpm"',
-          os_type: 'EL7_YUM',
-          pkg_inside_name: 'google-compute-engine-oslogin',
-          pkg_name: 'guest-oslogin',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-oslogin-el7',
           sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
@@ -771,7 +708,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'osconfig',
-      builds: ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+      builds: ['deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
@@ -798,15 +735,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_name: 'google-osconfig-agent',
           pkg_version: '((.:package-version))',
           reponame: 'google-osconfig-agent-bookworm',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el7.x86_64.rpm"',
-          os_type: 'EL7_YUM',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-el7',
           sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
@@ -840,7 +768,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'guest-diskexpand',
-      builds: ['deb10', 'el7', 'el8', 'el9'],
+      builds: ['deb12', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
         uploadpackageversiontask {
@@ -850,15 +778,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_name: 'guest-diskexpand',
           pkg_version: '((.:package-version))',
           reponame: 'gce-disk-expand',
-          sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el7.noarch.rpm"',
-          os_type: 'EL7_YUM',
-          pkg_inside_name: 'gce-disk-expand',
-          pkg_name: 'guest-diskexpand',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-disk-expand-el7',
           sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
@@ -883,7 +802,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'guest-configs',
-      builds: ['deb10', 'el7', 'el8', 'el9'],
+      builds: ['deb12', 'el8', 'el9'],
       gcs_dir: 'google-compute-engine',
       uploads: [
         uploadpackageversiontask {
@@ -914,15 +833,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el7.noarch.rpm"',
-          os_type: 'EL7_YUM',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-el7',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm"',
           os_type: 'EL8_YUM',
           pkg_inside_name: 'google-compute-engine',
@@ -944,18 +854,9 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'artifact-registry-yum-plugin',
-      builds: ['el7', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'yum-plugin-artifact-registry',
       uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/yum-plugin-artifact-registry-((.:package-version))-g1.el7.x86_64.rpm"',
-          os_type: 'EL7_YUM',
-          pkg_inside_name: 'yum-plugin-artifact-registry',
-          pkg_name: 'artifact-registry-yum-plugin',
-          pkg_version: '((.:package-version))',
-          reponame: 'yum-plugin-artifact-registry-el7',
-          sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
-        },
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.aarch64.rpm"',
           os_type: 'EL8_YUM',
@@ -978,7 +879,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb10', 'deb11-arm64'],
+      builds: ['deb12', 'deb11-arm64'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
