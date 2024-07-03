@@ -274,8 +274,8 @@ local buildpackageimagetaskcos = {
   source_image:: error 'must set source_image in buildpackageimagetaskcos',
   dest_image:: error 'must set dest_image in buildpackageimagetaskcos',
   commit_sha:: error 'must set dest_image in buildpackageimagetaskcos',
-  machine_type:: 'e2-medium',
-  worker_image:: 'projects/compute-image-tools/global/images/family/debian-11-worker',
+  machine_type:: error 'must set machine_type in buildpackageimagetaskcos',
+  worker_image:: error 'must set worker_image in buildpackageimagetaskcos',
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
@@ -393,6 +393,8 @@ local build_guest_agent = buildpackagejob {
             source_image: 'cos-113-lts',
             dest_image: 'cos-113-((.:build-id))',
             commit_sha: '((.:commit-sha))',
+            machine_type: 'e2-medium',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker',
           },
         ],
       },
