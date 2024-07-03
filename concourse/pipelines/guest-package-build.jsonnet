@@ -388,6 +388,13 @@ local build_guest_agent = buildpackagejob {
             machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
           },
+          buildpackageimagetaskcos {
+            image_name: 'cos-113',
+            source_image: 'cos-113-lts',
+            dest_image: 'cos-113-((.:build-id))',
+            commit_sha: '((.:commit-sha))',
+            cos_branch: 'release-R113'
+          },
         ],
       },
     },
@@ -409,7 +416,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',projects/gcp-guest/global/images/cos-113-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id))',
                   '-exclude=(image)|(livemigrate)|(suspendresume)|(disk)|(security)|(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)|(licensevalidation)',
                   '-parallel_count=15',
                 ],
