@@ -393,7 +393,6 @@ local build_guest_agent = buildpackagejob {
             source_image: 'cos-113-lts',
             dest_image: 'cos-113-((.:build-id))',
             commit_sha: '((.:commit-sha))',
-            cos_branch: 'release-R113'
           },
         ],
       },
