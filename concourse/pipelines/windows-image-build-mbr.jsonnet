@@ -261,9 +261,6 @@ local ImgGroup(name, images, environments) = {
 
 // Start of output.
 {
-  local windows_2012_images = [
-    'windows-server-2012-r2-dc-bios',
-  ],
   local windows_2016_images = [
     'windows-server-2016-dc-bios',
   ],
@@ -274,7 +271,7 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2022-dc-bios',
   ],
 
-  local images = windows_2012_images + windows_2016_images + windows_2019_images
+  local images = windows_2016_images + windows_2019_images
                + windows_2022_images,
 
   resource_types: [
@@ -305,7 +302,6 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-server-2022-dc-bios', 'win2022-64', 'windows_gcs_updates_server2022'),
           ImgBuildJob('windows-server-2019-dc-bios', 'win2019-64', 'windows_gcs_updates_server2019'),
           ImgBuildJob('windows-server-2016-dc-bios', 'win2016-64', 'windows_gcs_updates_server2016'),
-          ImgBuildJob('windows-server-2012-r2-dc-bios', 'win2012-r2-64', 'windows_gcs_updates_server2012r2'),
         ] +
         [
           ImgPublishJob(image, env, 'windows', 'windows-bios')
@@ -314,7 +310,6 @@ local ImgGroup(name, images, environments) = {
         ],
 
   groups: [
-    ImgGroup('windows-2012-bios', windows_2012_images, envs),
     ImgGroup('windows-2016-bios', windows_2016_images, envs),
     ImgGroup('windows-2019-bios', windows_2019_images, envs),
     ImgGroup('windows-2022-bios', windows_2022_images, envs),
