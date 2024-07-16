@@ -528,7 +528,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
-      gcs_dir: 'guest-agent',
+      gcs_dir: 'guest-agent-stable',
       repo_name: 'guest-agent',
     },
     build_guest_agent {
