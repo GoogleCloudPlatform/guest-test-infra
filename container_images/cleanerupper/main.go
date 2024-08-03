@@ -24,8 +24,8 @@ import (
 
 	osconfigV1alpha "cloud.google.com/go/osconfig/apiv1alpha"
 	osconfig "cloud.google.com/go/osconfig/apiv1beta"
+	"github.com/GoogleCloudPlatform/cloud-image-tests/cleanerupper"
 	daisyCompute "github.com/GoogleCloudPlatform/compute-daisy/compute"
-	"github.com/GoogleCloudPlatform/guest-test-infra/container_images/cleanerupper/go-cleanerupper"
 	"google.golang.org/api/option"
 )
 
@@ -39,6 +39,7 @@ var (
 	disks               = flag.Bool("disks", false, "clean disks")
 	images              = flag.Bool("images", false, "clean images")
 	machineImages       = flag.Bool("machine_images", false, "clean machine images")
+	loadBalancers       = flag.Bool("load_balancers", false, "clean load balancer resources")
 	networks            = flag.Bool("networks", false, "clean networks")
 	snapshots           = flag.Bool("snapshots", false, "clean snapshots")
 	guestPolicies       = flag.Bool("guest_policies", false, "clean guest policies")
@@ -121,6 +122,16 @@ func main() {
 		if *disks {
 			fmt.Println("Cleaning disks")
 			cleaned, errs := cleanerupper.CleanDisks(clients, p, policy, *dryRun)
+			for _, c := range cleaned {
+				fmt.Printf(" - %s\n", c)
+			}
+			for _, e := range errs {
+				fmt.Println(e)
+			}
+		}
+		if *loadBalancers {
+			fmt.Println("Cleaning Load Balancer Resources")
+			cleaned, errs := cleanerupper.CleanLoadBalancerResources(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
 			}
