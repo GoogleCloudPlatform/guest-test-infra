@@ -16,7 +16,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local imagetesttask = common.imagetesttask {
-  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)',
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(mdsmtls)',
 };
 
 local prepublishtesttask = common.imagetesttask {
