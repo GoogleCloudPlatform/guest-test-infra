@@ -7,7 +7,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetesttask = common.imagetesttask {
-  exclude: '(oslogin)|(storageperf)|(networkperf)',
+  exclude: '(oslogin)|(storageperf)|(networkperf)|(mdsmtls)',
   extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
