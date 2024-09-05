@@ -423,6 +423,10 @@ local imggroup = {
     'rocky-linux-9-optimized-gcp',
     'rocky-linux-9-optimized-gcp-arm64',
   ],
+  local accelerator_images = [
+    'ubuntu-2404-with-nvidia-550',
+    'ubuntu-2204-with-nvidia-550',
+  ],
 
   // Start of output.
   resource_types: [
@@ -452,6 +456,9 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'accelerators' } for image in accelerator_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'accelerators' } for image in accelerator_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'accelerators' } for image in accelerator_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -473,7 +480,7 @@ local imggroup = {
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] + 
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // Debian build jobs
@@ -487,6 +494,11 @@ local imggroup = {
           // EL build jobs
           elimgbuildjob { image: image }
           for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
+        ] +
+        [
+          // accelerator build jobs
+          imgbuildjob { image: image, workflow_dir: 'accelerator_images' }
+          for image in accelerator_images
         ] +
         [
           // Debian publish jobs
@@ -536,6 +548,18 @@ local imggroup = {
           for image in almalinux_images
         ] +
         [
+          // accelerator publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'accelerators',
+            workflow_dir: 'accelerator_images',
+            runtests: false,
+          }
+          for env in envs
+          for image in accelerator_images
+        ] +
+        [
           // Rocky Linux publish jobs
           imgpublishjob {
             image: image,
@@ -555,5 +579,6 @@ local imggroup = {
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
     imggroup { name: 'rocky-linux', images: rocky_linux_images },
+    imggroup { name: 'accelerator-images', images: accelerator_images },
   ],
 }
