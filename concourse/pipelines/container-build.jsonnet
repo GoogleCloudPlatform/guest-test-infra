@@ -15,7 +15,7 @@ local buildcontainerimgtask = {
     type: 'registry-image',
     source: {
       repository: 'gcr.io/kaniko-project/executor',
-      tag: 'latest',
+      tag: 'latest'
     },
   },
   inputs: [
