@@ -306,7 +306,7 @@ local build_guest_agent = buildpackagejob {
   local tl = self,
 
   uploads: [],
-  builds: ['deb12', 'deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -540,7 +540,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       extra_tasks: [
         {
@@ -718,7 +718,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'osconfig',
-      builds: ['deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
@@ -889,7 +889,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb12', 'deb11-arm64'],
+      builds: ['deb12'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
