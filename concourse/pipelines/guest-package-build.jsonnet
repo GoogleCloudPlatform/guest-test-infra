@@ -306,7 +306,7 @@ local build_guest_agent = buildpackagejob {
   local tl = self,
 
   uploads: [],
-  builds: ['deb12', 'deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -337,14 +337,6 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/debian-cloud/global/images/family/debian-11',
             dest_image: 'debian-11-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'debian-11-arm64',
-            source_image: 'projects/debian-cloud/global/images/family/debian-11-arm64',
-            dest_image: 'debian-11-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
-            machine_type: 't2a-standard-2',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
           },
           buildpackageimagetask {
             image_name: 'debian-12',
@@ -439,7 +431,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                   '-exclude=(mdsmtls)|(image)|(suspendresume)|(livemigrate)|(disk)|(security)|(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)|(lssd)|(licensevalidation)',
                   '-parallel_count=15',
                 ],
@@ -540,7 +532,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'guest-oslogin',
-      builds: ['deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
       extra_tasks: [
         {
@@ -572,14 +564,6 @@ local build_and_upload_guest_agent = build_guest_agent {
                 source_image: 'projects/debian-cloud/global/images/family/debian-11',
                 dest_image: 'debian-11-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb',
-              },
-              buildpackageimagetask {
-                image_name: 'debian-11-arm64',
-                source_image: 'projects/debian-cloud/global/images/family/debian-11-arm64',
-                dest_image: 'debian-11-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb',
-                machine_type: 't2a-standard-2',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
               },
               buildpackageimagetask {
                 image_name: 'debian-12',
@@ -666,7 +650,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-11-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
                       '-parallel_count=2',
                       '-filter=oslogin',
                     ],
@@ -718,7 +702,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'osconfig',
-      builds: ['deb11-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
@@ -889,7 +873,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb12', 'deb11-arm64'],
+      builds: ['deb12'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
