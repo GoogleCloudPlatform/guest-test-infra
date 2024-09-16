@@ -16,7 +16,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local imagetesttask = common.imagetesttask {
-  filter: '(cvm)|(livemigrate)|(suspendresume)|(loadbalancer)|(guestagent)|(hostnamevalidation)|(imageboot)|(licensevalidation)|(network)|(security)|(hotattach)|(lssd)|(disk)|(packageupgrade)|(packagevalidation)|(ssh)|(metadata)|(sql)|(vmspec)'
+  filter: '^(cvm)|(livemigrate)|(suspendresume)|(loadbalancer)|(guestagent)|(hostnamevalidation)|(imageboot)|(licensevalidation)|(network)|(security)|(hotattach)|(lssd)|(disk)|(packageupgrade)|(packagevalidation)|(ssh)|(metadata)|(sql)|(vmspec)$'
 };
 
 local prepublishtesttask = common.imagetesttask {
