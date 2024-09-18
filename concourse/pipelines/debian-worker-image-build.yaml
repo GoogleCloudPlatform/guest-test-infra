@@ -1,5 +1,12 @@
 ---
 resource_types:
+- name: registry-image-private
+  type: registry-image
+  source:
+    repository: gcr.io/compute-image-tools/registry-image-forked
+    tag: latest
+
+resource_types:
 - name: gcs
   type: registry-image
   source:
