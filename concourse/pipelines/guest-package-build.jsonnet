@@ -306,7 +306,7 @@ local build_guest_agent = buildpackagejob {
   local tl = self,
 
   uploads: [],
-  builds: ['deb12', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -350,7 +350,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'debian-12-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
             machine_type: 't2a-standard-2',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
             image_name: 'rhel-8',
@@ -364,7 +364,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm' % [tl.package],
             machine_type: 't2a-standard-2',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
             image_name: 'rhel-9',
@@ -378,7 +378,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
             machine_type: 't2a-standard-2',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetaskcos {
             image_name: 'cos-113',
@@ -386,7 +386,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'cos-113-((.:build-id))',
             commit_sha: '((.:commit-sha))',
             machine_type: 'e2-medium',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetaskcos {
             image_name: 'cos-109',
@@ -601,7 +601,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                 dest_image: 'debian-12-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
                 machine_type: 't2a-standard-2',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
               buildpackageimagetask {
                 image_name: 'rhel-8',
@@ -615,7 +615,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                 dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.aarch64.rpm',
                 machine_type: 't2a-standard-2',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
               buildpackageimagetask {
                 image_name: 'rhel-9',
@@ -629,7 +629,7 @@ local build_and_upload_guest_agent = build_guest_agent {
                 dest_image: 'rhel-9-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.aarch64.rpm',
                 machine_type: 't2a-standard-2',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-11-worker-arm64',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
             ],
           },
