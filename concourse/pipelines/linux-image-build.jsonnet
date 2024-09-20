@@ -424,6 +424,8 @@ local imggroup = {
     'rocky-linux-9-optimized-gcp-arm64',
   ],
   local accelerator_images = [
+    'rocky-linux-8-optimized-gcp-with-nvidia-550',
+    'rocky-linux-9-optimized-gcp-with-nvidia-550',
     'ubuntu-2404-with-nvidia-550',
     'ubuntu-2204-with-nvidia-550',
   ],
