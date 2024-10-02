@@ -1,4 +1,5 @@
-// Imports. THIS WILL PASS
+// Imports.
+FAILURE
 local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
