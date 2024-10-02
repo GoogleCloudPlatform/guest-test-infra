@@ -1,4 +1,4 @@
-// Imports.
+// Imports. THIS SHOULD PASS
 local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
@@ -315,4 +315,3 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('windows-2022-bios', windows_2022_images, envs),
   ],
 }
-THIS IS INVALID AND SHOULD FAIL
