@@ -182,14 +182,14 @@ local buildpackagejob = base_buildpackagejob {
   ],
 
   // Publish success/failure metrics.
-  on_success: publishresulttask {
+  /*on_success: publishresulttask {
     result: 'success',
     package: tl.package,
   },
   on_failure: publishresulttask {
     result: 'failure',
     package: tl.package,
-  },
+  },*/
 };
 
 // task which uploads a package version using the 'uploadToArtifactReleaser' pubsub request type
