@@ -142,22 +142,22 @@ local imgbuildjob = {
     },
   ],
   /*on_success: {
-    task: 'success',
-    config: common.publishresulttask {
-      pipeline: 'linux-image-build',
-      job: tl.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  on_failure: {
-    task: 'failure',
-    config: common.publishresulttask {
-      pipeline: 'linux-image-build',
-      job: tl.name,
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+    //task: 'success',
+    //config: common.publishresulttask {
+      //pipeline: 'linux-image-build',
+      //job: tl.name,
+      //result_state: 'success',
+      //start_timestamp: '((.:start-timestamp-ms))',
+    //},
+  //},
+  //on_failure: {
+    //task: 'failure',
+    //config: common.publishresulttask {
+      //pipeline: 'linux-image-build',
+      //job: tl.name,
+      //result_state: 'failure',
+      //start_timestamp: '((.:start-timestamp-ms))',
+    //},
   },*/
 };
 
@@ -349,22 +349,22 @@ local imgpublishjob = {
         else
           [],
   /*on_success: {
-    task: 'success',
-    config: common.publishresulttask {
-      pipeline: 'linux-image-build',
-      job: tl.name,
-      result_state: 'success',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
-  },
-  on_failure: {
-    task: 'failure',
-    config: common.publishresulttask {
-      pipeline: 'linux-image-build',
-      job: 'publish-to-%s-%s' % [tl.env, tl.image],
-      result_state: 'failure',
-      start_timestamp: '((.:start-timestamp-ms))',
-    },
+    //task: 'success',
+    //config: common.publishresulttask {
+      //pipeline: 'linux-image-build',
+      //job: tl.name,
+      //result_state: 'success',
+      //start_timestamp: '((.:start-timestamp-ms))',
+    //},
+  //},
+  //on_failure: {
+    //task: 'failure',
+    //config: common.publishresulttask {
+      //pipeline: 'linux-image-build',
+      //job: 'publish-to-%s-%s' % [tl.env, tl.image],
+      //result_state: 'failure',
+      //start_timestamp: '((.:start-timestamp-ms))',
+    //},
   },*/
 };
 

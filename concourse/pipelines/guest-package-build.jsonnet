@@ -183,12 +183,12 @@ local buildpackagejob = base_buildpackagejob {
 
   // Publish success/failure metrics.
   /*on_success: publishresulttask {
-    result: 'success',
-    package: tl.package,
-  },
-  on_failure: publishresulttask {
-    result: 'failure',
-    package: tl.package,
+    //result: 'success',
+    //package: tl.package,
+  //},
+  //on_failure: publishresulttask {
+    //result: 'failure',
+    //package: tl.package,
   },*/
 };
 
