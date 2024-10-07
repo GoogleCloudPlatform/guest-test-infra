@@ -141,7 +141,7 @@ local imgbuildjob = {
       config: tl.build_task,
     },
   ],
-  /*on_success: {
+  //on_success: {
     //task: 'success',
     //config: common.publishresulttask {
       //pipeline: 'linux-image-build',
@@ -158,7 +158,7 @@ local imgbuildjob = {
       //result_state: 'failure',
       //start_timestamp: '((.:start-timestamp-ms))',
     //},
-  },*/
+  //},
 };
 
 local elimgbuildjob = imgbuildjob {
@@ -348,7 +348,7 @@ local imgpublishjob = {
           ]
         else
           [],
-  /*on_success: {
+  //on_success: {
     //task: 'success',
     //config: common.publishresulttask {
       //pipeline: 'linux-image-build',
@@ -365,7 +365,7 @@ local imgpublishjob = {
       //result_state: 'failure',
       //start_timestamp: '((.:start-timestamp-ms))',
     //},
-  },*/
+  //},
 };
 
 local imggroup = {
