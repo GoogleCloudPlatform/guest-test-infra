@@ -897,7 +897,7 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb12'],
+      builds: ['deb12', 'deb12-arm64'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
