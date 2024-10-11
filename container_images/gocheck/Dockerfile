@@ -13,7 +13,7 @@
 # limitations under the License.
 FROM golang:bullseye
 
-RUN apt-get update && apt-get install -y git && \
+RUN apt-get update && apt-get install -y git protoc-gen-go-grpc protoc-gen-go-1-5 && \
     rm -rf /var/cache/apt/archives
 RUN go install golang.org/x/lint/golint@latest
 
