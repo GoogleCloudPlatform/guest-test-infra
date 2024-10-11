@@ -20,7 +20,7 @@ local imagetesttask = common.imagetesttask {
 };
 
 local prepublishtesttask = common.imagetesttask {
-  filter: '(shapevalidation)', // TODO enable oslogin
+  filter: '(shapevalidation)',
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
@@ -298,11 +298,27 @@ local imgpublishjob = {
         if tl.env == 'prod' then
         [
           {
-            task: 'prepublish-test-' + tl.image,
-            config: prepublishtesttask {
-              images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+            in_parallel: {
+              steps: [
+                {
+                  task: 'oslogin-test-' + tl.image,
+                  config: imagetesttask {
+                    test_projects: 'oslogin-cit',
+                    project: 'oslogin-cit',
+                    filter: '^oslogin$',
+                    images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                  },
+                  attempts: 3,
+                },
+                {
+                  task: 'prepublish-test-' + tl.image,
+                  config: prepublishtesttask {
+                    images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                  },
+                  attempts: 3,
+                },
+              ],
             },
-            attempts: 3,
           },
           {
             task: 'publish-' + tl.image,
