@@ -13,8 +13,10 @@
 # limitations under the License.
 FROM golang:bullseye
 
-RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget && \
-    rm -rf /var/cache/apt/archives
+RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget \
+protobuf-compiler protoc-gen-go && rm -rf /var/cache/apt/archives
+
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 # Go test junit xml output
 RUN go install github.com/jstemmer/go-junit-report@latest

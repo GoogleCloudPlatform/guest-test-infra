@@ -13,8 +13,10 @@
 # limitations under the License.
 FROM golang:bullseye
 
-RUN apt-get update && apt-get install -y git && \
+RUN apt-get update && apt-get install -y git protobuf-compiler protoc-gen-go && \
     rm -rf /var/cache/apt/archives
+
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 RUN go install golang.org/x/lint/golint@latest
 
 # Copy this Dockerfile for debugging.
