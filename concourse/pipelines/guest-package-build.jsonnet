@@ -66,24 +66,48 @@ local base_buildpackagejob = {
   extra_tasks:: [],
   extended_tasks:: [],
   build_dir:: '',
+  extra_repo:: '',
+
+  default_trigger_steps:: [
+    {
+      get: tl.package,
+      trigger: true,
+      params: { skip_download: true },
+    },
+    { get: 'guest-test-infra' },
+  ],
+
+  trigger_steps:: if tl.extra_repo != '' then tl.default_trigger_steps + [
+    {
+      get: tl.extra_repo,
+      trigger: true,
+      params: { skip_download: true },
+    },
+  ] else tl.default_trigger_steps,
+
+  default_load_sha:: [
+    { load_var: 'commit-sha', file: '%s/.git/ref' % tl.package }
+  ],
+
+  load_sha_steps:: if tl.extra_repo != ''  then tl.default_load_sha + [
+    {
+     load_var: 'extra-commit-sha', file: '%s/.git/ref' % tl.extra_repo
+    }
+  ] else tl.default_load_sha,
 
   // Start of output.
   name: 'build-' + tl.package,
-  plan: [
+
+  parallel_triggers:: [
     // Prep build variables and content.
     {
       in_parallel: {
-        steps: [
-          {
-            get: tl.package,
-            trigger: true,
-            params: { skip_download: true },
-          },
-          { get: 'guest-test-infra' },
-        ],
+        steps: tl.trigger_steps,
       },
     },
-    { load_var: 'commit-sha', file: '%s/.git/ref' % tl.package },
+  ],
+
+  plan: tl.parallel_triggers + tl.load_sha_steps + [
     generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
@@ -142,6 +166,8 @@ local base_buildpackagejob = {
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
                   '-var:git_ref=((.:commit-sha))',
+                  '-var:extra_repo=' + tl.extra_repo,
+                  '-var:extra_git_ref=((.:extra-commit-sha))',
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
@@ -553,6 +579,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       package: 'guest-agent-dev',
       repo_name: 'guest-agent',
       extended_tasks: [],
+      extra_repo: 'google-guest-agent',
     },
     buildpackagejob {
       package: 'guest-oslogin',
@@ -1002,6 +1029,15 @@ local build_and_upload_guest_agent = build_guest_agent {
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
         branch: 'dev',
+        fetch_tags: false,
+      },
+    },
+    {
+      name: 'google-guest-agent',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
+        branch: 'main',
         fetch_tags: false,
       },
     },
