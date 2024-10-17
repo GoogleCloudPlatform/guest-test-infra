@@ -95,6 +95,11 @@ local base_buildpackagejob = {
     }
   ] else tl.default_load_sha,
 
+  extra_daisy_args:: if tl.extra_repo != '' then [
+    '-var:extra_repo=' + tl.extra_repo,
+    '-var:extra_git_ref=((.:extra-commit-sha))',
+  ] else [],
+
   // Start of output.
   name: 'build-' + tl.package,
 
@@ -166,14 +171,13 @@ local base_buildpackagejob = {
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
                   '-var:git_ref=((.:commit-sha))',
-                  '-var:extra_repo=' + tl.extra_repo,
-                  '-var:extra_git_ref=((.:extra-commit-sha))',
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
                   '-var:build_dir=' + tl.build_dir,
+                ] + tl.extra_daisy_args + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
-                ],
+		],
               },
             },
           }
@@ -569,6 +573,7 @@ local build_and_upload_guest_agent = build_guest_agent {
   jobs: [
     build_and_upload_guest_agent {
       package: 'guest-agent',
+      extra_repo: 'google-guest-agent',
     },
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
@@ -579,7 +584,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       package: 'guest-agent-dev',
       repo_name: 'guest-agent',
       extended_tasks: [],
-      extra_repo: 'google-guest-agent',
     },
     buildpackagejob {
       package: 'guest-oslogin',
