@@ -26,6 +26,9 @@
     "git_ref": {
       "Required": true
     },
+    "extra_repo": {
+      "Required": false
+    },
     "extra_git_ref": {
       "Required": false
     },
@@ -63,6 +66,7 @@
             "repo-owner": "${repo_owner}",
             "repo-name": "${repo_name}",
             "git-ref": "${git_ref}",
+            "extra-repo": "${extra_repo}",
             "extra-git-ref": "${extra_git_ref}",
             "build-dir": "${build_dir}",
             "version": "${version}",
