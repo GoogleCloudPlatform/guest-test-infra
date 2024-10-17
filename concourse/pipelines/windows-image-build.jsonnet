@@ -5,7 +5,7 @@ local daisy = import '../templates/daisy.libsonnet';
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 local client_envs = ['testing', 'internal', 'client'];
-local server_envs = ['testing', 'internal', 'prod'];
+local server_envs = ['testing', 'internal', 'prod', 'byol'];
 local sql_envs = ['testing', 'prod'];
 local prerelease_envs = ['testing'];
 local windows_install_media_envs = ['testing', 'prod'];
@@ -509,6 +509,7 @@ local imgpublishjob = {
   // Builds are automatically pushed to testing.
   trigger:: if job.env == 'testing' then true
     else if job.env == 'internal' then true
+    else if job.env == 'byol' then true
     else if job.env == 'client' then true
     else false,
 
@@ -647,13 +648,16 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
   image: image,
   env: env,
   gcs_dir: gcs_dir,
-  // build -> testing -> prod/client -> internal
+  // build -> testing -> prod -> internal & byol
+  // build -> testing -> internal & client
   passed:: if env == 'testing' then
              'build-' + image
            else if env == 'prod' then
              'publish-to-testing-' + image
            else if env == 'internal' then
              'publish-to-prod-' + image
+           else if env == 'byol' then
+             'publish-to-byol-' + image
            else if env == 'client' then
              'publish-to-testing-' + image,
 
