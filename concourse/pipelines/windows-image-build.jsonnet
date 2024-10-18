@@ -657,7 +657,7 @@ local ImgPublishJob(image, env, workflow_dir, gcs_dir) = imgpublishjob {
            else if env == 'internal' then
              'publish-to-prod-' + image
            else if env == 'byol' then
-             'publish-to-byol-' + image
+             'publish-to-prod-' + image
            else if env == 'client' then
              'publish-to-testing-' + image,
 
