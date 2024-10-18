@@ -332,6 +332,223 @@ local buildpackageimagetaskcos = {
   },
 };
 
+local build_guest_configs = buildpackagejob {
+  local tl = self,
+    package: 'guest-configs',
+    builds: ['deb12', 'deb11', 'el8', 'el9'],
+    gcs_dir: 'google-compute-engine',
+    uploads: [
+      uploadpackageversiontask {
+        gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
+        os_type: 'BUSTER_APT',
+        pkg_inside_name: 'google-compute-engine',
+        pkg_name: 'guest-configs',
+        pkg_version: '((.:package-version))',
+        reponame: 'gce-google-compute-engine-buster',
+        sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+      },
+      uploadpackageversiontask {
+        gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
+        os_type: 'BULLSEYE_APT',
+        pkg_inside_name: 'google-compute-engine',
+        pkg_name: 'guest-configs',
+        pkg_version: '((.:package-version))',
+        reponame: 'gce-google-compute-engine-bullseye',
+        sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+      },
+      uploadpackageversiontask {
+        gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
+        os_type: 'BOOKWORM_APT',
+        pkg_inside_name: 'google-compute-engine',
+        pkg_name: 'guest-configs',
+        pkg_version: '((.:package-version))',
+        reponame: 'gce-google-compute-engine-bookworm',
+        sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+      },
+      uploadpackageversiontask {
+        gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm"',
+        os_type: 'EL8_YUM',
+        pkg_inside_name: 'google-compute-engine',
+        pkg_name: 'guest-configs',
+        pkg_version: '((.:package-version))',
+        reponame: 'gce-google-compute-engine-el8',
+        sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+      },
+      uploadpackageversiontask {
+        gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm"',
+        os_type: 'EL9_YUM',
+        pkg_inside_name: 'google-compute-engine',
+        pkg_name: 'guest-configs',
+        pkg_version: '((.:package-version))',
+        reponame: 'gce-google-compute-engine-el9',
+        sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+      },
+    ],
+    extra_tasks: [
+      {
+        task: 'generate-build-id',
+        config: {
+          platform: 'linux',
+          image_resource: {
+            type: 'registry-image',
+            source: { repository: 'busybox' },
+          },
+          outputs: [{ name: 'build-id-dir' }],
+          run: {
+            path: 'sh',
+            args: [
+              '-exc',
+              'buildid=$(date "+%s"); echo $buildid | tee build-id-dir/build-id',
+            ],
+          },
+        },
+      },
+      { load_var: 'build-id', file: 'build-id-dir/build-id' },
+      { get: 'compute-image-tools' },
+      {
+        in_parallel: {
+          steps: [
+            buildpackageimagetask {
+              image_name: 'debian-11',
+              source_image: 'projects/debian-cloud/global/images/family/debian-11',
+              dest_image: 'debian-11-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            },
+            buildpackageimagetask {
+              image_name: 'debian-12',
+              source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+              dest_image: 'debian-12-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            },
+            buildpackageimagetask {
+              image_name: 'debian-12-arm64',
+              source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
+              dest_image: 'debian-12-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+              machine_type: 't2a-standard-2',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+            buildpackageimagetask {
+              image_name: 'rhel-8',
+              source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
+              dest_image: 'rhel-8-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-8-optimized-gcp-arm64',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
+              dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
+              machine_type: 't2a-standard-2',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-8',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8',
+              dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+            buildpackageimagetask {
+              image_name: 'rhel-9',
+              source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+              dest_image: 'rhel-9-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+            },
+            buildpackageimagetask {
+              image_name: 'rhel-9-arm64',
+              source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
+              dest_image: 'rhel-9-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+              machine_type: 't2a-standard-2',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-9',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9',
+              dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-9-optimized-gcp',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp',
+              dest_image: 'rocky-linux-9-optimized-gcp-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-9-optimized-gcp-arm64',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp-arm64',
+              dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+              machine_type: 't2a-standard-2',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+            buildpackageimagetask {
+              image_name: 'rocky-linux-9-arm64',
+              source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-arm64',
+              dest_image: 'rocky-linux-9-((.:build-id))',
+              gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+              machine_type: 't2a-standard-2',
+              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            },
+          ],
+        },
+      },
+      {
+        in_parallel: {
+          fail_fast: true,
+          steps: [
+            {
+              task: '%s-image-tests-amd64' % [tl.package],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=gcp-guest',
+                    '-zone=us-central1-a',
+                    '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+                    '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+                    '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
+                    '-parallel_count=15',
+                  ],
+                },
+              },
+            },
+            {
+              task: '%s-image-tests-arm64' % [tl.package],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                inputs: [{ name: 'guest-test-infra' }],
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=gcp-guest',
+                    '-zone=us-central1-a',
+                    '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rock-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
+                    '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
+                    '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+                    '-parallel_count=15',
+                  ],
+                },
+              },
+            },
+          ],
+        },
+    },
+  ],
+};
+
 local build_guest_agent = buildpackagejob {
   local tl = self,
 
@@ -389,6 +606,21 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
+            image_name: 'rocky-linux-8',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8',
+            dest_image: 'rocky-linux-8-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-8-optimized-gcp',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp',
+            dest_image: 'rocky-linux-8-optimized-gcp-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
+            machine_type: 't2a-standard-2',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
             image_name: 'rocky-linux-8-optimized-gcp-arm64',
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
             dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
@@ -406,6 +638,29 @@ local build_guest_agent = buildpackagejob {
             image_name: 'rhel-9-arm64',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
             dest_image: 'rhel-9-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
+            machine_type: 't2a-standard-2',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-9',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9',
+            dest_image: 'rocky-linux-9-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-9-optimized-gcp',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp',
+            dest_image: 'rocky-linux-9-optimized-gcp-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+            machine_type: 't2a-standard-2',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-9-optimized-gcp-arm64',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp-arm64',
+            dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
             machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
@@ -463,7 +718,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id)),projects/gcp-guest/global/images/cos-105-((.:build-id)),projects/gcp-guest/global/images/cos-101-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id)),projects/gcp-guest/global/images/cos-105-((.:build-id)),projects/gcp-guest/global/images/cos-101-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-parallel_count=15',
                 ],
@@ -485,7 +740,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rock-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-parallel_count=15',
                 ],
@@ -571,6 +826,9 @@ local build_and_upload_guest_agent = build_guest_agent {
 // Start of output
 {
   jobs: [
+    build_guest_configs {
+      package: 'guest-configs',
+    },
     build_and_upload_guest_agent {
       package: 'guest-agent',
       extra_repo: 'google-guest-agent',
@@ -846,58 +1104,6 @@ local build_and_upload_guest_agent = build_guest_agent {
           pkg_version: '((.:package-version))',
           reponame: 'gce-disk-expand-el9',
           sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
-        },
-      ],
-    },
-    buildpackagejob {
-      package: 'guest-configs',
-      builds: ['deb12', 'el8', 'el9'],
-      gcs_dir: 'google-compute-engine',
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
-          os_type: 'BUSTER_APT',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-buster',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
-          os_type: 'BULLSEYE_APT',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-bullseye',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
-          os_type: 'BOOKWORM_APT',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-bookworm',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm"',
-          os_type: 'EL8_YUM',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-el8',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm"',
-          os_type: 'EL9_YUM',
-          pkg_inside_name: 'google-compute-engine',
-          pkg_name: 'guest-configs',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-el9',
-          sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
         },
       ],
     },
@@ -1289,3 +1495,4 @@ local build_and_upload_guest_agent = build_guest_agent {
     },
   ],
 }
+
