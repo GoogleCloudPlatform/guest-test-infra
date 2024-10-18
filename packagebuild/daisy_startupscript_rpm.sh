@@ -27,6 +27,8 @@ SRC_PATH=$(get_md daisy-sources-path)
 REPO_OWNER=$(get_md repo-owner)
 REPO_NAME=$(get_md repo-name)
 GIT_REF=$(get_md git-ref)
+EXTRA_REPO=$(get_md extra-repo)
+EXTRA_GIT_REF=$(get_md extra-git-ref)
 BUILD_DIR=$(get_md build-dir)
 VERSION=$(get_md version)
 VERSION=${VERSION:-"dummy"}
@@ -75,6 +77,7 @@ fi
 try_command yum install -y $GIT rpmdevtools yum-utils python3-devel
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+ROOT_WORK_DIR=$(pwd)
 
 if [[ -n "$BUILD_DIR" ]]; then
   cd "$BUILD_DIR"
@@ -86,6 +89,12 @@ if grep -q '%{_go}' ./packaging/*.spec; then
 
   echo "Installing go dependencies"
   $GO mod download
+
+  # For now we only need protoc with with golang packages.
+  install_protoc
+
+  $GO install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+  $GO install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 fi
 
 # Make build dirs as needed.
@@ -93,6 +102,20 @@ RPMDIR=/usr/src/redhat
 for dir in ${RPMDIR}/{SOURCES,SPECS}; do
   [[ -d "$dir" ]] || mkdir -p "$dir"
 done
+
+EXTRA_RPMBUILD_FLAGS=""
+if [[ -n "EXTRA_REPO" ]]; then
+  EXTRA_RPMBULD_FLAGS="--define 'has_extra_source 1'"
+
+  pushd $ROOT_WORK_DIR
+  git_checkout "$REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"
+  popd
+
+  pushd $ROOT_WORK_DIR/$EXTRA_REPO
+  tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_extra-${VERSION}.orig.tar.gz" \
+    --exclude .git --transform "s/^\./${PKGNAME}-extra-${VERSION}/" .
+  popd
+fi
 
 # Find the RPM specs to build for this version.
 TOBUILD=""
@@ -136,7 +159,7 @@ for spec in $TOBUILD; do
 
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
     --define "_go ${GO:-"UNSET"}" --define "_gopath ${GOPATH:-"UNSET"}" \
-    -ba "${RPMDIR}/SPECS/${spec}"
+    $EXTRA_RPMBUILD_FLAGS -ba "${RPMDIR}/SPECS/${spec}"
 
   SRPM_FILE=$(find ${RPMDIR}/SRPMS -iname "${PKGNAME}*.src.rpm")
   generate_and_push_sbom ./ "${SRPM_FILE}" "${PKGNAME}" "${VERSION}"
