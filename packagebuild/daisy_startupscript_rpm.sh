@@ -104,7 +104,7 @@ for dir in ${RPMDIR}/{SOURCES,SPECS}; do
 done
 
 EXTRA_RPMBUILD_FLAGS=""
-if [[ -n "EXTRA_REPO" ]]; then
+if [[ -n "$EXTRA_REPO" ]]; then
   EXTRA_RPMBULD_FLAGS="--define 'has_extra_source 1'"
 
   pushd $ROOT_WORK_DIR
