@@ -1,6 +1,6 @@
 local common = import '../templates/common.libsonnet';
 local imagetesttask = common.imagetesttask {
-  exclude: '(oslogin)|(storageperf)|(networkperf)|(shapevalidation)|(hotattach)|(lssd)|(mdsmtls)|(mdsroutes)',
+  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
 };
 
 local imagevalidationjob = {
