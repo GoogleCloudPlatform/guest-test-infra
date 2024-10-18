@@ -14,6 +14,12 @@
     "git_ref": {
       "Required": true
     },
+    "extra_repo": {
+      "Required": false
+    },
+    "extra_git_ref": {
+      "Required": false
+    },
     "version": {
       "Required": true
     },
@@ -36,6 +42,8 @@
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
+          "extra_repo": "${extra_repo}",
+          "extra_git_ref": "${extra_git_ref}",
           "build_dir": "${build_dir}",
           "version": "${version}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}"
