@@ -617,7 +617,6 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp',
             dest_image: 'rocky-linux-8-optimized-gcp-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
@@ -654,7 +653,6 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp',
             dest_image: 'rocky-linux-9-optimized-gcp-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
