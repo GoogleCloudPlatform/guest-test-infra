@@ -27,6 +27,8 @@ DEFAULT_PROJECT='gcp-guest'
 DEFAULT_ZONE='us-west1-a'
 DEFAULT_OWNER='GoogleCloudPlatform'
 DEFAULT_GIT_REF='master'
+DEFAULT_EXTRA_GIT_REPO=''
+DEFAULT_EXTRA_GIT_REF=''
 DEFAULT_GCS_PATH='${SCRATCHPATH}/packages'
 DEFAULT_BUILD_DIR='.'
 DEFAULT_VERSION='1dummy'
@@ -36,6 +38,8 @@ DEFAULT_VERSION='1dummy'
 [[ -z "${ZONE}" ]] && read -p "Build zone [${DEFAULT_ZONE}]: " ZONE
 [[ -z "${OWNER}" ]] && read -p "Repo owner or org [${DEFAULT_OWNER}]: " OWNER
 [[ -z "${GIT_REF}" ]] && read -p "Ref [${DEFAULT_GIT_REF}]: " GIT_REF
+[[ -z "${EXTRA_REPO}" ]] && read -p "Extra git repo [${DEFAULT_EXTRA_GIT_REPO}]: " EXTRA_REPO
+[[ -z "${EXTRA_REF}" ]] && read -p "Extra git ref [${DEFAULT_EXTRA_GIT_REF}]: " EXTRA_REF
 [[ -z "${GCS_PATH}" ]] && read -p "GCS Path to upload to [${DEFAULT_GCS_PATH}]: " GCS_PATH
 [[ -z "${BUILD_DIR}" ]] && read -p "Directory to build from [${DEFAULT_BUILD_DIR}]: " BUILD_DIR
 [[ -z "${REPO}" ]] && read -p "Repo name: " REPO
@@ -45,6 +49,8 @@ DEFAULT_VERSION='1dummy'
 [[ -z "${ZONE}" ]] && ZONE=${DEFAULT_ZONE}
 [[ -z "${OWNER}" ]] && OWNER=${DEFAULT_OWNER}
 [[ -z "${GIT_REF}" ]] && GIT_REF=${DEFAULT_GIT_REF}
+[[ -z "${EXTRA_REPO}" ]] && EXTRA_REPO=${DEFAULT_EXTRA_GIT_REPO}
+[[ -z "${EXTRA_REF}" ]] && EXTRA_REF=${DEFAULT_EXTRA_GIT_REF}
 [[ -z "${GCS_PATH}" ]] && GCS_PATH=${DEFAULT_GCS_PATH}
 [[ -z "${BUILD_DIR}" ]] && BUILD_DIR=${DEFAULT_BUILD_DIR}
 [[ -z "${VERSION}" ]] && VERSION=${DEFAULT_VERSION}
@@ -66,4 +72,6 @@ daisy \
   -var:git_ref=${GIT_REF} \
   -var:build_dir=${BUILD_DIR} \
   -var:version=${VERSION} \
+  -var:extra_repo=${EXTRA_REPO} \
+  -var:extra_git_ref=${EXTRA_REF} \
   "${WF}"
