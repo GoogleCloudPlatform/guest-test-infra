@@ -19,6 +19,8 @@ SRC_PATH=$(curl -f -H Metadata-Flavor:Google ${URL}/daisy-sources-path)
 REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
+EXTRA_REPO=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-repo)
+EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 VERSION=${VERSION:="1dummy"}
@@ -38,9 +40,19 @@ sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core \
-  debhelper devscripts build-essential equivs libdistro-info-perl
+  debhelper devscripts build-essential equivs libdistro-info-perl \
+  unzip protobuf-compiler
+install_protoc
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
+
+if [[ ! -z "$EXTRA_REPO" ]]; then
+  # Get the source of the extra repo.
+  git_checkout "$REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"
+
+  # git_checkout cd's into the repo, so we back out.
+  cd ..
+fi
 
 if [[ -n "$BUILD_DIR" ]]; then
     cd "$BUILD_DIR"
@@ -70,6 +82,13 @@ if grep -q 'golang' packaging/debian/control; then
 
   echo "Installing go dependencies"
   $GO mod download
+
+  # Install the go dependencies of the extra repo.
+  if [[ ! -z "$EXTRA_REPO" ]]; then
+    echo "Installing extra go dependencies"
+    cd "$EXTRA_REPO" && $GO mod download
+    cd ..
+  fi
 fi
 
 COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
