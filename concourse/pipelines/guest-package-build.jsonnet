@@ -398,7 +398,7 @@ local build_guest_configs = buildpackagejob {
             path: 'sh',
             args: [
               '-exc',
-              'buildid=$(date "+%s"); echo %s-$buildid | tee build-id-dir/build-id' % [tl.package],
+              'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
             ],
           },
         },
@@ -569,7 +569,7 @@ local build_guest_agent = buildpackagejob {
           path: 'sh',
           args: [
             '-exc',
-            'buildid=$(date "+%s"); echo %s-$buildid | tee build-id-dir/build-id' % [tl.package],
+            'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
           ],
         },
       },
@@ -859,7 +859,7 @@ local build_and_upload_guest_agent = build_guest_agent {
               path: 'sh',
               args: [
                 '-exc',
-                'buildid=$(date "+%s"); echo guest-oslogin-$buildid | tee build-id-dir/build-id',
+                'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
               ],
             },
           },
