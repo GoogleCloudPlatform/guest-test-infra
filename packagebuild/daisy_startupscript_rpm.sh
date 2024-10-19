@@ -105,7 +105,7 @@ done
 
 EXTRA_RPMBUILD_FLAGS=""
 if [[ -n "$EXTRA_REPO" ]]; then
-  EXTRA_RPMBULD_FLAGS="--define 'has_extra_source 1'"
+  EXTRA_RPMBUILD_FLAGS="--define 'has_extra_source 1'"
 
   pushd $ROOT_WORK_DIR
   git_checkout "$REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"
