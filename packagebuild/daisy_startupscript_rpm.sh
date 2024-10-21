@@ -103,9 +103,9 @@ for dir in ${RPMDIR}/{SOURCES,SPECS}; do
   [[ -d "$dir" ]] || mkdir -p "$dir"
 done
 
-EXTRA_RPMBUILD_FLAGS=""
+RPM_EXTRA_SOURCE_DEFINE_VAL="has_extra_source 0"
 if [[ -n "$EXTRA_REPO" ]]; then
-  EXTRA_RPMBUILD_FLAGS='--define "has_extra_source 1"'
+  RPM_EXTRA_SOURCE_DEFINE_VAL="has_extra_source 1"
 
   pushd $ROOT_WORK_DIR
   git_checkout "$REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"
@@ -159,7 +159,7 @@ for spec in $TOBUILD; do
 
   rpmbuild --define "_topdir ${RPMDIR}/" --define "_version ${VERSION}" \
     --define "_go ${GO:-"UNSET"}" --define "_gopath ${GOPATH:-"UNSET"}" \
-    $EXTRA_RPMBUILD_FLAGS -ba "${RPMDIR}/SPECS/${spec}"
+    --define "$RPM_EXTRA_SOURCE_DEFINE_VAL" -ba "${RPMDIR}/SPECS/${spec}"
 
   SRPM_FILE=$(find ${RPMDIR}/SRPMS -iname "${PKGNAME}*.src.rpm")
   generate_and_push_sbom ./ "${SRPM_FILE}" "${PKGNAME}" "${VERSION}"
