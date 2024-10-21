@@ -114,8 +114,8 @@ if [[ -n "$EXTRA_REPO" ]]; then
   popd
 
   pushd $ROOT_WORK_DIR/$EXTRA_REPO
-  tar czvf "${RPMDIR}/SOURCES/${PKGNAME}_extra-${VERSION}.orig.tar.gz" \
-    --exclude .git --transform "s/^\./${PKGNAME}-extra-${VERSION}/" .
+  tar czvf "${RPMDIR}/SOURCES/${EXTRA_REPO}_extra-${VERSION}.orig.tar.gz" \
+    --exclude .git --transform "s/^\./${EXTRA_REPO}-extra-${VERSION}/" .
   popd
 fi
 
