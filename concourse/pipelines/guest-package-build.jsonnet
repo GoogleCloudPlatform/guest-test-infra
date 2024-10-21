@@ -334,7 +334,7 @@ local buildpackageimagetaskcos = {
 
 local build_guest_configs = buildpackagejob {
   local tl = self,
-    package: 'guest-configs',
+  package:: error 'must set package for build_guest_configs',
     builds: ['deb12', 'deb11', 'el8', 'el9'],
     gcs_dir: 'google-compute-engine',
     uploads: [
@@ -552,6 +552,7 @@ local build_guest_configs = buildpackagejob {
 local build_guest_agent = buildpackagejob {
   local tl = self,
 
+  package:: error 'must set package in build_guest_agent',
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
@@ -754,6 +755,8 @@ local build_guest_agent = buildpackagejob {
 local build_and_upload_guest_agent = build_guest_agent {
   local tl = self,
 
+  package:: error 'must set package in build_and_upload_guest_agent',
+
   uploads: [
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb"' % [tl.package],
@@ -859,7 +862,7 @@ local build_and_upload_guest_agent = build_guest_agent {
               path: 'sh',
               args: [
                 '-exc',
-                'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
+                'buildid=$(date "+%s"); echo guest-oslogin-$buildid | tee build-id-dir/build-id',
               ],
             },
           },
