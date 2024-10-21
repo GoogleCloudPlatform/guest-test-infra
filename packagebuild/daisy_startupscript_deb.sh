@@ -40,8 +40,7 @@ sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
 
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core \
-  debhelper devscripts build-essential equivs libdistro-info-perl \
-  unzip protobuf-compiler
+  debhelper devscripts build-essential equivs libdistro-info-perl unzip
 install_protoc
 
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
@@ -79,6 +78,10 @@ fi
 if grep -q 'golang' packaging/debian/control; then
   echo "Installing go"
   install_go
+
+  # Install protoc go extensions.
+  $GO install -v google.golang.org/protobuf/cmd/protoc-gen-go@latest
+  $GO install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
   echo "Installing go dependencies"
   $GO mod download
