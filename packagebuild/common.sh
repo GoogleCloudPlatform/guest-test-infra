@@ -32,7 +32,14 @@ trap 'exit_error $LINENO' ERR
 function install_protoc() {
   PB_REL="https://github.com/protocolbuffers/protobuf/releases"
   PB_VERSION=28.1
-  PB_PKG=protoc-${PB_VERSION}-linux-x86_64.zip
+  ARCH=$(uname -m)
+
+  # protobuffer's release and uname mismatch for aarch.
+  if [[ "${ARCH}" == "aarch64" ]]; then
+    ARCH="aarch_64"
+  fi
+
+  PB_PKG=protoc-${PB_VERSION}-linux-${ARCH}.zip
 
   curl -LO $PB_REL/download/v${PB_VERSION}/${PB_PKG}
   unzip ${PB_PKG} -d $HOME/.local
