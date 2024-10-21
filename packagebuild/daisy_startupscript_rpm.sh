@@ -18,6 +18,8 @@
 # repository to clone. The script produces an RPM defined by an RPM spec in the
 # packaging/ directory from the cloned repo.
 
+set -ex
+
 URL="http://metadata/computeMetadata/v1/instance/attributes"
 function get_md() {
   curl -f -H Metadata-Flavor:Google "${URL}/${1}"
@@ -76,8 +78,8 @@ fi
 
 try_command yum install -y $GIT rpmdevtools yum-utils python3-devel
 
-git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 ROOT_WORK_DIR=$(pwd)
+git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
 
 if [[ -n "$BUILD_DIR" ]]; then
   cd "$BUILD_DIR"
