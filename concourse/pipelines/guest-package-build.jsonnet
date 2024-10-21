@@ -398,7 +398,7 @@ local build_guest_configs = buildpackagejob {
             path: 'sh',
             args: [
               '-exc',
-              'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
+              'buildid=$(date "+%s"); echo '+ tl.package +'-$buildid | tee build-id-dir/build-id',
             ],
           },
         },
@@ -570,7 +570,7 @@ local build_guest_agent = buildpackagejob {
           path: 'sh',
           args: [
             '-exc',
-            'buildid=$(date "+%s"); echo ((.:package))-$buildid | tee build-id-dir/build-id',
+            'buildid=$(date "+%s"); echo '+ tl.package +'-$buildid | tee build-id-dir/build-id',
           ],
         },
       },
@@ -845,6 +845,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       extended_tasks: [],
     },
     buildpackagejob {
+      local tl = self,
       package: 'guest-oslogin',
       builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
       gcs_dir: 'oslogin',
@@ -862,7 +863,7 @@ local build_and_upload_guest_agent = build_guest_agent {
               path: 'sh',
               args: [
                 '-exc',
-                'buildid=$(date "+%s"); echo guest-oslogin-$buildid | tee build-id-dir/build-id',
+                'buildid=$(date "+%s"); echo '+ tl.package +'-$buildid | tee build-id-dir/build-id',
               ],
             },
           },
