@@ -445,9 +445,8 @@ local build_guest_configs = buildpackagejob {
             buildpackageimagetask {
               image_name: 'rocky-linux-8',
               source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8',
-              dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+              dest_image: 'rocky-linux-8-((.:build-id))',
               gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
-              worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
             },
             buildpackageimagetask {
               image_name: 'rhel-9',
@@ -488,7 +487,7 @@ local build_guest_configs = buildpackagejob {
             buildpackageimagetask {
               image_name: 'rocky-linux-9-arm64',
               source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-arm64',
-              dest_image: 'rocky-linux-9-((.:build-id))',
+              dest_image: 'rocky-linux-9-arm64-((.:build-id))',
               gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
               machine_type: 't2a-standard-2',
               worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
