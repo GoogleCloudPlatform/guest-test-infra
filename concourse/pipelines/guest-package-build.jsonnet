@@ -466,7 +466,7 @@ local build_guest_configs = buildpackagejob {
             buildpackageimagetask {
               image_name: 'rocky-linux-9',
               source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9',
-              dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
+              dest_image: 'rocky-linux-9-((.:build-id))',
               gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
               worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
             },
