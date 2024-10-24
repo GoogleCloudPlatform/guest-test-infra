@@ -21,21 +21,11 @@ resources:
   source:
     uri: https://github.com/GoogleCloudPlatform/guest-test-infra.git
     branch: master
-- name: debian-10-worker-gcs
-  type: gcs
-  source:
-    bucket: artifact-releaser-prod-rtp
-    regexp: "debian-worker/debian-10-worker-v([0-9]+).tar.gz"
 - name: debian-11-worker-gcs
   type: gcs
   source:
     bucket: artifact-releaser-prod-rtp
     regexp: "debian-worker/debian-11-worker-v([0-9]+).tar.gz"
-- name: debian-11-worker-arm64-gcs
-  type: gcs
-  source:
-    bucket: artifact-releaser-prod-rtp
-    regexp: "debian-worker/debian-11-worker-arm64-v([0-9]+).tar.gz"
 - name: debian-12-worker-gcs
   type: gcs
   source:
