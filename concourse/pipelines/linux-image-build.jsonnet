@@ -239,6 +239,8 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
+  citfilter:: '^(%s)$' % self.citsuites,
+  citsuites:: 'cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec',
   runtests:: if tl.env == 'testing' then true
   else false,
 
@@ -357,6 +359,7 @@ local imgpublishjob = {
             {
               task: 'image-test-' + tl.image,
               config: imagetesttask {
+                filter: tl.citfilter
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
               attempts: 3,
@@ -572,7 +575,7 @@ local imggroup = {
             env: env,
             gcs_dir: 'accelerators',
             workflow_dir: 'accelerator_images',
-            runtests: false,
+            citsuites: 'acceleratorconfig',
           }
           for env in envs
           for image in accelerator_images
