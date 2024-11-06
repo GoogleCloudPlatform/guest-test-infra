@@ -15,10 +15,6 @@ local imgbuildtask = daisy.daisyimagetask {
   shasum_destination: '((.:shasum-destination))',
 };
 
-local imagetesttask = common.imagetesttask {
-  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$'
-};
-
 local prepublishtesttask = common.imagetesttask {
   filter: '(shapevalidation)',
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
@@ -239,8 +235,7 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  citfilter:: '^(%s)$' % self.citsuites,
-  citsuites:: 'cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec',
+  citfilter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
   runtests:: if tl.env == 'testing' then true
   else false,
 
