@@ -570,7 +570,7 @@ local imggroup = {
             env: env,
             gcs_dir: 'accelerators',
             workflow_dir: 'accelerator_images',
-            citsuites: 'acceleratorconfig',
+            citfilter: 'acceleratorconfig',
           }
           for env in envs
           for image in accelerator_images
