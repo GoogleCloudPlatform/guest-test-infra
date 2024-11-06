@@ -462,16 +462,6 @@ local pkggroup = {
     '-g1.el9.x86_64.rpm',
     '-g1.el9.aarch64.rpm',
   ],
-  local osconfig_builds = ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
-  local osconfig_file_endings = [
-    '-g1_amd64.deb',
-    '-g1_arm64.deb',
-    '-g1.el7.x86_64.rpm',
-    '-g1.el8.x86_64.rpm',
-    '-g1.el8.aarch64.rpm',
-    '-g1.el9.x86_64.rpm',
-    '-g1.el9.aarch64.rpm',
-  ],
   local guest_diskexpand_builds = ['deb10', 'el7', 'el8', 'el9'],
   local guest_diskexpand_file_endings = [
     '-g1_all.deb',
@@ -518,7 +508,6 @@ local pkggroup = {
   local packages = [
     'guest-agent',
     'guest-oslogin',
-    'osconfig',
     'guest-diskexpand',
     'guest-configs',
     'artifact-registry-yum-plugin',
@@ -603,12 +592,6 @@ local pkggroup = {
             builds: oslogin_builds,
             gcs_pkg_names: ['google-compute-engine-oslogin'],
             file_endings: oslogin_file_endings,
-          },
-          upload_arle_autopush_staging {
-            package: 'osconfig',
-            builds: osconfig_builds,
-            gcs_pkg_names: ['google-osconfig-agent'],
-            file_endings: osconfig_file_endings,
           },
           upload_arle_autopush_staging {
             package: 'guest-diskexpand',
@@ -772,7 +755,6 @@ local pkggroup = {
     // Package groups
     pkggroup { name: 'guest-agent' },
     pkggroup { name: 'guest-oslogin' },
-    pkggroup { name: 'osconfig' },
     pkggroup { name: 'guest-diskexpand' },
     pkggroup { name: 'guest-configs' },
     pkggroup { name: 'artifact-registry-yum-plugin' },
