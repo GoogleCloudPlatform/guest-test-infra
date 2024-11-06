@@ -1025,66 +1025,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       ],
     },
     buildpackagejob {
-      package: 'osconfig',
-      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb"',
-          os_type: 'BUSTER_APT',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-buster',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"',
-          os_type: 'BULLSEYE_APT',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-bullseye',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent_((.:package-version))-g1_arm64.deb"',
-          os_type: 'BOOKWORM_APT',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-bookworm',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el8.x86_64.rpm","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el8.aarch64.rpm"',
-          os_type: 'EL8_YUM',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-el8',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el9.x86_64.rpm","gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version))-g1.el9.aarch64.rpm"',
-          os_type: 'EL9_YUM',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-el9',
-          sbom_file: 'gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/osconfig/google-osconfig-agent.x86_64.((.:package-version)).0+win@1.goo"',
-          os_type: 'WINDOWS_ALL_GOOGET',
-          pkg_inside_name: 'google-osconfig-agent',
-          pkg_name: 'google-osconfig-agent',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-osconfig-agent-googet',
-          sbom_file: '',
-        },
-      ],
-    },
-    buildpackagejob {
       package: 'guest-diskexpand',
       builds: ['deb12', 'el8', 'el9'],
       gcs_dir: 'gce-disk-expand',
@@ -1308,24 +1248,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       },
     },
     {
-      name: 'osconfig',
-      type: 'git',
-      source: {
-        uri: 'https://github.com/GoogleCloudPlatform/osconfig.git',
-        branch: 'master',
-        fetch_tags: true,
-      },
-    },
-    {
-      name: 'osconfig-tag',
-      type: 'github-release',
-      source: {
-        owner: 'GoogleCloudPlatform',
-        repository: 'osconfig',
-        access_token: '((github-token.token))',
-      },
-    },
-    {
       name: 'guest-diskexpand',
       type: 'git',
       source: {
@@ -1465,12 +1387,6 @@ local build_and_upload_guest_agent = build_guest_agent {
       name: 'guest-oslogin',
       jobs: [
         'build-guest-oslogin',
-      ],
-    },
-    {
-      name: 'osconfig',
-      jobs: [
-        'build-osconfig',
       ],
     },
     {
