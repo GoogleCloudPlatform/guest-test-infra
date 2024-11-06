@@ -299,7 +299,7 @@ local imgpublishjob = {
               steps: [
                 {
                   task: 'oslogin-test-' + tl.image,
-                  config: imagetesttask {
+                  config: common.imagetesttask {
                     test_projects: 'oslogin-cit',
                     project: 'oslogin-cit',
                     filter: '^oslogin$',
@@ -353,7 +353,7 @@ local imgpublishjob = {
           [
             {
               task: 'image-test-' + tl.image,
-              config: imagetesttask {
+              config: common.imagetesttask {
                 filter: tl.citfilter,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
