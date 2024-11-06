@@ -15,10 +15,6 @@ local imgbuildtask = daisy.daisyimagetask {
   shasum_destination: '((.:shasum-destination))',
 };
 
-local imagetesttask = common.imagetesttask {
-  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$'
-};
-
 local prepublishtesttask = common.imagetesttask {
   filter: '(shapevalidation)',
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
@@ -239,6 +235,7 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
+  citfilter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
   runtests:: if tl.env == 'testing' then true
   else false,
 
@@ -302,7 +299,7 @@ local imgpublishjob = {
               steps: [
                 {
                   task: 'oslogin-test-' + tl.image,
-                  config: imagetesttask {
+                  config: common.imagetesttask {
                     test_projects: 'oslogin-cit',
                     project: 'oslogin-cit',
                     filter: '^oslogin$',
@@ -356,7 +353,8 @@ local imgpublishjob = {
           [
             {
               task: 'image-test-' + tl.image,
-              config: imagetesttask {
+              config: common.imagetesttask {
+                filter: tl.citfilter,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
               attempts: 3,
@@ -572,7 +570,7 @@ local imggroup = {
             env: env,
             gcs_dir: 'accelerators',
             workflow_dir: 'accelerator_images',
-            runtests: false,
+            citsuites: 'acceleratorconfig',
           }
           for env in envs
           for image in accelerator_images
