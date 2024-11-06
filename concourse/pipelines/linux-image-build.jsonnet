@@ -359,7 +359,7 @@ local imgpublishjob = {
             {
               task: 'image-test-' + tl.image,
               config: imagetesttask {
-                filter: tl.citfilter
+                filter: tl.citfilter,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
               attempts: 3,
