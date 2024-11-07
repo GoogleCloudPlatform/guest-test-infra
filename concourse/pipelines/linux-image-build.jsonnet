@@ -622,7 +622,7 @@ local imggroup = {
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
-    imggroup { name: 'rocky-linux', images: rocky_linux_images + accelerator_images_rocky },
+    imggroup { name: 'rocky-linux', images: rocky_linux_images + accelerator_images },
     imggroup { name: 'ubuntu-accelerator', images: accelerator_images_ubuntu},
   ],
 }
