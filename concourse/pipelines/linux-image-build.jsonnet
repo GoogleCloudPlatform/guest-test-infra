@@ -235,11 +235,11 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  // Use citfilter list as default; append citsuites if not nil
+  // Use citfilter list as default; append additionalcitsuites if not nil
   // additionalcitsuites must be in the valid regex concatenation format of 'item1|item2|item3'
   additionalcitsuites:: '',
-  citfilter:: if tl.citsuites == '' then '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$'
-  else '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec%s)$' % '|'+tl.citsuites,
+  citfilter:: if tl.additionalcitsuites == '' then '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$'
+  else '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec%s)$' % '|'+tl.additionalcitsuites,
   runtests:: if tl.env == 'testing' then true
   else false,
 
