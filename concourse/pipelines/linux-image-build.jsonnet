@@ -443,7 +443,7 @@ local imggroup = {
     'rocky-linux-9-optimized-gcp',
     'rocky-linux-9-optimized-gcp-arm64',
   ],
-  local accelerator_images = [
+  local rocky_accelerator_images = [
     'rocky-linux-8-optimized-gcp-with-nvidia-550',
     'rocky-linux-9-optimized-gcp-with-nvidia-550',
   ],
@@ -476,9 +476,9 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'accelerators' } for image in accelerator_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'accelerators' } for image in accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'accelerators' } for image in accelerator_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'accelerators' } for image in rocky_accelerator_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'accelerators' } for image in rocky_accelerator_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'accelerators' } for image in rocky_accelerator_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -517,8 +517,8 @@ local imggroup = {
         ] +
         [
           // accelerator build jobs
-          imgbuildjob { image: image, workflow_dir: 'accelerator_images' }
-          for image in accelerator_images
+          imgbuildjob { image: image, workflow_dir: 'rocky_accelerator_images' }
+          for image in rocky_accelerator_images
         ] +
         [
           // Debian publish jobs
@@ -573,12 +573,12 @@ local imggroup = {
             image: image,
             env: env,
             gcs_dir: 'accelerators',
-            workflow_dir: 'accelerator_images',
+            workflow_dir: 'rocky_accelerator_images',
             // Acceleratorconfig test disabled until nictype is updated
             //additionalcitsuites: 'acceleratorconfig',
           }
           for env in envs
-          for image in accelerator_images
+          for image in rocky_accelerator_images
         ] +
         [
           // Rocky Linux publish jobs
@@ -599,6 +599,6 @@ local imggroup = {
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
-    imggroup { name: 'rocky-linux', images: rocky_linux_images + accelerator_images },
+    imggroup { name: 'rocky-linux', images: rocky_linux_images + rocky_accelerator_images },
   ],
 }
