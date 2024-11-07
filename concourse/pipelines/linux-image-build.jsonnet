@@ -601,7 +601,7 @@ local imggroup = {
             //additionalcitsuites: 'acceleratorconfig',
           }
           for env in envs
-          for image in accelerator_images
+          for image in accelerator_images_ubuntu
         ] +
         [
           // Rocky Linux publish jobs
