@@ -573,7 +573,7 @@ local imggroup = {
             image: image,
             env: env,
             gcs_dir: 'accelerators',
-            workflow_dir: 'rocky_accelerator_images',
+            workflow_dir: 'accelerator_images',
             // Acceleratorconfig test disabled until nictype is updated
             //additionalcitsuites: 'acceleratorconfig',
           }
