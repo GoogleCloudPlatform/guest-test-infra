@@ -515,7 +515,7 @@ local build_guest_configs = buildpackagejob {
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
+                  '-filter=^(packagemanager|networkinterfacenaming|cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-parallel_count=15',
                 ],
               },
