@@ -514,7 +514,7 @@ local imggroup = {
         ] +
         [
           // accelerator build jobs
-          imgbuildjob { image: image, workflow_dir: 'accelerator_images' }
+          imgbuildjob { image: image, workflow_dir: 'enterprise_linux' }
           for image in rocky_accelerator_images
         ] +
         [
@@ -570,7 +570,7 @@ local imggroup = {
             image: image,
             env: env,
             gcs_dir: 'accelerators',
-            workflow_dir: 'accelerator_images',
+            workflow_dir: 'enterprise_linux',
             // Acceleratorconfig test disabled until nictype is updated
             //additionalcitsuites: 'acceleratorconfig',
           }
