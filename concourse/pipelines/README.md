@@ -55,11 +55,6 @@ internal artifact releasing system.
 [Public Images]: https://cloud.google.com/compute/docs/images#os-compute-support
 [CIT]: https://github.com/GoogleCloudPlatform/guest-test-infra/tree/master/imagetest
 
-### partner-image-validations.jsonnet
-
-Performs automatic tests (via CIT) of Public Images produced by third parties,
-e.g.  Ubuntu images built and published by Canonical.
-
 ### pipeline-set-pipeline.yaml
 
 A pipeline used by Concourse to update other pipelines from this git repository.
