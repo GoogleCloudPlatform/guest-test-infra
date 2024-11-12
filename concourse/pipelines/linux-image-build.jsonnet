@@ -465,7 +465,7 @@ local imggroup = {
                {
                  name: 'daily-time',
                  type: 'time',
-                 source: { interval: '24h', start: '8:00 AM', stop: '8:30AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: 'true' },
+                 source: { interval: '24h', start: '8:00 AM', stop: '8:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: 'true' },
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
