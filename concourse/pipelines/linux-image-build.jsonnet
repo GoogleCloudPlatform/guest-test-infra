@@ -16,7 +16,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local prepublishtesttask = common.imagetesttask {
-  filter: '(shapevalidation)',
+  filter: '(shapevalidation)', // TODO enable oslogin
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
@@ -299,27 +299,11 @@ local imgpublishjob = {
         if tl.env == 'prod' then
         [
           {
-            in_parallel: {
-              steps: [
-                {
-                  task: 'oslogin-test-' + tl.image,
-                  config: common.imagetesttask {
-                    test_projects: 'oslogin-cit',
-                    project: 'oslogin-cit',
-                    filter: '^oslogin$',
-                    images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                  },
-                  attempts: 3,
-                },
-                {
-                  task: 'prepublish-test-' + tl.image,
-                  config: prepublishtesttask {
-                    images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                  },
-                  attempts: 3,
-                },
-              ],
+            task: 'prepublish-test-' + tl.image,
+            config: prepublishtesttask {
+              images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
             },
+            attempts: 3,
           },
           {
             task: 'publish-' + tl.image,
