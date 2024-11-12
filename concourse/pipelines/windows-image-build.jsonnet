@@ -572,7 +572,7 @@ local imgpublishjob = {
     {
       load_var: 'publish-version',
       file: 'publish-version/version',
-    }, ] + 
+    }, ] +
   (if job.generate_shasum then
   [
     {
@@ -585,8 +585,8 @@ local imgpublishjob = {
       load_var: 'sha256-txt',
       file: '%s-shasum/url' % job.image,
     },
-  ] 
-  else 
+  ]
+  else
   []) +
   (if job.env == 'prod' then
   [
@@ -792,7 +792,7 @@ local ImgGroup(name, images, environments) = {
                {
                  name: 'daily-time',
                  type: 'time',
-                 source: { interval: '24h' },
+                 source: { interval: '24h', start: '10:30 AM', stop: '11:00AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: 'true' },
                },
                common.GitResource('compute-image-tools'),
                common.GitResource('guest-test-infra'),
