@@ -431,6 +431,6 @@ local imggroup = {
           for image in test_imagegroup1
         ],
   groups: [
-    imggroup { name: 'test_images', images: test_imagegroup1 },
+    imggroup { name: 'test_images', images: test_imagegroup1 + test_imagegroup2 + test_imagegroup3 },
   ],
 }
