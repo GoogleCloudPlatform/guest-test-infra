@@ -395,9 +395,9 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in test_imagegroup3] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in test_imagegroup3] +
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in test_imagegroup3] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in test_imagegroup] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in test_imagegroup] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in test_imagegroup] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in test_imagegroup1] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in test_imagegroup1] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in test_imagegroup1] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in test_imagegroup2] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in test_imagegroup2] +
              [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in test_imagegroup2],
