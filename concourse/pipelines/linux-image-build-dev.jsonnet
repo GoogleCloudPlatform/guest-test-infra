@@ -363,48 +363,12 @@ local imggroup = {
 };
 
 {
-  local almalinux_images = ['almalinux-8', 'almalinux-9', 'almalinux-9-arm64'],
-  local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64'],
-  local centos_images = ['centos-stream-9', 'centos-stream-9-arm64'],
-  local rhel_sap_images = [
-    'rhel-8-4-sap',
-    'rhel-8-4-sap-byos',
-    'rhel-8-6-sap',
-    'rhel-8-6-sap-byos',
-    'rhel-8-8-sap',
-    'rhel-8-8-sap-byos',
-    'rhel-8-10-sap',
-    'rhel-8-10-sap-byos',
-    'rhel-9-0-sap',
-    'rhel-9-0-sap-byos',
-    'rhel-9-2-sap',
-    'rhel-9-2-sap-byos',
-    'rhel-9-4-sap',
-    'rhel-9-4-sap-byos',
-  ],
-  local rhel_images = rhel_sap_images + [
-    'rhel-8',
-    'rhel-8-arm64',
-    'rhel-8-byos',
-    'rhel-8-byos-arm64',
-    'rhel-9',
-    'rhel-9-arm64',
-    'rhel-9-byos',
-    'rhel-9-byos-arm64',
-  ],
-  local rocky_linux_images = [
-    'rocky-linux-8',
-    'rocky-linux-8-optimized-gcp',
-    'rocky-linux-8-optimized-gcp-arm64',
-    'rocky-linux-9',
-    'rocky-linux-9-arm64',
-    'rocky-linux-9-optimized-gcp',
-    'rocky-linux-9-optimized-gcp-arm64',
-  ],
-  local rocky_accelerator_images = [
+  local test_imagegroup1 = [
     'rocky-linux-8-optimized-gcp-with-nvidia-latest',
     'rocky-linux-9-optimized-gcp-with-nvidia-550',
   ],
+  local test_imagegroup2 = ['centos-stream-9-arm64'],
+  local test_imagegroup3 = ['almalinux-9-arm64'],
 
   // Start of output.
   resource_types: [
@@ -428,83 +392,19 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
-             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
-             [
-               common.gcsimgresource {
-                 image: image,
-                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
-               }
-               for image in debian_images
-             ] +
-             [common.gcssbomresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               sbom_destination: 'debian',
-             } for image in debian_images] +
-             [common.gcsshasumresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               shasum_destination: 'debian',
-             } for image in debian_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
+             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in test_imagegroup3] +
+             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in test_imagegroup3] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in test_imagegroup3] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in test_imagegroup] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in test_imagegroup] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in test_imagegroup] +
+             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in test_imagegroup2] +
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in test_imagegroup2] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in test_imagegroup2],
   jobs: [
-          // Debian build jobs
-          debianimgbuildjob {
-            image: image,
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for image in debian_images
-        ] +
-        [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images + rocky_accelerator_images
-        ] +
-        [
-          // Debian publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'debian',
-            workflow_dir: 'debian',
-
-            // Debian tarballs and images use a longer name, but jobs use the shorter name.
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for env in envs
-          for image in debian_images
-        ] +
-        [
-          // RHEL publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'rhel',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in rhel_images
-        ] +
-        [
-          // CentOS publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'centos',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in centos_images
+          for image in test_imagegroup1 + test_imagegroup2
         ] +
         [
           // AlmaLinux publish jobs
@@ -515,7 +415,7 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
           }
           for env in envs
-          for image in almalinux_images
+          for image in test_imagegroup3
         ] +
         [
           // accelerator publish jobs
@@ -528,27 +428,9 @@ local imggroup = {
             //additionalcitsuites: 'acceleratorconfig',
           }
           for env in envs
-          for image in rocky_accelerator_images
-        ] +
-        [
-          // Rocky Linux publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in rocky_linux_images
+          for image in test_imagegroup1
         ],
   groups: [
-    imggroup { name: 'debian', images: debian_images },
-    imggroup {
-      name: 'rhel',
-      images: rhel_images,
-    },
-    imggroup { name: 'centos', images: centos_images },
-    imggroup { name: 'almalinux', images: almalinux_images },
-    imggroup { name: 'rocky-linux', images: rocky_linux_images + rocky_accelerator_images },
+    imggroup { name: 'test_images', images: test_imagegroup1 },
   ],
 }
