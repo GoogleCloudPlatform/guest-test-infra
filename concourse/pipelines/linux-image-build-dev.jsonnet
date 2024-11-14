@@ -363,12 +363,12 @@ local imggroup = {
 };
 
 {
+  local almalinux_images = ['almalinux-9-arm64'],
+  local centos_images = ['centos-stream-9-arm64'],
   local rocky_linux_accelerator_images = [
     'rocky-linux-8-optimized-gcp-with-nvidia-latest',
     'rocky-linux-9-optimized-gcp-with-nvidia-550',
   ],
-  local centos_images = ['centos-stream-9-arm64'],
-  local almalinux_images = ['almalinux-9-arm64'],
 
   // Start of output.
   resource_types: [
