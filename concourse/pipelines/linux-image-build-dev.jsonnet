@@ -363,12 +363,12 @@ local imggroup = {
 };
 
 {
-  local test_imagegroup1 = [
+  local rocky_linux_accelerator_images = [
     'rocky-linux-8-optimized-gcp-with-nvidia-latest',
     'rocky-linux-9-optimized-gcp-with-nvidia-550',
   ],
-  local test_imagegroup2 = ['centos-stream-9-arm64'],
-  local test_imagegroup3 = ['almalinux-9-arm64'],
+  local centos_images = ['centos-stream-9-arm64'],
+  local almalinux_images = ['almalinux-9-arm64'],
 
   // Start of output.
   resource_types: [
@@ -392,19 +392,19 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
-             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in test_imagegroup3] +
-             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in test_imagegroup3] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in test_imagegroup3] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in test_imagegroup1] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in test_imagegroup1] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in test_imagegroup1] +
-             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in test_imagegroup2] +
-             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in test_imagegroup2] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in test_imagegroup2],
+             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in test_imagegroup1 + test_imagegroup2
+          for image in almalinux_images + rocky_linux_accelerator_images + centos_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -415,10 +415,21 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
           }
           for env in envs
-          for image in test_imagegroup3
+          for image in almalinux_images
         ] +
         [
-          // accelerator publish jobs
+          // CentOS publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'centos',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in centos_images
+        ] +
+        [
+          // Accelerator publish jobs
           imgpublishjob {
             image: image,
             env: env,
@@ -428,9 +439,9 @@ local imggroup = {
             //additionalcitsuites: 'acceleratorconfig',
           }
           for env in envs
-          for image in test_imagegroup1
+          for image in rocky_linux_accelerator_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: test_imagegroup1 + test_imagegroup2 + test_imagegroup3 },
+    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + centos_images + almalinux_images },
   ],
 }
