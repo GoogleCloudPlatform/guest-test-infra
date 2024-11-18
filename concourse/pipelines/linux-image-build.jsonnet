@@ -428,8 +428,8 @@ local imggroup = {
     'rocky-linux-9-optimized-gcp-arm64',
   ],
   local rocky_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-with-nvidia-latest',
-    'rocky-linux-9-optimized-gcp-with-nvidia-latest',
+    'rocky-linux-8-optimized-gcp-nvidia-latest',
+    'rocky-linux-9-optimized-gcp-nvidia-latest',
   ],
 
   // Start of output.
