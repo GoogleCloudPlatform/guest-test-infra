@@ -389,7 +389,7 @@ local imggroup = {
 };
 
 {
-  local almalinux_images = ['almalinux-8', 'almalinux-9', 'almalinux-9-arm64'],
+  local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64'],
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64'],
   local rhel_sap_images = [
@@ -427,10 +427,6 @@ local imggroup = {
     'rocky-linux-9-optimized-gcp',
     'rocky-linux-9-optimized-gcp-arm64',
   ],
-  local rocky_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-nvidia-latest',
-    'rocky-linux-9-optimized-gcp-nvidia-latest',
-  ],
 
   // Start of output.
   resource_types: [
@@ -457,9 +453,9 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images + rocky_accelerator_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -494,7 +490,7 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images + rocky_accelerator_images
+          for image in rhel_images + centos_images + almalinux_images + rocky_linux_images
         ] +
         [
           // Debian publish jobs
@@ -544,19 +540,6 @@ local imggroup = {
           for image in almalinux_images
         ] +
         [
-          // accelerator publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-            // Acceleratorconfig test disabled until nictype is updated
-            //additionalcitsuites: 'acceleratorconfig',
-          }
-          for env in envs
-          for image in rocky_accelerator_images
-        ] +
-        [
           // Rocky Linux publish jobs
           imgpublishjob {
             image: image,
@@ -575,6 +558,6 @@ local imggroup = {
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
-    imggroup { name: 'rocky-linux', images: rocky_linux_images + rocky_accelerator_images },
+    imggroup { name: 'rocky-linux', images: rocky_linux_images},
   ],
 }
