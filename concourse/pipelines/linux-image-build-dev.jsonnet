@@ -162,7 +162,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-with-nvidia-latest', ''),
+  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-nvidia-latest', ''),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -364,10 +364,9 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local centos_images = ['centos-stream-9-arm64'],
   local rocky_linux_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-with-nvidia-latest',
-    'rocky-linux-9-optimized-gcp-with-nvidia-550',
+    'rocky-linux-8-optimized-gcp-nvidia-latest',
+    'rocky-linux-9-optimized-gcp-nvidia-latest',
   ],
 
   // Start of output.
@@ -397,14 +396,11 @@ local imggroup = {
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images + rocky_linux_accelerator_images + centos_images
+          for image in almalinux_images + rocky_linux_accelerator_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -416,17 +412,6 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
-        ] +
-        [
-          // CentOS publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'centos',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in centos_images
         ] +
         [
           // Accelerator publish jobs
@@ -442,6 +427,6 @@ local imggroup = {
           for image in rocky_linux_accelerator_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + centos_images + almalinux_images },
+    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + almalinux_images },
   ],
 }
