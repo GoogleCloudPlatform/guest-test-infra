@@ -418,7 +418,7 @@ local imggroup = {
           imgpublishjob {
             image: image,
             env: env,
-            gcs_dir: 'accelerators',
+            gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
             // Acceleratorconfig test disabled until nictype is updated
             //additionalcitsuites: 'acceleratorconfig',
