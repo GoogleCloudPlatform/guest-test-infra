@@ -396,10 +396,7 @@ local imggroup = {
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
