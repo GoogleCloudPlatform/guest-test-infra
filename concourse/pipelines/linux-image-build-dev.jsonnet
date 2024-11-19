@@ -162,7 +162,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-with-nvidia-latest', ''),
+  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-nvidia-latest', ''),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -364,10 +364,9 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local centos_images = ['centos-stream-9-arm64'],
   local rocky_linux_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-with-nvidia-latest',
-    'rocky-linux-9-optimized-gcp-with-nvidia-550',
+    'rocky-linux-8-optimized-gcp-nvidia-latest',
+    'rocky-linux-9-optimized-gcp-nvidia-latest',
   ],
 
   // Start of output.
