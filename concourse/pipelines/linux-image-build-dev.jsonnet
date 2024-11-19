@@ -400,7 +400,7 @@ local imggroup = {
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images + rocky_linux_accelerator_images + centos_images
+          for image in almalinux_images + rocky_linux_accelerator_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -412,17 +412,6 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
-        ] +
-        [
-          // CentOS publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'centos',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in centos_images
         ] +
         [
           // Accelerator publish jobs
@@ -438,6 +427,6 @@ local imggroup = {
           for image in rocky_linux_accelerator_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + centos_images + almalinux_images },
+    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + almalinux_images },
   ],
 }
