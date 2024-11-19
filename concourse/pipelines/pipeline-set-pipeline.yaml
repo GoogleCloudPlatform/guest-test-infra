@@ -40,6 +40,8 @@ jobs:
       config_dir: concourse/pipelines
   - set_pipeline: linux-image-build
     file: rendered/linux-image-build.json
+  - set_pipeline: linux-image-build-dev
+    file: rendered/linux-image-build-dev.json
   - set_pipeline: guest-package-build
     file: rendered/guest-package-build.json
   - set_pipeline: debian-worker-image-build

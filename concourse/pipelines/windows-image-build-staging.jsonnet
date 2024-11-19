@@ -11,6 +11,44 @@ local imagetesttask = common.imagetesttask {
   extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
+local publishresulttask = {
+  local task = self,
+
+  project:: 'gcp-guest',
+  zone:: 'us-central1-a',
+  pipeline:: error 'must set pipeline in publishresulttask',
+  job:: error 'must set job in publishresulttask',
+  result_state:: error 'must set result_state in publishresulttask',
+  start_timestamp:: error 'must set start_timestamp in publishresulttask',
+
+  // Start of output.
+  platform: 'linux',
+  image_resource: {
+    type: 'registry-image',
+    source: {
+      repository: 'gcr.io/gcp-guest/concourse-metrics',
+      tag: 'latest',
+      // Use workload id to pull image
+      google_auth: true,
+      debug: true,
+    },
+  },
+  run: {
+    path: '/publish-job-result',
+    args:
+      [
+        '--project-id=' + task.project,
+        '--zone=' + task.zone,
+        '--pipeline=' + task.pipeline,
+        '--job=' + task.job,
+        '--task=publish-job-result',
+        '--result-state=' + task.result_state,
+        '--start-timestamp=' + task.start_timestamp,
+        '--metric-path=concourse/job/duration',
+      ],
+  },
+};
+
 local imgbuildjob = {
   local job = self,
 
@@ -20,6 +58,24 @@ local imgbuildjob = {
   updates_secret:: error 'must set updates_secret in imgbuildjob',
 
   // Start of job.
+  on_success: {
+    task: 'publish-success-metric',
+    config: publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'success',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
+  on_failure: {
+    task: 'publish-failure-metric',
+    config: publishresulttask {
+      pipeline: 'windows-image-build',
+      job: job.name,
+      result_state: 'failure',
+      start_timestamp: '((.:start-timestamp-ms))',
+    },
+  },
   name: 'build-' + job.image + '-testing',
   plan: [
     { get: 'compute-image-tools' },
@@ -579,7 +635,7 @@ local ImgGroup(name, images) = {
       type: 'registry-image',
     },
     {
-      name: 'registry-image-forked',
+      name: 'registry-image',
       type: 'registry-image',
       source: { repository: 'concourse/concourse' },
     },
