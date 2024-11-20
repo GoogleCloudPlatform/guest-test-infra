@@ -16,6 +16,7 @@ local imagetestn1 = common.imagetesttask {
   filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|shapevalidation|packageupgrade|packagevalidation|ssh|winrm|metadata|sql|windowscontainers)$',
   extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
+
 local imagetestc3 = common.imagetesttask {
   filter: '^(livemigrate|suspendresume|imageboot|network|hotattach|lssd|disk)$',
   extra_args: [ '-x86_shape=c3-standard-4' ],
@@ -627,7 +628,7 @@ local imgpublishjob = {
         images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
       },
       attempts: 3,
-    }
+    },
     {
       task: 'image-test-c3-' + job.image,
       config: imagetestc3 {
