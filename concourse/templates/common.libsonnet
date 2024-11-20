@@ -111,6 +111,8 @@
     shasum_destination: shasum_destination,
   },
 
+  default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
+
   imagetesttask:: {
     local task = self,
     images:: error 'must set images in imagetesttask',

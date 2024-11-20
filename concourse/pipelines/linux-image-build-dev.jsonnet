@@ -233,11 +233,9 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  // Use citfilter list as default; append additionalcitsuites if not nil
-  // additionalcitsuites must be in the valid regex concatenation format of 'item1|item2|item3'
-  additionalcitsuites:: '',
-  citfilter:: if tl.additionalcitsuites == '' then '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$'
-  else '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec|%s)$' % tl.additionalcitsuites,
+  citfilter:: common.default_linux_image_build_cit_filter,
+  cit_extra_args:: [],
+
   runtests:: if tl.env == 'testing' then true
   else false,
 
@@ -318,6 +316,7 @@ local imgpublishjob = {
               config: common.imagetesttask {
                 filter: tl.citfilter,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                extra_args:: tl.cit_extra_args,
               },
               attempts: 3,
             },
@@ -420,8 +419,10 @@ local imggroup = {
             env: env,
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
-            // Acceleratorconfig test disabled until nictype is updated
-            //additionalcitsuites: 'acceleratorconfig',
+            # Drop licensevalidation while the images are set to go to the preview project
+            citfilter: std.strReplace(common.default_linux_image_build_cit_filter, 'licensevalidation', 'acceleratorrdma|acceleratorconfig'),
+            # Run with alpha API for now
+            cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/' ],
           }
           for env in envs
           for image in rocky_linux_accelerator_images
