@@ -235,6 +235,8 @@ local imgpublishjob = {
 
   citfilter:: common.default_linux_image_build_cit_filter,
   cit_extra_args:: [],
+  cit_project:: common.default_cit_project,
+  cit_test_projects:: common.default_cit_test_projects,
 
   runtests:: if tl.env == 'testing' then true
   else false,
@@ -315,6 +317,8 @@ local imgpublishjob = {
               task: 'image-test-' + tl.image,
               config: common.imagetesttask {
                 filter: tl.citfilter,
+                project: tl.cit_project,
+                test_projects: tl.cit_test_projects,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
               },
@@ -423,6 +427,8 @@ local imggroup = {
             citfilter: std.strReplace(common.default_linux_image_build_cit_filter, 'licensevalidation', 'acceleratorrdma|acceleratorconfig'),
             # Run with alpha API for now
             cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/' ],
+            cit_project: 'compute-image-test-pool-001',
+            cit_test_projects: 'compute-image-test-pool-001',
           }
           for env in envs
           for image in rocky_linux_accelerator_images
