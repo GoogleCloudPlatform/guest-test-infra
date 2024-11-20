@@ -623,7 +623,7 @@ local imgpublishjob = {
   (if job.runtests then
   [
     {
-      task: 'image-test-n1' + job.image,
+      task: 'image-test-n1-' + job.image,
       config: imagetestn1 {
         images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
       },
