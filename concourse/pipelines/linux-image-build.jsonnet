@@ -237,6 +237,8 @@ local imgpublishjob = {
 
   citfilter:: common.default_linux_image_build_cit_filter,
   cit_extra_args:: [],
+  cit_project:: common.default_cit_project,
+  cit_test_projects:: common.default_cit_test_projects,
 
    runtests:: if tl.env == 'testing' then true
    else false,
@@ -341,6 +343,8 @@ local imgpublishjob = {
               task: 'image-test-' + tl.image,
               config: common.imagetesttask {
                 filter: tl.citfilter,
+                project: tl.cit_project,
+                test_projects: tl.cit_test_projects,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
               },

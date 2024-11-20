@@ -112,15 +112,18 @@
   },
 
   default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
+  default_cit_project:: 'gcp-guest',
+  default_cit_test_projects: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+  default_cit_zone:: 'us-central1-b',
 
   imagetesttask:: {
     local task = self,
     images:: error 'must set images in imagetesttask',
     exclude:: if task.filter == '' then error 'must set one of filter or exclude in imagetesttask' else '',
     filter:: if task.exclude == '' then error 'must set one of filter or exclude in imagetesttask' else '',
-    project:: 'gcp-guest',
-    zone:: 'us-central1-b',
-    test_projects:: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+    project:: tl.default_cit_project,
+    zone:: tl.default_cit_zone,
+    test_projects:: tl.default_cit_test_projects,
     extra_args:: [],
     platform: 'linux',
     image_resource: {
