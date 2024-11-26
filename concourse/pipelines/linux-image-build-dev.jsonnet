@@ -426,7 +426,7 @@ local imggroup = {
             # Drop licensevalidation while the images are set to go to the preview project
             citfilter: std.strReplace(common.default_linux_image_build_cit_filter, 'licensevalidation', 'acceleratorrdma|acceleratorconfig'),
             # Run with alpha API for now
-            cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/' ],
+            cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=guestos-a3u-gsc' ],
             cit_project: 'compute-image-test-pool-001',
             cit_test_projects: 'compute-image-test-pool-001',
           }
