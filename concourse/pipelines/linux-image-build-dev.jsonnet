@@ -238,6 +238,10 @@ local imgpublishjob = {
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
+  // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
+  // The images field will be overriden with the image under test.
+  extra_test_tasks:: [],
+
   runtests:: if tl.env == 'testing' then true
   else false,
 
@@ -324,6 +328,15 @@ local imgpublishjob = {
               },
               attempts: 3,
             },
+          ] + [
+            {
+              task: 'extra-image-test-' + tl.image + '-' + testtask.task,
+              config: testtask {
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+              },
+              attempts: 3,
+            }
+            for testtask in tl.extra_test_tasks
           ]
         else
           [],
@@ -367,10 +380,6 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local rocky_linux_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-nvidia-latest',
-    'rocky-linux-9-optimized-gcp-nvidia-latest',
-  ],
 
   // Start of output.
   resource_types: [
@@ -396,14 +405,11 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky-linux' } for image in rocky_linux_accelerator_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images + rocky_linux_accelerator_images
+          for image in almalinux_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -415,25 +421,8 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
-        ] +
-        [
-          // Accelerator publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-            # Add accelerator tests
-            citfilter: std.strReplace(common.default_linux_image_build_cit_filter, '^(', '^(acceleratorrdma|acceleratorconfig|'),
-            # Run with alpha API for now
-            cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=guestos-a3u-gsc' ],
-            cit_project: 'compute-image-test-pool-001',
-            cit_test_projects: 'compute-image-test-pool-001',
-          }
-          for env in envs
-          for image in rocky_linux_accelerator_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: rocky_linux_accelerator_images + almalinux_images },
+    imggroup { name: 'test_images', images: almalinux_images },
   ],
 }
