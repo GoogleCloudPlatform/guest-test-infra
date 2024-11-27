@@ -238,6 +238,10 @@ local imgpublishjob = {
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
+  // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
+  // The images field will be overriden with the image under test.
+  extra_test_tasks:: [],
+
   runtests:: if tl.env == 'testing' then true
   else false,
 
@@ -324,6 +328,15 @@ local imgpublishjob = {
               },
               attempts: 3,
             },
+          ] + [
+            {
+              task: 'extra-image-test-' + tl.image + '-' + testtask.task,
+              config: testtask {
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+              },
+              attempts: 3,
+            }
+            for testtask in tl.extra_test_tasks
           ]
         else
           [],
@@ -424,11 +437,15 @@ local imggroup = {
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
-            citfilter: std.strReplace(common.default_linux_image_build_cit_filter, '^(', '^(acceleratorrdma|acceleratorconfig|'),
-            # Run with alpha API for now
-            cit_extra_args: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=guestos-a3u-gsc' ],
-            cit_project: 'compute-image-test-pool-001',
-            cit_test_projects: 'compute-image-test-pool-001',
+            extra_test_tasks: [
+              common.imagetesttask {
+                task: 'accelerator-tests',
+                filter: '^(acceleratorrdma|acceleratorconfig)$',
+                project: 'compute-image-test-pool-001',
+                test_projects: 'compute-image-test-pool-001',
+                extra_args:: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=projects/compute-image-test-pool-001/reservations/guestos-a3u-gsc' ],
+              },
+            ],
           }
           for env in envs
           for image in rocky_linux_accelerator_images
