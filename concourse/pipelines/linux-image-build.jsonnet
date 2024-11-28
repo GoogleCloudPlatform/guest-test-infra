@@ -240,6 +240,10 @@ local imgpublishjob = {
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
+  // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
+  // The images field will be overriden with the image under test.
+  extra_test_tasks:: [],
+
    runtests:: if tl.env == 'testing' then true
    else false,
 
@@ -350,6 +354,15 @@ local imgpublishjob = {
               },
               attempts: 3,
             },
+          ] + [
+            {
+              task: 'extra-image-test-' + tl.image + '-' + testtask.task,
+              config: testtask {
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+              },
+              attempts: 3,
+            }
+            for testtask in tl.extra_test_tasks
           ]
         else
           [],
