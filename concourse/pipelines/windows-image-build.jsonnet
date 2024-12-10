@@ -913,7 +913,7 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2022-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2022-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2025-web', 'windows_gcs_ssms_exe'),
+          SQLImgBuildJob('sql-2022-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           // Windows install media builds
 
           WindowsInstallMediaImgBuildJob('windows-install-media'),
