@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -161,7 +162,7 @@ func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([
 	} else if source.Google {
 		logrus.Warnf("Forked registry image: will use Google default credentials")
 		var err error
-		if auth, err = google.NewEnvAuthenticator(context.Context); err != nil {
+		if auth, err = google.NewEnvAuthenticator(ctx context.Context); err != nil {
 			logrus.Errorf("failed to determine Google default credentials: %v.", err)
 			logrus.Warnf("Will use anonymous access.")
 			auth = authn.Anonymous
