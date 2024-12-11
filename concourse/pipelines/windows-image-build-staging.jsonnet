@@ -635,9 +635,9 @@ local ImgGroup(name, images) = {
       type: 'registry-image',
     },
     {
-      name: 'registry-image',
+      name: 'registry-image-forked',
       type: 'registry-image',
-      source: { repository: 'concourse/concourse' },
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
     },
   ],
   resources: [
