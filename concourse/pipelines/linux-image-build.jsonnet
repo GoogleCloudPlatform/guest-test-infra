@@ -9,6 +9,12 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
+local trim_strings(s, trim) =
+  if std.length(trim) == 0 then
+    s
+  else
+    trim_strings(std.strReplace(s, trim[0], ''), trim[1:]);
+
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
   sbom_destination: '((.:sbom-destination))',
@@ -162,7 +168,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-nvidia-latest', ''),
+  isopath:: trim_strings(tl.image, ['-byos', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -446,6 +452,8 @@ local imggroup = {
   local rocky_linux_accelerator_images = [
     'rocky-linux-8-optimized-gcp-nvidia-latest',
     'rocky-linux-9-optimized-gcp-nvidia-latest',
+    'rocky-linux-8-optimized-gcp-nvidia-550',
+    'rocky-linux-9-optimized-gcp-nvidia-550',
   ],
 
   // Start of output.
