@@ -9,6 +9,12 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
+local trim_strings(s, trim) =
+  if std.length(trim) == 0 then
+    s
+  else
+    trim_strings(std.strReplace(s, trim[0], ''), trim[1:]);
+
 local imgbuildtask = daisy.daisyimagetask {
   gcs_url: '((.:gcs-url))',
   sbom_destination: '((.:sbom-destination))',
@@ -162,7 +168,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: std.strReplace(std.strReplace(std.strReplace(tl.image, '-byos', ''), '-sap', ''), '-nvidia-latest', ''),
+  isopath:: trim_strings(tl.image, ['-byos', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -380,6 +386,10 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
+  local rocky_linux_images = [
+    'rocky-linux-8-optimized-gcp-nvidia-550',
+    'rocky-linux-9-optimized-gcp-nvidia-550',
+  ],
 
   // Start of output.
   resource_types: [
@@ -405,11 +415,14 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky_linux' } for image in rocky_linux_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky_linux' } for image in rocky_linux_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky_linux' } for image in rocky_linux_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images
+          for image in almalinux_images + rocky_linux_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -421,8 +434,19 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
+        ] +
+        [
+          // Rocky linux publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'rocky_linux',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in rocky_linux_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images },
+    imggroup { name: 'test_images', images: almalinux_images + rocky_linux_images },
   ],
 }
