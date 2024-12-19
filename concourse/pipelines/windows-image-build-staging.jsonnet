@@ -28,9 +28,6 @@ local publishresulttask = {
     source: {
       repository: 'gcr.io/gcp-guest/concourse-metrics',
       tag: 'latest',
-      // Use workload id to pull image
-      google_auth: true,
-      debug: true,
     },
   },
   run: {
@@ -633,11 +630,6 @@ local ImgGroup(name, images) = {
       name: 'gcs',
       source: { repository: 'frodenas/gcs-resource' },
       type: 'registry-image',
-    },
-    {
-      name: 'registry-image',
-      type: 'registry-image',
-      source: { repository: 'concourse/concourse' },
     },
   ],
   resources: [
