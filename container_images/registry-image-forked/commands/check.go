@@ -337,11 +337,18 @@ func headOrGet(ref name.Reference, imageOpts ...remote.Option) (v1.Hash, bool, e
 			if checkMissingManifest(err) {
 				return v1.Hash{}, false, nil
 			}
+			if (remoteDesc.Digest == v1.Hash{}) {
+				return v1.Hash{}, false, nil
+			}
 
 			return v1.Hash{}, false, err
 		}
 
 		return remoteDesc.Digest, true, nil
+	}
+
+	if (v1Desc.Digest == v1.Hash{}) {
+		return v1.Hash{}, false, nil
 	}
 
 	return v1Desc.Digest, true, nil
