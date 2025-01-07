@@ -640,6 +640,11 @@ local ImgGroup(name, images) = {
       source: { repository: 'frodenas/gcs-resource' },
       type: 'registry-image',
     },
+    {
+      name: 'registry-image-forked',
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
+    },
   ],
   resources: [
                common.GitResource('compute-image-tools'),
