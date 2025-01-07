@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
