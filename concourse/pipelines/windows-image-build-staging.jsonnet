@@ -21,13 +21,22 @@ local publishresulttask = {
   result_state:: error 'must set result_state in publishresulttask',
   start_timestamp:: error 'must set start_timestamp in publishresulttask',
 
+  RegistryImagePrivate:: {
+    name: 'registry-image-private',
+    type: 'registry-image',
+    source: { repository: 'gcr.io/compute-image-tools/registry-image-forked' },
+  },
+
   // Start of output.
   platform: 'linux',
   image_resource: {
-    type: 'registry-image',
-    source: {
-      repository: 'gcr.io/gcp-guest/concourse-metrics',
-      tag: 'latest',
+    type: 'registry-image-forked',
+      source: {
+        repository: 'gcr.io/gcp-guest/concourse-metrics',
+        tag: 'latest',
+        // Use workload id to pull image
+        google_auth: true,
+        debug: true,
     },
   },
   run: {
