@@ -153,7 +153,7 @@ func (source Source) Mirror() (Source, bool, error) {
 
 // AuthOptions is
 func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([]remote.Option, error) {
-	var ctx context.Background()
+	ctx := context.Background()
 	var auth authn.Authenticator
 	if source.Username != "" && source.Password != "" {
 		auth = &authn.Basic{
