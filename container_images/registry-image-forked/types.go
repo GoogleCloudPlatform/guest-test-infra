@@ -161,7 +161,7 @@ func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([
 	} else if source.Google {
 		logrus.Warnf("Forked registry image: will use Google default credentials")
 		var err error
-		if auth, err = google.NewEnvAuthenticator(); err != nil {
+		if auth, err = google.NewEnvAuthenticator(context.Background()); err != nil {
 			logrus.Errorf("failed to determine Google default credentials: %v.", err)
 			logrus.Warnf("Will use anonymous access.")
 			auth = authn.Anonymous
@@ -201,7 +201,7 @@ func (source Source) AuthOptions(repo name.Repository, scopeActions []string) ([
 		scopes[i] = repo.Scope(action)
 	}
 
-	rt, err := transport.New(repo.Registry, auth, tr, scopes)
+	rt, err := transport.NewWithContext(context.Background(), repo.Registry, auth, tr, scopes)
 	if err != nil {
 		return nil, fmt.Errorf("initialize transport: %w", err)
 	}
