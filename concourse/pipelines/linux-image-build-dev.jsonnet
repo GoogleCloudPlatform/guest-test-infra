@@ -380,6 +380,10 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
+  local rhel_images = [
+    'rhel-8-arm64',
+    'rhel-8-byos-arm64',
+  ],
 
   // Start of output.
   resource_types: [
@@ -405,11 +409,14 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images
+          for image in almalinux_images + rhel_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -421,6 +428,17 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
+        ] +
+        [
+          // RHEL publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in rhel_images
         ],
   groups: [
     imggroup { name: 'test_images', images: almalinux_images },

@@ -426,9 +426,7 @@ local imggroup = {
   ],
   local rhel_images = rhel_sap_images + [
     'rhel-8',
-    'rhel-8-arm64',
     'rhel-8-byos',
-    'rhel-8-byos-arm64',
     'rhel-9',
     'rhel-9-arm64',
     'rhel-9-byos',
