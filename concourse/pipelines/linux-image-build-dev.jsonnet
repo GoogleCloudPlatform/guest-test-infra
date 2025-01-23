@@ -386,7 +386,7 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local rocky_linux_images = [
+  local accelerator_images = [
     'rocky-linux-8-optimized-gcp-nvidia-550',
     'rocky-linux-9-optimized-gcp-nvidia-550',
   ],
@@ -416,13 +416,13 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'rocky_linux' } for image in rocky_linux_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'rocky_linux' } for image in rocky_linux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rocky_linux' } for image in rocky_linux_images],
+             [common.gcsimgresource { image: image, gcs_dir: 'rocky_linux' } for image in accelerator_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rocky_linux' } for image in accelerator_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rocky_linux' } for image in accelerator_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images + rocky_linux_images
+          for image in almalinux_images + accelerator_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -436,17 +436,27 @@ local imggroup = {
           for image in almalinux_images
         ] +
         [
-          // Rocky linux publish jobs
+          // Accelerator publish jobs
           imgpublishjob {
             image: image,
             env: env,
             gcs_dir: 'rocky_linux',
             workflow_dir: 'enterprise_linux',
+            # Add accelerator tests
+            extra_test_tasks: [
+              common.imagetesttask {
+                task: 'accelerator-tests',
+                filter: '^(acceleratorrdma|acceleratorconfig)$',
+                project: 'compute-image-test-pool-001',
+                test_projects: 'compute-image-test-pool-001',
+                extra_args:: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=image-exfr-2' ],
+              },
+            ],
           }
           for env in envs
-          for image in rocky_linux_images
+          for image in accelerator_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images + rocky_linux_images },
+    imggroup { name: 'test_images', images: almalinux_images + accelerator_images },
   ],
 }
