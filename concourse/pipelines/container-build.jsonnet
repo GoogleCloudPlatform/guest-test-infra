@@ -337,7 +337,11 @@ local BuildContainerImage(image) = buildcontainerimgjob {
                 '-exc',
                 'gcloud container images add-tag --quiet' +
                 '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))' +
-                '  gcr.io/compute-image-tools/daisy:release',
+                '  gcr.io/compute-image-tools/daisy:release;' +
+                'timestamp=$(date +%Y%m%d%H%M%S);' +
+                'gcloud container images add-tag --quiet' +
+                '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))' +
+                '  gcr.io/compute-image-tools/daisy:public-image-$timestamp',
               ],
             },
           },
