@@ -28,6 +28,7 @@ local buildcontainerimgtask = {
       '--context=' + task.context,
       '--destination=%s:latest' % task.destination,
       '--destination=%s:%s' % [task.destination, task.commit_sha],
+      '--destination=%s:%s' % [task.destination, 'public-image-' + task.commit_sha],
       '--force',
     ],
   },
