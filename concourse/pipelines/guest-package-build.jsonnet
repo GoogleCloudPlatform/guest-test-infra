@@ -1181,7 +1181,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
         branch: 'topic-stable',
-        fetch_tags: false,
+        fetch_tags: true,
       },
     },
     {
