@@ -832,32 +832,11 @@ local build_and_upload_guest_agent = build_guest_agent {
   ],
 };
 
-// Start of output
-{
-  jobs: [
-    build_guest_configs {
-      package: 'guest-configs',
-    },
-    build_and_upload_guest_agent {
-      package: 'guest-agent',
-      extra_repo: 'google-guest-agent',
-    },
-    build_and_upload_guest_agent {
-      package: 'guest-agent-stable',
-      gcs_dir: 'guest-agent-stable',
-      repo_name: 'guest-agent',
-    },
-    build_guest_agent {
-      package: 'guest-agent-dev',
-      repo_name: 'guest-agent',
-      extra_repo: 'google-guest-agent',
-      extended_tasks: [],
-    },
-    buildpackagejob {
+local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
-      package: 'guest-oslogin',
+      package:: error 'must set package in build_and_upload_oslogin',
+      gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
       builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
-      gcs_dir: 'oslogin',
       extra_tasks: [
         {
           task: 'generate-build-id',
@@ -1023,6 +1002,39 @@ local build_and_upload_guest_agent = build_guest_agent {
           sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
         },
       ],
+    };
+
+
+// Start of output
+{
+  jobs: [
+    build_guest_configs {
+      package: 'guest-configs',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent',
+      extra_repo: 'google-guest-agent',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent-stable',
+      gcs_dir: 'guest-agent-stable',
+      repo_name: 'guest-agent',
+    },
+    build_guest_agent {
+      package: 'guest-agent-dev',
+      repo_name: 'guest-agent',
+      extra_repo: 'google-guest-agent',
+      extended_tasks: [],
+    },
+    build_and_upload_oslogin {
+      package: 'guest-oslogin',
+      gcs_dir: 'oslogin',
+      repo_name: 'guest-oslogin',
+    },
+    build_and_upload_oslogin {
+      package: 'guest-oslogin-stable',
+      gcs_dir: 'oslogin-stable',
+      repo_name: 'guest-oslogin',
     },
     buildpackagejob {
       package: 'guest-diskexpand',
@@ -1239,7 +1251,25 @@ local build_and_upload_guest_agent = build_guest_agent {
       },
     },
     {
+      name: 'guest-oslogin-stable',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/guest-oslogin.git',
+        branch: 'stable',
+        fetch_tags: true,
+      },
+    },
+    {
       name: 'guest-oslogin-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'guest-oslogin',
+        access_token: '((github-token.token))',
+      },
+    },
+    {
+      name: 'guest-oslogin-stable-tag',
       type: 'github-release',
       source: {
         owner: 'GoogleCloudPlatform',
@@ -1387,6 +1417,12 @@ local build_and_upload_guest_agent = build_guest_agent {
       name: 'guest-oslogin',
       jobs: [
         'build-guest-oslogin',
+      ],
+    },
+    {
+      name: 'guest-oslogin-stable',
+      jobs: [
+        'build-guest-oslogin-stable',
       ],
     },
     {
