@@ -1032,8 +1032,8 @@ local build_and_upload_oslogin = buildpackagejob {
       repo_name: 'guest-oslogin',
     },
     build_and_upload_oslogin {
-      package: 'guest-oslogin-stable',
-      gcs_dir: 'oslogin-stable',
+      package: 'guest-oslogin-stbl',
+      gcs_dir: 'oslogin-stbl',
       repo_name: 'guest-oslogin',
     },
     buildpackagejob {
@@ -1251,7 +1251,7 @@ local build_and_upload_oslogin = buildpackagejob {
       },
     },
     {
-      name: 'guest-oslogin-stable',
+      name: 'guest-oslogin-stbl',
       type: 'git',
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/guest-oslogin.git',
@@ -1269,7 +1269,7 @@ local build_and_upload_oslogin = buildpackagejob {
       },
     },
     {
-      name: 'guest-oslogin-stable-tag',
+      name: 'guest-oslogin-stbl-tag',
       type: 'github-release',
       source: {
         owner: 'GoogleCloudPlatform',
@@ -1420,9 +1420,9 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     {
-      name: 'guest-oslogin-stable',
+      name: 'guest-oslogin-stbl',
       jobs: [
-        'build-guest-oslogin-stable',
+        'build-guest-oslogin-stbl',
       ],
     },
     {
