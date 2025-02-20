@@ -590,7 +590,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=image-exfr-2' ],
+                extra_args:: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=image-exfr-2', '-x86_shape=a3-ultragpu-8g' ],
               },
             ],
           }
