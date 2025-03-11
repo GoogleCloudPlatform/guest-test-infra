@@ -1018,6 +1018,7 @@ local build_and_upload_oslogin = buildpackagejob {
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
       gcs_dir: 'guest-agent-stable',
+      extra_repo: 'google-guest-agent',
       repo_name: 'guest-agent',
     },
     build_guest_agent {
