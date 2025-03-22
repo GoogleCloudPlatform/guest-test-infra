@@ -66,10 +66,12 @@
 
     // Add additional overrideable attrs.
     gcs_url:: error 'must set gcs_url in daisy image task',
+    iso_path_2025:: error 'must set iso_path_2025 in daisy image task',
     iso_path_2022:: error 'must set iso_path_2022 in daisy image task',
     iso_path_2019:: error 'must set iso_path_2019 in daisy image task',
     iso_path_2016:: error 'must set iso_path_2016 in daisy image task',
     iso_path_2012r2:: error 'must set iso_path_2012r2 in daisy image task',
+    updates_path_2025:: error 'must set updates_path_2025 in daisy image task',
     updates_path_2022:: error 'must set updates_path_2022 in daisy image task',
     updates_path_2019:: error 'must set updates_path_2019 in daisy image task',
     updates_path_2016:: error 'must set updates_path_2016 in daisy image task',
@@ -82,10 +84,12 @@
       // enterprise_linux and then out of build-publish, ending in daisy_workflows
       'workflow_root=../../',
       'gcs_url=' + task.gcs_url,
+      'iso_path_2025=' + task.iso_path_2025,
       'iso_path_2022=' + task.iso_path_2022,
       'iso_path_2019=' + task.iso_path_2019,
       'iso_path_2016=' + task.iso_path_2016,
       'iso_path_2012r2=' + task.iso_path_2012r2,
+      'updates_path_2025=' + task.updates_path_2025,
       'updates_path_2022=' + task.updates_path_2022,
       'updates_path_2019=' + task.updates_path_2019,
       'updates_path_2016=' + task.updates_path_2016,
