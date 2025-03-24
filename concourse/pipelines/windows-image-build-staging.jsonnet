@@ -353,6 +353,14 @@ local windowsinstallmediaimgbuildjob = {
       file: '%s-gcs/url' % job.image,
     },
     {
+      task: 'get-secret-iso-path-2025',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'win2025-64' },
+    },
+    {
+      load_var: 'iso_path_2025',
+      file: 'gcp-secret-manager/win2025-64',
+    },
+    {
       task: 'get-secret-iso-path-2022',
       config: gcp_secret_manager.getsecrettask { secret_name: 'win2022-64' },
     },
@@ -384,6 +392,14 @@ local windowsinstallmediaimgbuildjob = {
       load_var: 'iso_path_2012r2',
       file: 'gcp-secret-manager/win2012-r2-64',
     },
+    {
+       task: 'get-secret-updates-path-2025',
+       config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2025' },
+     },
+     {
+       load_var: 'updates_path_2025',
+       file: 'gcp-secret-manager/windows_gcs_updates_server2025',
+     },
     {
        task: 'get-secret-updates-path-2022',
        config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_updates_server2022' },
@@ -421,10 +437,12 @@ local windowsinstallmediaimgbuildjob = {
       config: daisy.daisywindowsinstallmediatask {
         workflow: job.workflow,
         gcs_url: '((.:gcs-url))',
+        iso_path_2025: '((.:iso_path_2025))',
         iso_path_2022: '((.:iso_path_2022))',
         iso_path_2019: '((.:iso_path_2019))',
         iso_path_2016: '((.:iso_path_2016))',
         iso_path_2012r2: '((.:iso_path_2012r2))',
+        updates_path_2025: '((.:updates_path_2025))',
         updates_path_2022: '((.:updates_path_2022))',
         updates_path_2019: '((.:updates_path_2019))',
         updates_path_2016: '((.:updates_path_2016))',
