@@ -412,7 +412,7 @@ local imggroup = {
                {
                  name: 'daily-time',
                  type: 'time',
-                 source: { interval: '24h', start: '8:00 AM', stop: '8:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { interval: '24h', start: '10:00 PM', stop: '10:30 PM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
@@ -435,11 +435,18 @@ local imggroup = {
             # Add accelerator tests
             extra_test_tasks: [
               common.imagetesttask {
-                task: 'accelerator-tests',
+                task: 'accelerator-tests-a3u',
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+              },
+              common.imagetesttask {
+                task: 'accelerator-tests-a4',
+                filter: '^(acceleratorrdma|acceleratorconfig)$',
+                project: 'compute-image-test-pool-001',
+                test_projects: 'compute-image-test-pool-001',
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=a4-exr-compute-image-test-pool-001', '-x86_shape=a4-highgpu-8g', '-zone=us-central1-b', '-accelerator_type=nvidia-b200' ],
               },
             ],
           }
