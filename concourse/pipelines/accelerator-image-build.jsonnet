@@ -599,23 +599,6 @@ local imggroup = {
             env: 'prod',
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
-            # Add accelerator tests
-            extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
-              common.imagetesttask {
-                task: 'accelerator-tests-a4',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=a4-exr-compute-image-test-pool-001', '-x86_shape=a4-highgpu-8g', '-zone=us-central1-b', '-accelerator_type=nvidia-b200' ],
-              },
-            ],
           },
           imgpublishjob {
             image: 'rocky-linux-9-optimized-gcp-nvidia-latest',
