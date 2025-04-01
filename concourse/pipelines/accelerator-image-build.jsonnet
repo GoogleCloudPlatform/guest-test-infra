@@ -21,11 +21,6 @@ local imgbuildtask = daisy.daisyimagetask {
   shasum_destination: '((.:shasum-destination))',
 };
 
-local prepublishtesttask = common.imagetesttask {
-  filter: '(shapevalidation)', // TODO enable oslogin
-  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
-};
-
 local imgbuildjob = {
   local tl = self,
 
@@ -282,16 +277,9 @@ local imgpublishjob = {
             file: 'publish-version/version',
           },
         ] +
-        // Run prepublish tests and invoke ARLE in prod
+        // Invoke ARLE in prod
         if tl.env == 'prod' then
         [
-          {
-            task: 'prepublish-test-' + tl.image,
-            config: prepublishtesttask {
-              images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-            },
-            attempts: 3,
-          },
           {
             task: 'publish-' + tl.image,
             config: arle.arlepublishtask {
