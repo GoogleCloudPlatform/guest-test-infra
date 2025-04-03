@@ -204,15 +204,19 @@ local imgpublishjob = {
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
   gcs_bucket:: common.prod_bucket,
 
-  // Publish to testing after build
+  // Publish to testing after build, if within the defined test window.
   passed:: if tl.env == 'testing' then
     'build-' + tl.image
   else if tl.env == 'prod' then
     'publish-to-testing-' + tl.image,
-
-  trigger:: if tl.env == 'testing' then true
-  else false,
-
+  daily:: true,
+  daily_task:: if self.daily then [
+    {
+      get: 'time-' + tl.image,
+      trigger: true,
+    },
+  ] else [],
+  
   citfilter:: common.default_linux_image_build_cit_filter,
   cit_extra_args:: [],
   cit_project:: common.default_cit_project,
@@ -403,6 +407,37 @@ local imggroup = {
                  name: 'daily-time',
                  type: 'time',
                  source: { interval: '24h', start: '10:00 PM', stop: '10:30 PM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               // Stagger the publish tasks by 1 hour so that A3/A4 tests cannot overlap causing capacity issues.
+               {
+                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-550',
+                 type: 'time',
+                 source: { start: '11:00 PM', stop: '11:30 PM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               {
+                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-570',
+                 type: 'time',
+                 source: { start: '12:00 AM', stop: '12:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               {
+                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-latest',
+                 type: 'time',
+                 source: { start: '1:00 AM', stop: '1:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               {
+                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-550',
+                 type: 'time',
+                 source: { start: '2:00 AM', stop: '2:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               {
+                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-570',
+                 type: 'time',
+                 source: { start: '3:00 AM', stop: '3:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+               },
+               {
+                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-latest',
+                 type: 'time',
+                 source: { start: '4:00 AM', stop: '4:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
