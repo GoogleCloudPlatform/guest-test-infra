@@ -209,13 +209,6 @@ local imgpublishjob = {
     'build-' + tl.image
   else if tl.env == 'prod' then
     'publish-to-testing-' + tl.image,
-  daily:: true,
-  daily_task:: if self.daily then [
-    {
-      get: 'time-' + tl.image,
-      trigger: true,
-    },
-  ] else [],
   
   citfilter:: common.default_linux_image_build_cit_filter,
   cit_extra_args:: [],
@@ -231,7 +224,11 @@ local imgpublishjob = {
 
   // Start of job.
   name: 'publish-to-%s-%s' % [tl.env, tl.image],
-  plan: tl.daily_task + [
+  plan: [
+          {
+            get: 'time-' + tl.image,
+            trigger: true,
+          },
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
           {
