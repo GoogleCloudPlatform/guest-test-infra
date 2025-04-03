@@ -231,7 +231,7 @@ local imgpublishjob = {
 
   // Start of job.
   name: 'publish-to-%s-%s' % [tl.env, tl.image],
-  plan: [
+  plan: tl.daily_task + [
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
           {
