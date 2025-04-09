@@ -244,8 +244,6 @@ local imgpublishjob = {
           {
             get: tl.image + '-gcs',
             passed: [tl.passed],
-            trigger: if tl.env == 'testing' then true
-            else false,
             params: { skip_download: 'true' },
           },
           {
