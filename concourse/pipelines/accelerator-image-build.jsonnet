@@ -227,7 +227,8 @@ local imgpublishjob = {
   plan: [
           {
             get: 'time-' + tl.image,
-            trigger: true,
+            trigger: if tl.env == 'testing' then true
+            else false,
           },
           { get: 'guest-test-infra' },
           { get: 'compute-image-tools' },
