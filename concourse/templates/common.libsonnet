@@ -13,7 +13,7 @@
     'debian-11-arm64': 'debian-11-bullseye-arm64',
     'debian-12': 'debian-12-bookworm',
     'debian-12-arm64': 'debian-12-bookworm-arm64',
-    'debian13': 'debian-13-trixie'
+    'debian13': 'debian-13-trixie',
   },
 
   gitresource:: {
