@@ -412,7 +412,7 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -429,7 +429,7 @@ local imggroup = {
                image: image,
                image_prefix: common.debian_image_prefixes[image],
                shasum_destination: 'debian',
-             } for image in debian_images] +
+             } for image in debian_images],
   jobs: [
           // Debian build jobs
           debianimgbuildjob {
