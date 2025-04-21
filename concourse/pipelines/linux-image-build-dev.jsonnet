@@ -469,6 +469,6 @@ local imggroup = {
           for image in almalinux_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images },
+    imggroup { name: 'test_images', images: almalinux_images + debian_images },
   ],
 }
