@@ -597,7 +597,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
             dest_image: 'debian-12-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
-            machine_type: 't2a-standard-2',
+            machine_type: 'c4a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -625,7 +625,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8-optimized-gcp-arm64',
             dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
+            machine_type: 'c4a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -639,7 +639,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
+            machine_type: 'c4a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -654,7 +654,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-arm64',
             dest_image: 'rocky-linux-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
+            machine_type: 'c4a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -669,7 +669,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp-arm64',
             dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
-            machine_type: 't2a-standard-2',
+            machine_type: 'c4a-standard-2',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetaskcos {
