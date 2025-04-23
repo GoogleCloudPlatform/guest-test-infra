@@ -272,6 +272,7 @@ local buildpackageimagetask = {
   gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetask',
   machine_type:: 'e2-medium',
   worker_image:: 'projects/compute-image-tools/global/images/family/debian-11-worker',
+  disk_type:: 'pd-ssd',
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
@@ -292,6 +293,7 @@ local buildpackageimagetask = {
         '-var:dest_image=' + tl.dest_image,
         '-var:machine_type=' + tl.machine_type,
         '-var:worker_image=' + tl.worker_image,
+        '-var:disk_type=' + tl.disk_type,
         './compute-image-tools/daisy_workflows/image_build/install_package/install_package.wf.json',
       ],
     },
@@ -598,6 +600,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'debian-12-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -626,6 +629,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -640,6 +644,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -655,6 +660,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rocky-linux-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -670,6 +676,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetaskcos {
