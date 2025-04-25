@@ -438,6 +438,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'debian-12-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -452,6 +453,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -472,6 +474,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -486,6 +489,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rhel-10-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -508,6 +512,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
@@ -516,6 +521,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rocky-linux-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
         ],
@@ -933,6 +939,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 dest_image: 'debian-12-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
                 machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
               buildpackageimagetask {
@@ -947,6 +954,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 dest_image: 'rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.aarch64.rpm',
                 machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
               buildpackageimagetask {
@@ -961,6 +969,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 dest_image: 'rhel-9-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.aarch64.rpm',
                 machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
               buildpackageimagetask {
@@ -975,6 +984,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 dest_image: 'rhel-10-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
                 machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
             ],
