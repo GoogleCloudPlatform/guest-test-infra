@@ -1035,7 +1035,7 @@ local build_and_upload_oslogin = buildpackagejob {
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
                       '-parallel_count=2',
-                      '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),,projects/gcp-guest/global/images/debian-13-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rhel-10-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/debian-13-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rhel-10-((.:build-id))',
                       '-filter=oslogin',
                     ],
                   },
