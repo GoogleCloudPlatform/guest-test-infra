@@ -338,7 +338,7 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb12', 'deb11', 'el8', 'el9'],
+  builds: ['deb12', 'deb11', 'el8', 'el9', 'el10'],
   gcs_dir: 'google-compute-engine',
   uploads: [
     uploadpackageversiontask {
@@ -384,6 +384,15 @@ local build_guest_configs = buildpackagejob {
       pkg_name: 'guest-configs',
       pkg_version: '((.:package-version))',
       reponame: 'gce-google-compute-engine-el9',
+      sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm"',
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-compute-engine',
+      pkg_name: 'guest-configs',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-google-compute-engine-el10',
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
     },
   ],
@@ -466,6 +475,20 @@ local build_guest_configs = buildpackagejob {
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
+            machine_type: 't2a-standard-2',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
             image_name: 'rocky-linux-9',
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9',
             dest_image: 'rocky-linux-9-((.:build-id))',
@@ -516,7 +539,7 @@ local build_guest_configs = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rhel-10-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
                   '-filter=^(packagemanager|networkinterfacenaming|cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-parallel_count=15',
                 ],
@@ -537,7 +560,7 @@ local build_guest_configs = buildpackagejob {
                 args: [
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
-                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-parallel_count=15',
@@ -556,7 +579,7 @@ local build_guest_agent = buildpackagejob {
 
   package:: error 'must set package in build_guest_agent',
   uploads: [],
-  builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo', 'el10', 'el10-arm64'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -648,6 +671,20 @@ local build_guest_agent = buildpackagejob {
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
+            machine_type: 't2a-standard-2',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
             image_name: 'rocky-linux-9',
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9',
             dest_image: 'rocky-linux-9-((.:build-id))',
@@ -732,7 +769,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id)),projects/gcp-guest/global/images/cos-121-((.:build-id)),projects/gcp-guest/global/images/cos-117-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rhel-10-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id)),projects/gcp-guest/global/images/cos-121-((.:build-id)),projects/gcp-guest/global/images/cos-117-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
@@ -754,7 +791,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id))projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
@@ -819,6 +856,15 @@ local build_and_upload_guest_agent = build_guest_agent {
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
     },
     uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm"' % [tl.package, tl.package],
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-guest-agent',
+      pkg_name: 'guest-agent',
+      pkg_version: '((.:package-version))',
+      reponame: 'google-guest-agent-el10',
+      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
+    },
+    uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo"' % [tl.package],
       os_type: 'WINDOWS_ALL_GOOGET',
       pkg_inside_name: 'google-compute-engine-windows',
@@ -843,7 +889,7 @@ local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
       package:: error 'must set package in build_and_upload_oslogin',
       gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
       extra_tasks: [
         {
           task: 'generate-build-id',
@@ -917,6 +963,20 @@ local build_and_upload_oslogin = buildpackagejob {
                 machine_type: 't2a-standard-2',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
               },
+              buildpackageimagetask {
+                image_name: 'rhel-10',
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+                dest_image: 'rhel-10-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+              },
+              buildpackageimagetask {
+                image_name: 'rhel-10-arm64',
+                source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+                dest_image: 'rhel-10-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
+                machine_type: 't2a-standard-2',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+              },
             ],
           },
         },
@@ -938,8 +998,8 @@ local build_and_upload_oslogin = buildpackagejob {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id))',
                       '-parallel_count=2',
+                      '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rhel-10-((.:build-id))',
                       '-filter=oslogin',
                     ],
                   },
@@ -960,7 +1020,7 @@ local build_and_upload_oslogin = buildpackagejob {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id))',
                       '-parallel_count=2',
                       '-filter=oslogin',
                     ],
@@ -1008,6 +1068,15 @@ local build_and_upload_oslogin = buildpackagejob {
           reponame: 'gce-google-compute-engine-oslogin-el9',
           sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
         },
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm"',
+          os_type: 'EL10_YUM',
+          pkg_inside_name: 'google-compute-engine-oslogin',
+          pkg_name: 'guest-oslogin',
+          pkg_version: '((.:package-version))',
+          reponame: 'gce-google-compute-engine-oslogin-el10',
+          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
+        },
       ],
     };
 
@@ -1046,7 +1115,7 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     buildpackagejob {
       package: 'guest-diskexpand',
-      builds: ['deb12', 'el8', 'el9'],
+      builds: ['deb12', 'el8', 'el9', 'el10'],
       gcs_dir: 'gce-disk-expand',
       uploads: [
         uploadpackageversiontask {
@@ -1076,6 +1145,15 @@ local build_and_upload_oslogin = buildpackagejob {
           reponame: 'gce-disk-expand-el9',
           sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
         },
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version))-g1.el10.noarch.rpm"',
+          os_type: 'EL10_YUM',
+          pkg_inside_name: 'gce-disk-expand',
+          pkg_name: 'guest-diskexpand',
+          pkg_version: '((.:package-version))',
+          reponame: 'gce-disk-expand-el10',
+          sbom_file: 'gs://gcp-guest-package-uploads/gce-disk-expand/gce-disk-expand-((.:package-version)).sbom.json',
+        },
       ],
     },
     buildpackagejob {
@@ -1099,6 +1177,15 @@ local build_and_upload_oslogin = buildpackagejob {
           pkg_name: 'artifact-registry-dnf-plugin',
           pkg_version: '((.:package-version))',
           reponame: 'dnf-plugin-artifact-registry-el9',
+          sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
+        },
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.aarch64.rpm"',
+          os_type: 'EL10_YUM',
+          pkg_inside_name: 'dnf-plugin-artifact-registry',
+          pkg_name: 'artifact-registry-dnf-plugin',
+          pkg_version: '((.:package-version))',
+          reponame: 'dnf-plugin-artifact-registry-el10',
           sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
         },
       ],
