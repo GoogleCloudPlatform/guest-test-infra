@@ -1087,7 +1087,7 @@ local build_and_upload_oslogin = buildpackagejob {
           sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
         },
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"'
+          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"',
           os_type: 'TRIXIE_APT',
           pkg_inside_name: 'google-compute-engine-oslogin',
           pkg_name: 'guest-oslogin',
