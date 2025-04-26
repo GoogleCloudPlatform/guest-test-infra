@@ -48,6 +48,10 @@
     "zone": {
       "Value": "us-central1-a",
       "Description": "zone"
+    },
+    "disk_type": {
+      "Value": "pd-ssd",
+      "Description": "disk type"
     }
   },
   "Steps": {
@@ -57,7 +61,7 @@
           "disks": [
             {
               "initializeParams": {
-                "diskType": "pd-ssd",
+                "diskType": "${disk_type}",
                 "sourceImage": "${sourceImage}"
               }
             }
