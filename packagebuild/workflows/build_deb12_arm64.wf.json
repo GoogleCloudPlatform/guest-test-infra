@@ -46,6 +46,7 @@
           "extra_git_ref": "${extra_git_ref}",
           "build_dir": "${build_dir}",
           "machine_type": "c4a-standard-2",
+          "disk_type": "hyperdisk-balanced",
           "zone": "us-central1-a",
           "version": "${version}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}"
