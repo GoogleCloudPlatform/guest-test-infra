@@ -374,7 +374,7 @@ local build_guest_configs = buildpackagejob {
       pkg_inside_name: 'google-compute-engine',
       pkg_name: 'guest-configs',
       pkg_version: '((.:package-version))',
-      reponame: 'gce-google-compute-engine-bookworm',
+      reponame: 'gce-google-compute-engine-trixie',
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
     },
     uploadpackageversiontask {
