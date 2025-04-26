@@ -451,8 +451,8 @@ local build_guest_configs = buildpackagejob {
           },
           buildpackageimagetask {
             image_name: 'debian-13',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-13',
-            dest_image: 'debian-12-((.:build-id))',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+            dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
           },
           buildpackageimagetask {
