@@ -46,6 +46,8 @@ jobs:
     file: rendered/linux-image-build-dev.json
   - set_pipeline: guest-package-build
     file: rendered/guest-package-build.json
+  - set_pipeline: guest-package-dev-build
+    file: rendered/guest-package-dev-build.json
   - set_pipeline: debian-worker-image-build
     file: guest-test-infra/concourse/pipelines/debian-worker-image-build.yaml
   - set_pipeline: windows-image-build
