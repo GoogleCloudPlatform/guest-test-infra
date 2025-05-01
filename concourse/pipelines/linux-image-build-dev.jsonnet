@@ -476,10 +476,21 @@ local imggroup = {
           }
           for env in envs
           for image in debian_images
+        ] +
+        [
+          // RHEL publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in rhel_images
         ],
   groups: [
     imggroup { name: 'debian_dev', images: debian_images },
-    imggroup { name: 'rhel_dev', images: rhel_images,},
+    imggroup { name: 'rhel_dev', images: rhel_images},
     imggroup { name: 'almalinux_dev', images: almalinux_images },
   ],
 }
