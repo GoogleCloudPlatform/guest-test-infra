@@ -462,7 +462,7 @@ local imggroup = {
           }
           for env in envs
           for image in almalinux_images
-        ], +
+        ] +
         [
           // Debian publish jobs
           imgpublishjob {
