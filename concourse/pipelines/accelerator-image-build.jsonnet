@@ -409,32 +409,32 @@ local imggroup = {
                {
                  name: 'time-rocky-linux-8-optimized-gcp-nvidia-550',
                  type: 'time',
-                 source: { start: '11:00 PM', stop: '11:30 PM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '11:30 PM', stop: '12:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
                  name: 'time-rocky-linux-8-optimized-gcp-nvidia-570',
                  type: 'time',
-                 source: { start: '12:00 AM', stop: '12:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '1:00 AM', stop: '1:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
                  name: 'time-rocky-linux-8-optimized-gcp-nvidia-latest',
                  type: 'time',
-                 source: { start: '1:00 AM', stop: '1:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '2:30 AM', stop: '3:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
                  name: 'time-rocky-linux-9-optimized-gcp-nvidia-550',
                  type: 'time',
-                 source: { start: '2:00 AM', stop: '2:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '4:00 AM', stop: '4:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
                  name: 'time-rocky-linux-9-optimized-gcp-nvidia-570',
                  type: 'time',
-                 source: { start: '3:00 AM', stop: '3:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '5:30 AM', stop: '6:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
                  name: 'time-rocky-linux-9-optimized-gcp-nvidia-latest',
                  type: 'time',
-                 source: { start: '4:00 AM', stop: '4:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '7:00 AM', stop: '7:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
