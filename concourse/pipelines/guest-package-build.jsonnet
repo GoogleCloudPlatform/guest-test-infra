@@ -685,6 +685,16 @@ local build_guest_agent = buildpackagejob {
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetaskcos {
+            image_name: 'cos-125',
+            # There's no lts branch for 125 yet, cos-dev image family points to 125.
+            # TODO: Update source_image once lts branch is available.
+            source_image: 'cos-dev',
+            dest_image: 'cos-125-((.:build-id))',
+            commit_sha: '((.:commit-sha))',
+            machine_type: 'e2-medium',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetaskcos {
             image_name: 'cos-121',
             source_image: 'cos-121-lts',
             dest_image: 'cos-121-((.:build-id))',
@@ -737,7 +747,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id)),projects/gcp-guest/global/images/cos-121-((.:build-id)),projects/gcp-guest/global/images/cos-117-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id)),projects/gcp-guest/global/images/cos-125-((.:build-id)),projects/gcp-guest/global/images/cos-121-((.:build-id)),projects/gcp-guest/global/images/cos-117-((.:build-id)),projects/gcp-guest/global/images/cos-113-((.:build-id)),projects/gcp-guest/global/images/cos-109-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
