@@ -29,6 +29,10 @@ import (
 	"google.golang.org/api/option"
 )
 
+const (
+	timeFormat = "[%v]"
+)
+
 var (
 	projects  = flag.String("projects", "", "comma delineated list of projects to clean")
 	dryRun    = flag.Bool("dry_run", true, "only print out actions, don't delete any resources")
@@ -107,10 +111,12 @@ func main() {
 	}
 
 	for _, p := range ps {
-		fmt.Println("Cleaning project", p)
+		startTime := time.Now()
+		fmt.Println(fmt.Sprintf(timeFormat, startTime.Format(time.RFC3339)), "Cleaning project", p)
 		// We do all of this sequentially so as not to DOS the API.
 		if *instances {
-			fmt.Println("Cleaning instances")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning instances")
 			insts, errs := cleanerupper.CleanInstances(clients, p, policy, *dryRun)
 			for _, i := range insts {
 				fmt.Printf(" - %s\n", i)
@@ -120,7 +126,8 @@ func main() {
 			}
 		}
 		if *disks {
-			fmt.Println("Cleaning disks")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning disks")
 			cleaned, errs := cleanerupper.CleanDisks(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -140,7 +147,8 @@ func main() {
 			}
 		}
 		if *networks {
-			fmt.Println("Cleaning networks")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning networks")
 			cleaned, errs := cleanerupper.CleanNetworks(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -150,7 +158,8 @@ func main() {
 			}
 		}
 		if *images {
-			fmt.Println("Cleaning images")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning images")
 			cleaned, errs := cleanerupper.CleanImages(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -160,7 +169,8 @@ func main() {
 			}
 		}
 		if *machineImages {
-			fmt.Println("Cleaning machine images")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning machine images")
 			cleaned, errs := cleanerupper.CleanMachineImages(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -170,7 +180,8 @@ func main() {
 			}
 		}
 		if *snapshots {
-			fmt.Println("Cleaning snapshots")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning snapshots")
 			cleaned, errs := cleanerupper.CleanSnapshots(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -180,7 +191,8 @@ func main() {
 			}
 		}
 		if *guestPolicies {
-			fmt.Println("Cleaning guest policies")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning guest policies")
 			cleaned, errs := cleanerupper.CleanGuestPolicies(ctx, clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -188,7 +200,8 @@ func main() {
 			for _, e := range errs {
 				fmt.Println(e)
 			}
-			fmt.Println("Cleaning staging guest policies")
+			currTime = time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning staging guest policies")
 			cleaned, errs = cleanerupper.CleanGuestPolicies(ctx, stagingClients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -198,7 +211,8 @@ func main() {
 			}
 		}
 		if *osPolicyAssignments {
-			fmt.Println("Cleaning os policy assignments")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning os policy assignments")
 			cleaned, errs := cleanerupper.CleanOSPolicyAssignments(ctx, clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -206,7 +220,8 @@ func main() {
 			for _, e := range errs {
 				fmt.Println(e)
 			}
-			fmt.Println("Cleaning staing os policy assignments")
+			currTime = time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning staing os policy assignments")
 			cleaned, errs = cleanerupper.CleanOSPolicyAssignments(ctx, stagingClients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -215,6 +230,9 @@ func main() {
 				fmt.Println(e)
 			}
 		}
+		endTime := time.Now().Format(time.RFC3339)
+		duration := time.Since(startTime)
+		fmt.Println(fmt.Sprintf(timeFormat, endTime), "Finished cleaning up project", p, "after %s", duration.Truncate(time.Second).String())
 		fmt.Println()
 	}
 }
