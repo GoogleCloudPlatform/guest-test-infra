@@ -137,7 +137,8 @@ func main() {
 			}
 		}
 		if *loadBalancers {
-			fmt.Println("Cleaning Load Balancer Resources")
+			currTime := time.Now().Format(time.RFC3339)
+			fmt.Println(fmt.Sprintf(timeFormat, currTime), "Cleaning Load Balancer Resources")
 			cleaned, errs := cleanerupper.CleanLoadBalancerResources(clients, p, policy, *dryRun)
 			for _, c := range cleaned {
 				fmt.Printf(" - %s\n", c)
@@ -232,7 +233,7 @@ func main() {
 		}
 		endTime := time.Now().Format(time.RFC3339)
 		duration := time.Since(startTime)
-		fmt.Println(fmt.Sprintf(timeFormat, endTime), "Finished cleaning up project", p, "after %s", duration.Truncate(time.Second).String())
+		fmt.Println(fmt.Sprintf(timeFormat, endTime), "Finished cleaning up project", p, "after", duration.Truncate(time.Second).String())
 		fmt.Println()
 	}
 }
