@@ -386,7 +386,7 @@ local build_guest_configs = buildpackagejob {
         steps: [
           buildpackageimagetask {
             image_name: 'debian-13',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
           },
@@ -494,7 +494,7 @@ local build_guest_agent = buildpackagejob {
         steps: [
           buildpackageimagetask {
             image_name: 'debian-13',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
           },
@@ -628,7 +628,7 @@ local build_and_upload_oslogin = buildpackagejob {
             steps: [
               buildpackageimagetask {
                 image_name: 'debian-13',
-                source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-13',
                 dest_image: 'debian-13-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb',
               },
