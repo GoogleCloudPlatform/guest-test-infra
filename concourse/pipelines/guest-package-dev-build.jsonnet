@@ -391,6 +391,15 @@ local build_guest_configs = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
           },
           buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
             image_name: 'rhel-10',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
             dest_image: 'rhel-10-((.:build-id))',
@@ -447,7 +456,7 @@ local build_guest_configs = buildpackagejob {
                 args: [
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
-                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-parallel_count=15',
@@ -497,6 +506,15 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
             image_name: 'rhel-10',
@@ -633,6 +651,15 @@ local build_and_upload_oslogin = buildpackagejob {
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb',
               },
               buildpackageimagetask {
+                image_name: 'debian-13-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
+                dest_image: 'debian-13-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
+                machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+              },
+              buildpackageimagetask {
                 image_name: 'rhel-10',
                 source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
                 dest_image: 'rhel-10-((.:build-id))',
@@ -690,7 +717,7 @@ local build_and_upload_oslogin = buildpackagejob {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id))',
                       '-parallel_count=2',
                       '-filter=oslogin',
                     ],
@@ -703,7 +730,7 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
       uploads: [
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb"',
           os_type: 'TRIXIE_APT',
           pkg_inside_name: 'google-compute-engine-oslogin',
           pkg_name: 'guest-oslogin',
@@ -790,7 +817,7 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb13', 'deb12', 'deb12-arm64'],
+      builds: ['deb13', 'debian13-arm64'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
