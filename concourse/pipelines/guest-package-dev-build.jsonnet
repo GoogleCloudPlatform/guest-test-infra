@@ -817,7 +817,7 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb13', 'debian13-arm64'],
+      builds: ['deb13', 'deb13-arm64'],
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
