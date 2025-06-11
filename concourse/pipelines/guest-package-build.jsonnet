@@ -136,7 +136,7 @@ local base_buildpackagejob = {
             '-exc',
             // Ugly way to produce multi-line script. TODO: maybe move to scripts?
             std.lines([
-              'latest=$(cd repo;git tag -l "20*"|tail -1)',
+              'latest=$(cd repo;git fetch --tags origin;git tag -l "20*"|tail -1)',
               'latest_date=${latest/.*}',
               'todays_date=$(date "+%Y%m%d")',
               'latest_build=0',
