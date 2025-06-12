@@ -475,7 +475,7 @@ local build_guest_agent = buildpackagejob {
 
   package:: error 'must set package in build_guest_agent',
   uploads: [],
-  builds: ['deb13', 'el10', 'el10-arm64'],
+  builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -618,7 +618,7 @@ local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
       package:: error 'must set package in build_and_upload_oslogin',
       gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb13', 'el10', 'el10-arm64'],
+      builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
       extra_tasks: [
         {
           task: 'generate-build-id',
