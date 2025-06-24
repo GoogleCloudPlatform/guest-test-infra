@@ -747,24 +747,6 @@ local build_and_upload_oslogin = buildpackagejob {
       },
     },
     {
-      name: 'guest-diskexpand',
-      type: 'git',
-      source: {
-        uri: 'https://github.com/GoogleCloudPlatform/guest-diskexpand.git',
-        branch: 'master',
-        fetch_tags: true,
-      },
-    },
-    {
-      name: 'guest-diskexpand-tag',
-      type: 'github-release',
-      source: {
-        owner: 'GoogleCloudPlatform',
-        repository: 'guest-diskexpand',
-        access_token: '((github-token.token))',
-      },
-    },
-    {
       name: 'guest-configs',
       type: 'git',
       source: {
@@ -779,24 +761,6 @@ local build_and_upload_oslogin = buildpackagejob {
       source: {
         owner: 'GoogleCloudPlatform',
         repository: 'guest-configs',
-        access_token: '((github-token.token))',
-      },
-    },
-    {
-      name: 'artifact-registry-yum-plugin',
-      type: 'git',
-      source: {
-        uri: 'https://github.com/GoogleCloudPlatform/artifact-registry-yum-plugin.git',
-        branch: 'main',
-        fetch_tags: true,
-      },
-    },
-    {
-      name: 'artifact-registry-yum-plugin-tag',
-      type: 'github-release',
-      source: {
-        owner: 'GoogleCloudPlatform',
-        repository: 'artifact-registry-yum-plugin',
         access_token: '((github-token.token))',
       },
     },
@@ -895,22 +859,9 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     {
-      name: 'disk-expand',
-      jobs: [
-        'build-guest-diskexpand',
-      ],
-    },
-    {
       name: 'google-compute-engine',
       jobs: [
         'build-guest-configs',
-      ],
-    },
-    {
-      name: 'artifact-registry-plugins',
-      jobs: [
-        'build-artifact-registry-yum-plugin',
-        'build-artifact-registry-apt-transport',
       ],
     },
     {
