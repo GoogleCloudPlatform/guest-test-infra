@@ -390,15 +390,6 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
           },
-          buildpackageimagetask {
-            image_name: 'debian-13-arm64',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
-            dest_image: 'debian-13-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
         ],
       },
     },
@@ -427,28 +418,6 @@ local build_guest_configs = buildpackagejob {
               },
             },
           },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=gcp-guest',
-                  '-zone=us-central1-a',
-                  '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
         ],
       },
     },
@@ -460,7 +429,7 @@ local build_guest_agent = buildpackagejob {
 
   package:: error 'must set package in build_guest_agent',
   uploads: [],
-  builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
+  builds: ['deb13'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -492,15 +461,6 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
           },
-          buildpackageimagetask {
-            image_name: 'debian-13-arm64',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
-            dest_image: 'debian-13-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
         ],
       },
     },
@@ -529,28 +489,6 @@ local build_guest_agent = buildpackagejob {
               },
             },
           },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=gcp-guest',
-                  '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
         ],
       },
     },
@@ -564,21 +502,12 @@ local build_and_upload_guest_agent = build_guest_agent {
 
   uploads: [
     uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb"' % [tl.package, tl.package],
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb"' % [tl.package, tl.package],
       os_type: 'TRIXIE_APT',
       pkg_inside_name: 'google-guest-agent',
       pkg_name: 'guest-agent',
       pkg_version: '((.:package-version))',
       reponame: 'google-guest-agent-trixie',
-      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
-    },
-    uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm"' % [tl.package, tl.package],
-      os_type: 'EL10_YUM',
-      pkg_inside_name: 'google-guest-agent',
-      pkg_name: 'guest-agent',
-      pkg_version: '((.:package-version))',
-      reponame: 'google-guest-agent-el10',
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
     },
   ],
@@ -588,7 +517,7 @@ local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
       package:: error 'must set package in build_and_upload_oslogin',
       gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
+      builds: ['deb13'],
       extra_tasks: [
         {
           task: 'generate-build-id',
@@ -620,15 +549,6 @@ local build_and_upload_oslogin = buildpackagejob {
                 dest_image: 'debian-13-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb',
               },
-              buildpackageimagetask {
-                image_name: 'debian-13-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
-                dest_image: 'debian-13-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb',
-                machine_type: 'c4a-standard-2',
-                disk_type: 'hyperdisk-balanced',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-              },
             ],
           },
         },
@@ -657,35 +577,13 @@ local build_and_upload_oslogin = buildpackagejob {
                   },
                 },
               },
-              {
-                task: 'oslogin-image-tests-arm64',
-                config: {
-                  platform: 'linux',
-                  image_resource: {
-                    type: 'registry-image',
-                    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                  },
-                  inputs: [{ name: 'guest-test-infra' }],
-                  run: {
-                    path: '/manager',
-                    args: [
-                      '-project=gcp-guest',
-                      '-zone=us-central1-a',
-                      '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
-                      '-parallel_count=2',
-                      '-filter=oslogin',
-                    ],
-                  },
-                },
-              },
             ],
           },
         },
       ],
       uploads: [
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb"',
           os_type: 'TRIXIE_APT',
           pkg_inside_name: 'google-compute-engine-oslogin',
           pkg_name: 'guest-oslogin',
@@ -755,27 +653,11 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
-      package: 'artifact-registry-yum-plugin',
-      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64'],
-      gcs_dir: 'yum-plugin-artifact-registry',
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.aarch64.rpm"',
-          os_type: 'EL10_YUM',
-          pkg_inside_name: 'dnf-plugin-artifact-registry',
-          pkg_name: 'artifact-registry-dnf-plugin',
-          pkg_version: '((.:package-version))',
-          reponame: 'dnf-plugin-artifact-registry-el10',
-          sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
-        },
-      ],
-    },
-    buildpackagejob {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb13', 'deb13-arm64'],
+      builds: ['deb13'],
       uploads: [
         uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
+          gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb"',
           os_type: 'DEBIAN_ALL_APT',
           pkg_inside_name: 'apt-transport-artifact-registry',
           pkg_name: 'artifact-registry-apt-transport',
