@@ -865,6 +865,12 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     {
+      name: 'artifact-registry-plugins',
+      jobs: [
+        'build-artifact-registry-apt-transport',
+      ],
+    },
+    {
       name: 'compute-image-windows',
       jobs: [
         'build-compute-image-windows',
