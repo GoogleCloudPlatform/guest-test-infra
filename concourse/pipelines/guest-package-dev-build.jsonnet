@@ -872,7 +872,7 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     {
       name: 'compute-image-windows',
-      jobs: [x
+      jobs: [
         'build-compute-image-windows',
       ],
     },
