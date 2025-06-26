@@ -570,7 +570,7 @@ local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
       package:: error 'must set package in build_and_upload_oslogin',
       gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb13', 'deb13-arm'],
+      builds: ['deb13', 'deb13-arm64'],
       extra_tasks: [
         {
           task: 'generate-build-id',
