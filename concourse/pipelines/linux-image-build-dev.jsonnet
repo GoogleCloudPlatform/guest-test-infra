@@ -388,6 +388,7 @@ local imggroup = {
   local almalinux_images = ['almalinux-9-arm64'],
   local debian_images = ['debian-13'],
   local rhel_images = ['rhel-10-x86', 'rhel-10-arm64'],
+  local centos_images = ['centos-stream-10-x86', 'centos-stream-10-arm64'],
 
   // Start of output.
   resource_types: [
@@ -433,7 +434,10 @@ local imggroup = {
              } for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images],
   jobs: [
           // Debian build jobs
           debianimgbuildjob {
@@ -445,7 +449,7 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images + rhel_images
+          for image in almalinux_images + rhel_images + centos_images
         ] +
         [
           // Debian publish jobs
@@ -473,6 +477,17 @@ local imggroup = {
           for image in rhel_images
         ] +
         [
+          // CentOS publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'centos',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in centos_images
+        ] +
+        [
           // AlmaLinux publish jobs
           imgpublishjob {
             image: image,
@@ -484,6 +499,6 @@ local imggroup = {
           for image in almalinux_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images + debian_images + rhel_images },
+    imggroup { name: 'test_images', images: almalinux_images + debian_images + rhel_images + centos_images },
   ],
 }
