@@ -654,7 +654,7 @@ local build_and_upload_oslogin = buildpackagejob {
                       '-project=gcp-guest',
                       '-zone=us-central1-a',
                       '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id)),projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-10-arm64-((.:build-id))',
+                      '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id))',
                       '-parallel_count=2',
                       '-filter=oslogin',
                     ],
