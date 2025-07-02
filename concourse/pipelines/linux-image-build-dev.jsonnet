@@ -332,7 +332,7 @@ local imgpublishjob = {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
               },
-              attempts: 3,
+              attempts: 1,
             },
           ] + [
             {
@@ -340,7 +340,7 @@ local imgpublishjob = {
               config: testtask {
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
               },
-              attempts: 3,
+              attempts: 1,
             }
             for testtask in tl.extra_test_tasks
           ]
