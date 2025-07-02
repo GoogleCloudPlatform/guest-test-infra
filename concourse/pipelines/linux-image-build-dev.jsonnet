@@ -240,7 +240,7 @@ local imgpublishjob = {
   else false,
 
   citfilter:: common.default_linux_image_build_cit_filter,
-  cit_extra_args:: [],
+  cit_extra_args:: ['-timeout=15m','-parallel_count=20'],
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
