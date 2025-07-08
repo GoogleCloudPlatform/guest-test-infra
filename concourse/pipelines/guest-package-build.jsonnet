@@ -615,6 +615,12 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
+            image_name: 'oracle-linux-8',
+            source_image: 'projects/oracle-linux-cloud/global/images/family/oracle-linux-8',
+            dest_image: 'oracle-linux-8-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
             image_name: 'rocky-linux-8',
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8',
             dest_image: 'rocky-linux-8-((.:build-id))',
@@ -641,6 +647,12 @@ local build_guest_agent = buildpackagejob {
             image_name: 'rhel-9',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
             dest_image: 'rhel-9-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'oracle-linux-9',
+            source_image: 'projects/oracle-linux-cloud/global/images/family/oracle-linux-9',
+            dest_image: 'oracle-linux-9-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
@@ -705,7 +717,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/oracle-linux-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/oracle-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
