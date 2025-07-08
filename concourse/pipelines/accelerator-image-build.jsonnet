@@ -455,15 +455,16 @@ local imggroup = {
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
-            extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
-            ],
+            # A3U is temporarily disabled due to test resource constraints
+            #extra_test_tasks: [
+            #  common.imagetesttask {
+            #    task: 'accelerator-tests-a3u',
+            #    filter: '^(acceleratorrdma|acceleratorconfig)$',
+            #    project: 'compute-image-test-pool-001',
+            #    test_projects: 'compute-image-test-pool-001',
+            #    extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+            #  },
+            #],
           },
           imgpublishjob {
             image: 'rocky-linux-9-optimized-gcp-nvidia-550',
@@ -471,15 +472,16 @@ local imggroup = {
             gcs_dir: 'rocky-linux',
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
-            extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
-            ],
+            # A3U is temporarily disabled due to test resource constraints
+            #extra_test_tasks: [
+            #  common.imagetesttask {
+            #    task: 'accelerator-tests-a3u',
+            #    filter: '^(acceleratorrdma|acceleratorconfig)$',
+            #    project: 'compute-image-test-pool-001',
+            #    test_projects: 'compute-image-test-pool-001',
+            #    extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+            #  },
+            #],
           },
           imgpublishjob {
             image: 'rocky-linux-8-optimized-gcp-nvidia-570',
@@ -488,13 +490,14 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
             extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
+            # A3U is temporarily disabled due to test resource constraints
+            #common.imagetesttask {
+            #  task: 'accelerator-tests-a3u',
+            #  filter: '^(acceleratorrdma|acceleratorconfig)$',
+            #  project: 'compute-image-test-pool-001',
+            #  test_projects: 'compute-image-test-pool-001',
+            #  extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+            #},
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
@@ -511,13 +514,14 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
             extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
+            # A3U is temporarily disabled due to test resource constraints
+            #common.imagetesttask {
+            #  task: 'accelerator-tests-a3u',
+            #  filter: '^(acceleratorrdma|acceleratorconfig)$',
+            #  project: 'compute-image-test-pool-001',
+            #  test_projects: 'compute-image-test-pool-001',
+            #  extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+            #},
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
@@ -534,13 +538,13 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
             extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
+              #common.imagetesttask {
+              #  task: 'accelerator-tests-a3u',
+              #  filter: '^(acceleratorrdma|acceleratorconfig)$',
+              #  project: 'compute-image-test-pool-001',
+              #  test_projects: 'compute-image-test-pool-001',
+              #  extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+              #},
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
@@ -557,13 +561,14 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
             # Add accelerator tests
             extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
+              # A3U is temporarily disabled due to test resource constraints
+              #common.imagetesttask {
+              #  task: 'accelerator-tests-a3u',
+              #  filter: '^(acceleratorrdma|acceleratorconfig)$',
+              #  project: 'compute-image-test-pool-001',
+              #  test_projects: 'compute-image-test-pool-001',
+              #  extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+              #},
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
