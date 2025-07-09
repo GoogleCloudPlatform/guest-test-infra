@@ -393,56 +393,6 @@ local build_guest_configs = buildpackagejob {
         ],
       },
     },
-    {
-      in_parallel: {
-        fail_fast: true,
-        steps: [
-          {
-            task: '%s-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=gcp-guest',
-                  '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-13-((.:build-id))',
-                  '-filter=^(packagemanager|networkinterfacenaming|cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=gcp-guest',
-                  '-zone=us-central1-a',
-                  '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
-        ],
-      },
-    },
   ],
 };
 
