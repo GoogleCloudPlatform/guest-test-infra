@@ -387,8 +387,8 @@ local imggroup = {
 {
   local almalinux_images = ['almalinux-9-arm64'],
   local debian_images = ['debian-13'],
-  local rhel_images = ['rhel-10-x86', 'rhel-10-arm64'],
-  local centos_images = ['centos-stream-10-x86', 'centos-stream-10-arm64'],
+  local rhel_images = ['rhel-10-x86_64', 'rhel-10-arm64'],
+  local centos_images = ['centos-stream-10-x86_64', 'centos-stream-10-arm64'],
 
   // Start of output.
   resource_types: [
