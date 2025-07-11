@@ -338,7 +338,7 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb13'],
+  builds: ['deb13', 'el10'],
   gcs_dir: 'google-compute-engine',
   uploads: [
     uploadpackageversiontask {
@@ -348,6 +348,15 @@ local build_guest_configs = buildpackagejob {
       pkg_name: 'guest-configs',
       pkg_version: '((.:package-version))',
       reponame: 'gce-google-compute-engine-trixie',
+      sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm"',
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-compute-engine',
+      pkg_name: 'guest-configs',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-google-compute-engine-el10',
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
     },
   ],
@@ -390,6 +399,21 @@ local build_guest_configs = buildpackagejob {
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10',
+            dest_image: 'centos-stream-10-((.:build-id))',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.x86_64.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
+            dest_image: 'centos-stream-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
         ],
       },
     },
@@ -401,7 +425,7 @@ local build_guest_agent = buildpackagejob {
 
   package:: error 'must set package in build_guest_agent',
   uploads: [],
-  builds: ['deb13', 'deb13-arm64'],
+  builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -438,6 +462,21 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
             dest_image: 'debian-13-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
+            dest_image: 'centos-stream-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
+            dest_image: 'centos-stream-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
@@ -513,6 +552,15 @@ local build_and_upload_guest_agent = build_guest_agent {
       reponame: 'google-guest-agent-trixie',
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
     },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm"' % [tl.package, tl.package],
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-guest-agent',
+      pkg_name: 'guest-agent',
+      pkg_version: '((.:package-version))',
+      reponame: 'google-guest-agent-el10',
+      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
+    },
   ],
 };
 
@@ -557,6 +605,21 @@ local build_and_upload_oslogin = buildpackagejob {
                 source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
                 dest_image: 'debian-13-arm64-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
+                machine_type: 'c4a-standard-2',
+                disk_type: 'hyperdisk-balanced',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+              },
+              buildpackageimagetask {
+                image_name: 'centos-stream-10',
+                source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
+                dest_image: 'centos-stream-10-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+              },
+              buildpackageimagetask {
+                image_name: 'centos-stream-10-arm64',
+                source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
+                dest_image: 'centos-stream-10-arm64-((.:build-id))',
+                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
                 machine_type: 'c4a-standard-2',
                 disk_type: 'hyperdisk-balanced',
                 worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
@@ -623,6 +686,15 @@ local build_and_upload_oslogin = buildpackagejob {
           pkg_name: 'guest-oslogin',
           pkg_version: '((.:package-version))',
           reponame: 'gce-google-compute-engine-oslogin-trixie',
+          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
+        },
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm"',
+          os_type: 'EL10_YUM',
+          pkg_inside_name: 'google-compute-engine-oslogin',
+          pkg_name: 'guest-oslogin',
+          pkg_version: '((.:package-version))',
+          reponame: 'gce-google-compute-engine-oslogin-el10',
           sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
         },
       ],
