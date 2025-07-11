@@ -599,6 +599,20 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'debian-12-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
           },
+          // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
+          // Update this once we have right packages.
+          buildpackageimagetask {
+            image_name: 'ubuntu-2504-amd64',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-amd64',
+            dest_image: 'ubuntu-2504-amd64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-2504-arm64',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-arm64',
+            dest_image: 'ubuntu-2504-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+          },
           buildpackageimagetask {
             image_name: 'debian-12-arm64',
             source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
