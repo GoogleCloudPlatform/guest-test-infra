@@ -262,6 +262,38 @@ local uploadpackageversiontask = {
   },
 };
 
+// task which builds a windows derivative OS image with a specific package added, for use in tests
+local buildpackageimagetaskwindows = {
+  local tl = self,
+
+  image_name:: error 'must set image_name in buildpackageimagetaskwindows',
+  source_image:: error 'must set source_image in buildpackageimagetaskwindows',
+  dest_image:: error 'must set dest_image in buildpackageimagetaskwindows',
+  gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetaskwindows',
+
+  // Start of output.
+  task: 'build-derivative-%s-image' % tl.image_name,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/daisy' },
+    },
+    inputs: [{ name: 'compute-image-tools' }],
+    run: {
+      path: '/daisy',
+      args: [
+        '-project=gcp-guest',
+        '-zone=us-central1-a',
+        '-var:source_image=' + tl.source_image,
+        '-var:gcs_package_path=' + tl.gcs_package_path,
+        '-var:dest_image=' + tl.dest_image,
+        './compute-image-tools/daisy_workflows/image_build/install_package/windows/install_package.wf.json',
+      ],
+    },
+  },
+};
+
 // task which builds a derivative OS image with a specific package added, for use in tests
 local buildpackageimagetask = {
   local tl = self,
@@ -587,6 +619,12 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         steps: [
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2022',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2022',
+            dest_image: 'windows-2022-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
+          },
           buildpackageimagetask {
             image_name: 'debian-11',
             source_image: 'projects/debian-cloud/global/images/family/debian-11',
