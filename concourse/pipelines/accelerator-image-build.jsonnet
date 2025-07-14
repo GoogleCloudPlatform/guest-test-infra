@@ -461,7 +461,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
             ],
           },
@@ -477,7 +477,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
             ],
           },
@@ -493,7 +493,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
@@ -516,7 +516,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
@@ -539,7 +539,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
@@ -562,7 +562,7 @@ local imggroup = {
                 filter: '^(acceleratorrdma|acceleratorconfig)$',
                 project: 'compute-image-test-pool-001',
                 test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=cloud-image-exfr-2', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
+                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
               },
               common.imagetesttask {
                 task: 'accelerator-tests-a4',
