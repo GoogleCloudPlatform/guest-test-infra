@@ -650,6 +650,9 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-arm64',
             dest_image: 'ubuntu-2504-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           buildpackageimagetask {
             image_name: 'debian-12-arm64',
