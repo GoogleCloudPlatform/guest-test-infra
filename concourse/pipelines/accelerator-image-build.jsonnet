@@ -163,7 +163,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-nvidia-latest', '-nvidia-550', '-nvidia-570']),
+  isopath:: trim_strings(tl.image, ['-nvidia-latest', '-nvidia-570']),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -378,8 +378,6 @@ local imggroup = {
 
 {
   local rocky_linux_accelerator_images = [
-    'rocky-linux-8-optimized-gcp-nvidia-550',
-    'rocky-linux-9-optimized-gcp-nvidia-550',
     'rocky-linux-8-optimized-gcp-nvidia-570',
     'rocky-linux-9-optimized-gcp-nvidia-570',
     'rocky-linux-8-optimized-gcp-nvidia-latest',
@@ -407,34 +405,24 @@ local imggroup = {
                },
                // Stagger the publish tasks by 1 hour so that A3/A4 tests cannot overlap causing capacity issues.
                {
-                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-550',
+                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-570',
                  type: 'time',
                  source: { start: '11:30 PM', stop: '12:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
-                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-570',
+                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-latest',
                  type: 'time',
                  source: { start: '1:00 AM', stop: '1:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
-                 name: 'time-rocky-linux-8-optimized-gcp-nvidia-latest',
+                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-570',
                  type: 'time',
                  source: { start: '2:30 AM', stop: '3:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                {
-                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-550',
-                 type: 'time',
-                 source: { start: '4:00 AM', stop: '4:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
-               },
-               {
-                 name: 'time-rocky-linux-9-optimized-gcp-nvidia-570',
-                 type: 'time',
-                 source: { start: '5:30 AM', stop: '6:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
-               },
-               {
                  name: 'time-rocky-linux-9-optimized-gcp-nvidia-latest',
                  type: 'time',
-                 source: { start: '7:00 AM', stop: '7:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
+                 source: { start: '4:00 AM', stop: '4:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
                },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
@@ -449,38 +437,6 @@ local imggroup = {
         ] +
         [
           // Accelerator publish jobs to testing
-          imgpublishjob {
-            image: 'rocky-linux-8-optimized-gcp-nvidia-550',
-            env: 'testing',
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-            # Add accelerator tests
-            extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
-            ],
-          },
-          imgpublishjob {
-            image: 'rocky-linux-9-optimized-gcp-nvidia-550',
-            env: 'testing',
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-            # Add accelerator tests
-            extra_test_tasks: [
-              common.imagetesttask {
-                task: 'accelerator-tests-a3u',
-                filter: '^(acceleratorrdma|acceleratorconfig)$',
-                project: 'compute-image-test-pool-001',
-                test_projects: 'compute-image-test-pool-001',
-                extra_args:: [ '-parallel_count=1', '-compute_endpoint_override=https://www.googleapis.com/compute/alpha/', '-use_reservations=true', '-reservation_urls=nvidia-h200-8mx2qd0luip8o', '-x86_shape=a3-ultragpu-8g', '-zone=europe-west1-b', '-accelerator_type=nvidia-h200-141gb' ],
-              },
-            ],
-          },
           imgpublishjob {
             image: 'rocky-linux-8-optimized-gcp-nvidia-570',
             env: 'testing',
@@ -576,18 +532,6 @@ local imggroup = {
         ] +
         [
           // Accelerator publish jobs to prod
-          imgpublishjob {
-            image: 'rocky-linux-8-optimized-gcp-nvidia-550',
-            env: 'prod',
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-          },
-          imgpublishjob {
-            image: 'rocky-linux-9-optimized-gcp-nvidia-550',
-            env: 'prod',
-            gcs_dir: 'rocky-linux',
-            workflow_dir: 'enterprise_linux',
-          },
           imgpublishjob {
             image: 'rocky-linux-8-optimized-gcp-nvidia-570',
             env: 'prod',
