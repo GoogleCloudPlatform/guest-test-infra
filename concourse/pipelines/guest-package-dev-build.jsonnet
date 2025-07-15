@@ -403,13 +403,13 @@ local build_guest_configs = buildpackagejob {
             image_name: 'centos-stream-10',
             dest_image: 'centos-stream-10-((.:build-id))',
             source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.x86_64.rpm',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
           },
           buildpackageimagetask {
             image_name: 'centos-stream-10-arm64',
             source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
             dest_image: 'centos-stream-10-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.aarch64.rpm',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-commpute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
@@ -568,7 +568,7 @@ local build_and_upload_oslogin = buildpackagejob {
       local tl = self,
       package:: error 'must set package in build_and_upload_oslogin',
       gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb13', 'deb13-arm64'],
+      builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
       extra_tasks: [
         {
           task: 'generate-build-id',
