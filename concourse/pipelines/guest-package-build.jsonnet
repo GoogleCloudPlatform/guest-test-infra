@@ -622,7 +622,7 @@ local build_guest_agent = buildpackagejob {
           buildpackageimagetaskwindows {
             image_name: 'windows-2022',
             source_image: 'projects/windows-cloud/global/images/family/windows-2022',
-            dest_image: 'windows-2022-((.:build-id))',
+            dest_image: 'windows-server-2022-dc-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
           },
           buildpackageimagetask {
