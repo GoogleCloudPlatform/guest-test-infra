@@ -775,6 +775,12 @@ local build_guest_agent = buildpackagejob {
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
+          buildpackageimagetask {
+            image_name: 'sles-15',
+            source_image: 'projects/suse-cloud/global/images/family/sles-15',
+            dest_image: 'sles-15-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
         ],
       },
     },
