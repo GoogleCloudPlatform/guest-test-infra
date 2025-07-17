@@ -1,4 +1,5 @@
 local underscore(input) = std.strReplace(input, '-', '_');
+local commaSeparatedString(inputArray) =  std.join(",", inputArray);
 
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
@@ -594,6 +595,36 @@ local build_guest_agent = buildpackagejob {
   package:: error 'must set package in build_guest_agent',
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+
+  local x86ImagesToTest = [
+    'projects/gcp-guest/global/images/debian-11-((.:build-id))',
+    'projects/gcp-guest/global/images/debian-12-((.:build-id))',
+    'projects/gcp-guest/global/images/centos-stream-9-((.:build-id))',
+    'projects/gcp-guest/global/images/oracle-linux-8-((.:build-id))',
+    'projects/gcp-guest/global/images/oracle-linux-9-((.:build-id))',
+    'projects/gcp-guest/global/images/rhel-8-((.:build-id))',
+    'projects/gcp-guest/global/images/rhel-9-((.:build-id))',
+    'projects/gcp-guest/global/images/rhel-9-4-sap-ha-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-8-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-9-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/gcp-guest/global/images/ubuntu-2504-amd64-((.:build-id))',
+    'projects/gcp-guest/global/images/sles-15-((.:build-id))',
+    'projects/gcp-guest/global/images/windows-server-2022-dc-((.:build-id))'
+  ],
+
+  local arm64ImagesToTest = [
+    'projects/gcp-guest/global/images/centos-stream-9-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/debian-12-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/rhel-8-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id))',
+    'projects/gcp-guest/global/images/ubuntu-2504-arm64-((.:build-id))'
+  ],
+
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
     {
@@ -714,6 +745,12 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
+            image_name: 'rhel-9-4-sap-ha',
+            source_image: 'projects/rhel-sap-cloud/global/images/family/rhel-9-4-sap-ha',
+            dest_image: 'rhel-9-4-sap-ha-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
             image_name: 'oracle-linux-9',
             source_image: 'projects/oracle-linux-cloud/global/images/family/oracle-linux-9',
             dest_image: 'oracle-linux-9-((.:build-id))',
@@ -802,7 +839,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-11-((.:build-id)),projects/gcp-guest/global/images/debian-12-((.:build-id)),projects/gcp-guest/global/images/rhel-8-((.:build-id)),projects/gcp-guest/global/images/oracle-linux-8-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-((.:build-id)),projects/gcp-guest/global/images/rhel-9-((.:build-id)),projects/gcp-guest/global/images/centos-stream-9-((.:build-id)),projects/gcp-guest/global/images/oracle-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+                  '-images=%s' % commaSeparatedString(x86ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
                 ],
@@ -824,7 +861,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=gcp-guest',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-12-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-9-arm64-((.:build-id)),projects/gcp-guest/global/images/rhel-8-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/gcp-guest/global/images/rocky-linux-9-arm64-((.:build-id)),projects/gcp-guest/global/images/centos-stream-9-arm64-((.:build-id))',
+                  '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
                 ],
