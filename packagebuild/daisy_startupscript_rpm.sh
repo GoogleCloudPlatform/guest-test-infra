@@ -48,7 +48,7 @@ deploy_sbomutil
 VERSION_ID=6
 if [[ -f /etc/os-release ]]; then
   eval $(grep VERSION_ID /etc/os-release)
-  VERSION_ID=${VERSION_ID:0:1}
+  VERSION_ID=${VERSION_ID%.*}
 fi
 
 GIT="git"
@@ -77,6 +77,11 @@ if [[ ${VERSION_ID} = 9 ]]; then
 fi
 
 try_command yum install -y $GIT rpmdevtools yum-utils python3-devel make
+
+# RHEL 10 requires gcc in addition to the previous command's packages
+if [[ ${VERSION_ID} == 10 ]]; then
+  try_command yum install -y gcc
+fi
 
 ROOT_WORK_DIR=$(pwd)
 git_checkout "$REPO_OWNER" "$REPO_NAME" "$GIT_REF"
