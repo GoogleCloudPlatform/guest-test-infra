@@ -49,7 +49,6 @@ VERSION_ID=6
 if [[ -f /etc/os-release ]]; then
   eval $(grep VERSION_ID /etc/os-release)
   VERSION_ID=${VERSION_ID%.*}
-  echo "Version: ${VERSION_ID}"
 fi
 
 GIT="git"
