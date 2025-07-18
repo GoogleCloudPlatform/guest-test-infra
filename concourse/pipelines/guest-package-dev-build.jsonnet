@@ -389,6 +389,7 @@ local build_guest_configs = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
             image_name: 'debian-13-arm64',
@@ -404,6 +405,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'centos-stream-10-((.:build-id))',
             source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
             image_name: 'centos-stream-10-arm64',
@@ -456,6 +458,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
             image_name: 'debian-13-arm64',
@@ -471,6 +474,8 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
             dest_image: 'centos-stream-10-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+
           },
           buildpackageimagetask {
             image_name: 'centos-stream-10-arm64',
@@ -599,6 +604,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 source_image: 'projects/bct-prod-images/global/images/family/debian-13',
                 dest_image: 'debian-13-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
               },
               buildpackageimagetask {
                 image_name: 'debian-13-arm64',
@@ -614,6 +620,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
                 dest_image: 'centos-stream-10-((.:build-id))',
                 gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
               },
               buildpackageimagetask {
                 image_name: 'centos-stream-10-arm64',
