@@ -167,7 +167,7 @@ local base_buildpackagejob = {
               run: {
                 path: '/daisy',
                 args: [
-                  '-project=gcp-guest',
+                  '-project=guest-package-builder',
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
@@ -286,7 +286,7 @@ local buildpackageimagetask = {
     run: {
       path: '/daisy',
       args: [
-        '-project=gcp-guest',
+        '-project=guest-package-builder',
         '-zone=us-central1-a',
         '-var:source_image=' + tl.source_image,
         '-var:gcs_package_path=' + tl.gcs_package_path,
@@ -322,7 +322,7 @@ local buildpackageimagetaskcos = {
     run: {
       path: '/daisy',
       args: [
-        '-project=gcp-guest',
+        '-project=guest-package-builder',
         '-zone=us-central1-a',
         '-var:source_image=' + tl.source_image,
         '-var:dest_image=' + tl.dest_image,
@@ -504,10 +504,10 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=gcp-guest',
+                  '-project=guest-package-builder',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-13-((.:build-id))',
+                  '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
@@ -526,10 +526,10 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=gcp-guest',
+                  '-project=guest-package-builder',
                   '-zone=us-central1-a',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id))',
+                  '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
                   '-parallel_count=15',
                 ],
@@ -570,142 +570,142 @@ local build_and_upload_guest_agent = build_guest_agent {
 };
 
 local build_and_upload_oslogin = buildpackagejob {
-      local tl = self,
-      package:: error 'must set package in build_and_upload_oslogin',
-      gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-      builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
-      extra_tasks: [
-        {
-          task: 'generate-build-id',
-          config: {
-            platform: 'linux',
-            image_resource: {
-              type: 'registry-image',
-              source: { repository: 'busybox' },
+  local tl = self,
+  package:: error 'must set package in build_and_upload_oslogin',
+  gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
+  builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'],
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+        outputs: [{ name: 'build-id-dir' }],
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
+          ],
+        },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          buildpackageimagetask {
+            image_name: 'debian-13',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13',
+            dest_image: 'debian-13-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
+            dest_image: 'centos-stream-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'centos-stream-10-arm64',
+            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
+            dest_image: 'centos-stream-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+        ],
+      },
+    },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          {
+            task: 'oslogin-image-tests-amd64',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zone=us-central1-a',
+                  '-test_projects=oslogin-cit',
+                  '-parallel_count=2',
+                  '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+                  '-filter=oslogin',
+                ],
+              },
             },
-            outputs: [{ name: 'build-id-dir' }],
-            run: {
-              path: 'sh',
-              args: [
-                '-exc',
-                'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
-              ],
+          },
+          {
+            task: 'oslogin-image-tests-arm64',
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              inputs: [{ name: 'guest-test-infra' }],
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zone=us-central1-a',
+                  '-test_projects=oslogin-cit',
+                  '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+                  '-parallel_count=2',
+                  '-filter=oslogin',
+                ],
+              },
             },
           },
-        },
-        { load_var: 'build-id', file: 'build-id-dir/build-id' },
-        { get: 'compute-image-tools' },
-        {
-          in_parallel: {
-            fail_fast: true,
-            steps: [
-              buildpackageimagetask {
-                image_name: 'debian-13',
-                source_image: 'projects/bct-prod-images/global/images/family/debian-13',
-                dest_image: 'debian-13-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
-              },
-              buildpackageimagetask {
-                image_name: 'debian-13-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
-                dest_image: 'debian-13-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
-                machine_type: 'c4a-standard-2',
-                disk_type: 'hyperdisk-balanced',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-              },
-              buildpackageimagetask {
-                image_name: 'centos-stream-10',
-                source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
-                dest_image: 'centos-stream-10-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
-              },
-              buildpackageimagetask {
-                image_name: 'centos-stream-10-arm64',
-                source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
-                dest_image: 'centos-stream-10-arm64-((.:build-id))',
-                gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
-                machine_type: 'c4a-standard-2',
-                disk_type: 'hyperdisk-balanced',
-                worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-              },
-            ],
-          },
-        },
-        {
-          in_parallel: {
-            fail_fast: true,
-            steps: [
-              {
-                task: 'oslogin-image-tests-amd64',
-                config: {
-                  platform: 'linux',
-                  image_resource: {
-                    type: 'registry-image',
-                    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                  },
-                  run: {
-                    path: '/manager',
-                    args: [
-                      '-project=gcp-guest',
-                      '-zone=us-central1-a',
-                      '-test_projects=oslogin-cit',
-                      '-parallel_count=2',
-                      '-images=projects/gcp-guest/global/images/debian-13-((.:build-id))',
-                      '-filter=oslogin',
-                    ],
-                  },
-                },
-              },
-              {
-                task: 'oslogin-image-tests-arm64',
-                config: {
-                  platform: 'linux',
-                  image_resource: {
-                    type: 'registry-image',
-                    source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                  },
-                  inputs: [{ name: 'guest-test-infra' }],
-                  run: {
-                    path: '/manager',
-                    args: [
-                      '-project=gcp-guest',
-                      '-zone=us-central1-a',
-                      '-test_projects=oslogin-cit',
-                      '-images=projects/gcp-guest/global/images/debian-13-arm64-((.:build-id))',
-                      '-parallel_count=2',
-                      '-filter=oslogin',
-                    ],
-                  },
-                },
-              },
-            ],
-          },
-        },
-      ],
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb"',
-          os_type: 'TRIXIE_APT',
-          pkg_inside_name: 'google-compute-engine-oslogin',
-          pkg_name: 'guest-oslogin',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-oslogin-trixie',
-          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
-        },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm"',
-          os_type: 'EL10_YUM',
-          pkg_inside_name: 'google-compute-engine-oslogin',
-          pkg_name: 'guest-oslogin',
-          pkg_version: '((.:package-version))',
-          reponame: 'gce-google-compute-engine-oslogin-el10',
-          sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
-        },
-      ],
-    };
+        ],
+      },
+    },
+  ],
+  uploads: [
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb"',
+      os_type: 'TRIXIE_APT',
+      pkg_inside_name: 'google-compute-engine-oslogin',
+      pkg_name: 'guest-oslogin',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-google-compute-engine-oslogin-trixie',
+      sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm"',
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-compute-engine-oslogin',
+      pkg_name: 'guest-oslogin',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-google-compute-engine-oslogin-el10',
+      sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
+    },
+  ],
+};
 
 
 // Start of output
