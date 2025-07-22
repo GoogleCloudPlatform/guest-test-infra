@@ -386,7 +386,7 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local debian_images = ['debian-13'],
+  local debian_images = ['debian-13', 'debian-13-arm64'],
   local rhel_images = ['rhel-10', 'rhel-10-arm64'],
   local centos_images = ['centos-stream-10', 'centos-stream-10-arm64'],
 
