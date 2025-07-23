@@ -36,6 +36,18 @@ VERSION=$(get_md version)
 VERSION=${VERSION:-"dummy"}
 SBOM_UTIL_GCS_ROOT=$(get_md sbom-util-gcs-root)
 
+GCLOUD_SDK_PATH="/google-cloud-sdk"
+
+if [[ "${REPO_NAME}" == "guest-oslogin" ]]; then
+  echo "Detected guest-oslogin repository. Checking for Google Cloud SDK."
+  if [ -d "${GCLOUD_SDK_PATH}/bin" ]; then
+    export PATH="${PATH}:${GCLOUD_SDK_PATH}/bin"
+    echo "Google Cloud SDK binaries added to PATH for guest-oslogin build."
+  else
+    echo "Google Cloud SDK directory not found at ${GCLOUD_SDK_PATH}/bin. Skipping PATH modification."
+  fi
+fi
+
 echo "Started build..."
 
 # common.sh contains functions common to all builds.
@@ -60,7 +72,7 @@ fi
 
 # Install DevToolSet with gcc 10 for EL7.
 # Centos 7 has only gcc 4.8.5 available.
-if (( ${VERSION_ID} == 7 )); then
+if ((${VERSION_ID} == 7)); then
   try_command yum install -y centos-release-scl
   try_command yum install -y devtoolset-10-gcc-c++.x86_64
 fi
@@ -146,12 +158,12 @@ COMMITURL="https://github.com/$REPO_OWNER/$REPO_NAME/tree/$(git rev-parse HEAD)"
 echo "Building package(s)"
 
 # Enable gcc 10 for EL7 only and before rpmbuild
-if (( ${VERSION_ID} == 7 )); then
+if ((${VERSION_ID} == 7)); then
   source /opt/rh/devtoolset-10/enable
 fi
 
 for spec in $TOBUILD; do
-  PKGNAME="$(grep Name: "./packaging/${spec}"|cut -d' ' -f2-|tr -d ' ')"
+  PKGNAME="$(grep Name: "./packaging/${spec}" | cut -d' ' -f2- | tr -d ' ')"
   yum-builddep -y "./packaging/${spec}"
 
   cp "./packaging/${spec}" "${RPMDIR}/SPECS/"
@@ -178,4 +190,4 @@ for rpm in $rpms; do
 done
 echo "copying ${rpms} to $GCS_PATH/"
 gsutil cp -n ${rpms} "$GCS_PATH/"
-build_success "Built $(echo ${rpms}|xargs)"
+build_success "Built $(echo ${rpms} | xargs)"
