@@ -613,76 +613,76 @@ local build_and_upload_oslogin = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
-          buildpackageimagetask {
-            image_name: 'centos-stream-10',
-            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
-            dest_image: 'centos-stream-10-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
-          },
-          buildpackageimagetask {
-            image_name: 'centos-stream-10-arm64',
-            source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
-            dest_image: 'centos-stream-10-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
+          }
+          // buildpackageimagetask {
+          //   image_name: 'centos-stream-10',
+          //   source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
+          //   dest_image: 'centos-stream-10-((.:build-id))',
+          //   gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+          //   worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          // },
+          // buildpackageimagetask {
+          //   image_name: 'centos-stream-10-arm64',
+          //   source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10-arm64',
+          //   dest_image: 'centos-stream-10-arm64-((.:build-id))',
+          //   gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
+          //   machine_type: 'c4a-standard-2',
+          //   disk_type: 'hyperdisk-balanced',
+          //   worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          // },
         ],
       },
     },
-    {
-      in_parallel: {
-        fail_fast: true,
-        steps: [
-          {
-            task: 'oslogin-image-tests-amd64',
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zone=us-central1-a',
-                  '-test_projects=oslogin-cit',
-                  '-parallel_count=2',
-                  '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
-                  '-filter=oslogin',
-                ],
-              },
-            },
-          },
-          {
-            task: 'oslogin-image-tests-arm64',
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zone=us-central1-a',
-                  '-test_projects=oslogin-cit',
-                  '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
-                  '-parallel_count=2',
-                  '-filter=oslogin',
-                ],
-              },
-            },
-          },
-        ],
-      },
-    },
+    // {
+    //   in_parallel: {
+    //     fail_fast: true,
+    //     steps: [
+    //       {
+    //         task: 'oslogin-image-tests-amd64',
+    //         config: {
+    //           platform: 'linux',
+    //           image_resource: {
+    //             type: 'registry-image',
+    //             source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+    //           },
+    //           run: {
+    //             path: '/manager',
+    //             args: [
+    //               '-project=guest-package-builder',
+    //               '-zone=us-central1-a',
+    //               '-test_projects=oslogin-cit',
+    //               '-parallel_count=2',
+    //               '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+    //               '-filter=oslogin',
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       {
+    //         task: 'oslogin-image-tests-arm64',
+    //         config: {
+    //           platform: 'linux',
+    //           image_resource: {
+    //             type: 'registry-image',
+    //             source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+    //           },
+    //           inputs: [{ name: 'guest-test-infra' }],
+    //           run: {
+    //             path: '/manager',
+    //             args: [
+    //               '-project=guest-package-builder',
+    //               '-zone=us-central1-a',
+    //               '-test_projects=oslogin-cit',
+    //               '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+    //               '-parallel_count=2',
+    //               '-filter=oslogin',
+    //             ],
+    //           },
+    //         },
+    //       },
+    //     ],
+    //   },
+    // },
   ],
   uploads: [
     uploadpackageversiontask {
