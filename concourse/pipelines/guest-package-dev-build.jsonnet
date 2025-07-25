@@ -598,22 +598,22 @@ local build_and_upload_oslogin = buildpackagejob {
       in_parallel: {
         fail_fast: true,
         steps: [
-          buildpackageimagetask {
-            image_name: 'debian-13',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-13',
-            dest_image: 'debian-13-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
-          },
-          buildpackageimagetask {
-            image_name: 'debian-13-arm64',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
-            dest_image: 'debian-13-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          }
+          // buildpackageimagetask {
+          //   image_name: 'debian-13',
+          //   source_image: 'projects/bct-prod-images/global/images/family/debian-13',
+          //   dest_image: 'debian-13-((.:build-id))',
+          //   gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_amd64.deb',
+          //   worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          // },
+          // buildpackageimagetask {
+          //   image_name: 'debian-13-arm64',
+          //   source_image: 'projects/bct-prod-images/global/images/family/debian-13-arm64',
+          //   dest_image: 'debian-13-arm64-((.:build-id))',
+          //   gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
+          //   machine_type: 'c4a-standard-2',
+          //   disk_type: 'hyperdisk-balanced',
+          //   worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          // }
           // buildpackageimagetask {
           //   image_name: 'centos-stream-10',
           //   source_image: 'projects/bct-prod-images/global/images/family/centos-stream-10',
