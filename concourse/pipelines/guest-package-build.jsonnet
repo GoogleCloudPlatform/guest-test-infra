@@ -371,18 +371,9 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb12', 'deb11', 'el8', 'el9'],
+  builds: ['deb12', 'el8', 'el9'],
   gcs_dir: 'google-compute-engine',
   uploads: [
-    uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
-      os_type: 'BUSTER_APT',
-      pkg_inside_name: 'google-compute-engine',
-      pkg_name: 'guest-configs',
-      pkg_version: '((.:package-version))',
-      reponame: 'gce-google-compute-engine-buster',
-      sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
-    },
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
       os_type: 'BULLSEYE_APT',
