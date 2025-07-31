@@ -110,6 +110,15 @@ local BuildContainerImage(image) = buildcontainerimgjob {
         branch: 'main',
       },
     },
+    {
+      name: 'cloud-image-tests-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'cloud-image-tests',
+        access_token: '((github-token.token))',
+      },
+    },
     common.GitResource('guest-test-infra'),
     common.GitResource('compute-image-tools'),
     {
