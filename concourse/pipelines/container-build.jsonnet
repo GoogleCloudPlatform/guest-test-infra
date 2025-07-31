@@ -15,7 +15,7 @@ local buildcontainerimgtask = {
     type: 'registry-image',
     source: {
       repository: 'gcr.io/kaniko-project/executor',
-      tag: 'latest'
+      tag: 'latest',
     },
   },
   inputs: [
@@ -44,8 +44,11 @@ local buildcontainerimgjob = {
   input:: 'guest-test-infra',
   passed:: '',
   privileged:: false,
+  // extra_steps are run before the image build.
   extra_steps:: [],
   extra_resources:: [],
+  // post_steps are run after the image build.
+  post_steps:: [],
 
   // Start of job definition
   name: 'build-' + job.image,
@@ -69,7 +72,7 @@ local buildcontainerimgjob = {
           },
           {
             task: 'build-image',
-	    privileged: job.privileged,
+            privileged: job.privileged,
             config: buildcontainerimgtask {
               commit_sha: '((.:%s-commit-sha))' % job.image,
               destination: job.destination,
@@ -78,7 +81,7 @@ local buildcontainerimgjob = {
               input: job.input,
             },
           },
-        ],
+        ] + job.post_steps,
 };
 
 // Function for our builds in guest-test-infra/container_images
@@ -105,6 +108,15 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/cloud-image-tests.git',
         branch: 'main',
+      },
+    },
+    {
+      name: 'cloud-image-tests-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'cloud-image-tests',
+        access_token: '((github-token.token))',
       },
     },
     common.GitResource('guest-test-infra'),
@@ -177,6 +189,48 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'Dockerfile',
       input: 'cloud-image-tests',
       image: 'cloud-image-tests',
+      post_steps: [
+        {
+          task: 'generate-container-version',
+          config: {
+            platform: 'linux',
+            image_resource: {
+              type: 'registry-image',
+              source: { repository: 'alpine/git' },
+            },
+
+            inputs: [{ name: 'cloud-image-tests', path: 'repo' }],
+            outputs: [{ name: 'container-version' }],
+
+            run: {
+              path: 'ash',
+              args: [
+                '-exc',
+                // Ugly way to produce multi-line script. TODO: maybe move to scripts?
+                std.lines([
+                  'latest=$(cd repo;git fetch --tags origin;git tag -l "20*"|tail -1)',
+                  'latest_date=${latest/.*}',
+                  'todays_date=$(date "+%Y%m%d")',
+                  'latest_build=0',
+                  'if [[ $latest_date == $todays_date ]]; then',
+                  '  latest_build=${latest/*.}',
+                  '  latest_build=$((latest_build+1))',
+                  'fi',
+                  'printf "%s.%02d\n" "${todays_date}" "${latest_build}" | tee container-version/version',
+                ]),
+              ],
+            },
+          },
+        },
+        {
+          put: 'cloud-image-tests-tag',
+          params: {
+            name: 'container-version/version',
+            tag: 'container-version/version',
+            commitish: 'cloud-image-tests/.git/ref',
+          },
+        },
+      ],
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
