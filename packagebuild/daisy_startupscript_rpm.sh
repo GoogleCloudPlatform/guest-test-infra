@@ -38,14 +38,11 @@ SBOM_UTIL_GCS_ROOT=$(get_md sbom-util-gcs-root)
 
 GCLOUD_SDK_PATH="/google-cloud-sdk"
 
-if [[ "${REPO_NAME}" == "guest-oslogin" ]]; then
-  echo "Detected guest-oslogin repository. Checking for Google Cloud SDK."
-  if [ -d "${GCLOUD_SDK_PATH}/bin" ]; then
-    export PATH="${PATH}:${GCLOUD_SDK_PATH}/bin"
-    echo "Google Cloud SDK binaries added to PATH for guest-oslogin build."
-  else
-    echo "Google Cloud SDK directory not found at ${GCLOUD_SDK_PATH}/bin. Skipping PATH modification."
-  fi
+if [ -d "${GCLOUD_SDK_PATH}/bin" ]; then
+  export PATH="${PATH}:${GCLOUD_SDK_PATH}/bin"
+  echo "Google Cloud SDK binaries added to PATH."
+else
+  echo "Google Cloud SDK directory not found at ${GCLOUD_SDK_PATH}/bin. Skipping PATH modification."
 fi
 
 echo "Started build..."
