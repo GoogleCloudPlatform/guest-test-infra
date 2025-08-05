@@ -1062,9 +1062,8 @@ local build_and_upload_oslogin = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=guest-package-builder',
+                  '-project=oslogin-cit',
                   '-zone=us-central1-a',
-                  '-test_projects=oslogin-cit',
                   '-parallel_count=2',
                   '-images=projects/guest-package-builder/global/images/debian-11-((.:build-id)),projects/guest-package-builder/global/images/debian-12-((.:build-id)),projects/guest-package-builder/global/images/debian-13-((.:build-id)),projects/guest-package-builder/global/images/rhel-8-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
                   '-filter=oslogin',
@@ -1084,9 +1083,8 @@ local build_and_upload_oslogin = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  '-project=guest-package-builder',
+                  '-project=oslogin-cit',
                   '-zone=us-central1-a',
-                  '-test_projects=oslogin-cit',
                   '-images=projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
                   '-parallel_count=2',
                   '-filter=oslogin',
