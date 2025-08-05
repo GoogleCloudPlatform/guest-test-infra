@@ -829,7 +829,6 @@ local build_guest_agent = buildpackagejob {
                 args: [
                   '-project=guest-package-builder',
                   '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
@@ -850,9 +849,10 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
+                  // Override project to run tests in by providing -test_projects flag otherwise CIT defaults 
+                  // to the same project runner is running in.
                   '-project=guest-package-builder',
                   '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
