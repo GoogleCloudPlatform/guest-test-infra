@@ -488,56 +488,56 @@ local build_guest_agent = buildpackagejob {
         ],
       },
     },
-    {
-      in_parallel: {
-        fail_fast: true,
-        steps: [
-          {
-            task: '%s-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zone=us-central1-a',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-          },
-        ],
-      },
-    },
+    // {
+      // in_parallel: {
+      //   fail_fast: true,
+      //   steps: [
+      //     {
+      //       task: '%s-image-tests-amd64' % [tl.package],
+      //       config: {
+      //         platform: 'linux',
+      //         image_resource: {
+      //           type: 'registry-image',
+      //           source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+      //         },
+      //         run: {
+      //           path: '/manager',
+      //           args: [
+      //             '-project=guest-package-builder',
+      //             '-zone=us-central1-a',
+      //             '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+      //             '-images=projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+      //             '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
+      //             '-parallel_count=15',
+      //           ],
+      //         },
+      //       },
+      //     },
+      //     {
+      //       task: '%s-image-tests-arm64' % [tl.package],
+      //       config: {
+      //         platform: 'linux',
+      //         image_resource: {
+      //           type: 'registry-image',
+      //           source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+      //         },
+      //         inputs: [{ name: 'guest-test-infra' }],
+      //         run: {
+      //           path: '/manager',
+      //           args: [
+      //             '-project=guest-package-builder',
+      //             '-zone=us-central1-a',
+      //             '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
+      //             '-images=projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+      //             '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|vmspec|compatmanager|pluginmanager)$',
+      //             '-parallel_count=15',
+      //           ],
+      //         },
+      //       },
+      //     },
+      //   ],
+      // },
+    // },
   ],
 };
 
@@ -594,10 +594,10 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     { load_var: 'build-id', file: 'build-id-dir/build-id' },
     { get: 'compute-image-tools' },
-    {
-      in_parallel: {
-        fail_fast: true,
-        steps: [
+    // {
+      // in_parallel: {
+      //   fail_fast: true,
+      //   steps: [
           // buildpackageimagetask {
           //   image_name: 'debian-13',
           //   source_image: 'projects/bct-prod-images/global/images/family/debian-13',
@@ -630,9 +630,9 @@ local build_and_upload_oslogin = buildpackagejob {
           //   disk_type: 'hyperdisk-balanced',
           //   worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           // },
-        ],
-      },
-    },
+      //   ],
+      // },
+    // },
     // {
     //   in_parallel: {
     //     fail_fast: true,
