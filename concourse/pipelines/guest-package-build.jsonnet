@@ -854,6 +854,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=guest-package-builder',
                   '-zones=us-central1-a,europe-west4-a,asia-southeast1-b',
                   '-timeout=45m',
+                  '-arm64_shape=c4a-standard-2',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
