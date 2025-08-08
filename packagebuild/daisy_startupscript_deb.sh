@@ -28,6 +28,12 @@ SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root
 
 DEBIAN_FRONTEND=noninteractive
 
+# Debian13 needs to be pinned to Phase 2 guest agent. This is temporary.
+if grep -q "13.0" /etc/debian_version && [[ "$REPO_NAME" == "guest-agent" ]] && [[ "$EXTRA_REPO" == "google-guest-agent" ]]; then
+  GIT_REF="1a3694aec8b63212634afdcd98e7aa4016858421"
+  EXTRA_GIT_REF="b87e965fb35a54892442ff26456d77e7705c2f88"
+fi
+
 echo "Started build..."
 
 gsutil cp "${SRC_PATH}/common.sh" ./
