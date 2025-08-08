@@ -828,7 +828,7 @@ local build_guest_agent = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zone=us-central1-a',
+                  '-zones=us-central1-a,us-east1-b,us-west1-a',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
