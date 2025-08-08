@@ -852,7 +852,7 @@ local build_guest_agent = buildpackagejob {
                   // Override project to run tests in by providing -test_projects flag otherwise CIT defaults 
                   // to the same project runner is running in.
                   '-project=guest-package-builder',
-                  '-zones=us-central1-a,us-east1-b,us-west1-a',
+                  '-zones=us-central1-a,europe-west4-a,asia-southeast1-b',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
