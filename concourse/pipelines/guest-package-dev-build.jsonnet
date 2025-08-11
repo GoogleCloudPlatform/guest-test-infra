@@ -169,7 +169,7 @@ local base_buildpackagejob = {
               inputs: [{ name: 'guest-test-infra' }],
               run: {
                 path: '/daisy',
-                args: [
+                args: std.flatten([
                   '-project=guest-package-builder',
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
@@ -184,7 +184,7 @@ local base_buildpackagejob = {
                   '-var:build_dir=' + tl.build_dir,
                 ] + tl.extra_daisy_args + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
-                ],
+                ]),
               },
             },
           }
