@@ -96,13 +96,13 @@ local base_buildpackagejob = {
     },
   ] else tl.default_load_sha,
 
-  extra_daisy_args:: if tl.extra_repo != '' then [
+  extra_daisy_args:: if tl.extra_repo != '' then 
     if tl.extra_repo == 'google-guest-agent' then [
     '-var:extra_repo=' + tl.extra_repo,
     '-var:extra_git_ref=b87e965fb35a54892442ff26456d77e7705c2f88',
   ] else ['-var:extra_repo=' + tl.extra_repo,
     '-var:extra_git_ref=((.:extra-commit-sha))',]
-  ] else [],
+  else [],
 
   // Start of output.
   name: 'build-' + tl.package,
