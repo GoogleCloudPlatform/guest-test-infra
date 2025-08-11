@@ -174,11 +174,11 @@ local base_buildpackagejob = {
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
-                  if tl.repo_name == 'guest-agent' then [
+                  (if tl.repo_name == 'guest-agent' then [
                   '-var:git_ref=1a3694aec8b63212634afdcd98e7aa4016858421',
                   ] else [
                     '-var:git_ref=((.:commit-sha))',
-                  ],
+                  ]),
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
