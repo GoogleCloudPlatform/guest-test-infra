@@ -96,13 +96,13 @@ local base_buildpackagejob = {
     },
   ] else tl.default_load_sha,
 
-  extra_daisy_args:: if tl.extra_repo != '' then 
-    if tl.extra_repo == 'google-guest-agent' then [
-    '-var:extra_repo=' + tl.extra_repo,
-    '-var:extra_git_ref=b87e965fb35a54892442ff26456d77e7705c2f88',
-  ] else ['-var:extra_repo=' + tl.extra_repo,
-    '-var:extra_git_ref=((.:extra-commit-sha))',]
-  else [],
+  extra_daisy_args:: if tl.extra_repo != '' then [
+  '-var:extra_repo=' + tl.extra_repo,
+  if tl.extra_repo == 'google-guest-agent' then
+    '-var:extra_git_ref=b87e965fb35a54892442ff26456d77e7705c2f88'
+  else
+    '-var:extra_git_ref=((.:extra-commit-sha))',
+] else [],
 
   // Start of output.
   name: 'build-' + tl.package,
@@ -169,22 +169,21 @@ local base_buildpackagejob = {
               inputs: [{ name: 'guest-test-infra' }],
               run: {
                 path: '/daisy',
-                args: std.flatten([
+                args: [
                   '-project=guest-package-builder',
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
-                  (if tl.repo_name == 'guest-agent' then [
-                  '-var:git_ref=1a3694aec8b63212634afdcd98e7aa4016858421',
-                  ] else [
+                   if tl.repo_name == 'guest-agent' then
+                    '-var:git_ref=1a3694aec8b63212634afdcd98e7aa4016858421'
+                    else
                     '-var:git_ref=((.:commit-sha))',
-                  ]),
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
                 ] + tl.extra_daisy_args + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
-                ]),
+                ],
               },
             },
           }
