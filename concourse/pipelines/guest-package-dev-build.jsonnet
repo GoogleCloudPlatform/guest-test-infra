@@ -176,8 +176,8 @@ local base_buildpackagejob = {
                   '-zone=us-west1-a',
                   '-var:repo_owner=GoogleCloudPlatform',
                   '-var:repo_name=' + tl.repo_name,
-                    // TODO: Remove the pinned commit when phase 3 is rolled out.
-                    // Temporarily build on phase 2 guest agent until phase 3 is complete.
+                  // TODO: Remove the pinned commit when phase 3 is rolled out.
+                  // Temporarily build on phase 2 guest agent until phase 3 is complete.
                   if tl.repo_name == 'guest-agent' then
                     '-var:git_ref=1a3694aec8b63212634afdcd98e7aa4016858421'
                   else
