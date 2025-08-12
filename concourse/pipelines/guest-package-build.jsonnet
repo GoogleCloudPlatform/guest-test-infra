@@ -852,7 +852,9 @@ local build_guest_agent = buildpackagejob {
                   // Override project to run tests in by providing -test_projects flag otherwise CIT defaults 
                   // to the same project runner is running in.
                   '-project=guest-package-builder',
-                  '-zones=us-central1-a,europe-west4-a,asia-southeast1-b',
+                  // Default instance type T2A is available only in us-central1, europe-west4, asia-southeast1
+                  // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
+                  '-zones=us-central1-a,europe-west4-a,asia-southeast1-a,us-central1-b,europe-west4-b,asia-southeast1-b,us-central1-c,europe-west4-c,asia-southeast1-b,us-central1-f',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
