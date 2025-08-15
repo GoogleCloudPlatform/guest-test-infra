@@ -856,6 +856,7 @@ local build_guest_agent = buildpackagejob {
                   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
                   '-zones=us-central1-b,europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,us-central1-f,europe-west4-a,us-central1-a',
                   '-timeout=45m',
+                  '-arm64_shape=c4a-standard-2',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(cvm|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
