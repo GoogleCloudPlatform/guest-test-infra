@@ -852,7 +852,7 @@ local build_guest_agent = buildpackagejob {
                   '-zones=us-east1-b,us-west1-a',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86ImagesToTest),
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
+                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
                 ],
               },
@@ -870,7 +870,7 @@ local build_guest_agent = buildpackagejob {
               run: {
                 path: '/manager',
                 args: [
-                  // Override project to run tests in by providing -test_projects flag otherwise CIT defaults 
+                  // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
                   // to the same project runner is running in.
                   '-project=guest-package-builder',
                   // Default instance type T2A is available only in us-central1, europe-west4, asia-southeast1
@@ -878,7 +878,7 @@ local build_guest_agent = buildpackagejob {
                   '-zones=europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,europe-west4-a',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
+                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
                   '-parallel_count=15',
                 ],
               },
