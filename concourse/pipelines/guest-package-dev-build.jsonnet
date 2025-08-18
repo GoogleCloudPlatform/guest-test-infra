@@ -750,6 +750,22 @@ local build_and_upload_oslogin = buildpackagejob {
       repo_name: 'guest-oslogin',
     },
     buildpackagejob {
+      package: 'artifact-registry-yum-plugin',
+      builds: ['el10', 'el10-arm64'],
+      gcs_dir: 'yum-plugin-artifact-registry',
+      uploads: [
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.aarch64.rpm"',
+          os_type: 'EL10_YUM',
+          pkg_inside_name: 'dnf-plugin-artifact-registry',
+          pkg_name: 'artifact-registry-dnf-plugin',
+          pkg_version: '((.:package-version))',
+          reponame: 'dnf-plugin-artifact-registry-el10',
+          sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
+        },
+      ],
+    },
+    buildpackagejob {
       package: 'artifact-registry-apt-transport',
       builds: ['deb13', 'deb13-arm64'],
       uploads: [
@@ -896,6 +912,24 @@ local build_and_upload_oslogin = buildpackagejob {
       },
     },
     {
+      name: 'artifact-registry-yum-plugin',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/artifact-registry-yum-plugin.git',
+        branch: 'main',
+        fetch_tags: true,
+      },
+    },
+    {
+      name: 'artifact-registry-yum-plugin-tag',
+      type: 'github-release',
+      source: {
+        owner: 'GoogleCloudPlatform',
+        repository: 'artifact-registry-yum-plugin',
+        access_token: '((github-token.token))',
+      },
+    },
+    {
       name: 'artifact-registry-apt-transport',
       type: 'git',
       source: {
@@ -998,6 +1032,7 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'artifact-registry-plugins',
       jobs: [
+        'build-artifact-registry-yum-plugin',
         'build-artifact-registry-apt-transport',
       ],
     },
