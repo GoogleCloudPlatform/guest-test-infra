@@ -54,7 +54,8 @@ function install_go() {
     arch="arm64"
   fi
 
-  local GOLANG="go1.23.2.linux-${arch}.tar.gz"
+  local LATEST=$(curl https://go.dev/VERSION?m=text | head -n1)
+  local GOLANG="${LATEST}.linux-${arch}.tar.gz"
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
 
