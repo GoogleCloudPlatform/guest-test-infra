@@ -602,7 +602,10 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2022-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2025-dc-((.:build-id))',
   ],
 
   local arm64ImagesToTest = [
@@ -642,9 +645,27 @@ local build_guest_agent = buildpackagejob {
       in_parallel: {
         steps: [
           buildpackageimagetaskwindows {
+            image_name: 'windows-2016',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2016',
+            dest_image: 'windows-server-2016-dc-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2019',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2019',
+            dest_image: 'windows-server-2019-dc-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
+          },
+          buildpackageimagetaskwindows {
             image_name: 'windows-2022',
             source_image: 'projects/windows-cloud/global/images/family/windows-2022',
             dest_image: 'windows-server-2022-dc-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2025',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2025',
+            dest_image: 'windows-server-2025-dc-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo' % [tl.package],
           },
           buildpackageimagetask {
