@@ -600,7 +600,10 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-2204-lts-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-12-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
@@ -682,6 +685,18 @@ local build_guest_agent = buildpackagejob {
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
+          buildpackageimagetask {
+            image_name: 'ubuntu-2204-lts',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts',
+            dest_image: 'ubuntu-2204-lts-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-2404-lts-amd64',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2404-lts-amd64',
+            dest_image: 'ubuntu-2404-lts-amd64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
           buildpackageimagetask {
             image_name: 'ubuntu-2504-amd64',
             source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-amd64',
@@ -823,6 +838,12 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'sles-12',
+            source_image: 'projects/suse-cloud/global/images/family/sles-12',
+            dest_image: 'sles-12-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
             image_name: 'sles-15',
