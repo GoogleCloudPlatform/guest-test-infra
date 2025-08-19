@@ -30,9 +30,10 @@ function exit_error() {
 trap 'exit_error $LINENO' ERR
 
 function install_protoc() {
-  PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-  PB_VERSION=28.1
-  ARCH=$(uname -m)
+  local PB_REL="https://github.com/protocolbuffers/protobuf/releases"
+  local PB_GIT_API="https://api.github.com/repos/protocolbuffers/protobuf/releases/latest"
+  local PB_VERSION=$(curl -s $PB_GIT_API | grep -oP '"tag_name": "v\K(.*)(?=")')
+  local ARCH=$(uname -m)
 
   # protobuffer's release and uname mismatch for aarch.
   if [[ "${ARCH}" == "aarch64" ]]; then
@@ -54,7 +55,8 @@ function install_go() {
     arch="arm64"
   fi
 
-  local GOLANG="go1.23.2.linux-${arch}.tar.gz"
+  local LATEST=$(curl https://go.dev/VERSION?m=text | head -n1)
+  local GOLANG="${LATEST}.linux-${arch}.tar.gz"
   export GOPATH=/usr/share/gocode
   export GOCACHE=/tmp/.cache
 
