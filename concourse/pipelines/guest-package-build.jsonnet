@@ -586,6 +586,8 @@ local build_guest_agent = buildpackagejob {
   package:: error 'must set package in build_guest_agent',
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  
+  local allCITSuites = "cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls",
 
   local x86WindowsImagesToTest = [
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
@@ -594,15 +596,9 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/windows-server-2025-dc-((.:build-id))',
   ],
 
-  local x86ImagesToTest = [
-    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
-    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
-    'projects/guest-package-builder/global/images/centos-stream-9-((.:build-id))',
+  local x86PartnerImagesToTest = [
     'projects/guest-package-builder/global/images/oracle-linux-8-((.:build-id))',
     'projects/guest-package-builder/global/images/oracle-linux-9-((.:build-id))',
-    'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
-    'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
-    'projects/guest-package-builder/global/images/rhel-9-4-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
@@ -612,6 +608,15 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-12-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
+  ],
+
+  local x86ImagesToTest = [
+    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/centos-stream-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-4-sap-ha-((.:build-id))',
   ],
 
   local arm64ImagesToTest = [
@@ -862,6 +867,26 @@ local build_guest_agent = buildpackagejob {
         fail_fast: true,
         steps: [
           {
+            task: '%s-oslogin-tests-amd64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=oslogin-cit',
+                  '-zone=us-central1-a',
+                  '-parallel_count=5',
+                  '-images=%s' % commaSeparatedString(x86ImagesToTest),
+                  '-filter=oslogin',
+                ],
+              },
+            },
+          },
+          {
             task: '%s-image-tests-amd64' % [tl.package],
             config: {
               platform: 'linux',
@@ -876,7 +901,28 @@ local build_guest_agent = buildpackagejob {
                   '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86ImagesToTest),
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
+                  '-filter=^(%s)$' % allCITSuites,
+                  '-parallel_count=15',
+                ],
+              },
+            },
+          },
+          {
+            task: '%s-partner-image-tests-amd64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-timeout=45m',
+                  '-images=%s' % commaSeparatedString(x86PartnerImagesToTest),
+                  '-filter=^(%s)$' % allCITSuites,
                   '-parallel_count=15',
                 ],
               },
@@ -898,7 +944,7 @@ local build_guest_agent = buildpackagejob {
                   '-x86_shape=e2-standard-4',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
+                  '-filter=^(%s)$' % allCITSuites,
                   '-parallel_count=15',
                 ],
               },
@@ -924,7 +970,7 @@ local build_guest_agent = buildpackagejob {
                   '-zones=europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,europe-west4-a',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls)$',
+                  '-filter=^(%s)$' % allCITSuites,
                   '-parallel_count=15',
                 ],
               },
