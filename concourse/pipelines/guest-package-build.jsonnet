@@ -846,7 +846,7 @@ local build_guest_agent = buildpackagejob {
             image_name: 'sles-12',
             source_image: 'projects/suse-cloud/global/images/family/sles-12',
             dest_image: 'sles-12-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
             image_name: 'sles-15',
