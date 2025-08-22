@@ -603,6 +603,8 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-pro-2004-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2204-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
@@ -698,6 +700,18 @@ local build_guest_agent = buildpackagejob {
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
+          buildpackageimagetask {
+            image_name: 'ubuntu-pro-1804-lts',
+            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts',
+            dest_image: 'ubuntu-pro-1804-lts-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-pro-2004-lts',
+            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts',
+            dest_image: 'ubuntu-pro-2004-lts-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
           buildpackageimagetask {
             image_name: 'ubuntu-2204-lts',
             source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts',
