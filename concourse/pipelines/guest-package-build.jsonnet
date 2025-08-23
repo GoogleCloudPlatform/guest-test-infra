@@ -603,13 +603,18 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-pro-1604-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-pro-2004-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2204-lts-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-12-sp5-sap-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-15-sp4-sap-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-15-sp5-sap-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-15-sp6-sap-((.:build-id))',
   ],
 
   local x86ImagesToTest = [
@@ -700,6 +705,12 @@ local build_guest_agent = buildpackagejob {
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
+          buildpackageimagetask {
+            image_name: 'ubuntu-pro-1604-lts',
+            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts',
+            dest_image: 'ubuntu-pro-1604-lts-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
           buildpackageimagetask {
             image_name: 'ubuntu-pro-1804-lts',
             source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts',
@@ -903,9 +914,33 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
+            image_name: 'sles-12-sp5-sap',
+            source_image: 'projects/suse-sap-cloud/global/images/family/sles-12-sp5-sap',
+            dest_image: 'sles-12-sp5-sap-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
             image_name: 'sles-15',
             source_image: 'projects/suse-cloud/global/images/family/sles-15',
             dest_image: 'sles-15-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'sles-15-sp4-sap',
+            source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp4-sap',
+            dest_image: 'sles-15-sp4-sap-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'sles-15-sp5-sap',
+            source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp5-sap',
+            dest_image: 'sles-15-sp5-sap-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'sles-15-sp6-sap',
+            source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp6-sap',
+            dest_image: 'sles-15-sp6-sap-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
         ],
