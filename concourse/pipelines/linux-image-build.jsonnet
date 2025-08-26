@@ -413,7 +413,7 @@ local imggroup = {
 {
   local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64'],
-  local centos_images = ['centos-stream-9', 'centos-stream-9-arm64'],
+  local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
   local rhel_sap_images = [
     'rhel-8-6-sap',
     'rhel-8-6-sap-byos',
@@ -439,6 +439,8 @@ local imggroup = {
     'rhel-9-arm64',
     'rhel-9-byos',
     'rhel-9-byos-arm64',
+    'rhel-10',
+    'rhel-10-arm64',
   ],
   local rocky_linux_images = [
     'rocky-linux-8',
