@@ -429,7 +429,7 @@ jobs:
       job: "publish-to-testing-debian-12-worker-arm64"
       result_state: "failure"
       start_timestamp: ((.:start-timestamp-ms))
-  - name: publish-to-testing-debian-13-worker
+- name: publish-to-testing-debian-13-worker
   plan:
   - get: guest-test-infra
   - get: compute-image-tools
