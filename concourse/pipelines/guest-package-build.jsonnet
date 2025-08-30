@@ -998,6 +998,7 @@ local build_guest_agent = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-image-tests-amd64' % [tl.package],
@@ -1019,6 +1020,7 @@ local build_guest_agent = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-partner-image-tests-amd64' % [tl.package],
@@ -1040,6 +1042,7 @@ local build_guest_agent = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-windows-image-tests-amd64' % [tl.package],
@@ -1062,6 +1065,7 @@ local build_guest_agent = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -1088,6 +1092,7 @@ local build_guest_agent = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
