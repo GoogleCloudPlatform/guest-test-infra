@@ -57,7 +57,7 @@ if [[ -n "$BUILD_DIR" ]]; then
     cd "$BUILD_DIR"
 fi
 
-PKGNAME="$(grep "^Package:" ./packaging/debian/control|cut -d' ' -f2-)"
+SOURCE_PKGNAME="$(grep "^Source:" ./packaging/debian/control|cut -d' ' -f2-)"
 
 # Install build deps
 mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes \
@@ -71,6 +71,8 @@ if grep -q '+deb' packaging/debian/changelog; then
     DEB="11"
   elif [[ "${DEB}" =~ "bookworm" ]]; then
     DEB="12"
+  elif [[ "${DEB}" =~ "trixie" ]]; then
+    DEB="13"
   fi
   DEB="+deb${DEB/.*}"
 fi
@@ -103,24 +105,24 @@ BUILD_DIR="/tmp/debpackage"
 [[ -d $BUILD_DIR ]] || mkdir $BUILD_DIR
 
 # Create 'upstream' tarball.
-TAR="${PKGNAME}_${VERSION}.orig.tar.gz"
+TAR="${SOURCE_PKGNAME}_${VERSION}.orig.tar.gz"
 tar czvf "${BUILD_DIR}/${TAR}" --exclude .git --exclude packaging \
-  --transform "s/^\./${PKGNAME}-${VERSION}/" .
+  --transform "s/^\./${SOURCE_PKGNAME}-${VERSION}/" .
 
 # Extract tarball and build.
 tar -C "$BUILD_DIR" -xzvf "${BUILD_DIR}/${TAR}"
-PKGDIR="${BUILD_DIR}/${PKGNAME}-${VERSION}"
-cp -r packaging/debian "${BUILD_DIR}/${PKGNAME}-${VERSION}/"
+PKGDIR="${BUILD_DIR}/${SOURCE_PKGNAME}-${VERSION}"
+cp -r packaging/debian "${BUILD_DIR}/${SOURCE_PKGNAME}-${VERSION}/"
 
-cd "${BUILD_DIR}/${PKGNAME}-${VERSION}"
+cd "${BUILD_DIR}/${SOURCE_PKGNAME}-${VERSION}"
 
 sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
 
 # We generate this to enable auto-versioning.
 [[ -f debian/changelog ]] && rm debian/changelog
 RELEASE="g1${DEB}"
-dch --create -M -v 1:${VERSION}-${RELEASE} --package $PKGNAME -D stable \
-  "Debian packaging for ${PKGNAME}"
+dch --create -M -v 1:${VERSION}-${RELEASE} --package $SOURCE_PKGNAME -D stable \
+  "Debian packaging for ${SOURCE_PKGNAME}"i
 DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
 SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
