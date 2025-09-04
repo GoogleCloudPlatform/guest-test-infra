@@ -122,7 +122,7 @@ sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
 [[ -f debian/changelog ]] && rm debian/changelog
 RELEASE="g1${DEB}"
 dch --create -M -v 1:${VERSION}-${RELEASE} --package $SOURCE_PKGNAME -D stable \
-  "Debian packaging for ${SOURCE_PKGNAME}"i
+  "Debian packaging for ${SOURCE_PKGNAME}"
 DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
 SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
