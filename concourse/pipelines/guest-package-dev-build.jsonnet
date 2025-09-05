@@ -360,6 +360,15 @@ local build_guest_configs = buildpackagejob {
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
     },
     uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/gce-configs-trixie_((.:package-version))-g1_all.deb"',
+      os_type: 'TRIXIE_APT',
+      pkg_inside_name: 'gce-configs-trixie',
+      pkg_name: 'gce-configs-trixie',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-configs-trixie',
+      sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/gce-configs-trixie-((.:package-version)).sbom.json',
+    },
+    uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm"',
       os_type: 'EL10_YUM',
       pkg_inside_name: 'google-compute-engine',
@@ -398,7 +407,7 @@ local build_guest_configs = buildpackagejob {
             source_image: 'projects/bct-prod-images/global/images/family/debian-13',
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-13-worker',
           },
           buildpackageimagetask {
             image_name: 'debian-13-arm64',
@@ -407,7 +416,7 @@ local build_guest_configs = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-13-worker-arm64',
           },
           // buildpackageimagetask {
           //   image_name: 'centos-stream-10',
