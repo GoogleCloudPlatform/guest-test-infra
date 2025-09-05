@@ -125,12 +125,12 @@ dch --create -M -v 1:${VERSION}-${RELEASE} --package $SOURCE_PKGNAME -D stable \
   "Debian packaging for ${SOURCE_PKGNAME}"
 DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
 
-SBOM_FILE="${SBOM_DIR}/${PKGNAME}-${VERSION}.sbom.json"
+SBOM_FILE="${SBOM_DIR}/${SOURCE_PKGNAME}-${VERSION}.sbom.json"
 
 for deb in $BUILD_DIR/*.deb; do
   dpkg-deb -I $deb
   dpkg-deb -c $deb
-  generate_and_push_sbom "${BUILD_DIR}" "${deb}" "${PKGNAME}" "${VERSION}"
+  generate_and_push_sbom "${BUILD_DIR}" "${deb}" "${SOURCE_PKGNAME}" "${VERSION}"
 done
 
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
