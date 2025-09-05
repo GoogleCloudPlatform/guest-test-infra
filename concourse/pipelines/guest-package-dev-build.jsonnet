@@ -365,7 +365,7 @@ local build_guest_configs = buildpackagejob {
       pkg_inside_name: 'gce-configs-trixie',
       pkg_name: 'gce-configs-trixie',
       pkg_version: '((.:package-version))',
-      reponame: '',
+      reponame: 'gce-configs-trixie',
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/gce-configs-trixie-((.:package-version)).sbom.json',
     },
     uploadpackageversiontask {
