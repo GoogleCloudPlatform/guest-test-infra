@@ -386,7 +386,7 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local debian_images = [''],
+  //local debian_images = [''],
   local rhel_images = ['rhel-10', 'rhel-10-arm64', 'rhel-10-byos', 'rhel-10-byos-arm64'],
   local centos_images = ['centos-stream-10', 'centos-stream-10-arm64'],
 
@@ -415,56 +415,56 @@ local imggroup = {
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [
-               common.gcsimgresource {
-                 image: image,
-                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
-               }
-               for image in debian_images
-             ] +
-             [common.gcssbomresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               sbom_destination: 'debian',
-             } for image in debian_images] +
-             [common.gcsshasumresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               shasum_destination: 'debian',
-             } for image in debian_images] +
+             //[
+               //common.gcsimgresource {
+                 //image: image,
+                 //regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+               //}
+               //for image in debian_images
+             //] +
+             //[common.gcssbomresource {
+               //image: image,
+               //image_prefix: common.debian_image_prefixes[image],
+               //sbom_destination: 'debian',
+             //} for image in debian_images] +
+             //[common.gcsshasumresource {
+               //image: image,
+               //image_prefix: common.debian_image_prefixes[image],
+               //shasum_destination: 'debian',
+             //} for image in debian_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images],
-  jobs: [
+  jobs: //[
           // Debian build jobs
-          debianimgbuildjob {
-            image: image,
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for image in debian_images
-        ] +
+          //debianimgbuildjob {
+            //image: image,
+            //image_prefix: common.debian_image_prefixes[image],
+          //}
+          //for image in debian_images
+        //] +
         [
           // EL build jobs
           elimgbuildjob { image: image }
           for image in almalinux_images + rhel_images + centos_images
         ] +
-        [
+        //[
           // Debian publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'debian',
-            workflow_dir: 'debian',
+          //imgpublishjob {
+            //image: image,
+           // env: env,
+            //gcs_dir: 'debian',
+            //workflow_dir: 'debian',
 
             // Debian tarballs and images use a longer name, but jobs use the shorter name.
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for env in envs
-          for image in debian_images
-        ] +
+            //image_prefix: common.debian_image_prefixes[image],
+          //}
+          //for env in envs
+          //for image in debian_images
+        //] +
         [
           // RHEL publish jobs
           imgpublishjob {
@@ -499,6 +499,6 @@ local imggroup = {
           for image in almalinux_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images + debian_images + rhel_images + centos_images },
+    imggroup { name: 'test_images', images: almalinux_images + rhel_images + centos_images },
   ],
 }
