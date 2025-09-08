@@ -840,24 +840,6 @@ local build_and_upload_oslogin = buildpackagejob {
       },
     },
     {
-      name: 'artifact-registry-apt-transport',
-      type: 'git',
-      source: {
-        uri: 'https://github.com/GoogleCloudPlatform/artifact-registry-apt-transport.git',
-        branch: 'main',
-        fetch_tags: true,
-      },
-    },
-    {
-      name: 'artifact-registry-apt-transport-tag',
-      type: 'github-release',
-      source: {
-        owner: 'GoogleCloudPlatform',
-        repository: 'artifact-registry-apt-transport',
-        access_token: '((github-token.token))',
-      },
-    },
-    {
       name: 'guest-test-infra',
       type: 'git',
       source: {
@@ -943,7 +925,6 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'artifact-registry-plugins',
       jobs: [
         'build-artifact-registry-yum-plugin',
-        'build-artifact-registry-apt-transport',
       ],
     },
     {
