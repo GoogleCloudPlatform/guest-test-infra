@@ -441,6 +441,8 @@ local imggroup = {
     'rhel-9-byos-arm64',
     'rhel-10',
     'rhel-10-arm64',
+    'rhel-10-byos',
+    'rhel-10-byos-arm64',
   ],
   local rocky_linux_images = [
     'rocky-linux-8',
