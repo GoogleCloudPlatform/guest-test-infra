@@ -9,7 +9,8 @@
     ],
 
     project:: 'gce-image-builder',
-    zone:: 'us-central1-a',
+    zone:: null,
+    zones:: null,
     vars:: [],
     workflow:: error 'must set workflow in daisy template',
     workflow_prefix:: 'compute-image-tools/daisy_workflows/',
@@ -24,13 +25,38 @@
       },
     },
     inputs: [{ name: 'compute-image-tools' }],
-    run: {
+    run: if task.zone != null then {
       path: '/daisy',
       args:
         [
           '-compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/',
           '-project=' + task.project,
           '-zone=' + task.zone,
+        ] +
+        expanded_vars +
+        [task.workflow_prefix + task.workflow],
+    } else if task.zones != null then {
+      path: 'sh',
+      args: [
+        '-ec',
+        local zones_list = std.join(' ', task.zones);
+        'zones=(%s)\n' % zones_list +
+        'zone=${zones[ $RANDOM % ${#zones[@]} ]}\n' +
+        'echo "Executing daisy in zone: $zone"\n' +
+        '/daisy -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/ ' +
+        '-project=%s ' % task.project +
+        '-zone=$zone ' +
+        std.join(' ', expanded_vars) +
+        ' ' +
+        task.workflow_prefix + task.workflow,
+      ],
+    } else {
+      path: '/daisy',
+      args:
+        [
+          '-compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/',
+          '-project=' + task.project,
+          '-zone=us-central1-a',
         ] +
         expanded_vars +
         [task.workflow_prefix + task.workflow],
