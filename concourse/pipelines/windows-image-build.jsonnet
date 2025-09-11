@@ -190,7 +190,6 @@ local imgbuildjob = {
         sbom_destination: '((.:sbom-destination))',
         shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
-        zones: common.x86_build_zones,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
           'dotnet48=((.:windows-gcs-dotnet48))',
@@ -347,7 +346,6 @@ local sqlimgbuildjob = {
         sbom_destination: '((.:sbom-destination))',
         shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
-        zones: common.x86_build_zones,
         vars+: [
           'source_image_project=bct-prod-images',
           'sql_server_media=((.:sql-server-media))',
@@ -503,7 +501,6 @@ local windowsinstallmediaimgbuildjob = {
       config: daisy.daisywindowsinstallmediatask {
         workflow: job.workflow,
         gcs_url: '((.:gcs-url))',
-        zones: common.x86_build_zones,
         iso_path_2025: '((.:iso_path_2025))',
         iso_path_2022: '((.:iso_path_2022))',
         iso_path_2019: '((.:iso_path_2019))',

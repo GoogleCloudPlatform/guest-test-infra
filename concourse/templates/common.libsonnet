@@ -16,18 +16,6 @@
     'debian-13': 'debian-13-trixie',
     'debian-13-arm64': 'debian-13-trixie-arm64',
   },
-  arm_build_zones: [
-    'us-central1-a',
-    'us-east1-b',
-    'europe-west4-a',
-  ],
-  x86_build_zones: [
-    'us-central1-b',
-    'us-east1-c',
-    'us-east4-c',
-    'us-west1-a',
-    'europe-west1-b',
-  ],
 
   gitresource:: {
     local resource = self,
