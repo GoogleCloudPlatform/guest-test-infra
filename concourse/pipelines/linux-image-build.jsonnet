@@ -37,6 +37,7 @@ local imgbuildjob = {
     workflow: tl.workflow,
     vars+: ['google_cloud_repo=stable'],
     zones: if std.endsWith(tl.image, 'arm64') then common.arm_build_zones else common.x86_build_zones,
+    build_id: '((.:id))',
   },
   extra_tasks:: [],
   daily:: true,

@@ -191,6 +191,7 @@ local imgbuildjob = {
         shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         zones: common.x86_build_zones,
+        build_id: '((.:id))',
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
           'dotnet48=((.:windows-gcs-dotnet48))',
@@ -348,6 +349,7 @@ local sqlimgbuildjob = {
         shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         zones: common.x86_build_zones,
+        build_id: '((.:id))',
         vars+: [
           'source_image_project=bct-prod-images',
           'sql_server_media=((.:sql-server-media))',
@@ -504,6 +506,7 @@ local windowsinstallmediaimgbuildjob = {
         workflow: job.workflow,
         gcs_url: '((.:gcs-url))',
         zones: common.x86_build_zones,
+        build_id: '((.:id))',
         iso_path_2025: '((.:iso_path_2025))',
         iso_path_2022: '((.:iso_path_2022))',
         iso_path_2019: '((.:iso_path_2019))',
