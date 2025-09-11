@@ -25,6 +25,7 @@ BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 VERSION=${VERSION:="1dummy"}
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
+TARGET_VERSION=$(curl -H Metadata-Flavor:Google ${URL}/version)
 
 DEBIAN_FRONTEND=noninteractive
 
@@ -123,7 +124,7 @@ sed -i"" "/^Source:/aXB-Git: ${COMMITURL}" debian/control
 RELEASE="g1${DEB}"
 dch --create -M -v 1:${VERSION}-${RELEASE} --package $SOURCE_PKGNAME -D stable \
   "Debian packaging for ${SOURCE_PKGNAME}"
-DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -us -uc
+DEB_BUILD_OPTIONS="noautodbgsym nocheck" debuild -e "VERSION=${VERSION}" -e "RELEASE=${RELEASE}" -e "TARGET_VERSION=${TARGET_VERSION}" -us -uc
 
 SBOM_FILE="${SBOM_DIR}/${SOURCE_PKGNAME}-${VERSION}.sbom.json"
 
