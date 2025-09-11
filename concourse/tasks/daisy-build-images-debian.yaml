@@ -12,7 +12,7 @@ run:
   path: /daisy
   args:
   - -project=gce-image-builder
-  - -zone=us-central1-a
+  - -zone=europe-west4-a
   - -var:build_date=((build_date))
   - -var:gcs_url=((gcs_url))
   - -compute_endpoint_override=https://www.googleapis.com/compute/beta/projects/
