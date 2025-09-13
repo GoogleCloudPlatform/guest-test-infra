@@ -19,5 +19,5 @@ run:
   - |
     for template in guest-test-infra/((config_dir))/*.jsonnet; do
       base=$(basename "$template")
-      jsonnet $template > rendered/${base//.jsonnet}.json
+      jsonnet --ext-str TIMESTAMP="$(date +%s%N)" $template > rendered/${base//.jsonnet}.json
     done

@@ -26,6 +26,11 @@ local prepublishtesttask = common.imagetesttask {
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
 
+// Select a random build zone based on the TIMESTAMP external variable.
+local seed = std.parseInt(std.extVar('TIMESTAMP'));
+local selected_arm_build_zone = common.arm_build_zones[seed % std.length(common.arm_build_zones)];
+local selected_x86_build_zone = common.x86_build_zones[seed % std.length(common.x86_build_zones)];
+
 local imgbuildjob = {
   local tl = self,
 
@@ -36,6 +41,7 @@ local imgbuildjob = {
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     vars+: ['google_cloud_repo=stable'],
+    zone: if std.endsWith(tl.image, 'arm64') then selected_arm_build_zone else selected_x86_build_zone,
   },
   extra_tasks:: [],
   daily:: true,
