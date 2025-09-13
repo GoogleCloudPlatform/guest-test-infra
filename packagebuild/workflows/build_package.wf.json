@@ -41,6 +41,9 @@
     "sbom_util_gcs_root": {
       "Required": false
     },
+    "target_version": {
+      "Required": false
+    },
     "machine_type": {
       "Value": "e2-standard-2",
       "Description": "machine type"
@@ -74,7 +77,8 @@
             "extra-git-ref": "${extra_git_ref}",
             "build-dir": "${build_dir}",
             "version": "${version}",
-            "sbom-util-gcs-root": "${sbom_util_gcs_root}"
+            "sbom-util-gcs-root": "${sbom_util_gcs_root}",
+            "target-version": "${target_version}"
           },
           "machineType": "${machine_type}",
           "zone": "${zone}",

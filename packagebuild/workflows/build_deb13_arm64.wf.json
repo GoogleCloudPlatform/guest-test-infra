@@ -28,6 +28,9 @@
     },
     "sbom_util_gcs_root": {
       "Required": false
+    },
+    "target_version": {
+      "Required": false
     }
   },
   "Steps": {
@@ -49,7 +52,8 @@
           "disk_type": "hyperdisk-balanced",
           "zone": "us-central1-a",
           "version": "${version}",
-          "sbom_util_gcs_root": "${sbom_util_gcs_root}"
+          "sbom_util_gcs_root": "${sbom_util_gcs_root}",
+          "target_version": "trixie"
         }
       }
     }
