@@ -25,7 +25,7 @@ BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 VERSION=${VERSION:="1dummy"}
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
-TARGET_VERSION=$(curl -H Metadata-Flavor:Google ${URL}/version)
+TARGET_VERSION=$(curl -H Metadata-Flavor:Google ${URL}/target_version)
 
 DEBIAN_FRONTEND=noninteractive
 
