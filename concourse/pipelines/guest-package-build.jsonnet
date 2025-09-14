@@ -610,7 +610,7 @@ local build_guest_agent = buildpackagejob {
 
   package:: error 'must set package in build_guest_agent',
   uploads: [],
-  builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'goo'],
+  builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
   
   local allCITSuites = "cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls",
 
@@ -645,6 +645,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-9-0-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-2-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-4-sap-ha-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
   ],
 
   local arm64ImagesToTest = [
@@ -653,6 +654,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
@@ -719,9 +721,33 @@ local build_guest_agent = buildpackagejob {
           },
           buildpackageimagetask {
             image_name: 'debian-12',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-12',
+            source_image: 'projects/debian-cloud/global/images/family/debian-12',
             dest_image: 'debian-12-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'debian-12-arm64',
+            source_image: 'projects/debian-cloud/global/images/family/debian-12-arm64',
+            dest_image: 'debian-12-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13',
+            dest_image: 'debian-13-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
@@ -801,15 +827,6 @@ local build_guest_agent = buildpackagejob {
             image_name: 'ubuntu-2504-arm64',
             source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-arm64',
             dest_image: 'ubuntu-2504-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
-          buildpackageimagetask {
-            image_name: 'debian-12-arm64',
-            source_image: 'projects/bct-prod-images/global/images/family/debian-12-arm64',
-            dest_image: 'debian-12-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
@@ -953,6 +970,21 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-9-optimized-gcp-arm64',
             dest_image: 'rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.aarch64.rpm' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
