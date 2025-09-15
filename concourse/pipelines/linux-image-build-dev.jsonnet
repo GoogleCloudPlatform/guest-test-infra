@@ -386,7 +386,7 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local debian_images = ['debian-13', 'debian-13-arm64'],
+  local debian_images = [''],
 
   // Start of output.
   resource_types: [
