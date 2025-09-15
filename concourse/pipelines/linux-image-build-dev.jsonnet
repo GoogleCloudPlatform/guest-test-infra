@@ -386,7 +386,6 @@ local imggroup = {
 
 {
   local almalinux_images = ['almalinux-9-arm64'],
-  local debian_images = ['debian-13', 'debian-13-arm64'],
 
   // Start of output.
   resource_types: [
@@ -412,50 +411,11 @@ local imggroup = {
              ] +
              [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
-             [
-               common.gcsimgresource {
-                 image: image,
-                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
-               }
-               for image in debian_images
-             ] +
-             [common.gcssbomresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               sbom_destination: 'debian',
-             } for image in debian_images] +
-             [common.gcsshasumresource {
-               image: image,
-               image_prefix: common.debian_image_prefixes[image],
-               shasum_destination: 'debian',
-             } for image in debian_images],
+             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
   jobs: [
-          // Debian build jobs
-          debianimgbuildjob {
-            image: image,
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for image in debian_images
-        ] +
-        [
           // EL build jobs
           elimgbuildjob { image: image }
           for image in almalinux_images
-        ] +
-        [
-          // Debian publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'debian',
-            workflow_dir: 'debian',
-
-            // Debian tarballs and images use a longer name, but jobs use the shorter name.
-            image_prefix: common.debian_image_prefixes[image],
-          }
-          for env in envs
-          for image in debian_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -469,6 +429,6 @@ local imggroup = {
           for image in almalinux_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images + debian_images },
+    imggroup { name: 'test_images', images: almalinux_images },
   ],
 }
