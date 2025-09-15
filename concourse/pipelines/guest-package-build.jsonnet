@@ -979,6 +979,7 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
             dest_image: 'rhel-10-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
             image_name: 'rhel-10-arm64',
