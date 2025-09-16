@@ -646,6 +646,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-9-2-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-4-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-byos-((.:build-id))',
   ],
 
   local arm64ImagesToTest = [
@@ -655,6 +656,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-8-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-byos-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
@@ -982,9 +984,25 @@ local build_guest_agent = buildpackagejob {
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
+            image_name: 'rhel-10-byos',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-byos',
+            dest_image: 'rhel-10-byos-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
             image_name: 'rhel-10-arm64',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
             dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-byos-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-byos-arm64',
+            dest_image: 'rhel-10-byos-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
