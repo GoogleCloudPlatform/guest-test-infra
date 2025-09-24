@@ -64,6 +64,7 @@ local base_buildpackagejob = {
   gcs_dir:: tl.package,
   builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
+  trigger:: true,
   extra_tasks:: [],
   extended_tasks:: [],
   build_dir:: '',
@@ -72,7 +73,7 @@ local base_buildpackagejob = {
   default_trigger_steps:: [
     {
       get: tl.package,
-      trigger: true,
+      trigger: tl.trigger,
       params: { skip_download: true },
     },
     { get: 'guest-test-infra' },
@@ -81,7 +82,7 @@ local base_buildpackagejob = {
   trigger_steps:: if tl.extra_repo != '' then tl.default_trigger_steps + [
     {
       get: tl.extra_repo,
-      trigger: true,
+      trigger: tl.trigger,
       params: { skip_download: true },
     },
   ] else tl.default_trigger_steps,
@@ -611,8 +612,8 @@ local build_guest_agent = buildpackagejob {
   package:: error 'must set package in build_guest_agent',
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
-  
-  local allCITSuites = "cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls",
+
+  local allCITSuites = 'cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls',
 
   local x86WindowsImagesToTest = [
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
@@ -1538,12 +1539,14 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
+      trigger: false,
       gcs_dir: 'guest-agent-stable',
       extra_repo: 'google-guest-agent',
       repo_name: 'guest-agent',
     },
     build_guest_agent {
       package: 'guest-agent-dev',
+      trigger: false,
       repo_name: 'guest-agent',
       extra_repo: 'google-guest-agent',
       extended_tasks: [],
