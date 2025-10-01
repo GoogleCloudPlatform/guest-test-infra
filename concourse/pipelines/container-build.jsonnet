@@ -9,6 +9,13 @@ local buildcontainerimgtask = {
   context:: error 'must set context in buildcontainerimgtask',
   destination:: error 'must set destination in buildcontainerimgtask',
   commit_sha:: error 'must set commit_sha in buildcontainerimgtask',
+  public_image_tag:: true,
+
+  // If template users set public_image_tag to true (or don't change the default value)
+  // then the tag prefixed with public-image- will be added to the published resource.
+  build_extra_flags:: if task.public_image_tag then [
+    '--destination=%s:%s' % [task.destination, 'public-image-' + task.commit_sha],
+  ] else [],
 
   platform: 'linux',
   image_resource: {
@@ -28,7 +35,7 @@ local buildcontainerimgtask = {
       '--context=' + task.context,
       '--destination=%s:latest' % task.destination,
       '--destination=%s:%s' % [task.destination, task.commit_sha],
-      '--destination=%s:%s' % [task.destination, 'public-image-' + task.commit_sha],
+    ] + task.build_extra_flags + [
       '--force',
     ],
   },
@@ -49,6 +56,7 @@ local buildcontainerimgjob = {
   extra_resources:: [],
   // post_steps are run after the image build.
   post_steps:: [],
+  public_image_tag:: false,
 
   // Start of job definition
   name: 'build-' + job.image,
@@ -79,18 +87,20 @@ local buildcontainerimgjob = {
               dockerfile: job.dockerfile,
               context: job.context,
               input: job.input,
+              public_image_tag: job.public_image_tag,
             },
           },
         ] + job.post_steps,
 };
 
 // Function for our builds in guest-test-infra/container_images
-local BuildContainerImage(image) = buildcontainerimgjob {
+local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
   repo:: 'gcr.io/gcp-guest',
 
   image: image,
   destination: '%s/%s' % [self.repo, image],
   context: 'guest-test-infra/container_images/' + image,
+  public_image_tag: public_image_tag,
 };
 
 // Start of output.
@@ -133,35 +143,35 @@ local BuildContainerImage(image) = buildcontainerimgjob {
     common.GitResource('compute-daisy'),
   ],
   jobs: [
-    BuildContainerImage('build-essential'),
-    BuildContainerImage('flake8'),
-    BuildContainerImage('gobuild'),
-    BuildContainerImage('gocheck'),
-    BuildContainerImage('cleanerupper'),
-    BuildContainerImage('gointegtest'),
-    BuildContainerImage('gotest'),
-    BuildContainerImage('cli-tools-module-tests') { passed: 'build-gotest' },
-    BuildContainerImage('jsonnet-go'),
-    BuildContainerImage('fly-validate-pipelines') { passed: 'build-jsonnet-go' },
-    BuildContainerImage('pytest'),
+    BuildContainerImage('build-essential', false),
+    BuildContainerImage('flake8', false),
+    BuildContainerImage('gobuild', false),
+    BuildContainerImage('gocheck', false),
+    BuildContainerImage('cleanerupper', false),
+    BuildContainerImage('gointegtest', false),
+    BuildContainerImage('gotest', false),
+    BuildContainerImage('cli-tools-module-tests', false) { passed: 'build-gotest' },
+    BuildContainerImage('jsonnet-go', false),
+    BuildContainerImage('fly-validate-pipelines', false) { passed: 'build-jsonnet-go' },
+    BuildContainerImage('pytest', false),
 
     // Non-standard dockerfile location and public image.
-    BuildContainerImage('registry-image-forked') {
+    BuildContainerImage('registry-image-forked', false) {
       dockerfile: 'dockerfiles/alpine/Dockerfile',
       repo: 'gcr.io/compute-image-tools',
       privileged: true,
     },
 
     // These build from the root of the repo.
-    BuildContainerImage('concourse-metrics') {
+    BuildContainerImage('concourse-metrics', false) {
       context: 'guest-test-infra',
       dockerfile: 'guest-test-infra/container_images/concourse-metrics/Dockerfile',
     },
-    BuildContainerImage('daisy-builder') {
+    BuildContainerImage('daisy-builder', false) {
       context: 'guest-test-infra',
       dockerfile: 'container_images/daisy-builder/Dockerfile',
     },
-    BuildContainerImage('gce-img-resource') {
+    BuildContainerImage('gce-img-resource', false) {
       context: 'guest-test-infra',
       dockerfile: 'guest-test-infra/container_images/gce-img-resource/Dockerfile',
     },
@@ -182,6 +192,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'compute-image-tools/gce_windows_upgrade_tests.Dockerfile',
       image: 'gce_windows_upgrade_tests',
       input: 'compute-image-tools',
+      public_image_tag: false,
     },
     buildcontainerimgjob {
       context: 'cloud-image-tests',
@@ -189,6 +200,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'Dockerfile',
       input: 'cloud-image-tests',
       image: 'cloud-image-tests',
+      public_image_tag: false,
       post_steps: [
         {
           task: 'generate-container-version',
@@ -238,6 +250,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       dockerfile: 'compute-daisy/daisy_test_runner.Dockerfile',
       image: 'daisy-test-runner',
       input: 'compute-daisy',
+      public_image_tag: false,
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
@@ -246,6 +259,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
       input: 'compute-daisy',
       passed: 'build-daisy-test-runner',
       extra_resources: ['compute-image-tools-trigger'],
+      public_image_tag: false,
       extra_steps:
         [
           // Add daisy workflows to compute-daisy.
@@ -395,8 +409,7 @@ local BuildContainerImage(image) = buildcontainerimgjob {
                 '  gcr.io/compute-image-tools/daisy:release;' +
                 'timestamp=$(date +%Y%m%d%H%M%S);' +
                 'gcloud container images add-tag --quiet' +
-                '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))' +
-                '  gcr.io/compute-image-tools/daisy:public-image-$timestamp',
+                '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))',
               ],
             },
           },
