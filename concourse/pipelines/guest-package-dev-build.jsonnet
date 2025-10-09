@@ -790,8 +790,11 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
+      name: 'build-googet',
       package: 'compute-image-windows',
       builds: ['goo'],
+      build_dir: 'googet',
+      extra_repos: ['googet'],
       uploads: [
       ],
     },
@@ -802,24 +805,6 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
       build_dir: 'cli_tools/diagnostics',
-    },
-    buildpackagejob {
-      name: 'build-googet',
-      package: 'compute-image-windows',
-      builds: ['goo'],
-      build_dir: 'googet',
-      extra_repos: ['googet'],
-      uploads: '[
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/googet.x86_64.((.:package-version)).0@1.goo"',
-          os_type: 'WINDOWS_ALL_GOOGET',
-          pkg_inside_name: 'googet',
-          pkg_name: 'googet',
-          pkg_version: '((.:package-version))',
-          reponame: 'googet',
-          sbom_file: '',
-        },
-      ],
     },
   ],
   resource_types: [
