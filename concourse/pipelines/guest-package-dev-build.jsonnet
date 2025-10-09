@@ -66,7 +66,7 @@ local base_buildpackagejob = {
   extra_tasks:: [],
   extended_tasks:: [],
   build_dir:: '',
-  extra_repo:: '',
+  extra_repo:: '', 
 
   default_trigger_steps:: [
     {
@@ -793,7 +793,7 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'build-googet',
       package: 'compute-image-windows',
       builds: ['goo'],
-      extra_repos: ['googet'],
+      extra_repo: 'googet',
       uploads: [
       ],
     },
@@ -1058,7 +1058,7 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-        'build-compute-image-windows',
+  //      'build-compute-image-windows',
         'build-googet',
       ],
     },
