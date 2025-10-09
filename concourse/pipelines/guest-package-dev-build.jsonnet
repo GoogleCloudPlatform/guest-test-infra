@@ -793,7 +793,6 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'build-googet',
       package: 'compute-image-windows',
       builds: ['goo'],
-      build_dir: 'googet',
       extra_repos: ['googet'],
       uploads: [
       ],
