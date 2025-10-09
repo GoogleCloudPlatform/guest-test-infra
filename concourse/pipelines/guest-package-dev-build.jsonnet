@@ -803,6 +803,24 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
       build_dir: 'cli_tools/diagnostics',
     },
+    buildpackagejob {
+      name: 'build-googet',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      build_dir: 'googet',
+      extra_repos: ['googet'],
+      uploads: '[
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/googet.x86_64.((.:package-version)).0@1.goo"',
+          os_type: 'WINDOWS_ALL_GOOGET',
+          pkg_inside_name: 'googet',
+          pkg_name: 'googet',
+          pkg_version: '((.:package-version))',
+          reponame: 'googet',
+          sbom_file: '',
+        },
+      ],
+    },
   ],
   resource_types: [
     {
@@ -837,6 +855,14 @@ local build_and_upload_oslogin = buildpackagejob {
         uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
         branch: 'main',
         fetch_tags: false,
+      },
+    },
+    {
+      name: 'googet',
+      type: 'git',
+      source: {
+        url: 'https://github.com/google/googet.git',
+        branch: 'master',
       },
     },
     {
@@ -1049,6 +1075,7 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'compute-image-windows',
       jobs: [
         'build-compute-image-windows',
+        'build-googet',
       ],
     },
     {
