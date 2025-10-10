@@ -66,7 +66,7 @@ local base_buildpackagejob = {
   extra_tasks:: [],
   extended_tasks:: [],
   build_dir:: '',
-  extra_repo:: '', 
+  extra_repo:: '',
 
   default_trigger_steps:: [
     {
