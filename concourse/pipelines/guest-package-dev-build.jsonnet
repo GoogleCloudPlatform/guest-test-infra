@@ -845,7 +845,7 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'googet',
       type: 'git',
       source: {
-        url: 'https://github.com/google/googet.git',
+        uri: 'https://github.com/google/googet.git',
         branch: 'master',
       },
     },
