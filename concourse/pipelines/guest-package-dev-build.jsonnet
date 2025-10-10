@@ -790,8 +790,10 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
+      name: 'build-googet',
       package: 'compute-image-windows',
       builds: ['goo'],
+      extra_repo: 'googet',
       uploads: [
       ],
     },
@@ -837,6 +839,14 @@ local build_and_upload_oslogin = buildpackagejob {
         uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
         branch: 'main',
         fetch_tags: false,
+      },
+    },
+    {
+      name: 'googet',
+      type: 'git',
+      source: {
+        url: 'https://github.com/google/googet.git',
+        branch: 'master',
       },
     },
     {
@@ -1048,7 +1058,8 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-        'build-compute-image-windows',
+  //      'build-compute-image-windows',
+        'build-googet',
       ],
     },
     {
