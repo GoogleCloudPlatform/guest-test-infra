@@ -67,6 +67,7 @@ local base_buildpackagejob = {
   extended_tasks:: [],
   build_dir:: '',
   extra_repo:: '',
+  extra_repo_owner:: '',
 
   default_trigger_steps:: [
     {
@@ -98,6 +99,7 @@ local base_buildpackagejob = {
 
   extra_daisy_args:: if tl.extra_repo != '' then [
   '-var:extra_repo=' + tl.extra_repo,
+  '-var:extra_repo_owner=' + tl.extra_repo_owner,
   // TODO: Remove the pinned commit when phase 3 is rolled out.
   // Temporarily build on phase 2 guest agent until phase 3 is complete.
   if tl.extra_repo == 'google-guest-agent' then
@@ -794,6 +796,7 @@ local build_and_upload_oslogin = buildpackagejob {
       package: 'compute-image-windows',
       builds: ['goo'],
       extra_repo: 'googet',
+      extra_repo_owner: 'google',
       uploads: [
       ],
     },

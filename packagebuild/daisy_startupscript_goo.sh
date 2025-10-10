@@ -20,6 +20,7 @@ REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-owner)
 REPO_NAME=$(curl -f -H Metadata-Flavor:Google ${URL}/repo-name)
 GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/git-ref)
 EXTRA_REPO=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-repo)
+EXTRA_REPO_OWNER=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-repo-owner)
 EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
@@ -53,8 +54,13 @@ $GO install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 ORIG_DIR=$(pwd)
 if [[ -n "$EXTRA_REPO" && -n "$EXTRA_GIT_REF" ]]; then
-  echo "Pulling extra repo: $EXTRA_REPO with reference: $EXTRA_GIT_REF"
-  git_checkout "$REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"
+  CURRENT_EXTRA_REPO_OWNER="$REPO_OWNER"
+  if [[ -n "$EXTRA_REPO_OWNER" ]]; then
+    CURRENT_EXTRA_REPO_OWNER="$EXTRA_REPO_OWNER"
+  fi
+  echo "Pulling extra repo: $EXTRA_REPO from owner $CURRENT_EXTRA_REPO_OWNER with reference: $EXTRA_GIT_REF"
+  git_checkout "$CURRENT_EXTRA_REPO_OWNER" "$EXTRA_REPO" "$EXTRA_GIT_REF"  
+  # set extra repo owner if different from default GoogleCloudPlatform
   # git_checkout clones the repo and cd's into it. Make sure we are back in
   # original build directory.
   cd "$ORIG_DIR"
