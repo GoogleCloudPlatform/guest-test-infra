@@ -38,8 +38,6 @@ jobs:
     file: guest-test-infra/concourse/tasks/render-templates.yaml
     vars:
       config_dir: concourse/pipelines
-  - set_pipeline: accelerator-image-build
-    file: rendered/accelerator-image-build.json
   - set_pipeline: linux-image-build
     file: rendered/linux-image-build.json
   - set_pipeline: linux-image-build-dev
