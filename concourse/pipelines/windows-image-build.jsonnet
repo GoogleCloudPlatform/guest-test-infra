@@ -13,13 +13,18 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetestn1 = common.imagetesttask {
-  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|shapevalidation|packageupgrade|packagevalidation|ssh|winrm|metadata|sql|windowscontainers)$',
-  extra_args: [ '-x86_shape=n1-standard-4', '-timeout=60m', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
+  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packageupgrade|packagevalidation|ssh|winrm|metadata|sql|windowscontainers)$',
+  extra_args: [ '-x86_shape=n1-standard-4', '-timeout=60m'],
 };
 
 local imagetestc3 = common.imagetesttask {
   filter: '^(livemigrate|suspendresume|imageboot|network|hotattach|lssd|disk)$',
   extra_args: [ '-x86_shape=c3-standard-4', '-timeout=60m' ],
+};
+
+local prepublishtesttask = common.imagetesttask {
+  filter: '(shapevalidation)',
+  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))', '-timeout=60m' ],
 };
 
 local imgbuildjob = {
@@ -611,8 +616,16 @@ local imgpublishjob = {
   ]
   else
   []) +
+  // Run prepublish tests and invoke ARLE in prod
   (if job.env == 'prod' then
   [
+    {
+      task: 'prepublish-test-' + job.image,
+      config: prepublishtesttask {
+        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
+      },
+      attempts: 3,
+    },
     {
       task: 'arle-publish-' + job.image,
       config: arle.arlepublishtask {
