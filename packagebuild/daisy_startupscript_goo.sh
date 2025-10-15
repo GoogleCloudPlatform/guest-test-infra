@@ -76,13 +76,49 @@ if find . -type f -iname '*.go' >/dev/null; then
   $GO mod download
 fi
 
-echo "Building package(s)"
-for spec in packaging/googet/*.goospec; do
-  goopack -var:version="$VERSION" "$spec"
+echo "Scanning for goospec files and processing packages..."
+GCS_BUCKET="gs://gce-image-build-resources"
+# Create a base directory for all legacy content
+mkdir -p ./legacy_bin
+
+# Loop through each .goospec file in the packaging/googet directory
+for spec in *.goospec; do
   name=$(basename "${spec}")
-  pref=${name%.*}
-  generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
+  pkg_name=${name%.*}
+
+  echo "--- Processing package: ${pkg_name} ---"
+  # gs://gce-image-build-resources/windows/{pkg_name}/
+
+  gcs_pkg_root="windows/${pkg_name}/"
+  gcs_full_path="${GCS_BUCKET}/${gcs_pkg_root}"
+
+  # Local directory to download content into
+  local_pkg_legacy_root="./legacy_bin/${pkg_name}/"
+
+  echo "  Checking for legacy content for ${pkg_name} at: ${gcs_full_path}"
+  # Check if the GCS prefix exists and has contents by listing.
+  if gcloud storage ls "${gcs_full_path}" > /dev/null 2>&1; then
+    echo "  Found legacy content. Syncing recursively to ${local_pkg_legacy_root}"
+    mkdir -p "${local_pkg_legacy_root}"
+    # Copy the contents of the GCS prefix.
+    try_command gcloud storage cp --recursive "${gcs_full_path}*" "${local_pkg_legacy_root}"
+  else
+    echo "  No legacy content found at ${gcs_full_path}. Skipping sync."
+  fi
+  
+  echo "  Building package: ${pkg_name}"
+  goopack -var:version="$VERSION" "$spec"
+  generate_and_push_sbom ./ "${spec}" "${pkg_name}" "${VERSION}"
 done
 
+echo "Finished building all packages."
+
 gsutil cp -n *.goo "$GCS_PATH/"
+
+echo "Cleaning up temporary legacy binary directory..."
+if [ -d "./legacy_bin" ]; then
+  rm -rf ./legacy_bin/
+  echo "Removed ./legacy_bin/"
+fi
+
 build_success "Built `ls *.goo|xargs`"
