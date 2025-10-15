@@ -620,7 +620,7 @@ local imgpublishjob = {
   (if job.env == 'prod' then
   [
     {
-      task: 'prepublish-test-' + tl.image,
+      task: 'prepublish-test-' + job.image,
       config: prepublishtesttask {
         images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
       },
