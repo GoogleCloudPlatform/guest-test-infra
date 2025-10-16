@@ -813,7 +813,7 @@ local ImgGroup(name, images, environments) = {
     'windows-install-media',
   ],
 
-  local windows_client_images = windows_10_images + windows_11_images,
+  local windows_client_images = windows_11_images,
   local windows_server_images = windows_2016_images + windows_2019_images
                               + windows_2022_images + windows_2025_images,
   local sql_images = sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
