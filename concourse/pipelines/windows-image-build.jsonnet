@@ -658,16 +658,16 @@ local imgpublishjob = {
         {
           task: 'image-test-n1-' + job.image,
           config: imagetestn1 {
-          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
+            images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
           },
           attempts: 3,
         },
         {
           task: 'image-test-c3-' + job.image,
           config: imagetestc3 {
-          images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
+            images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image,
           },
-        attempts: 3,
+          attempts: 3,
         },
       ],
     },
