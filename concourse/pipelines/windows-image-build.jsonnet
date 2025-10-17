@@ -548,10 +548,6 @@ local imgpublishjob = {
     else if job.env == 'client' then true
     else false,
 
-  // Run tests on server and sql images
-  runtests:: if job.env == 'testing' && (std.length(std.findSubstr("server", job.image)) > 0 || std.length(std.findSubstr("sql", job.image)) > 0) then true
-    else false,
-
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
   on_success: {
@@ -651,7 +647,6 @@ local imgpublishjob = {
       },
     },
   ]) +
-  (if job.runtests then
   [
     {
       task: 'image-test-n1-' + job.image,
@@ -667,9 +662,7 @@ local imgpublishjob = {
       },
       attempts: 3,
     }
-  ]
-  else
-  []),
+  ],
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
@@ -744,7 +737,7 @@ local ImgGroup(name, images, environments) = {
 {
   local windows_11_images = [
     'windows-11-23h2-ent-x64', // remove after Nov 10, 2026
-    'windows-11-24h2-ent-x64', // remove afte Oct 12, 2027
+    'windows-11-24h2-ent-x64', // remove after Oct 12, 2027
     'windows-11-25h2-ent-x64',
   ],
   local windows_2016_images = [
