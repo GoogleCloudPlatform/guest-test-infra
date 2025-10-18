@@ -30,6 +30,10 @@
     },
     "sbom_util_gcs_root": {
       "Required": false
+    },
+    "lkg_gcs_path": {
+      "Required": false,
+      "Value": {}
     }
   },
   "Steps": {
@@ -48,7 +52,8 @@
           "extra_git_ref": "${extra_git_ref}",
           "build_dir": "${build_dir}",
           "version": "${version}",
-          "sbom_util_gcs_root": "${sbom_util_gcs_root}"
+          "sbom_util_gcs_root": "${sbom_util_gcs_root}",
+	  "lkg_gcs_path": "${lkg_gcs_path}"
         }
       }
     }

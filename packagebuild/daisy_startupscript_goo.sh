@@ -25,6 +25,7 @@ EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
+LKG_GCS_JSON=$(curl -f -H Metadata-Flavor:Google $URL/lkg_gcs_path)
 
 echo "Started build..."
 
@@ -39,6 +40,11 @@ sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 try_command apt-get install -y make unzip
+
+# Install jq for JSON parsing
+echo "Installing jq..."
+try_command apt-get install -y jq
+
 
 # We always install go, needed for goopack.
 echo "Installing go"
@@ -76,39 +82,23 @@ if find . -type f -iname '*.go' >/dev/null; then
   $GO mod download
 fi
 
-echo "Scanning for goospec files and processing packages..."
-GCS_BUCKET="gs://gce-image-build-resources"
-# Create a base directory for all legacy content
-mkdir -p ./legacy_bin
-
-# Loop through each .goospec file in the packaging/googet directory
-for spec in *.goospec; do
+for spec in packaging/googet/*.goospec; do
   name=$(basename "${spec}")
-  pkg_name=${name%.*}
+  pref=${name%.*}
+  echo "--- Building package: ${pref} ---"
 
-  echo "--- Processing package: ${pkg_name} ---"
-  # gs://gce-image-build-resources/windows/{pkg_name}/
+  if [[ "${LKG_GCS_JSON}" != "{}" ]]; then
+    LKG_PATH=$(echo "${LKG_GCS_JSON}" | jq -r ".${pref}")
 
-  gcs_pkg_root="windows/${pkg_name}/"
-  gcs_full_path="${GCS_BUCKET}/${gcs_pkg_root}"
-
-  # Local directory to download content into
-  local_pkg_legacy_root="./legacy_bin/${pkg_name}/"
-
-  echo "  Checking for legacy content for ${pkg_name} at: ${gcs_full_path}"
-  # Check if the GCS prefix exists and has contents by listing.
-  if gcloud storage ls "${gcs_full_path}" > /dev/null 2>&1; then
-    echo "  Found legacy content. Syncing recursively to ${local_pkg_legacy_root}"
-    mkdir -p "${local_pkg_legacy_root}"
-    # Copy the contents of the GCS prefix.
-    try_command gcloud storage cp --recursive "${gcs_full_path}*" "${local_pkg_legacy_root}"
-  else
-    echo "  No legacy content found at ${gcs_full_path}. Skipping sync."
+    if [[ -n "${LKG_PATH}" && "${LKG_PATH}" != "null" ]]; then
+      echo "Copying LKG for ${pref} from: ${LKG_PATH}"
+      mkdir -p "./legacy_bin/${pref}"
+      try_command gcloud storage cp --recursive "${LKG_PATH}" "./legacy_bin/${pref}/"
+    fi
   fi
   
-  echo "  Building package: ${pkg_name}"
   goopack -var:version="$VERSION" "$spec"
-  generate_and_push_sbom ./ "${spec}" "${pkg_name}" "${VERSION}"
+  generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
 done
 
 echo "Finished building all packages."
