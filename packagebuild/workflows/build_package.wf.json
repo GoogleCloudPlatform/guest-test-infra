@@ -58,6 +58,11 @@
     "disk_type": {
       "Value": "pd-ssd",
       "Description": "disk type"
+    },
+    "lkg_gcs_path": {
+      "Required": false,
+      "Description": "GCS path for LKG binaries",
+      "Value": {}
     }
   },
   "Steps": {
@@ -82,7 +87,8 @@
             "build-dir": "${build_dir}",
             "version": "${version}",
             "sbom-util-gcs-root": "${sbom_util_gcs_root}",
-            "target-version": "${target_version}"
+            "target-version": "${target_version}",
+	    "lkg_gcs_path": "${lkg_gcs_path}"
           },
           "machineType": "${machine_type}",
           "zone": "${zone}",

@@ -25,6 +25,7 @@ EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
+LKG_GCS_JSON=$(curl -f -H Metadata-Flavor:Google $URL/lkg_gcs_path)
 
 echo "Started build..."
 
@@ -39,6 +40,11 @@ sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 try_command apt-get install -y make unzip
+
+# Install jq for JSON parsing
+echo "Installing jq..."
+try_command apt-get install -y jq
+
 
 # We always install go, needed for goopack.
 echo "Installing go"
@@ -76,13 +82,33 @@ if find . -type f -iname '*.go' >/dev/null; then
   $GO mod download
 fi
 
-echo "Building package(s)"
 for spec in packaging/googet/*.goospec; do
-  goopack -var:version="$VERSION" "$spec"
   name=$(basename "${spec}")
   pref=${name%.*}
+  echo "--- Building package: ${pref} ---"
+
+  if [[ "${LKG_GCS_JSON}" != "{}" ]]; then
+    LKG_PATH=$(echo "${LKG_GCS_JSON}" | jq -r ".${pref}")
+
+    if [[ -n "${LKG_PATH}" && "${LKG_PATH}" != "null" ]]; then
+      echo "Copying LKG for ${pref} from: ${LKG_PATH}"
+      mkdir -p "./legacy_bin/${pref}"
+      try_command gcloud storage cp --recursive "${LKG_PATH}" "./legacy_bin/${pref}/"
+    fi
+  fi
+  
+  goopack -var:version="$VERSION" "$spec"
   generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
 done
 
+echo "Finished building all packages."
+
 gsutil cp -n *.goo "$GCS_PATH/"
+
+echo "Cleaning up temporary legacy binary directory..."
+if [ -d "./legacy_bin" ]; then
+  rm -rf ./legacy_bin/
+  echo "Removed ./legacy_bin/"
+fi
+
 build_success "Built `ls *.goo|xargs`"
