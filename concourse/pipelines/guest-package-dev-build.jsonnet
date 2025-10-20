@@ -113,19 +113,23 @@ local base_buildpackagejob = {
   // Fetch LKG secrets if secret_name is defined
   local has_lkg = std.length(tl.secret_names) > 0,
 
-  fetch_lkg_steps::   
-    if has_lkg then std.flatten([
+  fetch_lkg_steps::
+    if has_lkg then
       [
-        {
-          task: 'get-secret-' + secret_name,
-          config: gcp_secret_manager.getsecrettask { secret_name: secret_name },
-        },
-        {
-          load_var: secret_name + '-secret',
-          file: 'gcp-secret-manager/' + secret_name,
-        },
-      ] for secret_name in tl.secret_names 
-      ]) else [],
+        step
+        for secret_name in tl.secret_names
+        for step in [
+          {
+            task: 'get-secret-' + secret_name,
+            config: gcp_secret_manager.getsecrettask { secret_name: secret_name },
+          },
+          {
+            load_var: secret_name + '-secret',
+            file: 'gcp-secret-manager/' + secret_name,
+          },
+        ]
+      ]
+    else [],
 
   local lkg_daisy_vars = if has_lkg then [
     '-var:lkg_gcs_path=' + std.toString({
