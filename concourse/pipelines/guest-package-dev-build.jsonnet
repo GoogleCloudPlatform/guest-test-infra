@@ -1,4 +1,5 @@
 local underscore(input) = std.strReplace(input, '-', '_');
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
@@ -67,7 +68,7 @@ local base_buildpackagejob = {
   extended_tasks:: [],
   build_dir:: '',
   extra_repo:: '',
-  extra_repo_owner:: '',
+  extra_repo_owner:: '',  
 
   default_trigger_steps:: [
     {
@@ -108,6 +109,31 @@ local base_buildpackagejob = {
     '-var:extra_git_ref=((.:extra-commit-sha))',
 ] else [],
 
+  secret_names: [],
+  // Fetch LKG secrets if secret_name is defined
+  local has_lkg = std.length(tl.secret_names) > 0,
+
+  fetch_lkg_steps::   
+    if has_lkg then std.flatten([
+      [
+        {
+          task: 'get-secret-' + secret_name,
+          config: gcp_secret_manager.getsecrettask { secret_name: secret_name },
+        },
+        {
+          load_var: secret_name + '-secret',
+          file: 'gcp-secret-manager/' + secret_name,
+        },
+      ] for secret_name in tl.secret_names 
+      ]) else [],
+
+  local lkg_daisy_vars = if has_lkg then [
+    '-var:lkg_gcs_path=' + std.toString({
+      [secret_name]: '((.:' + secret_name + '-secret))'
+      for secret_name in tl.secret_names
+    }),
+  ] else [],
+
   // Start of output.
   name: 'build-' + tl.package,
 
@@ -120,7 +146,7 @@ local base_buildpackagejob = {
     },
   ],
 
-  plan: tl.parallel_triggers + tl.load_sha_steps + [
+  plan: tl.parallel_triggers + tl.load_sha_steps + tl.fetch_lkg_steps + [
     generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
@@ -158,6 +184,7 @@ local base_buildpackagejob = {
       },
     },
     { load_var: 'package-version', file: 'package-version/version' },
+    
     // Invoke daisy build workflows for all specified builds.
     {
       in_parallel: {
@@ -187,7 +214,7 @@ local base_buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
-                ] + tl.extra_daisy_args + [
+                ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
@@ -792,11 +819,12 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
-      name: 'build-googet',
+      name: 'build-goo',
       package: 'compute-image-windows',
       builds: ['goo'],
       extra_repo: 'googet',
       extra_repo_owner: 'google',
+      secret_names: ['googet', 'certgen'],
       uploads: [
       ],
     },
@@ -1062,7 +1090,7 @@ local build_and_upload_oslogin = buildpackagejob {
       name: 'compute-image-windows',
       jobs: [
   //      'build-compute-image-windows',
-        'build-googet',
+        'build-goo',
       ],
     },
     {
