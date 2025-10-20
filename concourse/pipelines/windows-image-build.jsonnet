@@ -649,7 +649,7 @@ local imgpublishjob = {
   ]) +
   [
     in_parallel: {
-      fail_fast: true
+      fail_fast: true,
       steps: [
         {
           task: 'image-test-n1-' + job.image,
