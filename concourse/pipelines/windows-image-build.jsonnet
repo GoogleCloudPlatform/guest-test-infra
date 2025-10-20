@@ -548,6 +548,10 @@ local imgpublishjob = {
     else if job.env == 'client' then true
     else false,
 
+  // Run tests on the testing stage
+  runtests:: if job.env == 'testing' then true
+    else false,
+
   // Start of job.
   name: 'publish-to-%s-%s' % [job.env, job.image],
   on_success: {
@@ -647,7 +651,8 @@ local imgpublishjob = {
       },
     },
   ]) +
-  [ {
+  (if job.runtests then [
+  {
     in_parallel: {
       fail_fast: true,
       steps: [
@@ -669,6 +674,8 @@ local imgpublishjob = {
     },
   },
   ]
+  else
+  []),
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
