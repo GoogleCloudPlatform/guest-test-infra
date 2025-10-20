@@ -647,7 +647,7 @@ local imgpublishjob = {
       },
     },
   ]) +
-  {
+  [ {
     in_parallel: {
       fail_fast: true,
       steps: [
@@ -667,7 +667,8 @@ local imgpublishjob = {
         },
       ],
     },
-  }
+  },
+  ]
 };
 
 local ImgBuildJob(image, iso_secret, updates_secret) = imgbuildjob {
