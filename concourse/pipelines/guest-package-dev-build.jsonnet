@@ -118,7 +118,7 @@ local base_buildpackagejob = {
       config: gcp_secret_manager.getsecrettask { secret_name: tl.secret_name },
     },
     {
-      load_var: tl.secret_name + '-secret'
+      load_var: tl.secret_name + '-secret',
       file: 'gcp-secret-manager/' + tl.secret_name,
     },
   ] else [], 
@@ -128,7 +128,7 @@ local base_buildpackagejob = {
   ] else [],
 
   // Start of output.
-  name: 'build-' + tl.package
+  name: 'build-' + tl.package,
 
   parallel_triggers:: [
     // Prep build variables and content.
@@ -1128,10 +1128,10 @@ local build_and_upload_oslogin = buildpackagejob {
        // 'build-compute-image-windows',
         'build-googet',
         'build-certgen',
-        'build-google-compute-image-auto-updater',
-        'build-google-compute-image-powershell',
-        'build-google-compute-image-ssh',
-        'build-google-compute-image-sysprep',
+        'build-google-compute-engine-auto-updater',
+        'build-google-compute-engine-powershell',
+        'build-google-compute-engine-ssh',
+        'build-google-compute-engine-sysprep',
       ],
     },
     {
