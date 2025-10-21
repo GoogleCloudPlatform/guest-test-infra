@@ -857,7 +857,7 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
-      name: 'build-google-compute-image-sysprep',
+      name: 'build-google-compute-engine-sysprep',
       spec_name: 'google-compute-engine-sysprep',
       package: 'compute-image-windows',
       builds: ['goo'],
