@@ -25,7 +25,8 @@ EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
-LKG_GCS_JSON=$(curl -f -H Metadata-Flavor:Google $URL/lkg_gcs_path)
+LKG_GCS_PATH=$(curl -f -H Metadata-Flavor:Google $URL/lkg_gcs_path)
+SPEC_NAME=$(curl -f -H Metadata-Flavor:Google $URL/spec_name)
 
 echo "Started build..."
 
@@ -40,11 +41,6 @@ sed -i 's/^.*debian buster-backports main.*$//g' /etc/apt/sources.list
 try_command apt-get -y update
 try_command apt-get install -y --no-install-{suggests,recommends} git-core
 try_command apt-get install -y make unzip
-
-# Install jq for JSON parsing
-echo "Installing jq..."
-try_command apt-get install -y jq
-
 
 # We always install go, needed for goopack.
 echo "Installing go"
@@ -82,27 +78,27 @@ if find . -type f -iname '*.go' >/dev/null; then
   $GO mod download
 fi
 
-for spec in packaging/googet/*.goospec; do
-  name=$(basename "${spec}")
-  pref=${name%.*}
-  echo "--- Building package: ${pref} ---"
-
-  if [[ "${LKG_GCS_JSON}" != "{}" ]]; then
-    LKG_PATH=$(echo "${LKG_GCS_JSON}" | jq -r ".${pref}")
-
-    if [[ -n "${LKG_PATH}" && "${LKG_PATH}" != "null" ]]; then
-      echo "Copying LKG for ${pref} from: ${LKG_PATH}"
-      mkdir -p "./legacy_bin/${pref}"
-      try_command gcloud storage cp --recursive "${LKG_PATH}" "./legacy_bin/${pref}/"
-    fi
+echo "Building package(s)"
+if [[ -n ${SPEC_NAME} ]]; then
+  SPEC_FILE = "${SPEC_NAME}.goospec"
+  if [[ -n "${LKG_GCS_PATH}" ]]; then
+    echo "Copying LKG binaries from ${LKG_GCS_PATH} to ./legacy_bin/${SPEC_NAME}/"
+    mkdir -p "./legacy_bin/${SPEC_NAME}/"
+    try_command gcloud storage cp --recursive "${LKG_GCS_PATH}/*" "./legacy_bin/${SPEC_NAME}/"
   fi
-  
-  goopack -var:version="$VERSION" "$spec"
-  generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
-done
-
+  goopack -var:version="$VERSION" "${SPEC_NAME}"
+  generate_and_push_sbom ./ "${SPEC_FILE}" "${SPEC_NAME}" "${VERSION}"
+else
+  for spec in packaging/googet/*.goospec; do
+    goopack -var:version="$VERSION" "$spec"
+    name=$(basename "${spec}")
+    pref=${name%.*}
+    generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
+  done
+fi
 echo "Finished building all packages."
 
+echo "Copying $(ls *.goo | xargs) to ${GCS_PATH}/"
 gsutil cp -n *.goo "$GCS_PATH/"
 
 echo "Cleaning up temporary legacy binary directory..."

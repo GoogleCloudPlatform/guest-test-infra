@@ -32,8 +32,10 @@
       "Required": false
     },
     "lkg_gcs_path": {
-      "Required": false,
-      "Value": {}
+      "Required": false
+    },
+    "spec_name": {
+      "Required": false
     }
   },
   "Steps": {
@@ -53,7 +55,8 @@
           "build_dir": "${build_dir}",
           "version": "${version}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}",
-	  "lkg_gcs_path": "${lkg_gcs_path}"
+	  "lkg_gcs_path": "${lkg_gcs_path}",
+	  "spec_name": "${spec_name}"
         }
       }
     }

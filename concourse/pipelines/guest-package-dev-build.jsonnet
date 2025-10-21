@@ -68,7 +68,9 @@ local base_buildpackagejob = {
   extended_tasks:: [],
   build_dir:: '',
   extra_repo:: '',
-  extra_repo_owner:: '',  
+  extra_repo_owner:: '',
+  secret_name:: '',
+  spec_name:: '',
 
   default_trigger_steps:: [
     {
@@ -109,37 +111,24 @@ local base_buildpackagejob = {
     '-var:extra_git_ref=((.:extra-commit-sha))',
 ] else [],
 
-  secret_names: [],
   // Fetch LKG secrets if secret_name is defined
-  local has_lkg = std.length(tl.secret_names) > 0,
+  fetch_lkg_steps:: if tl.secret_name != '' then [
+    {
+      task: 'get-secret-' + tl.secret_name,
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.secret_name },
+    },
+    {
+      load_var: tl.secret_name + '-secret'
+      file: 'gcp-secret-manager/' + tl.secret_name,
+    },
+  ] else [], 
 
-  fetch_lkg_steps::
-    if has_lkg then
-      [
-        step
-        for secret_name in tl.secret_names
-        for step in [
-          {
-            task: 'get-secret-' + secret_name,
-            config: gcp_secret_manager.getsecrettask { secret_name: secret_name },
-          },
-          {
-            load_var: secret_name + '-secret',
-            file: 'gcp-secret-manager/' + secret_name,
-          },
-        ]
-      ]
-    else [],
-
-  local lkg_daisy_vars = if has_lkg then [
-    '-var:lkg_gcs_path=' + std.toString({
-      [secret_name]: '((.:' + secret_name + '-secret))'
-      for secret_name in tl.secret_names
-    }),
+  local lkg_daisy_vars =  if tl.secret_name != null then [
+    '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
   ] else [],
 
   // Start of output.
-  name: 'build-' + tl.package,
+  name: 'build-' + tl.package
 
   parallel_triggers:: [
     // Prep build variables and content.
@@ -218,6 +207,7 @@ local base_buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
+                  '-var:spec_name=' + tl.spec_name,
                 ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
@@ -823,12 +813,54 @@ local build_and_upload_oslogin = buildpackagejob {
       ],
     },
     buildpackagejob {
-      name: 'build-goo',
+      name: 'build-googet',
+      spec_name: 'googet',
       package: 'compute-image-windows',
       builds: ['goo'],
       extra_repo: 'googet',
       extra_repo_owner: 'google',
-      secret_names: ['googet', 'certgen'],
+      secret_name: 'googet',
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-certgen',
+      spec_name: 'certgen',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      secret_name: 'certgen',
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-auto-updater',
+      spec_name: 'google-compute-engine-auto-updater',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-powershell',
+      spec_name: 'google-compute-engine-powershell',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-ssh',
+      spec_name: 'google-compute-engine-ssh',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-image-sysprep',
+      spec_name: 'google-compute-engine-sysprep',
+      package: 'compute-image-windows',
+      builds: ['goo'],
       uploads: [
       ],
     },
@@ -1093,8 +1125,13 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-  //      'build-compute-image-windows',
-        'build-goo',
+       // 'build-compute-image-windows',
+        'build-googet',
+        'build-certgen',
+        'build-google-compute-image-auto-updater',
+        'build-google-compute-image-powershell',
+        'build-google-compute-image-ssh',
+        'build-google-compute-image-sysprep',
       ],
     },
     {
