@@ -79,8 +79,8 @@ if find . -type f -iname '*.go' >/dev/null; then
 fi
 
 echo "Building package(s)"
-if [[ -n ${SPEC_NAME} ]]; then
-  SPEC_FILE = "${SPEC_NAME}.goospec"
+if [[ -n "${SPEC_NAME}" ]]; then
+  SPEC_FILE="${SPEC_NAME}.goospec"
   if [[ -n "${LKG_GCS_PATH}" ]]; then
     echo "Copying LKG binaries from ${LKG_GCS_PATH} to ./legacy_bin/${SPEC_NAME}/"
     mkdir -p "./legacy_bin/${SPEC_NAME}/"

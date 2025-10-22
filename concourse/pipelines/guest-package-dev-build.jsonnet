@@ -123,7 +123,7 @@ local base_buildpackagejob = {
     },
   ] else [], 
 
-  local lkg_daisy_vars =  if tl.secret_name != null then [
+  local lkg_daisy_vars =  if tl.secret_name != '' then [
     '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
   ] else [],
 
