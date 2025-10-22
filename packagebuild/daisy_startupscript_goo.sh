@@ -80,13 +80,13 @@ fi
 
 echo "Building package(s)"
 if [[ -n "${SPEC_NAME}" ]]; then
-  SPEC_FILE="${SPEC_NAME}.goospec"
+  SPEC_FILE="./packaging/googet/${SPEC_NAME}.goospec"
   if [[ -n "${LKG_GCS_PATH}" ]]; then
     echo "Copying LKG binaries from ${LKG_GCS_PATH} to ./legacy_bin/${SPEC_NAME}/"
     mkdir -p "./legacy_bin/${SPEC_NAME}/"
     try_command gcloud storage cp --recursive "${LKG_GCS_PATH}/*" "./legacy_bin/${SPEC_NAME}/"
   fi
-  goopack -var:version="$VERSION" "${SPEC_NAME}"
+  goopack -var:version="$VERSION" "${SPEC_FILE}"
   generate_and_push_sbom ./ "${SPEC_FILE}" "${SPEC_NAME}" "${VERSION}"
 else
   for spec in packaging/googet/*.goospec; do
