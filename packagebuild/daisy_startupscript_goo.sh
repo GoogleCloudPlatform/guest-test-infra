@@ -25,6 +25,8 @@ EXTRA_GIT_REF=$(curl -f -H Metadata-Flavor:Google ${URL}/extra-git-ref)
 BUILD_DIR=$(curl -f -H Metadata-Flavor:Google ${URL}/build-dir)
 VERSION=$(curl -f -H Metadata-Flavor:Google ${URL}/version)
 SBOM_UTIL_GCS_ROOT=$(curl -f -H Metadata-Flavor:Google ${URL}/sbom-util-gcs-root)
+LKG_GCS_PATH=$(curl -f -H Metadata-Flavor:Google $URL/lkg_gcs_path)
+SPEC_NAME=$(curl -f -H Metadata-Flavor:Google $URL/spec_name)
 
 echo "Started build..."
 
@@ -77,12 +79,32 @@ if find . -type f -iname '*.go' >/dev/null; then
 fi
 
 echo "Building package(s)"
-for spec in packaging/googet/*.goospec; do
-  goopack -var:version="$VERSION" "$spec"
-  name=$(basename "${spec}")
-  pref=${name%.*}
-  generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
-done
+if [[ -n "${SPEC_NAME}" ]]; then
+  SPEC_FILE="${SPEC_NAME}.goospec"
+  if [[ -n "${LKG_GCS_PATH}" ]]; then
+    echo "Copying LKG binaries from ${LKG_GCS_PATH} to ./legacy_bin/${SPEC_NAME}/"
+    mkdir -p "./legacy_bin/${SPEC_NAME}/"
+    try_command gcloud storage cp --recursive "${LKG_GCS_PATH}/*" "./legacy_bin/${SPEC_NAME}/"
+  fi
+  goopack -var:version="$VERSION" "${SPEC_NAME}"
+  generate_and_push_sbom ./ "${SPEC_FILE}" "${SPEC_NAME}" "${VERSION}"
+else
+  for spec in packaging/googet/*.goospec; do
+    goopack -var:version="$VERSION" "$spec"
+    name=$(basename "${spec}")
+    pref=${name%.*}
+    generate_and_push_sbom ./ "${spec}" "${pref}" "${VERSION}"
+  done
+fi
+echo "Finished building all packages."
 
+echo "Copying $(ls *.goo | xargs) to ${GCS_PATH}/"
 gsutil cp -n *.goo "$GCS_PATH/"
+
+echo "Cleaning up temporary legacy binary directory..."
+if [ -d "./legacy_bin" ]; then
+  rm -rf ./legacy_bin/
+  echo "Removed ./legacy_bin/"
+fi
+
 build_success "Built `ls *.goo|xargs`"

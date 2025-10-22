@@ -1,4 +1,5 @@
 local underscore(input) = std.strReplace(input, '-', '_');
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
@@ -68,6 +69,8 @@ local base_buildpackagejob = {
   build_dir:: '',
   extra_repo:: '',
   extra_repo_owner:: '',
+  secret_name:: '',
+  spec_name:: '',
 
   default_trigger_steps:: [
     {
@@ -108,6 +111,22 @@ local base_buildpackagejob = {
     '-var:extra_git_ref=((.:extra-commit-sha))',
 ] else [],
 
+  // Fetch LKG secrets if secret_name is defined
+  fetch_lkg_steps:: if tl.secret_name != '' then [
+    {
+      task: 'get-secret-' + tl.secret_name,
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.secret_name },
+    },
+    {
+      load_var: tl.secret_name + '-secret',
+      file: 'gcp-secret-manager/' + tl.secret_name,
+    },
+  ] else [], 
+
+  local lkg_daisy_vars =  if tl.secret_name != '' then [
+    '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
+  ] else [],
+
   // Start of output.
   name: 'build-' + tl.package,
 
@@ -120,7 +139,7 @@ local base_buildpackagejob = {
     },
   ],
 
-  plan: tl.parallel_triggers + tl.load_sha_steps + [
+  plan: tl.parallel_triggers + tl.load_sha_steps + tl.fetch_lkg_steps + [
     generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
@@ -158,6 +177,7 @@ local base_buildpackagejob = {
       },
     },
     { load_var: 'package-version', file: 'package-version/version' },
+    
     // Invoke daisy build workflows for all specified builds.
     {
       in_parallel: {
@@ -187,7 +207,8 @@ local base_buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
-                ] + tl.extra_daisy_args + [
+                  '-var:spec_name=' + tl.spec_name,
+                ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
@@ -793,10 +814,53 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     buildpackagejob {
       name: 'build-googet',
+      spec_name: 'googet',
       package: 'compute-image-windows',
       builds: ['goo'],
       extra_repo: 'googet',
       extra_repo_owner: 'google',
+      secret_name: 'googet',
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-certgen',
+      spec_name: 'certgen',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      secret_name: 'certgen',
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-auto-updater',
+      spec_name: 'google-compute-engine-auto-updater',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-powershell',
+      spec_name: 'google-compute-engine-powershell',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-ssh',
+      spec_name: 'google-compute-engine-ssh',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      uploads: [
+      ],
+    },
+    buildpackagejob {
+      name: 'build-google-compute-engine-sysprep',
+      spec_name: 'google-compute-engine-sysprep',
+      package: 'compute-image-windows',
+      builds: ['goo'],
       uploads: [
       ],
     },
@@ -1061,8 +1125,13 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-  //      'build-compute-image-windows',
+       // 'build-compute-image-windows',
         'build-googet',
+        'build-certgen',
+        'build-google-compute-engine-auto-updater',
+        'build-google-compute-engine-powershell',
+        'build-google-compute-engine-ssh',
+        'build-google-compute-engine-sysprep',
       ],
     },
     {
