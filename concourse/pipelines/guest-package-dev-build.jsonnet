@@ -1,4 +1,5 @@
 local underscore(input) = std.strReplace(input, '-', '_');
+local commaSeparatedString(inputArray) = std.join(',', inputArray);
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // task which publishes a 'result' metric per job, with either success or failure value.
@@ -330,6 +331,138 @@ local buildpackageimagetask = {
       ],
     },
   },
+};
+
+// task which builds a windows derivative OS image with a specific package added, for use in tests
+local buildpackageimagetaskwindows = {
+  local tl = self,
+
+  image_name:: error 'must set image_name in buildpackageimagetaskwindows',
+  source_image:: error 'must set source_image in buildpackageimagetaskwindows',
+  dest_image:: error 'must set dest_image in buildpackageimagetaskwindows',
+  gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetaskwindows',
+
+  // Start of output.
+  task: 'build-derivative-%s-image' % tl.image_name,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/daisy' },
+    },
+    inputs: [{ name: 'compute-image-tools' }],
+    run: {
+      path: '/daisy',
+      args: [
+        '-project=guest-package-builder',
+        '-zone=us-central1-a',
+        '-var:source_image=' + tl.source_image,
+        '-var:gcs_package_path=' + tl.gcs_package_path,
+        '-var:dest_image=' + tl.dest_image,
+        './compute-image-tools/daisy_workflows/image_build/install_package/windows/install_package.wf.json',
+      ],
+    },
+  },
+};
+
+
+// Build derivative windows images with googet and certgen to run CIT validation against them.
+local build_goo = buildpackagejob {
+  local tl = self,
+
+  package:: error 'must set package in build_goo',
+  uploads: [],
+  builds: ['goo'],
+
+  local allCITSuites = 'packagevalidation|ssh|winrm',
+
+  local x86WindowsImagesToTest = [
+    'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2022-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2025-dc-((.:build-id))',
+  ],
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+        outputs: [{ name: 'build-id-dir' }],
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
+          ],
+        },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        steps: [
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2016',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2016',
+            dest_image: 'windows-server-2016-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2019',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2019',
+            dest_image: 'windows-server-2019-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2022',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2022',
+            dest_image: 'windows-server-2022-dc-((.:build-id))', 
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2025',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2025',
+            dest_image: 'windows-server-2025-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+        ],
+      },
+    },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          {
+            task: '%s-windows-image-tests-amd64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-x86_shape=e2-standard-4',
+                  '-timeout=45m',
+                  '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
+                  '-filter=^(%s)$' % allCITSuites,
+                  '-parallel_count=15',
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
 };
 
 local buildpackageimagetaskcos = {
@@ -812,7 +945,7 @@ local build_and_upload_oslogin = buildpackagejob {
         },
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-googet',
       spec_name: 'googet',
       package: 'compute-image-windows',
@@ -823,7 +956,7 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-certgen',
       spec_name: 'certgen',
       package: 'compute-image-windows',
@@ -832,7 +965,7 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-google-compute-engine-auto-updater',
       spec_name: 'google-compute-engine-auto-updater',
       package: 'compute-image-windows',
@@ -840,7 +973,7 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-google-compute-engine-powershell',
       spec_name: 'google-compute-engine-powershell',
       package: 'compute-image-windows',
@@ -848,7 +981,7 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-google-compute-engine-ssh',
       spec_name: 'google-compute-engine-ssh',
       package: 'compute-image-windows',
@@ -856,7 +989,7 @@ local build_and_upload_oslogin = buildpackagejob {
       uploads: [
       ],
     },
-    buildpackagejob {
+    build_goo {
       name: 'build-google-compute-engine-sysprep',
       spec_name: 'google-compute-engine-sysprep',
       package: 'compute-image-windows',
