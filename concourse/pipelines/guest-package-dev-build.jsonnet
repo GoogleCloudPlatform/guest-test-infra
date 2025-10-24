@@ -373,10 +373,19 @@ local build_goo = buildpackagejob {
   package:: error 'must set package in build_goo',
   uploads: [],
   builds: ['goo'],
+  test_suite: null,
 
   local allCITSuites = 'packagevalidation|ssh|winrm',
+  test_suite_to_run::
+    if tl.test_suite == null then
+      allCITSuites
+    else
+      tl.test_suite,
 
   local x86WindowsImagesToTest = [
+    'projects/guest-package-builder/global/images/windows-server-2008-r2-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2012-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2012-r2-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2022-dc-((.:build-id))',
@@ -406,6 +415,24 @@ local build_goo = buildpackagejob {
     {
       in_parallel: {
         steps: [
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2008-r2',
+            source_image: 'projects/bct-prod-images/global/images/family/windows-2008-r2',
+            dest_image: 'windows-server-2008-r2-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2012',
+            source_image: 'projects/bct-prod-images/global/images/family/windows-2012',
+            dest_image: 'windows-server-2012-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2012-r2',
+            source_image: 'projects/bct-prod-images/global/images/family/windows-2012-r2',
+            dest_image: 'windows-server-2012-r2-dc-((.:build-id))',
+            gcs_package_path: '"gs://gce-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
           buildpackageimagetaskwindows {
             image_name: 'windows-2016',
             source_image: 'projects/windows-cloud/global/images/family/windows-2016',
@@ -453,7 +480,7 @@ local build_goo = buildpackagejob {
                   '-x86_shape=e2-standard-4',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
-                  '-filter=^(%s)$' % allCITSuites,
+                  '-filter=^(%s)$' % tl.test_suite_to_run,
                   '-parallel_count=15',
                 ],
               },
@@ -953,6 +980,7 @@ local build_and_upload_oslogin = buildpackagejob {
       extra_repo: 'googet',
       extra_repo_owner: 'google',
       secret_name: 'googet',
+      test_suite: 'packagevalidation',
       uploads: [
       ],
     },
@@ -962,6 +990,7 @@ local build_and_upload_oslogin = buildpackagejob {
       package: 'compute-image-windows',
       builds: ['goo'],
       secret_name: 'certgen',
+      test_suite: 'ssh|winrm',
       uploads: [
       ],
     },
