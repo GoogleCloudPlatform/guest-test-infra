@@ -72,6 +72,7 @@ local base_buildpackagejob = {
   extra_repo_owner:: '',
   secret_name:: '',
   spec_name:: '',
+  test_suite:: '',
 
   default_trigger_steps:: [
     {
@@ -373,11 +374,10 @@ local build_goo = buildpackagejob {
   package:: error 'must set package in build_goo',
   uploads: [],
   builds: ['goo'],
-  test_suite: null,
 
   local allCITSuites = 'packagevalidation|ssh|winrm',
   test_suite_to_run::
-    if tl.test_suite == null then
+    if tl.test_suite == '' then
       allCITSuites
     else
       tl.test_suite,
