@@ -366,7 +366,6 @@ local buildpackageimagetaskwindows = {
   },
 };
 
-
 // Build derivative windows images with googet and certgen to run CIT validation against them.
 local build_goo = buildpackagejob {
   local tl = self,
