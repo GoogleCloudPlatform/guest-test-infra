@@ -382,7 +382,7 @@ local build_goo = buildpackagejob {
       tl.test_suite,
 
   local x86WindowsImagesToTest = [
-    'projects/guest-package-builder/global/images/windows-server-2008-r2-dc-((.:build-id))',
+//    'projects/guest-package-builder/global/images/windows-server-2008-r2-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2012-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2012-r2-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
@@ -414,12 +414,12 @@ local build_goo = buildpackagejob {
     {
       in_parallel: {
         steps: [
-          buildpackageimagetaskwindows {
-            image_name: 'windows-2008-r2',
-            source_image: 'projects/bct-prod-images/global/images/family/windows-2008-r2',
-            dest_image: 'windows-server-2008-r2-dc-((.:build-id))',
-            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
-          },
+//          buildpackageimagetaskwindows {
+//            image_name: 'windows-2008-r2',
+//            source_image: 'projects/bct-prod-images/global/images/family/windows-2008-r2',
+//            dest_image: 'windows-server-2008-r2-dc-((.:build-id))',
+//            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+//          },
           buildpackageimagetaskwindows {
             image_name: 'windows-2012',
             source_image: 'projects/bct-prod-images/global/images/family/windows-2012',
