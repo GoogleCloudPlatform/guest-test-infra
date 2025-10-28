@@ -594,6 +594,10 @@ local imgpublishjob = {
       file: '%s-gcs/version' % job.image,
     },
     {
+      task: 'generate-version',
+      file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
+    },
+    {
       load_var: 'publish-version',
       file: 'publish-version/version',
     }, ] +
