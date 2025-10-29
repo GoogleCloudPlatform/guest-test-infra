@@ -476,7 +476,7 @@ local build_goo = buildpackagejob {
                 args: [
                   '-project=guest-package-builder',
                   '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
-                  '-x86_shape=e2-standard-4',
+                  '-x86_shape=c3-standard-4',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
                   '-filter=^(%s)$' % tl.test_suite_to_run,
