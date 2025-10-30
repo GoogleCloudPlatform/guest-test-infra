@@ -383,7 +383,7 @@ local build_goo = buildpackagejob {
 
   local x86WindowsImagesToTest = [
 //    'projects/guest-package-builder/global/images/windows-server-2008-r2-dc-((.:build-id))',
-    'projects/guest-package-builder/global/images/windows-server-2012-dc-((.:build-id))',
+//    'projects/guest-package-builder/global/images/windows-server-2012-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2012-r2-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
     'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
@@ -404,7 +404,7 @@ local build_goo = buildpackagejob {
           path: 'sh',
           args: [
             '-exc',
-            'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
+            'buildid=$(date "+%s"); echo ' + tl.spec_name + '-$buildid | tee build-id-dir/build-id',
           ],
         },
       },
@@ -420,12 +420,12 @@ local build_goo = buildpackagejob {
 //            dest_image: 'windows-server-2008-r2-dc-((.:build-id))',
 //            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
 //          },
-          buildpackageimagetaskwindows {
-            image_name: 'windows-2012',
-            source_image: 'projects/bct-prod-images/global/images/family/windows-2012',
-            dest_image: 'windows-server-2012-dc-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-windows.x86_64.20251009.01.0@1.goo,gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-metadata-scripts.x86_64.20251009.01.0@1.goo,"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
-          },
+//          buildpackageimagetaskwindows {
+//            image_name: 'windows-2012',
+//            source_image: 'projects/bct-prod-images/global/images/family/windows-2012',
+//            dest_image: 'windows-server-2012-dc-((.:build-id))',
+//            gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-windows.x86_64.20251009.01.0@1.goo,gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-metadata-scripts.x86_64.20251009.01.0@1.goo,"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+//          },
           buildpackageimagetaskwindows {
             image_name: 'windows-2012-r2',
             source_image: 'projects/bct-prod-images/global/images/family/windows-2012-r2',
