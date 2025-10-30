@@ -1,5 +1,6 @@
 local underscore(input) = std.strReplace(input, '-', '_');
 local commaSeparatedString(inputArray) = std.join(',', inputArray);
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
@@ -69,6 +70,11 @@ local base_buildpackagejob = {
   extended_tasks:: [],
   build_dir:: '',
   extra_repo:: '',
+  extra_repo_owner:: '',
+  secret_name:: '',
+  spec_name:: '',
+  test_suite:: '',
+  abbr_name:: '',
 
   default_trigger_steps:: [
     {
@@ -100,7 +106,24 @@ local base_buildpackagejob = {
 
   extra_daisy_args:: if tl.extra_repo != '' then [
     '-var:extra_repo=' + tl.extra_repo,
+    '-var:extra_repo_owner=' + tl.extra_repo_owner,
     '-var:extra_git_ref=((.:extra-commit-sha))',
+  ] else [],
+
+  // Fetch LKG secrets if secret_name is defined
+  fetch_lkg_steps:: if tl.secret_name != '' then [
+    {
+      task: 'get-secret-' + tl.secret_name,
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.secret_name },
+    },
+    {
+      load_var: tl.secret_name + '-secret',
+      file: 'gcp-secret-manager/' + tl.secret_name,
+    },
+  ] else [], 
+
+  local lkg_daisy_vars =  if tl.secret_name != '' then [
+    '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
   ] else [],
 
   // Start of output.
@@ -115,7 +138,7 @@ local base_buildpackagejob = {
     },
   ],
 
-  plan: tl.parallel_triggers + tl.load_sha_steps + [
+  plan: tl.parallel_triggers + tl.load_sha_steps + tl.fetch_lkg_steps + [
     generatetimestamptask,
     { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
     // Prep package version by reading tags in the git repo. New versions are YYYYMMDD.NN, where .NN
@@ -178,7 +201,8 @@ local base_buildpackagejob = {
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
                   '-var:build_dir=' + tl.build_dir,
-                ] + tl.extra_daisy_args + [
+                  '-var:spec_name=' + tl.spec_name,
+                ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
@@ -295,6 +319,124 @@ local buildpackageimagetaskwindows = {
     },
   },
 };
+
+local build_goo = buildpackagejob {
+  local tl = self,
+
+  package:: error 'must set package in build_goo',
+  uploads: [],
+  builds: ['goo'],
+
+  local allCITSuites = 'packagevalidation|ssh|winrm',
+  test_suite_to_run::
+    if tl.test_suite == '' then
+      allCITSuites
+    else
+      tl.test_suite,
+
+  local x86WindowsImagesToTest = [
+    'projects/guest-package-builder/global/images/windows-server-2012-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2012-r2-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2019-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2022-dc-((.:build-id))',
+    'projects/guest-package-builder/global/images/windows-server-2025-dc-((.:build-id))',
+  ],
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+        outputs: [{ name: 'build-id-dir' }],
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            'buildid=$(date "+%s"); echo ' + tl.abbr_name + '-$buildid | tee build-id-dir/build-id',
+          ],
+        },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        steps: [
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2012',
+            source_image: 'projects/bct-prod-images/global/images/family/windows-2012',
+            dest_image: 'windows-server-2012-dc-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-windows.x86_64.20251009.01.0@1.goo,gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-metadata-scripts.x86_64.20251009.01.0@1.goo,"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2012-r2',
+            source_image: 'projects/bct-prod-images/global/images/family/windows-2012-r2',
+            dest_image: 'windows-server-2012-r2-dc-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-windows.x86_64.20251009.01.0@1.goo,gs://gcp-guest-package-uploads/guest-agent/google-compute-engine-metadata-scripts.x86_64.20251009.01.0@1.goo,"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2016',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2016',
+            dest_image: 'windows-server-2016-dc-((.:build-id))',
+            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2019',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2019',
+            dest_image: 'windows-server-2019-dc-((.:build-id))',
+            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2022',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2022',
+            dest_image: 'windows-server-2022-dc-((.:build-id))', 
+            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2025',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2025',
+            dest_image: 'windows-server-2025-dc-((.:build-id))',
+            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
+          },
+        ],
+      },
+    },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          {
+            task: '%s-windows-image-tests-amd64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-x86_shape=n1-standard-4',
+                  '-timeout=45m',
+                  '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
+                  '-filter=^(%s)$' % tl.test_suite_to_run,
+                  '-parallel_count=15',
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
+};
+
 
 // task which builds a derivative OS image with a specific package added, for use in tests
 local buildpackageimagetask = {
@@ -1660,9 +1802,36 @@ local build_and_upload_oslogin = buildpackagejob {
         },
       ],
     },
-    buildpackagejob {
+    build_goo {
+      name: 'build-googet',
+      spec_name: 'googet',
       package: 'compute-image-windows',
       builds: ['goo'],
+      extra_repo: 'googet',
+      extra_repo_owner: 'google',
+      secret_name: 'googet',
+      test_suite: 'packagevalidation',
+      abbr_name: 'ciw-googet',
+      uploads: [
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/googet.x86_64.((.:package-version)).0@1.goo"',
+          os_type: 'WINDOWS_ALL_GOOGET',
+          pkg_inside_name: 'googet',
+          pkg_name: 'googet',
+          pkg_version: '((.:package-version))',
+          reponame: 'googet',
+          sbom_file: '',
+        },
+      ],
+    },
+    build_goo {
+      name: 'build-certgen',
+      spec_name: 'certgen',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      secret_name: 'certgen',
+      test_suite: 'winrm',
+      abbr_name: 'ciw-certgen',
       uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/certgen.x86_64.((.:package-version)).0@1.goo"',
@@ -1673,6 +1842,15 @@ local build_and_upload_oslogin = buildpackagejob {
           reponame: 'certgen',
           sbom_file: '',
         },
+      ],
+    },
+    build_goo {
+      name: 'build-google-compute-engine-auto-updater',
+      spec_name: 'google-compute-engine-auto-updater',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      abbr_name: 'ciw-gce-auto-updater',
+      uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-auto-updater.noarch.((.:package-version))@1.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
@@ -1682,6 +1860,15 @@ local build_and_upload_oslogin = buildpackagejob {
           reponame: 'google-compute-engine-auto-updater',
           sbom_file: '',
         },
+      ],
+    },
+    build_goo {
+      name: 'build-google-compute-engine-powershell',
+      spec_name: 'google-compute-engine-powershell',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      abbr_name: 'ciw-gce-powershell',
+      uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-powershell.noarch.((.:package-version))@1.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
@@ -1691,15 +1878,15 @@ local build_and_upload_oslogin = buildpackagejob {
           reponame: 'google-compute-engine-powershell',
           sbom_file: '',
         },
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-sysprep.noarch.((.:package-version))@1.goo"',
-          os_type: 'WINDOWS_ALL_GOOGET',
-          pkg_inside_name: 'google-compute-engine-sysprep',
-          pkg_name: 'google-compute-engine-sysprep',
-          pkg_version: '((.:package-version))',
-          reponame: 'google-compute-engine-sysprep',
-          sbom_file: '',
-        },
+      ],
+    },
+    build_goo {
+      name: 'build-google-compute-engine-ssh',
+      spec_name: 'google-compute-engine-ssh',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      abbr_name: 'ciw-gce-ssh',
+      uploads: [
         uploadpackageversiontask {
           gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-ssh.x86_64.((.:package-version)).0@1.goo"',
           os_type: 'WINDOWS_ALL_GOOGET',
@@ -1707,6 +1894,24 @@ local build_and_upload_oslogin = buildpackagejob {
           pkg_name: 'google-compute-engine-ssh',
           pkg_version: '((.:package-version))',
           reponame: 'google-compute-engine-ssh',
+          sbom_file: '',
+        },
+      ],
+    },
+    build_goo {
+      name: 'build-google-compute-engine-sysprep',
+      spec_name: 'google-compute-engine-sysprep',
+      package: 'compute-image-windows',
+      builds: ['goo'],
+      abbr_name: 'ciw-gce-sysprep',
+      uploads: [
+        uploadpackageversiontask {
+          gcs_files: '"gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-sysprep.noarch.((.:package-version))@1.goo"',
+          os_type: 'WINDOWS_ALL_GOOGET',
+          pkg_inside_name: 'google-compute-engine-sysprep',
+          pkg_name: 'google-compute-engine-sysprep',
+          pkg_version: '((.:package-version))',
+          reponame: 'google-compute-engine-sysprep',
           sbom_file: '',
         },
       ],
@@ -1737,6 +1942,14 @@ local build_and_upload_oslogin = buildpackagejob {
     },
   ],
   resources: [
+    {
+      name: 'googet',
+      type: 'git',
+      source: {
+        uri: 'https://github.com/google/googet.git',
+        branch: 'master',
+      },
+    },
     {
       name: 'guest-agent-stable',
       type: 'git',
@@ -1997,7 +2210,13 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-        'build-compute-image-windows',
+//        'build-compute-image-windows',
+        'build-googet',
+        'build-certgen',
+        'build-google-compute-engine-auto-updater',
+        'build-google-compute-engine-powershell',
+        'build-google-compute-engine-ssh',
+        'build-google-compute-engine-sysprep',
       ],
     },
     {
