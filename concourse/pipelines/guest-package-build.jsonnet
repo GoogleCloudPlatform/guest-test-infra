@@ -1849,6 +1849,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-auto-updater',
       package: 'compute-image-windows',
       builds: ['goo'],
+      test_suite: 'packagevalidation',
       abbr_name: 'ciw-gce-auto-updater',
       uploads: [
         uploadpackageversiontask {
@@ -1867,6 +1868,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-powershell',
       package: 'compute-image-windows',
       builds: ['goo'],
+      test_suite: 'packagevalidation',
       abbr_name: 'ciw-gce-powershell',
       uploads: [
         uploadpackageversiontask {
@@ -1885,6 +1887,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-ssh',
       package: 'compute-image-windows',
       builds: ['goo'],
+      test_suite: 'packagevalidation|ssh',
       abbr_name: 'ciw-gce-ssh',
       uploads: [
         uploadpackageversiontask {
@@ -1903,6 +1906,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-sysprep',
       package: 'compute-image-windows',
       builds: ['goo'],
+      test_suite: 'packagevalidation',
       abbr_name: 'ciw-gce-sysprep',
       uploads: [
         uploadpackageversiontask {
