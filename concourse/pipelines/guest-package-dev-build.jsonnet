@@ -73,6 +73,7 @@ local base_buildpackagejob = {
   secret_name:: '',
   spec_name:: '',
   test_suite:: '',
+  abbr_name:: '',
 
   default_trigger_steps:: [
     {
@@ -404,7 +405,7 @@ local build_goo = buildpackagejob {
           path: 'sh',
           args: [
             '-exc',
-            'buildid=$(date "+%s"); echo ' + tl.spec_name + '-$buildid | tee build-id-dir/build-id',
+            'buildid=$(date "+%s"); echo ' + tl.abbr_name + '-$buildid | tee build-id-dir/build-id',
           ],
         },
       },
@@ -980,6 +981,7 @@ local build_and_upload_oslogin = buildpackagejob {
       extra_repo_owner: 'google',
       secret_name: 'googet',
       test_suite: 'packagevalidation',
+      abbr_name: 'ciw-googet',
       uploads: [
       ],
     },
@@ -990,6 +992,7 @@ local build_and_upload_oslogin = buildpackagejob {
       builds: ['goo'],
       secret_name: 'certgen',
       test_suite: 'ssh|winrm',
+      abbr_name: 'ciw-certgen',
       uploads: [
       ],
     },
@@ -998,6 +1001,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-auto-updater',
       package: 'compute-image-windows',
       builds: ['goo'],
+      abbr_name: 'ciw-gce-auto-updater',
       uploads: [
       ],
     },
@@ -1006,6 +1010,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-powershell',
       package: 'compute-image-windows',
       builds: ['goo'],
+      abbr_name: 'ciw-gce-powershell',
       uploads: [
       ],
     },
@@ -1014,6 +1019,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-ssh',
       package: 'compute-image-windows',
       builds: ['goo'],
+      abbr_name: 'ciw-gce-ssh',
       uploads: [
       ],
     },
@@ -1022,6 +1028,7 @@ local build_and_upload_oslogin = buildpackagejob {
       spec_name: 'google-compute-engine-sysprep',
       package: 'compute-image-windows',
       builds: ['goo'],
+      abbr_name: 'ciw-gce-sysprep',
       uploads: [
       ],
     },
