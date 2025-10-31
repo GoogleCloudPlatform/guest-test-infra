@@ -189,6 +189,9 @@ local base_buildpackagejob = {
                 source: { repository: 'gcr.io/compute-image-tools/daisy' },
               },
               inputs: [{ name: 'guest-test-infra' }],
+	      local spec_name_arg = if tl.spec_name != '' then [
+	        '-var:spec_name=' + tl.spec_name,
+	      ] else [],
               run: {
                 path: '/daisy',
                 args: [
@@ -201,7 +204,7 @@ local base_buildpackagejob = {
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
                   '-var:build_dir=' + tl.build_dir,
-                  '-var:spec_name=' + tl.spec_name,
+		] + spec_name_arg + [
                 ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
