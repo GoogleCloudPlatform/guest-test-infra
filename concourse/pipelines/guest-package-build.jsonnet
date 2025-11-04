@@ -104,11 +104,17 @@ local base_buildpackagejob = {
     },
   ] else tl.default_load_sha,
 
-  extra_daisy_args:: if tl.extra_repo != '' then [
-    '-var:extra_repo=' + tl.extra_repo,
-    '-var:extra_repo_owner=' + tl.extra_repo_owner,
-    '-var:extra_git_ref=((.:extra-commit-sha))',
-  ] else [],
+  extra_daisy_args:: if tl.extra_repo != '' then
+    [
+      '-var:extra_repo=' + tl.extra_repo,
+    ] +
+    (if tl.extra_repo_owner != '' then [
+      '-var:extra_repo_owner=' + tl.extra_repo_owner,
+    ] else []) +
+    [
+      '-var:extra_git_ref=((.:extra-commit-sha))',
+    ]
+else [],
 
   // Fetch LKG secrets if secret_name is defined
   fetch_lkg_steps:: if tl.secret_name != '' then [
