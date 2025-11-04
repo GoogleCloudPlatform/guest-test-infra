@@ -13,7 +13,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetestn1 = common.imagetesttask {
-  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|winrm|metadata|windowscontainers)$',
+  filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|sql|ssh|winrm|metadata)$',
   extra_args: [ '-x86_shape=n1-standard-4', '-timeout=60m'],
 };
 
