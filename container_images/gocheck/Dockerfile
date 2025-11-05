@@ -13,10 +13,18 @@
 # limitations under the License.
 FROM golang:bookworm
 
-RUN apt-get update && apt-get install -y git protobuf-compiler protoc-gen-go && \
+RUN apt-get update && apt-get install -y git curl grep unzip && \
     rm -rf /var/cache/apt/archives
 
+# Install up-to-date protoc and plugins.
+RUN VERSION=$(curl -s "https://api.github.com/repos/protocolbuffers/protobuf/releases/latest" | grep -oP '"tag_name": "v\K(.*)(?=")') && \
+        curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v$VERSION/protoc-$VERSION-linux-x86_64.zip" && \
+        unzip "protoc-$VERSION-linux-x86_64.zip" -d "/usr/local/"
+RUN echo $PATH
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+# Install the linter.
 RUN go install golang.org/x/lint/golint@latest
 
 # Copy this Dockerfile for debugging.

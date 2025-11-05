@@ -13,10 +13,16 @@
 # limitations under the License.
 FROM golang:bookworm
 
-RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget \
-protobuf-compiler protoc-gen-go && rm -rf /var/cache/apt/archives
+RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget unzip grep && \
+        rm -rf /var/cache/apt/archives
 
+# Install up-to-date protoc and plugins.
+RUN VERSION=$(curl -s "https://api.github.com/repos/protocolbuffers/protobuf/releases/latest" | grep -oP '"tag_name": "v\K(.*)(?=")') && \
+        curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v$VERSION/protoc-$VERSION-linux-x86_64.zip" && \
+        unzip "protoc-$VERSION-linux-x86_64.zip" -d "/usr/local/"
+RUN echo $PATH
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 # Go test junit xml output
 RUN go install github.com/jstemmer/go-junit-report@latest
