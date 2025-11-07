@@ -720,7 +720,7 @@ local build_guest_configs = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zone=us-central1-a',
+                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
                   '-images=projects/guest-package-builder/global/images/debian-11-((.:build-id)),projects/guest-package-builder/global/images/debian-12-((.:build-id)),projects/guest-package-builder/global/images/debian-13-((.:build-id)),projects/guest-package-builder/global/images/rhel-8-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
                   '-filter=^(packagemanager|networkinterfacenaming|cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
@@ -742,7 +742,7 @@ local build_guest_configs = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zone=us-central1-a',
+                  '-zones=europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,europe-west4-a',
                   '-images=projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id)),projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
                   '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
                   '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
