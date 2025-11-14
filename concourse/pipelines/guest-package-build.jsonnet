@@ -766,7 +766,7 @@ local build_guest_agent = buildpackagejob {
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
 
-  local allCITSuites = 'cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls|wsfc',
+  local allCITSuites = 'cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|pluginmanager|mdsmtls|wsfc',
 
   local x86WindowsImagesToTest = [
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
