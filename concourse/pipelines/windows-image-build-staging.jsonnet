@@ -135,6 +135,24 @@ local imgbuildjob = {
       file: '%s-sbom/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-shasum',
+      params: {
+        file: 'build-id-dir-shasum/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -196,6 +214,7 @@ local imgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
+        shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'cloudsdk=((.:windows-cloud-sdk))',
@@ -271,6 +290,24 @@ local sqlimgbuildjob = {
       file: '%s-sbom/url' % job.image,
     },
     {
+      task: 'generate-build-id-shasum',
+      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
+      vars: { prefix: job.image, id: '((.:id))'},
+    },
+    {
+      put: job.image + '-shasum',
+      params: {
+        file: 'build-id-dir-shasum/%s*' % job.image,
+      },
+      get_params: {
+        skip_download: 'true',
+      },
+    },
+    {
+      load_var: 'sha256-txt',
+      file: '%s-shasum/url' % job.image,
+    },
+    {
       task: 'generate-build-date',
       file: 'guest-test-infra/concourse/tasks/generate-version.yaml',
     },
@@ -307,6 +344,7 @@ local sqlimgbuildjob = {
       config: daisy.daisyimagetask {
         gcs_url: '((.:gcs-url))',
         sbom_destination: '((.:sbom-destination))',
+        shasum_destination: '((.:sha256-txt))',
         workflow: job.workflow,
         vars+: [
           'source_image_project=bct-prod-images',
@@ -690,6 +728,18 @@ local ImgGroup(name, images) = {
              ] +
              [
                common.GcsSbomResource(image, 'sql')
+               for image in sql_images
+             ] +
+	     [
+               common.GcsShasumResource(image, 'windows-client')
+               for image in windows_client_images
+             ] +
+             [
+               common.GcsShasumResource(image, 'windows-server')
+               for image in windows_server_images
+             ] +
+             [
+               common.GcsShasumResource(image, 'sql')
                for image in sql_images
              ] +
              [
