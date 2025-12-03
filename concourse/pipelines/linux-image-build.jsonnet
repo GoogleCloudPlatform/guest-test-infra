@@ -416,11 +416,17 @@ local imggroup = {
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
   local rhel_eus_images = [
     'rhel-9-4-eus',
+    'rhel-9-4-eus-arm64',
     'rhel-9-4-eus-byos',
+    'rhel-9-4-eus-byos-arm64',
     'rhel-9-6-eus',
+    'rhel-9-6-eus-arm64',
     'rhel-9-6-eus-byos',
+    'rhel-9-6-eus-byos-arm64',
     'rhel-10-0-eus',
+    'rhel-10-0-eus-arm64',
     'rhel-10-0-eus-byos',
+    'rhel-10-0-eus-byos-arm64',
   ],
   local rhel_sap_images = [
     'rhel-8-6-sap',
