@@ -1382,6 +1382,7 @@ local build_guest_agent = buildpackagejob {
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(%s)$' % allCITSuites,
                   '-parallel_count=15',
+		  '-arm64_shape=c4a-standard-1',
                 ],
               },
             },
