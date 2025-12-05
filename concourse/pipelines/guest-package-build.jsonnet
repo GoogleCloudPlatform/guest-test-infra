@@ -1377,7 +1377,7 @@ local build_guest_agent = buildpackagejob {
                   '-project=guest-package-builder',
                   // Default instance type T2A is available only in us-central1, europe-west4, asia-southeast1
                   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
-                  '-zones=europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,europe-west4-a',
+                  '-zones=europe-west4-b,us-west1-a,asia-southeast1-b,us-east1-b,europe-west4-c,us-west1-b,asia-southeast1-c,us-east1-c,europe-west4-a,us-west1-c,us-east1-d',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(%s)$' % allCITSuites,
