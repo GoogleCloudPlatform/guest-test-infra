@@ -815,6 +815,14 @@ local ImgGroup(name, images, environments) = {
     'sql-2022-web-windows-2022-dc',
     'sql-2022-web-windows-2025-dc',
   ],
+  local sql_2025_images = [
+    'sql-2025-enterprise-windows-2025-dc',
+    'sql-2025-enterprise-windows-2022-dc',
+    'sql-2025-enterprise-windows-2019-dc',
+    'sql-2025-standard-windows-2025-dc',
+    'sql-2025-standard-windows-2022-dc',
+    'sql-2025-standard-windows-2019-dc',
+  ],
   local windows_install_media_images = [
     'windows-install-media',
   ],
@@ -822,7 +830,7 @@ local ImgGroup(name, images, environments) = {
   local windows_client_images = windows_11_images,
   local windows_server_images = windows_2016_images + windows_2019_images
                               + windows_2022_images + windows_2025_images,
-  local sql_images = sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
+  local sql_images = sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images + sql_2025_images,
 
   resource_types: [
     {
@@ -939,6 +947,13 @@ local ImgGroup(name, images, environments) = {
           SQLImgBuildJob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2022-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
+
+	  SQLImgBuildJob('sql-2025-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
+	  SQLImgBuildJob('sql-2025-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
+	  SQLImgBuildJob('sql-2025-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
+	  SQLImgBuildJob('sql-2025-enterprise-windows-2025-dc', 'windows-server-2025-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
+	  SQLImgBuildJob('sql-2025-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
+	  SQLImgBuildJob('sql-2025-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
           // Windows install media builds
 
           WindowsInstallMediaImgBuildJob('windows-install-media'),
@@ -984,6 +999,7 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('sql-2022', sql_2022_images, sql_envs),
+    ImgGroup('sql-2025', sql_2025_images, sql_envs),
     ImgGroup('windows-install-media', windows_install_media_images, windows_install_media_envs),
   ],
 }
