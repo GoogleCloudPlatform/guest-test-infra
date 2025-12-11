@@ -1487,7 +1487,7 @@ local build_and_upload_oslogin = buildpackagejob {
   local tl = self,
   package:: error 'must set package in build_and_upload_oslogin',
   gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-  builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64'],
+  builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
   extra_tasks: [
     {
       task: 'generate-build-id',
@@ -1572,6 +1572,21 @@ local build_and_upload_oslogin = buildpackagejob {
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.aarch64.rpm',
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
