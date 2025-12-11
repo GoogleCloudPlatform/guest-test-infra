@@ -461,6 +461,7 @@ local buildpackageimagetask = {
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
+  attempts: 3,
   config: {
     platform: 'linux',
     image_resource: {
