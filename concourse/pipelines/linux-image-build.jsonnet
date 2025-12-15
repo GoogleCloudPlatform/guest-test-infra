@@ -168,7 +168,7 @@ local elimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
@@ -414,6 +414,10 @@ local imggroup = {
   local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64'],
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
+  local rhel_lvm_images = [
+    'rhel-8-lvm',
+    'rhel-8-lvm-arm64',
+  ],
   local rhel_eus_images = [
     'rhel-9-4-eus',
     'rhel-9-4-eus-arm64',
@@ -444,7 +448,7 @@ local imggroup = {
     'rhel-9-6-sap',
     'rhel-9-6-sap-byos',
   ],
-  local rhel_images = rhel_eus_images + rhel_sap_images + [
+  local rhel_images = rhel_lvm_images + rhel_eus_images + rhel_sap_images + [
     'rhel-8',
     'rhel-8-arm64',
     'rhel-8-byos',
