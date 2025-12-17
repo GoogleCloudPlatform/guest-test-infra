@@ -113,7 +113,7 @@
     shasum_destination: shasum_destination,
   },
 
-  default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
+  default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|lvmvalidation|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec)$',
   default_cit_project:: 'gcp-guest',
   default_cit_test_projects: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
   default_cit_zone:: 'us-central1-b',
