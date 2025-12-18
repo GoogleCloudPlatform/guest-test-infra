@@ -417,6 +417,8 @@ local imggroup = {
   local rhel_lvm_images = [
     'rhel-8-lvm',
     'rhel-8-lvm-arm64',
+    'rhel-9-lvm',
+    'rhel-9-lvm-arm64',
   ],
   local rhel_eus_images = [
     'rhel-9-4-eus',
