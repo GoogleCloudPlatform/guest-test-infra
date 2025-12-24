@@ -524,7 +524,7 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb12', 'deb13', 'el8', 'el9'],
+  builds: ['deb12', 'deb13', 'el8', 'el9', 'el10'],
   gcs_dir: 'google-compute-engine',
   uploads: [
     uploadpackageversiontask {
@@ -570,6 +570,15 @@ local build_guest_configs = buildpackagejob {
       pkg_name: 'guest-configs',
       pkg_version: '((.:package-version))',
       reponame: 'gce-google-compute-engine-el9',
+      sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm"',
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-compute-engine',
+      pkg_name: 'guest-configs',
+      pkg_version: '((.:package-version))',
+      reponame: 'gce-google-compute-engine-el10',
       sbom_file: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version)).sbom.json',
     },
   ],
@@ -666,6 +675,21 @@ local build_guest_configs = buildpackagejob {
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
             dest_image: 'rhel-9-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
