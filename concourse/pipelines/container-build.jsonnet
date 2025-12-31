@@ -384,7 +384,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
                 'for f in darwin/daisy linux/daisy windows/daisy.exe; do' +
                 '  for t in latest release; do' +
                 '    gcloud storage cp $f gs://compute-image-tools/$t/$f;' +
-                '    gcloud storage objects update --add-acl-grant=AllUsers:R gs://compute-image-tools/$t/$f;' +
+                '    gcloud storage objects update --add-acl-grant=entity=allUsers,role=READER gs://compute-image-tools/$t/$f;' +
                 '  done;' +
                 'done',
               ],
