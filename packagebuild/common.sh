@@ -120,13 +120,13 @@ function deploy_sbomutil() {
 
   # Determine the latest sbomutil gcs path if available
   if [ -n "${SBOM_UTIL_GCS_ROOT}" ]; then
-    SBOM_UTIL_GCS_PATH=$(gsutil ls $SBOM_UTIL_GCS_ROOT | tail -1)
+    SBOM_UTIL_GCS_PATH=$(gcloud storage ls $SBOM_UTIL_GCS_ROOT | tail -1)
   fi
 
   # Fetch sbomutil from gcs if available
   if [ -n "${SBOM_UTIL_GCS_PATH}" ]; then
     echo "Fetching sbomutil: ${SBOM_UTIL_GCS_PATH}"
-    gsutil cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" "${SBOM_UTIL}"
+    gcloud storage cp "${SBOM_UTIL_GCS_PATH%/}/sbomutil" "${SBOM_UTIL}"
 
     if [ -e "${SBOM_UTIL}" ]; then
       chmod +x "${SBOM_UTIL}"
@@ -162,5 +162,5 @@ function generate_and_push_sbom() {
     -pkg_binary="${BINARY_FILE}" -output="${SBOM_FILE}"
 
   echo "copying ${SBOM_FILE} to $GCS_PATH/"
-  gsutil cp -n ${SBOM_FILE} "$GCS_PATH/"
+  gcloud storage cp --no-clobber ${SBOM_FILE} "$GCS_PATH/"
 }

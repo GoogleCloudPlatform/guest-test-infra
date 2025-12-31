@@ -31,7 +31,7 @@ DEBIAN_FRONTEND=noninteractive
 
 echo "Started build..."
 
-gsutil cp "${SRC_PATH}/common.sh" ./
+gcloud storage cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
 deploy_sbomutil
@@ -140,5 +140,5 @@ for deb in $BUILD_DIR/*.deb; do
 done
 
 echo "copying $BUILD_DIR/*.deb to $GCS_PATH/"
-gsutil cp -n $BUILD_DIR/*.deb "$GCS_PATH/"
+gcloud storage cp --no-clobber $BUILD_DIR/*.deb "$GCS_PATH/"
 build_success Built $BUILD_DIR/*.deb

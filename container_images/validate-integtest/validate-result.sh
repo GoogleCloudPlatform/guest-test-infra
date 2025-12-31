@@ -18,7 +18,7 @@ set -x
 echo "Validate Integration Test Result"
 
 gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
-gsutil cp "$GCS_PATH"/go-test*.txt ./
+gcloud storage cp "$GCS_PATH"/go-test*.txt ./
 
 RET=0
 
@@ -42,7 +42,7 @@ echo "Merge Test Result"
 /usr/local/lib/node_modules/junit-merge/bin/junit-merge ./junit_*.xml -o junit_all_distros.xml
 /junit2html ./junit_all_distros.xml ./junit_all_distros.html
 
-gsutil cp ./junit_*.* "$GCS_PATH"/
+gcloud storage cp ./junit_*.* "$GCS_PATH"/
 
 # Upload test report to GCS
 echo "Test Result Report"
