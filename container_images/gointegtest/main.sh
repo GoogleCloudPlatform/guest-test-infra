@@ -31,7 +31,7 @@ fi
   -var:gcs_path="$GCS_PATH" integ-test-all.wf.json
 RET=$?
 
-gsutil cp "$GCS_PATH"/go-test*.txt ./
+gcloud storage cp "$GCS_PATH"/go-test*.txt ./
 
 for f in go-test*.txt; do
   # $ARTIFACTS is provided by prow decoration containers

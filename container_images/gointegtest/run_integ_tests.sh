@@ -12,7 +12,7 @@ IMAGE=$(curl -f -H Metadata-Flavor:Google ${URL}/image)
 
 export CGO_ENABLED=0
 
-# SuSE images do not have the cloud SDK, needed for gsutil
+# SuSE images do not have the cloud SDK, needed for gcloud storage
 if [[ -e /etc/SUSEConnect ]]; then
   wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-437.0.1-linux-x86_64.tar.gz
   tar xf *.tar.gz
@@ -21,7 +21,7 @@ if [[ -e /etc/SUSEConnect ]]; then
   export CLOUDSDK_PYTHON=/usr/bin/python3.6
 fi
 
-gsutil cp "${SRC_PATH}/common.sh" ./
+gcloud storage cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
 install_go
@@ -34,7 +34,7 @@ $GO get -d -t ./...
 $GO test -tags integration -v ./... > /go-test.txt || :
 
 platform=$(echo $IMAGE|sed -e 's/.*\///' -e 's/-v.*//')
-gsutil cp /go-test.txt ${OUTS_PATH}/go-test-${platform}.txt
+gcloud storage cp /go-test.txt ${OUTS_PATH}/go-test-${platform}.txt
 if [[ $? -eq 0 ]]; then
   build_success
 else
