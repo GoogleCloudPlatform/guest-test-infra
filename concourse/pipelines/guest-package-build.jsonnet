@@ -1862,7 +1862,7 @@ local build_and_upload_oslogin = buildpackagejob {
       extra_repo: 'googet',
       extra_repo_owner: 'google',
       secret_name: 'googet',
-      test_suite: 'packagevalidation',
+      test_suite: 'packagevalidation|packageupgrade',
       abbr_name: 'ciw-googet',
       uploads: [
         uploadpackageversiontask {
