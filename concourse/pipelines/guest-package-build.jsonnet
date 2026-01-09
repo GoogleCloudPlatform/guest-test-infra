@@ -755,6 +755,7 @@ local build_guest_configs = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -778,6 +779,7 @@ local build_guest_configs = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
