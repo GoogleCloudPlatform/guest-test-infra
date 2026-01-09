@@ -812,6 +812,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-16-((.:build-id))',
   ],
 
   local x86ImagesToTest = [
@@ -1289,6 +1290,12 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp6-sap',
             dest_image: 'sles-15-sp6-sap-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'sles-16',
+            source_image: 'projects/suse-cloud/global/images/family/sles-16-0-x86-64',
+            dest_image: 'sles-16-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
           },
         ],
       },
