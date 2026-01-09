@@ -13,13 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+function set_metadata() {
+  local key=$1
+  local value=$2
+  echo "Setting guest-attribute key ($key) value to ($value)"
+  curl -X PUT http://metadata.google.internal/computeMetadata/v1/instance/guest-attributes/package-build/$key -H "Metadata-Flavor: Google" -d "$value"
+}
+
 function build_success() {
   echo "Build succeeded: $@"
+  set_metadata "result" "Build succeeded"
   exit 0
 }
 
 function build_fail() {
   echo "Build failed: $@"
+  set_metadata "result" "Build failed"
   exit 1
 }
 

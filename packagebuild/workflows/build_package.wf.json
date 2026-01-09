@@ -85,14 +85,15 @@
             "repo-name": "${repo_name}",
             "git-ref": "${git_ref}",
             "extra-repo": "${extra_repo}",
-	    "extra-repo-owner": "${extra_repo_owner}",
+	          "extra-repo-owner": "${extra_repo_owner}",
             "extra-git-ref": "${extra_git_ref}",
             "build-dir": "${build_dir}",
             "version": "${version}",
             "sbom-util-gcs-root": "${sbom_util_gcs_root}",
             "target-version": "${target_version}",
-	    "lkg_gcs_path": "${lkg_gcs_path}",
-	    "spec_name": "${spec_name}"
+            "lkg_gcs_path": "${lkg_gcs_path}",
+            "spec_name": "${spec_name}",
+            "enable-guest-attributes": "TRUE"
           },
           "machineType": "${machine_type}",
           "zone": "${zone}",
@@ -104,7 +105,7 @@
     },
     "wait-for-build": {
       "Timeout": "30m",
-      "WaitForInstancesSignal": [
+      "WaitForAnyInstancesSignal": [
         {
           "Name": "inst-build-pkg",
           "SerialOutput": {
@@ -112,6 +113,14 @@
             "SuccessMatch": "Build succeeded",
             "FailureMatch": "Build failed"
           }
+        },
+        {
+          "Name": "inst-build-pkg",
+          "GuestAttribute": {
+              "Namespace": "package-build",
+              "KeyName": "result",
+              "SuccessValue": "Build succeeded"
+            }
         }
       ]
     },
