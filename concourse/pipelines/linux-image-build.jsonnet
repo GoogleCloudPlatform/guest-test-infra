@@ -414,35 +414,32 @@ local imggroup = {
   local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64'],
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
-  local rhel_lvm_images = [
+  // Each rhel image group includes PAYG, BYOS, and LVM variation. 
+  local rhel_8_base_images = [
+    'rhel-8',
+    'rhel-8-arm64',
+    'rhel-8-byos',
+    'rhel-8-byos-arm64',
     'rhel-8-lvm',
     'rhel-8-lvm-arm64',
-    'rhel-9-lvm',
-    'rhel-9-lvm-arm64',
-    'rhel-10-lvm',
-    'rhel-10-lvm-arm64',
   ],
-  local rhel_eus_images = [
-    'rhel-9-4-eus',
-    'rhel-9-4-eus-arm64',
-    'rhel-9-4-eus-byos',
-    'rhel-9-4-eus-byos-arm64',
-    'rhel-9-6-eus',
-    'rhel-9-6-eus-arm64',
-    'rhel-9-6-eus-byos',
-    'rhel-9-6-eus-byos-arm64',
-    'rhel-10-0-eus',
-    'rhel-10-0-eus-arm64',
-    'rhel-10-0-eus-byos',
-    'rhel-10-0-eus-byos-arm64',
-  ],
-  local rhel_sap_images = [
+  local rhel_8_sap_images = [
     'rhel-8-6-sap',
     'rhel-8-6-sap-byos',
     'rhel-8-8-sap',
     'rhel-8-8-sap-byos',
     'rhel-8-10-sap',
     'rhel-8-10-sap-byos',
+  ],
+  local rhel_9_bsae_images = [
+    'rhel-9',
+    'rhel-9-arm64',
+    ‘rhel-9-lvm’,
+    ‘rhel-9-lvm-arm64’,
+    'rhel-9-byos',
+    'rhel-9-byos-arm64',
+  ],
+  local rhel_9_sap_images = [
     'rhel-9-0-sap',
     'rhel-9-0-sap-byos',
     'rhel-9-2-sap',
@@ -452,20 +449,31 @@ local imggroup = {
     'rhel-9-6-sap',
     'rhel-9-6-sap-byos',
   ],
-  local rhel_images = rhel_lvm_images + rhel_eus_images + rhel_sap_images + [
-    'rhel-8',
-    'rhel-8-arm64',
-    'rhel-8-byos',
-    'rhel-8-byos-arm64',
-    'rhel-9',
-    'rhel-9-arm64',
-    'rhel-9-byos',
-    'rhel-9-byos-arm64',
+  local rhel_9_eus_images = [
+    'rhel-9-4-eus',
+    'rhel-9-4-eus-arm64',
+    'rhel-9-4-eus-byos',
+    'rhel-9-4-eus-byos-arm64',
+    'rhel-9-6-eus',
+    'rhel-9-6-eus-arm64',
+    'rhel-9-6-eus-byos',
+    'rhel-9-6-eus-byos-arm64',
+  ],
+  local rhel_10_base_images = [
     'rhel-10',
     'rhel-10-arm64',
     'rhel-10-byos',
     'rhel-10-byos-arm64',
+    ‘rhel-10-lvm’,
+    ‘rhel-10-lvm-arm64’,
   ],
+  local rhel_10_eus_images = [
+    'rhel-10-0-eus',
+    'rhel-10-0-eus-arm64',
+    'rhel-10-0-eus-byos',
+    'rhel-10-0-eus-byos-arm64',
+  ],
+  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_10_base_images + rhel_10_eus_images
 
   // Start of output.
   resource_types: [
@@ -578,8 +586,32 @@ local imggroup = {
   groups: [
     imggroup { name: 'debian', images: debian_images },
     imggroup {
-      name: 'rhel',
-      images: rhel_images,
+      name: 'rhel-8-base',
+      images: rhel_8_base_images,
+    },
+    imggroup{
+      name: 'rhel-8-sap',
+      images: rhel_8_sap_images,
+    },
+    imggroup{
+      name: 'rhel-9-base',
+      images: rhel_9_base_images,
+    },
+    imggroup{
+      name: 'rhel-9-sap',
+      images: rhel_9_sap_images,
+    },
+     imggroup{
+      name: 'rhel-9-eus',
+      images: rhel_9_eus_images,
+    },
+     imggroup{
+      name: 'rhel-10-base',
+      images: rhel_10_base_images,
+    },
+     imggroup{
+      name: 'rhel-10-eus',
+      images: rhel_10_eus_images,
     },
     imggroup { name: 'centos', images: centos_images },
     imggroup { name: 'almalinux', images: almalinux_images },
