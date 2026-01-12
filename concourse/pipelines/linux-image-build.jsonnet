@@ -434,8 +434,8 @@ local imggroup = {
   local rhel_9_bsae_images = [
     'rhel-9',
     'rhel-9-arm64',
-    ‘rhel-9-lvm’,
-    ‘rhel-9-lvm-arm64’,
+    'rhel-9-lvm',
+    'rhel-9-lvm-arm64',
     'rhel-9-byos',
     'rhel-9-byos-arm64',
   ],
@@ -464,8 +464,8 @@ local imggroup = {
     'rhel-10-arm64',
     'rhel-10-byos',
     'rhel-10-byos-arm64',
-    ‘rhel-10-lvm’,
-    ‘rhel-10-lvm-arm64’,
+    'rhel-10-lvm',
+    'rhel-10-lvm-arm64',
   ],
   local rhel_10_eus_images = [
     'rhel-10-0-eus',
