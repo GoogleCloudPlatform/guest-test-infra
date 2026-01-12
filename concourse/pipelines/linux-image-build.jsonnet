@@ -473,7 +473,7 @@ local imggroup = {
     'rhel-10-0-eus-byos',
     'rhel-10-0-eus-byos-arm64',
   ],
-  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_10_base_images + rhel_10_eus_images
+  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_10_base_images + rhel_10_eus_images,
 
   // Start of output.
   resource_types: [
