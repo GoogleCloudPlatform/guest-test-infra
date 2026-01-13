@@ -411,7 +411,6 @@ local imggroup = {
 };
 
 {
-  local almalinux_images = ['almalinux-8', 'almalinux-9'],
   local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64'],
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
   // Each rhel image group includes PAYG, BYOS, and LVM variation. 
@@ -497,9 +496,6 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
-             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images] +
              [
                common.gcsimgresource {
                  image: image,
@@ -534,7 +530,7 @@ local imggroup = {
         [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in rhel_images + centos_images + almalinux_images
+          for image in rhel_images + centos_images
         ] +
         [
           // Debian publish jobs
@@ -571,17 +567,6 @@ local imggroup = {
           }
           for env in envs
           for image in centos_images
-        ] +
-        [
-          // AlmaLinux publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'almalinux',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in almalinux_images
         ],
   groups: [
     imggroup { name: 'debian', images: debian_images },
@@ -614,6 +599,5 @@ local imggroup = {
       images: rhel_10_eus_images,
     },
     imggroup { name: 'centos', images: centos_images },
-    imggroup { name: 'almalinux', images: almalinux_images },
   ],
 }
