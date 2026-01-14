@@ -309,13 +309,6 @@ local imgpublishjob = {
         if tl.env == 'prod' then
         [
           {
-            task: 'prepublish-test-' + tl.image,
-            config: prepublishtesttask {
-              images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-            },
-            attempts: 3,
-          },
-          {
             task: 'publish-' + tl.image,
             config: arle.arlepublishtask {
               gcs_image_path: tl.gcs,
