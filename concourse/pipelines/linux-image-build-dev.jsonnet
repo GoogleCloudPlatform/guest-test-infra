@@ -170,6 +170,86 @@ local elimgbuildjob = imgbuildjob {
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
+  // Guarding the refactoring work, to remove once the consolidation/refactoring is complete
+  use_dynamic_template:: false,
+  is_arm:: std.contains(tl.image, '-arm64'),
+  is_byos:: std.contains(tl.image, '-byos'),
+  is_eus:: std.contains(tl.image, '-eus'),
+  is_lvm:: std.contains(tl.image, '-lvm'),
+  is_sap:: std.contains(tl.image, '-sap'),
+
+  local arch = if tl.is_arm then 'aarch64' else 'x86_64',
+  local el_release_components = std.split(tl.isopath, '-'),
+  local major_release = el_release_components[1],
+
+  local base_license_component = '-cloud/global/licenses/rhel-' + major_release,
+  local base_license =
+    if tl.is_sap && tl.is_byos then
+      'projects/rhel-sap' + base_license_component + '-sap-byos'
+    else if tl.is_sap then
+      'projects/rhel-sap' + base_license_component + '-sap'
+    else if tl.is_byos then
+      'projects/rhel' + base_license_component + '-byos'
+    else
+      'projects/rhel' + base_license_component + '-server',
+  local eus_license =
+    if tl.is_eus then
+      ['projects/rhel-cloud/global/licenses/rhel-' + major_release + '-server-eus']
+    else [],
+  local lvm_license = 
+    if tl.is_lvm then
+      ['projects/rhel-cloud/global/licenses/rhel-lvm']
+    else [],
+  licenses:: [base_license] + eus_license + lvm_license,
+
+  export_disk::
+    if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  version_lock::
+    if std.length(el_release_components) > 2 then
+      major_release + '-' + el_release_components[2]
+    else '',
+
+  local description_byos = if tl.is_byos then ' BYOS' else '',
+  local description_eus = if tl.is_eus then ' EUS' else '',
+  local description_lvm_1 = if tl.is_lvm then ' (LVM)' else '',
+  local description_lvm_2 = if tl.is_lvm then ' with a LVM boot volume' else '',
+  local description_sap = if tl.is_sap then ' for SAP' else '',
+  local description_version =
+    if std.length(el_release_components) > 2 then
+      major_release + '-' + el_release_components[2]
+    else major_release,
+
+  description:: 'Red Hat Enterprise Linux' + description_sap + ', ' +
+                description_version + description_eus +
+                description_lvm_1 + ', ' +  description_byos + arch + description_lvm_2,
+
+  local rhui_package_eus = if tl.is_eus then '-eus' else '',
+  local rhui_package_sap = if tl.is_sap then '-sap' else '',
+  rhui_package_name:: 'google-rhui-client-rhel' + major_release +
+                      rhui_package_eus + rhui_package_sap,
+
+  local base_guest_os_feature = [
+            'UEFI_COMPATIBLE',
+            'IDPF'
+          ],
+  local x86_guest_of_feature = 
+    if !tl.is_arm && !tl.is_sap then
+          [
+            'VIRTIO_SCSI_MULTIQUEUE',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2'
+          ]
+    else if !tl.is_arm then
+          [
+            'VIRTIO_SCSI_MULTIQUEUE',
+            'SEV_CAPABLE'
+          ]
+    else [],
+  local gvnic_guest_of_feature = if tl.is_arm || tl.is_sap then ['GVNIC'] else [],
+
+  guest_os_feature:: base_guest_os_feature + x86_guest_of_feature + gvnic_guest_of_feature,
+
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
   extra_tasks: [
@@ -192,7 +272,28 @@ local elimgbuildjob = imgbuildjob {
   ],
 
   // Add EL and sbom util args to build task.
-  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))'] },
+  build_task+: { vars+: if tl.use_dynamic_template then
+    [
+      'installer_iso=((.:iso-secret))',
+      'sbom_util_gcs_root=((.:sbom-util-secret))',
+      'description=((tl.description))',
+      'el_version=((.:tl.isopath))',
+      'export_disk=((tl.export_disk))',
+      'guest_os_feature=((tl.guest_os_feature))',
+      'image_family=((tl.image))',
+      'is_arm=((tl.is_arm))',
+      'is_byos=((tl.is_byos))',
+      'is_eus=((tl.is_eus))',
+      'is_lvm=((tl.is_lvm))',
+      'use_dynamic_template=((tl.use_dynamic_template))',
+      'is_sap=((tl.is_sap))',
+      'licenses=((tl.licenses))',
+      'rhui_package_name=((tl.rhui_package_name))',
+      'version_lock=((tl.version_lock))',
+      ]
+  else
+    ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))']
+  }
 };
 
 local debianimgbuildjob = imgbuildjob {
