@@ -1523,6 +1523,24 @@ local build_and_upload_oslogin = buildpackagejob {
   package:: error 'must set package in build_and_upload_oslogin',
   gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
   builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
+  
+  local oslogin_x86_images = [
+    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+  ],
+
+  local oslogin_arm_images = [
+    'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
+  ],
+
   extra_tasks: [
     {
       task: 'generate-build-id',
@@ -1651,11 +1669,12 @@ local build_and_upload_oslogin = buildpackagejob {
                   '-project=oslogin-cit',
                   '-zone=us-central1-a',
                   '-parallel_count=2',
-                  '-images=projects/guest-package-builder/global/images/debian-11-((.:build-id)),projects/guest-package-builder/global/images/debian-12-((.:build-id)),projects/guest-package-builder/global/images/debian-13-((.:build-id)),projects/guest-package-builder/global/images/debian-13-((.:build-id)),projects/guest-package-builder/global/images/rhel-8-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+                  '-images=%s' % commaSeparatedString(oslogin_x86_images),
                   '-filter=oslogin',
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: 'oslogin-image-tests-arm64',
@@ -1671,12 +1690,13 @@ local build_and_upload_oslogin = buildpackagejob {
                 args: [
                   '-project=oslogin-cit',
                   '-zone=us-central1-a',
-                  '-images=projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id)),projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
+                  '-images=%s' % commaSeparatedString(oslogin_arm_images),
                   '-parallel_count=2',
                   '-filter=oslogin',
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
