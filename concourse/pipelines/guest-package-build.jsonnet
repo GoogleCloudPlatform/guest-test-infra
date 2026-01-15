@@ -1580,6 +1580,7 @@ local build_and_upload_oslogin = buildpackagejob {
             source_image: 'projects/debian-cloud/global/images/family/debian-13-arm64',
             dest_image: 'debian-13-arm64-((.:build-id))',
             machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb13_arm64.deb',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
