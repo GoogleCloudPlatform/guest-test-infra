@@ -30,7 +30,7 @@ SPEC_NAME=$(curl -f -H Metadata-Flavor:Google $URL/spec_name)
 
 echo "Started build..."
 
-gsutil cp "${SRC_PATH}/common.sh" ./
+gcloud storage cp "${SRC_PATH}/common.sh" ./
 . common.sh
 
 deploy_sbomutil
@@ -99,7 +99,7 @@ fi
 echo "Finished building all packages."
 
 echo "Copying $(ls *.goo | xargs) to ${GCS_PATH}/"
-gsutil cp -n *.goo "$GCS_PATH/"
+gcloud storage cp --no-clobber *.goo "$GCS_PATH/"
 
 echo "Cleaning up temporary legacy binary directory..."
 if [ -d "./legacy_bin" ]; then
