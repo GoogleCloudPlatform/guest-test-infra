@@ -245,6 +245,8 @@ local imgpublishjob = {
   cit_extra_args:: [],
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
+  oslogin_test_project:: common.default_oslogin_test_project,
+  oslogin_cit_filter:: common.default_oslogin_cit_filter,
 
   // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
   // The images field will be overriden with the image under test.
@@ -342,16 +344,34 @@ local imgpublishjob = {
         // Run post-publish tests in 'publish-to-testing-' jobs.
         if tl.runtests then
           [
-            {
-              task: 'image-test-' + tl.image,
-              config: common.imagetesttask {
-                filter: tl.citfilter,
-                project: tl.cit_project,
-                test_projects: tl.cit_test_projects,
-                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                extra_args:: tl.cit_extra_args,
-              },
-              attempts: 3,
+            { 
+              in_parallel: {
+                fail_fast: true,
+                steps: [
+                  {
+                    task: 'image-test-' + tl.image,
+                    config: common.imagetesttask {
+                      filter: tl.citfilter,
+                      project: tl.cit_project,
+                      test_projects: tl.cit_test_projects,
+                      images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                      extra_args:: tl.cit_extra_args,
+                    },
+                    attempts: 3,
+                  },
+                  {
+                    task: 'oslogin-test-' + tl.image,
+                    config: common.imagetesttask {
+                      filter: tl.oslogin_cit_filter,
+                      project: tl.oslogin_test_project,
+                      test_projects: tl.oslogin_test_project,
+                      images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                      extra_args:: tl.cit_extra_args,
+                    },
+                    attempts: 3,
+                  },
+                ]
+              }
             },
           ] + [
             {
