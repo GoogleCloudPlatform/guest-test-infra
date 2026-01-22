@@ -1704,7 +1704,7 @@ local build_and_upload_oslogin = buildpackagejob {
   ],
   uploads: [
     uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_arm64.deb"',
+      gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"',
       os_type: 'BULLSEYE_APT',
       pkg_inside_name: 'google-compute-engine-oslogin',
       pkg_name: 'guest-oslogin',
