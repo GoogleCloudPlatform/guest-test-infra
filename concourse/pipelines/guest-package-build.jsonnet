@@ -806,6 +806,7 @@ local build_guest_agent = buildpackagejob {
   local x86PartnerImagesToTest = [
     'projects/guest-package-builder/global/images/oracle-linux-8-((.:build-id))',
     'projects/guest-package-builder/global/images/oracle-linux-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/oracle-linux-10-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
@@ -1187,6 +1188,13 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'oracle-linux-10',
+            source_image: 'projects/oracle-linux-cloud/global/images/family/oracle-linux-10',
+            dest_image: 'oracle-linux-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
           buildpackageimagetask {
             image_name: 'rhel-10',
