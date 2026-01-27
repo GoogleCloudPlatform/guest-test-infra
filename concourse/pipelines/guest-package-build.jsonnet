@@ -1538,7 +1538,11 @@ local build_and_upload_oslogin = buildpackagejob {
     'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-2-sap-ha-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-4-eus-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-6-eus-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-0-eus-((.:build-id))',
   ],
 
   local oslogin_arm_images = [
@@ -1632,6 +1636,24 @@ local build_and_upload_oslogin = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm',
           },
           buildpackageimagetask {
+            image_name: 'rhel-9-2-sap-ha',
+            source_image: 'projects/rhel-sap-cloud/global/images/family/rhel-9-2-sap-ha',
+            dest_image: 'rhel-9-2-sap-ha-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-9-4-eus',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9-4-eus',
+            dest_image: 'rhel-9-4-eus-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-9-6-eus',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9-6-eus',
+            dest_image: 'rhel-9-6-eus-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el9.x86_64.rpm',
+          },
+          buildpackageimagetask {
             image_name: 'rhel-9-arm64',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
             dest_image: 'rhel-9-arm64-((.:build-id))',
@@ -1655,6 +1677,13 @@ local build_and_upload_oslogin = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-0-eus',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
+            dest_image: 'rhel-10-0-eus-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
         ],
       },
