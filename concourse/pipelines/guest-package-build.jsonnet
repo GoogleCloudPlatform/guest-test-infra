@@ -1551,6 +1551,7 @@ local build_and_upload_oslogin = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-9-6-eus-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-0-eus-((.:build-id))',
+    'projects/guest-package-builder/global/images/centos-stream-10-((.:build-id))',
   ],
 
   local oslogin_arm_images = [
@@ -1690,6 +1691,13 @@ local build_and_upload_oslogin = buildpackagejob {
             image_name: 'rhel-10-0-eus',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
             dest_image: 'rhel-10-0-eus-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+           buildpackageimagetask {
+            image_name: 'centos-stream-10',
+            source_image: 'projects/centos-cloud/global/images/family/centos-stream-10',
+            dest_image: 'centos-stream-10-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
