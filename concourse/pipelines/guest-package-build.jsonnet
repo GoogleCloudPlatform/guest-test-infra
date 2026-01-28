@@ -62,6 +62,7 @@ local base_buildpackagejob = {
 
   package:: error 'must set package in buildpackagejob',
   repo_name:: tl.package,
+  source_images:: {},
   gcs_dir:: tl.package,
   builds:: error 'must set builds in buildpackagejob',
   uploads:: error 'must set uploads in buildpackagejob',
@@ -197,7 +198,10 @@ else [],
               inputs: [{ name: 'guest-test-infra' }],
 	      local spec_name_arg = if tl.spec_name != '' then [
 	        '-var:spec_name=' + tl.spec_name,
-	      ] else [],
+          ] else [],
+          local source_image_vars = if std.length(std.objectFields(tl.source_images)) > 0 && std.objectHas(tl.source_images, build) then [
+          '-var:source_image=' + tl.source_images[build],
+          ] else [],
               run: {
                 path: '/daisy',
                 args: [
@@ -211,7 +215,7 @@ else [],
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
                   '-var:build_dir=' + tl.build_dir,
 		] + spec_name_arg + [
-                ] + tl.extra_daisy_args + lkg_daisy_vars + [
+                ] + tl.extra_daisy_args + source_image_vars + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
@@ -1531,7 +1535,11 @@ local build_and_upload_oslogin = buildpackagejob {
   package:: error 'must set package in build_and_upload_oslogin',
   gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
   builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
-  
+  source_images: {
+    'el10': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
+    'el10-arm64': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus-arm64'
+  },
+
   local oslogin_x86_images = [
     'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-12-((.:build-id))',

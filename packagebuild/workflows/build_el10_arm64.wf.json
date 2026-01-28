@@ -28,6 +28,11 @@
     },
     "sbom_util_gcs_root": {
       "Required": false
+    },
+    "source_image": {
+      "Value": "projects/rhel-cloud/global/images/family/rhel-10-arm64",
+      "Description": "Source image to use for package build instance",
+      "Required": false
     }
   },
   "Steps": {
@@ -37,7 +42,7 @@
         "Path": "./build_package.wf.json",
         "Vars": {
           "type": "rpm",
-          "sourceImage": "projects/rhel-cloud/global/images/family/rhel-10-arm64",
+          "sourceImage": "${source_image}",
           "gcs_path": "${gcs_path}",
           "repo_owner": "${repo_owner}",
           "repo_name": "${repo_name}",
