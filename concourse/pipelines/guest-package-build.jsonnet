@@ -1552,6 +1552,9 @@ local build_and_upload_oslogin = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-0-eus-((.:build-id))',
     'projects/guest-package-builder/global/images/centos-stream-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-10-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/oracle-linux-10-((.:build-id))',
   ],
 
   local oslogin_arm_images = [
@@ -1694,10 +1697,31 @@ local build_and_upload_oslogin = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
-           buildpackageimagetask {
+          buildpackageimagetask {
             image_name: 'centos-stream-10',
             source_image: 'projects/centos-cloud/global/images/family/centos-stream-10',
             dest_image: 'centos-stream-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-10',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-10',
+            dest_image: 'rocky-linux-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rocky-linux-10-optimized-gcp',
+            source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-10-optimized-gcp',
+            dest_image: 'rocky-linux-10-optimized-gcp-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'oracle-linux-10',
+            source_image: 'projects/oracle-linux-cloud/global/images/family/oracle-linux-10',
+            dest_image: 'oracle-linux-10-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el10.x86_64.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
           },
