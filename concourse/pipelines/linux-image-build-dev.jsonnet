@@ -170,6 +170,33 @@ local elimgbuildjob = imgbuildjob {
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
+  // Guarding the refactoring work, setting this to true since it's in the dev pipeline. Would set to false in normal pipeline until work is complete
+  use_dynamic_template:: true,
+  is_arm:: std.contains(tl.image, '-arm64'),
+  is_byos:: std.contains(tl.image, '-byos'),
+  is_eus:: std.contains(tl.image, '-eus'),
+  is_lvm:: std.contains(tl.image, '-lvm'),
+  is_sap:: std.contains(tl.image, '-sap'),
+
+  local arch = if tl.is_arm then 'aarch64' else 'x86_64',
+  local el_release_components = std.split(tl.isopath, '-'),
+  local major_release = el_release_components[1],
+
+  disk_name::
+    if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  version_lock::
+    if std.length(el_release_components) > 2 then
+      major_release + '-' + el_release_components[2]
+    else '',
+
+  local rhui_package_name_base = 'google-rhui-client-rhel',
+  local rhui_package_name_eus =
+    if tl.is_eus then '-eus' else '',
+  local rhui_package_name_sap =
+    if tl.is_sap then '-sap' else '',
+
+  rhui_package_name:: rhui_package_name_base + major_release + rhui_package_name_eus + rhui_package_name_sap,
+
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
   extra_tasks: [
@@ -192,7 +219,24 @@ local elimgbuildjob = imgbuildjob {
   ],
 
   // Add EL and sbom util args to build task.
-  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))'] },
+  build_task+: { vars+: if tl.use_dynamic_template then
+    [
+      'installer_iso=((.:iso-secret))',
+      'sbom_util_gcs_root=((.:sbom-util-secret))',
+      'el_release=((.:tl.isopath))',
+      'disk_name=((tl.disk_name))',
+      'image_family=((tl.image))',
+      'is_arm=((tl.is_arm))',
+      'is_byos=((tl.is_byos))',
+      'is_eus=((tl.is_eus))',
+      'is_lvm=((tl.is_lvm))',
+      'is_sap=((tl.is_sap))',
+      'rhui_package_name=((tl.rhui_package_name))',
+      'version_lock=((tl.version_lock))',
+      ]
+  else
+    ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))']
+  }
 };
 
 local debianimgbuildjob = imgbuildjob {
@@ -385,7 +429,21 @@ local imggroup = {
 };
 
 {
-  local almalinux_images = ['almalinux-9-arm64'],
+  local rhel_images = [
+    'rhel-8',
+    'rhel-8-byos-arm64',
+    'rhel-8-lvm',
+    'rhel-8-10-sap',
+    'rhel-9',
+    'rhel-9-byos-arm64',
+    'rhel-9-lvm',
+    'rhel-9-6-sap',
+    'rhel-9-6-eus',
+    'rhel-10',
+    'rhel-10-byos-arm64',
+    'rhel-10-lvm',
+    'rhel-10-0-eus',
+  ],
 
   // Start of output.
   resource_types: [
@@ -409,13 +467,13 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
-             [common.gcsimgresource { image: image, gcs_dir: 'almalinux' } for image in almalinux_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'almalinux' } for image in almalinux_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'almalinux' } for image in almalinux_images],
+             [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
           // EL build jobs
           elimgbuildjob { image: image }
-          for image in almalinux_images
+          for image in rhel_images
         ] +
         [
           // AlmaLinux publish jobs
@@ -426,9 +484,9 @@ local imggroup = {
             workflow_dir: 'enterprise_linux',
           }
           for env in envs
-          for image in almalinux_images
+          for image in rhel_images
         ],
   groups: [
-    imggroup { name: 'test_images', images: almalinux_images },
+    imggroup { name: 'test_images', images:  rhel_images},
   ],
 }
