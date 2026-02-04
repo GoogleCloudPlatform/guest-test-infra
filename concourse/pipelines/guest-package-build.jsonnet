@@ -110,12 +110,12 @@ local base_buildpackagejob = {
       '-var:extra_repo=' + tl.extra_repo,
     ] +
     (if tl.extra_repo_owner != '' then [
-      '-var:extra_repo_owner=' + tl.extra_repo_owner,
-    ] else []) +
+       '-var:extra_repo_owner=' + tl.extra_repo_owner,
+     ] else []) +
     [
       '-var:extra_git_ref=((.:extra-commit-sha))',
     ]
-else [],
+  else [],
 
   // Fetch LKG secrets if secret_name is defined
   fetch_lkg_steps:: if tl.secret_name != '' then [
@@ -127,10 +127,10 @@ else [],
       load_var: tl.secret_name + '-secret',
       file: 'gcp-secret-manager/' + tl.secret_name,
     },
-  ] else [], 
+  ] else [],
 
-  local lkg_daisy_vars =  if tl.secret_name != '' then [
-    '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
+  local lkg_daisy_vars = if tl.secret_name != '' then [
+    '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))',
   ] else [],
 
   // Start of output.
@@ -196,12 +196,12 @@ else [],
                 source: { repository: 'gcr.io/compute-image-tools/daisy' },
               },
               inputs: [{ name: 'guest-test-infra' }],
-	      local spec_name_arg = if tl.spec_name != '' then [
-	        '-var:spec_name=' + tl.spec_name,
-          ] else [],
-          local source_image_vars = if std.length(std.objectFields(tl.source_images)) > 0 && std.objectHas(tl.source_images, build) then [
-          '-var:source_image=' + tl.source_images[build],
-          ] else [],
+              local spec_name_arg = if tl.spec_name != '' then [
+                '-var:spec_name=' + tl.spec_name,
+              ] else [],
+              local source_image_vars = if std.length(std.objectFields(tl.source_images)) > 0 && std.objectHas(tl.source_images, build) then [
+                '-var:source_image=' + tl.source_images[build],
+              ] else [],
               run: {
                 path: '/daisy',
                 args: [
@@ -214,7 +214,7 @@ else [],
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:sbom_util_gcs_root=gs://gce-image-sbom-util',
                   '-var:build_dir=' + tl.build_dir,
-		] + spec_name_arg + [
+                ] + spec_name_arg + [
                 ] + tl.extra_daisy_args + source_image_vars + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
@@ -406,7 +406,7 @@ local build_goo = buildpackagejob {
           buildpackageimagetaskwindows {
             image_name: 'windows-2022',
             source_image: 'projects/windows-cloud/global/images/family/windows-2022',
-            dest_image: 'windows-server-2022-dc-((.:build-id))', 
+            dest_image: 'windows-server-2022-dc-((.:build-id))',
             gcs_package_path: '"gs://gcp-guest-package-uploads/%s/%s.x86_64.((.:package-version)).0@1.goo"' % [tl.package, tl.spec_name],
           },
           buildpackageimagetaskwindows {
@@ -818,7 +818,6 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-10-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
-    'projects/guest-package-builder/global/images/ubuntu-2504-amd64-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
     'projects/guest-package-builder/global/images/sles-16-((.:build-id))',
   ],
@@ -856,7 +855,6 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-10-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-10-opti-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-arm64-((.:build-id))',
-    'projects/guest-package-builder/global/images/ubuntu-2504-arm64-((.:build-id))',
   ],
 
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
@@ -1009,21 +1007,6 @@ local build_guest_agent = buildpackagejob {
             image_name: 'ubuntu-2404-lts-arm64',
             source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2404-lts-arm64',
             dest_image: 'ubuntu-2404-lts-arm64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
-            machine_type: 'c4a-standard-2',
-            disk_type: 'hyperdisk-balanced',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-          },
-          buildpackageimagetask {
-            image_name: 'ubuntu-2504-amd64',
-            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-amd64',
-            dest_image: 'ubuntu-2504-amd64-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'ubuntu-2504-arm64',
-            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2504-arm64',
-            dest_image: 'ubuntu-2504-arm64-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
@@ -1428,7 +1411,7 @@ local build_guest_agent = buildpackagejob {
                   '-images=%s' % commaSeparatedString(arm64ImagesToTest),
                   '-filter=^(%s)$' % allCITSuites,
                   '-parallel_count=15',
-		  '-arm64_shape=c4a-standard-1',
+                  '-arm64_shape=c4a-standard-1',
                 ],
               },
             },
@@ -1537,7 +1520,7 @@ local build_and_upload_oslogin = buildpackagejob {
   builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
   source_images: {
     'el10': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
-    'el10-arm64': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus-arm64'
+    'el10-arm64': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus-arm64',
   },
 
   local oslogin_x86_images = [
@@ -2376,7 +2359,7 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'compute-image-windows',
       jobs: [
-//        'build-compute-image-windows',
+        //        'build-compute-image-windows',
         'build-googet',
         'build-certgen',
         'build-google-compute-engine-auto-updater',
