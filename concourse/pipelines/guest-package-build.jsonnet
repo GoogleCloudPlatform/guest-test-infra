@@ -1519,7 +1519,7 @@ local build_and_upload_oslogin = buildpackagejob {
   gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
   builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
   source_images: {
-    el10: 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
+    'el10': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
     'el10-arm64': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus-arm64',
   },
 
