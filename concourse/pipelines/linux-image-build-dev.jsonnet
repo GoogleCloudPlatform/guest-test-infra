@@ -163,15 +163,45 @@ local imgbuildjob = {
   },
 };
 
-local elimgbuildjob = imgbuildjob {
+local centosimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
-  // Guarding the refactoring work, setting this to true since it's in the dev pipeline. Would set to false in normal pipeline until work is complete
-  use_dynamic_template:: true,
+  // Add tasks to obtain ISO location and sbom util source
+  // Store those in .:iso-secret and .:sbom-util-secret
+  extra_tasks: [
+    {
+      task: 'get-secret-iso',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
+    },
+    {
+      load_var: 'iso-secret',
+      file: 'gcp-secret-manager/' + tl.isopath,
+    },
+    {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.sbom_util_secret_name },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/' + tl.sbom_util_secret_name,
+    },
+  ],
+
+  // Add EL and sbom util args to build task.
+  build_task+: { vars+: ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))'] },
+};
+
+local rhelimgbuildjob = imgbuildjob {
+  local tl = self,
+
+  workflow_dir: 'enterprise_linux',
+  sbom_util_secret_name:: 'sbom-util-secret',
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+
   is_arm:: std.contains(tl.image, '-arm64'),
   is_byos:: std.contains(tl.image, '-byos'),
   is_eus:: std.contains(tl.image, '-eus'),
@@ -219,7 +249,7 @@ local elimgbuildjob = imgbuildjob {
   ],
 
   // Add EL and sbom util args to build task.
-  build_task+: { vars+: if tl.use_dynamic_template then
+  build_task+: { vars+:
     [
       'installer_iso=((.:iso-secret))',
       'sbom_util_gcs_root=((.:sbom-util-secret))',
@@ -233,10 +263,7 @@ local elimgbuildjob = imgbuildjob {
       'is_sap=((tl.is_sap))',
       'rhui_package_name=((tl.rhui_package_name))',
       'version_lock=((tl.version_lock))',
-      ]
-  else
-    ['installer_iso=((.:iso-secret))', 'sbom_util_gcs_root=((.:sbom-util-secret))']
-  }
+    ] },
 };
 
 local debianimgbuildjob = imgbuildjob {
@@ -429,6 +456,8 @@ local imggroup = {
 };
 
 {
+  local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
+
   local rhel_images = [
     'rhel-8',
     'rhel-8-byos-arm64',
@@ -467,26 +496,46 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
+             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
+             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
+             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
-          // EL build jobs
-          elimgbuildjob { image: image }
+          // RHEL build jobs
+          rhelimgbuildjob { image: image }
           for image in rhel_images
         ] +
         [
-          // AlmaLinux publish jobs
+          // Centos build jobs
+          centosimgbuildjob { image: image }
+          for image in centos_images
+        ] +
+        [
+          // Rhel publish jobs
           imgpublishjob {
             image: image,
             env: env,
-            gcs_dir: 'almalinux',
+            gcs_dir: 'rhel',
             workflow_dir: 'enterprise_linux',
           }
           for env in envs
           for image in rhel_images
+        ] +
+        [
+          // CentOS publish jobs
+          imgpublishjob {
+            image: image,
+            env: env,
+            gcs_dir: 'centos',
+            workflow_dir: 'enterprise_linux',
+          }
+          for env in envs
+          for image in centos_images
         ],
   groups: [
-    imggroup { name: 'test_images', images:  rhel_images},
+    imggroup { name: 'rhel_images', images:  rhel_images},
+    imggroup { name: 'centos_images', images:  centos_images},
   ],
 }
