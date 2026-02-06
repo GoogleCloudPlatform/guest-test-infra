@@ -202,11 +202,11 @@ local rhelimgbuildjob = imgbuildjob {
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
-  is_arm:: std.contains(tl.image, '-arm64'),
-  is_byos:: std.contains(tl.image, '-byos'),
-  is_eus:: std.contains(tl.image, '-eus'),
-  is_lvm:: std.contains(tl.image, '-lvm'),
-  is_sap:: std.contains(tl.image, '-sap'),
+  is_arm:: std.member(tl.image, '-arm64'),
+  is_byos:: std.member(tl.image, '-byos'),
+  is_eus:: std.member(tl.image, '-eus'),
+  is_lvm:: std.member(tl.image, '-lvm'),
+  is_sap:: std.member(tl.image, '-sap'),
 
   local arch = if tl.is_arm then 'aarch64' else 'x86_64',
   local el_release_components = std.split(tl.isopath, '-'),
@@ -249,21 +249,22 @@ local rhelimgbuildjob = imgbuildjob {
   ],
 
   // Add EL and sbom util args to build task.
-  build_task+: { vars+:
-    [
+  build_task+: { vars+: [
       'installer_iso=((.:iso-secret))',
       'sbom_util_gcs_root=((.:sbom-util-secret))',
-      'el_release=((.:isopath))',
-      'disk_name=((.:disk_name))',
-      'image_family=((.:image))',
-      'is_arm=((.:is_arm))',
-      'is_byos=((.:is_byos))',
-      'is_eus=((.:is_eus))',
-      'is_lvm=((.:is_lvm))',
-      'is_sap=((.:is_sap))',
-      'rhui_package_name=((.:rhui_package_name))',
-      'version_lock=((.:version_lock))',
-    ] },
+      'el_release=' + tl.isopath,
+      'disk_name=' + tl.disk_name,
+      'image_family=' + tl.image,
+      'is_arm=' + std.toString(tl.is_arm),
+      'is_byos=' + std.toString(tl.is_byos),
+      'is_eus=' + std.toString(tl.is_eus),
+      'is_lvm=' + std.toString(tl.is_lvm),
+      'is_sap=' + std.toString(tl.is_sap),
+      'rhui_package_name=' + tl.rhui_package_name,
+      'version_lock=' + tl.version_lock,
+    ]
+  },
+
 };
 
 local debianimgbuildjob = imgbuildjob {
