@@ -29,10 +29,16 @@ local prepublishtesttask = common.imagetesttask {
 local imgbuildjob = {
   local tl = self,
 
+  use_dynamic_template:: false,
+
   image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
   workflow_dir:: error 'must set workflow_dir in imgbuildjob',
-  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
+  workflow::
+    if tl.use_dynamic_template then
+      '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.major_release]
+    else
+      '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     vars+: ['google_cloud_repo=stable'],
@@ -207,16 +213,17 @@ local rhelimgbuildjob = imgbuildjob {
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
   is_sap:: std.member(tl.image, '-sap'),
+  use_dynamic_template:: true,
 
   local arch = if tl.is_arm then 'aarch64' else 'x86_64',
   local el_release_components = std.split(tl.isopath, '-'),
-  local major_release = el_release_components[1],
 
   disk_name::
     if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  major_release:: el_release_components[1],
   version_lock::
     if std.length(el_release_components) > 2 then
-      major_release + '-' + el_release_components[2]
+      tl.major_release + '-' + el_release_components[2]
     else '',
 
   local rhui_package_name_base = 'google-rhui-client-rhel',
@@ -225,7 +232,7 @@ local rhelimgbuildjob = imgbuildjob {
   local rhui_package_name_sap =
     if tl.is_sap then '-sap' else '',
 
-  rhui_package_name:: rhui_package_name_base + major_release + rhui_package_name_eus + rhui_package_name_sap,
+  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_eus + rhui_package_name_sap,
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
