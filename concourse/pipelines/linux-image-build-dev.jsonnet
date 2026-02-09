@@ -261,15 +261,13 @@ local rhelimgbuildjob = imgbuildjob {
       'sbom_util_gcs_root=((.:sbom-util-secret))',
       'el_release=' + tl.isopath,
       'disk_name=' + tl.disk_name,
-      'image_family=' + tl.image,
       'is_arm=' + std.toString(tl.is_arm),
       'is_byos=' + std.toString(tl.is_byos),
-      'is_eus=' + std.toString(tl.is_eus),
       'is_lvm=' + std.toString(tl.is_lvm),
       'is_sap=' + std.toString(tl.is_sap),
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
-    ]
+    ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
   },
 
 };
