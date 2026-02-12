@@ -222,7 +222,7 @@ local rhelimgbuildjob = imgbuildjob {
     if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
   disk_type:: if tl.is_arm then 'hyperdisk-balanced' else 'pd-ssd',
   el_install_disk_size:: if tl.is_lvm then '50' else '20',
-  machine_type:: if tl.is_arm then 'e2-standard-4' else 'c4a-standard-4',
+  machine_type:: if tl.is_arm then 'c4a-standard-4' else 'e2-standard-4',
   major_release:: el_release_components[1],
   version_lock::
     if std.length(el_release_components) > 2 then
