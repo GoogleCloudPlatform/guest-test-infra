@@ -216,7 +216,7 @@ local rhelimgbuildjob = imgbuildjob {
   use_dynamic_template:: true,
 
   local arch = if tl.is_arm then 'aarch64' else 'x86_64',
-  local el_release_components = std.split(tl.isopath, '-'),
+  local el_release_components = std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
 
   disk_name::
     if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
