@@ -230,9 +230,9 @@ local rhelimgbuildjob = imgbuildjob {
     else '',
   worker_image::
     if tl.is_arm then
-      'projects/compute-image-tools/global/images/family/debian-12-worker'
+      'projects/compute-image-tools/global/images/family/debian-12-worker-arm64'
     else
-    'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+    'projects/compute-image-tools/global/images/family/debian-12-worker',
 
   local rhui_package_name_base = 'google-rhui-client-rhel',
   local rhui_package_name_eus =
