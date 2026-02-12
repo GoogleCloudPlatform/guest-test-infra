@@ -220,11 +220,19 @@ local rhelimgbuildjob = imgbuildjob {
 
   disk_name::
     if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  disk_type:: if tl.is_arm then 'hyperdisk-balanced' else 'pd-ssd',
+  el_install_disk_size:: if tl.is_lvm then '50' else '20',
+  machine_type:: if tl.is_arm then 'e2-standard-4' else 'c4a-standard-4',
   major_release:: el_release_components[1],
   version_lock::
     if std.length(el_release_components) > 2 then
       tl.major_release + '-' + el_release_components[2]
     else '',
+  worker_image::
+    if tl.is_arm then
+      'projects/compute-image-tools/global/images/family/debian-12-worker'
+    else
+    'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
 
   local rhui_package_name_base = 'google-rhui-client-rhel',
   local rhui_package_name_eus =
@@ -259,8 +267,12 @@ local rhelimgbuildjob = imgbuildjob {
   build_task+: { vars+: [
       'installer_iso=((.:iso-secret))',
       'sbom_util_gcs_root=((.:sbom-util-secret))',
+      'el_install_disk_size=' + tl.el_install_disk_size,
       'el_release=' + tl.isopath,
       'disk_name=' + tl.disk_name,
+      'disk_type=' + tl.disk_type,
+      'machine_type=' + tl.machine_type,
+      'worker_image=' + tl.worker_image,
       'is_arm=' + std.toString(tl.is_arm),
       'is_byos=' + std.toString(tl.is_byos),
       'is_lvm=' + std.toString(tl.is_lvm),
