@@ -235,12 +235,14 @@ local rhelimgbuildjob = imgbuildjob {
     'projects/compute-image-tools/global/images/family/debian-12-worker',
 
   local rhui_package_name_base = 'google-rhui-client-rhel',
+  local rhui_package_name_tenth_point_release =
+    if tl.is_sap && std.length(el_release_components) > 2  && el_release_components[2] == '10' then '10' else '',
   local rhui_package_name_eus =
     if tl.is_eus then '-eus' else '',
   local rhui_package_name_sap =
     if tl.is_sap then '-sap' else '',
 
-  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_eus + rhui_package_name_sap,
+  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_tenth_point_release + rhui_package_name_eus + rhui_package_name_sap,
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
