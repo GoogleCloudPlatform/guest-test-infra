@@ -404,7 +404,7 @@ local imgpublishjob = {
               config: arle.gcepublishtask {
                 source_gcs_path: tl.gcs,
                 source_version: 'v((.:source-version))',
-                publish_version: '((.:publish-version))',
+                publish_version: '((.:publish-version))-dev',
                 wf: tl.workflow,
                 environment: if tl.env == 'testing' then 'test' else tl.env,
               },
@@ -420,7 +420,7 @@ local imgpublishjob = {
                 filter: tl.citfilter,
                 project: tl.cit_project,
                 test_projects: tl.cit_test_projects,
-                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
               },
               attempts: 1,
@@ -429,7 +429,7 @@ local imgpublishjob = {
             {
               task: 'extra-image-test-' + tl.image + '-' + testtask.task,
               config: testtask {
-                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
               },
               attempts: 1,
             }
@@ -477,7 +477,7 @@ local imggroup = {
 
 {
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
-
+  // Each rhel image group includes PAYG, BYOS, and LVM variation. 
   local rhel_8_base_images = [
     'rhel-8',
     'rhel-8-arm64',
