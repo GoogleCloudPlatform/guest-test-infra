@@ -29,10 +29,16 @@ local prepublishtesttask = common.imagetesttask {
 local imgbuildjob = {
   local tl = self,
 
+  use_dynamic_template:: false,
+
   image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
   workflow_dir:: error 'must set workflow_dir in imgbuildjob',
-  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
+  workflow::
+  if tl.use_dynamic_template then
+      '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.major_release]
+    else
+      '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     vars+: ['google_cloud_repo=stable'],
@@ -163,7 +169,7 @@ local imgbuildjob = {
   },
 };
 
-local elimgbuildjob = imgbuildjob {
+local centosimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
@@ -216,6 +222,90 @@ local debianimgbuildjob = imgbuildjob {
 
   // Add sbom util args to build task.
   build_task+: { vars+: ['sbom_util_gcs_root=((.:sbom-util-secret))'] },
+};
+
+local rhelimgbuildjob = imgbuildjob {
+  local tl = self,
+
+  workflow_dir: 'enterprise_linux',
+  sbom_util_secret_name:: 'sbom-util-secret',
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+
+  is_arm:: std.member(tl.image, '-arm64'),
+  is_byos:: std.member(tl.image, '-byos'),
+  is_eus:: std.member(tl.image, '-eus'),
+  is_lvm:: std.member(tl.image, '-lvm'),
+  is_sap:: std.member(tl.image, '-sap'),
+  use_dynamic_template:: true,
+
+  local arch = if tl.is_arm then 'aarch64' else 'x86_64',
+  local el_release_components = std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
+
+  disk_name::
+    if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  disk_type:: if tl.is_arm then 'hyperdisk-balanced' else 'pd-ssd',
+  el_install_disk_size:: if tl.is_lvm then '50' else '20',
+  machine_type:: if tl.is_arm then 'c4a-standard-4' else 'e2-standard-4',
+  major_release:: el_release_components[1],
+  version_lock::
+    if std.length(el_release_components) > 2 then
+      tl.major_release + '-' + el_release_components[2]
+    else '',
+  worker_image::
+    if tl.is_arm then
+      'projects/compute-image-tools/global/images/family/debian-12-worker-arm64'
+    else
+      'projects/compute-image-tools/global/images/family/debian-12-worker',
+
+  local rhui_package_name_base = 'google-rhui-client-rhel',
+  local rhui_package_name_tenth_point_release =
+    if tl.is_sap && std.length(el_release_components) > 2  && el_release_components[2] == '10' then '10' else '',
+  local rhui_package_name_eus =
+    if tl.is_eus then '-eus' else '',
+  local rhui_package_name_sap =
+    if tl.is_sap then '-sap' else '',
+
+  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_tenth_point_release + rhui_package_name_eus + rhui_package_name_sap,
+
+  // Add tasks to obtain ISO location and sbom util source
+  // Store those in .:iso-secret and .:sbom-util-secret
+  extra_tasks: [
+    {
+      task: 'get-secret-iso',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
+    },
+    {
+      load_var: 'iso-secret',
+      file: 'gcp-secret-manager/' + tl.isopath,
+    },
+    {
+      task: 'get-secret-sbom-util',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.sbom_util_secret_name },
+    },
+    {
+      load_var: 'sbom-util-secret',
+      file: 'gcp-secret-manager/' + tl.sbom_util_secret_name,
+    },
+  ],
+
+  // Add EL and sbom util args to build task.
+  build_task+: { vars+: [
+      'installer_iso=((.:iso-secret))',
+      'sbom_util_gcs_root=((.:sbom-util-secret))',
+      'el_install_disk_size=' + tl.el_install_disk_size,
+      'el_release=' + tl.isopath,
+      'disk_name=' + tl.disk_name,
+      'disk_type=' + tl.disk_type,
+      'machine_type=' + tl.machine_type,
+      'worker_image=' + tl.worker_image,
+      'is_arm=' + std.toString(tl.is_arm),
+      'is_byos=' + std.toString(tl.is_byos),
+      'is_lvm=' + std.toString(tl.is_lvm),
+      'is_sap=' + std.toString(tl.is_sap),
+      'rhui_package_name=' + tl.rhui_package_name,
+      'version_lock=' + tl.version_lock,
+    ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+  },
 };
 
 local imgpublishjob = {
@@ -533,6 +623,11 @@ local imggroup = {
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
   jobs: [
+          // Centos build jobs
+          centosimgbuildjob { image: image }
+          for image in centos_images
+        ] +
+        [
           // Debian build jobs
           debianimgbuildjob {
             image: image,
@@ -541,9 +636,9 @@ local imggroup = {
           for image in debian_images
         ] +
         [
-          // EL build jobs
-          elimgbuildjob { image: image }
-          for image in rhel_images + centos_images
+          // RHEL build jobs
+          rhelimgbuildjob { image: image }
+          for image in rhel_images
         ] +
         [
           // Debian publish jobs
