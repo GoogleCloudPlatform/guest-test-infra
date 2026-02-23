@@ -476,67 +476,7 @@ local imggroup = {
 };
 
 {
-  local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
-  // Each rhel image group includes PAYG, BYOS, and LVM variation. 
-  local rhel_8_base_images = [
-    'rhel-8',
-    'rhel-8-arm64',
-    'rhel-8-byos',
-    'rhel-8-byos-arm64',
-    'rhel-8-lvm',
-    'rhel-8-lvm-arm64',
-  ],
-  local rhel_8_sap_images = [
-    'rhel-8-6-sap',
-    'rhel-8-6-sap-byos',
-    'rhel-8-8-sap',
-    'rhel-8-8-sap-byos',
-    'rhel-8-10-sap',
-    'rhel-8-10-sap-byos',
-  ],
-  local rhel_9_base_images = [
-    'rhel-9',
-    'rhel-9-arm64',
-    'rhel-9-lvm',
-    'rhel-9-lvm-arm64',
-    'rhel-9-byos',
-    'rhel-9-byos-arm64',
-  ],
-  local rhel_9_sap_images = [
-    'rhel-9-0-sap',
-    'rhel-9-0-sap-byos',
-    'rhel-9-2-sap',
-    'rhel-9-2-sap-byos',
-    'rhel-9-4-sap',
-    'rhel-9-4-sap-byos',
-    'rhel-9-6-sap',
-    'rhel-9-6-sap-byos',
-  ],
-  local rhel_9_eus_images = [
-    'rhel-9-4-eus',
-    'rhel-9-4-eus-arm64',
-    'rhel-9-4-eus-byos',
-    'rhel-9-4-eus-byos-arm64',
-    'rhel-9-6-eus',
-    'rhel-9-6-eus-arm64',
-    'rhel-9-6-eus-byos',
-    'rhel-9-6-eus-byos-arm64',
-  ],
-  local rhel_10_base_images = [
-    'rhel-10',
-    'rhel-10-arm64',
-    'rhel-10-byos',
-    'rhel-10-byos-arm64',
-    'rhel-10-lvm',
-    'rhel-10-lvm-arm64',
-  ],
-  local rhel_10_eus_images = [
-    'rhel-10-0-eus',
-    'rhel-10-0-eus-arm64',
-    'rhel-10-0-eus-byos',
-    'rhel-10-0-eus-byos-arm64',
-  ],
-  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_10_base_images + rhel_10_eus_images,
+  local rhel_images = ['rhel-10'],
 
   // Start of output.
   resource_types: [
@@ -560,24 +500,16 @@ local imggroup = {
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] +
-             [common.gcsimgresource { image: image, gcs_dir: 'centos' } for image in centos_images] +
-             [common.gcssbomresource { image: image, sbom_destination: 'centos' } for image in centos_images] +
-             [common.gcsshasumresource { image: image, shasum_destination: 'centos' } for image in centos_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'rhel' } for image in rhel_images] +
              [common.gcssbomresource { image: image, sbom_destination: 'rhel' } for image in rhel_images] +
              [common.gcsshasumresource { image: image, shasum_destination: 'rhel' } for image in rhel_images],
-  jobs: [
+   jobs: [
           // RHEL build jobs
           rhelimgbuildjob { image: image }
           for image in rhel_images
         ] +
         [
-          // Centos build jobs
-          centosimgbuildjob { image: image }
-          for image in centos_images
-        ] +
-        [
-          // Rhel publish jobs
+          // RHEL publish jobs
           imgpublishjob {
             image: image,
             env: env,
@@ -586,47 +518,11 @@ local imggroup = {
           }
           for env in envs
           for image in rhel_images
-        ] +
-        [
-          // CentOS publish jobs
-          imgpublishjob {
-            image: image,
-            env: env,
-            gcs_dir: 'centos',
-            workflow_dir: 'enterprise_linux',
-          }
-          for env in envs
-          for image in centos_images
         ],
   groups: [
-    imggroup {
-      name: 'rhel-8-base',
-      images: rhel_8_base_images,
-    },
-    imggroup{
-      name: 'rhel-8-sap',
-      images: rhel_8_sap_images,
-    },
-    imggroup{
-      name: 'rhel-9-base',
-      images: rhel_9_base_images,
-    },
-    imggroup{
-      name: 'rhel-9-sap',
-      images: rhel_9_sap_images,
-    },
-     imggroup{
-      name: 'rhel-9-eus',
-      images: rhel_9_eus_images,
-    },
      imggroup{
       name: 'rhel-10-base',
-      images: rhel_10_base_images,
-    },
-     imggroup{
-      name: 'rhel-10-eus',
-      images: rhel_10_eus_images,
-    },
-    imggroup { name: 'centos_images', images:  centos_images},
+      images: rhel_images,
+    }
   ],
 }
