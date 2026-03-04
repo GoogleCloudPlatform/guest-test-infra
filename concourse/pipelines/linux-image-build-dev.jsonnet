@@ -476,7 +476,7 @@ local imggroup = {
 };
 
 {
-  local rhel_images = ['rhel-10'],
+  local rhel_images = ['rhel-10', 'rhel-10-0-sap', 'rhel-10-0-sap-byos'],
 
   // Start of output.
   resource_types: [
