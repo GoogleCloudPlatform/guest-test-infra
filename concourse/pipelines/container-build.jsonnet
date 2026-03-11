@@ -259,7 +259,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       input: 'compute-daisy',
       passed: 'build-daisy-test-runner',
       extra_resources: ['compute-image-tools-trigger'],
-      public_image_tag: false,
+      public_image_tag: true,
       extra_steps:
         [
           // Add daisy workflows to compute-daisy.
@@ -407,9 +407,9 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
                 'gcloud container images add-tag --quiet' +
                 '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))' +
                 '  gcr.io/compute-image-tools/daisy:release;' +
-                'timestamp=$(date +%Y%m%d%H%M%S);' +
                 'gcloud container images add-tag --quiet' +
-                '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))',
+                '  gcr.io/compute-image-tools/daisy:((.:daisy-commit-sha))' +
+                '  gcr.io/compute-image-tools/daisy:public-image-((.:daisy-commit-sha))',
               ],
             },
           },
