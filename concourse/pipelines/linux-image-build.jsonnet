@@ -575,6 +575,10 @@ local imggroup = {
     'rhel-10-lvm',
     'rhel-10-lvm-arm64',
   ],
+  local rhel_10_sap_images = [
+    'rhel-10-0-sap',
+    'rhel-10-0-sap-byos',
+  ],
   local rhel_10_eus_images = [
     'rhel-10-0-eus',
     'rhel-10-0-eus-arm64',
@@ -585,7 +589,7 @@ local imggroup = {
     'rhel-10-0-eus-lvm',
     'rhel-10-0-eus-lvm-arm64'
   ],
-  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_eus_images + rhel_10_eus_lvm_images,
+  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images +rhel_10_eus_images + rhel_10_eus_lvm_images,
 
   // Start of output.
   resource_types: [
@@ -715,6 +719,10 @@ local imggroup = {
      imggroup{
       name: 'rhel-10-base',
       images: rhel_10_base_images,
+    },
+    imggroup{
+      name: 'rhel-10-sap',
+      images: rhel_10_sap_images,
     },
      imggroup{
       name: 'rhel-10-eus',
