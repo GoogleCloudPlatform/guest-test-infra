@@ -9,7 +9,7 @@
     ],
 
     project:: 'gce-image-builder',
-    zone:: 'europe-west4-a',
+    zone:: 'us-central1-a',
     vars:: [],
     workflow:: error 'must set workflow in daisy template',
     workflow_prefix:: 'compute-image-tools/daisy_workflows/',
