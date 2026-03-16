@@ -47,18 +47,28 @@ fi
 
 echo "Started build..."
 
-# common.sh contains functions common to all builds.
-gcloud storage cp "${SRC_PATH}/common.sh" ./
-. common.sh
-
-deploy_sbomutil
-
 # Install git2 as this is not available in centos 6/7
 VERSION_ID=6
 if [[ -f /etc/os-release ]]; then
   eval $(grep VERSION_ID /etc/os-release)
   VERSION_ID=${VERSION_ID%.*}
 fi
+
+# Check the EL version. If it's 9, make sure to force it to use Python 3.12
+if [[ ${VERSION_ID} == 9 ]]; then
+  # Python 3.12 only exists on EL9 ARM64, not the x86 variant. So we need
+  # to make sure it exists before we force gcloud to use it.
+  if [[ -f /usr/bin/python3.12 ]]; then
+    echo "Found Python 3.12, setting CLOUDSDK_PYTHON environment variable"
+    export CLOUDSDK_PYTHON="/usr/bin/python3.12"
+  fi
+fi
+
+# common.sh contains functions common to all builds.
+gcloud storage cp "${SRC_PATH}/common.sh" ./
+. common.sh
+
+deploy_sbomutil
 
 GIT="git"
 if [[ ${VERSION_ID} =~ 6|7 ]]; then
