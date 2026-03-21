@@ -18,6 +18,5 @@ setup(
     name="application",
     py_modules="main",
     install_requires=[
-        "sums",
-    ]
+]
 )
