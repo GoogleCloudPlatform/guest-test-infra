@@ -130,6 +130,10 @@ local base_buildpackagejob = {
     '-var:lkg_gcs_path=((.:' + tl.secret_name + '-secret))'
   ] else [],
 
+  local spec_name_vars = if tl.spec_name != '' then [
+    '-var:spec_name=' + tl.spec_name,
+  ] else [],
+
   // Start of output.
   name: 'build-' + tl.package,
 
@@ -210,8 +214,7 @@ local base_buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
-                  if tl.spec_name != '' then '-var:spec_name=' + tl.spec_name else '',
-                ] + tl.extra_daisy_args + lkg_daisy_vars + [
+                ] + spec_name_vars + tl.extra_daisy_args + lkg_daisy_vars  + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
               },
