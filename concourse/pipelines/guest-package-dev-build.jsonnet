@@ -210,7 +210,7 @@ local base_buildpackagejob = {
                   '-var:version=((.:package-version))',
                   '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
                   '-var:build_dir=' + tl.build_dir,
-                  '-var:spec_name=' + tl.spec_name,
+                  if tl.spec_name != '' then '-var:spec_name=' + tl.spec_name else '',
                 ] + tl.extra_daisy_args + lkg_daisy_vars + [
                   'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
                 ],
