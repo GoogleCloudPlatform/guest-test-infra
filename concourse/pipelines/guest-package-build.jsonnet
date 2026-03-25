@@ -1961,7 +1961,7 @@ local build_and_upload_oslogin = buildpackagejob {
     },
     buildpackagejob {
       package: 'artifact-registry-yum-plugin',
-      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64'],
+      builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
       gcs_dir: 'yum-plugin-artifact-registry',
       uploads: [
         uploadpackageversiontask {

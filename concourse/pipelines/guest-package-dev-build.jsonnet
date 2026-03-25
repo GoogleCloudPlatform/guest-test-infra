@@ -770,6 +770,193 @@ local build_and_upload_guest_agent = build_guest_agent {
   ],
 };
 
+local build_artifactplugins_apt = buildpackagejob {
+  local tl = self,
+  package:: error 'must set package in build_and_upload_artifactplugins',
+  gcs_dir:: error 'must set gcs_dir in build_and_upload_artifactplugins',
+  builds: ['deb12', 'deb12-arm64'],
+
+  local artifact_x86_images = [
+    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+  ],
+
+  local artifact_arm_images = [
+    'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+  ],
+
+extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+        outputs: [{ name: 'build-id-dir' }],
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
+          ],
+        },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+           buildpackageimagetask {
+            image_name: 'debian-11',
+            source_image: 'projects/debian-cloud/global/images/family/debian-11',
+            dest_image: 'debian-11-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-12',
+            source_image: 'projects/debian-cloud/global/images/family/debian-12',
+            dest_image: 'debian-12-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-12-arm64',
+            source_image: 'projects/debian-cloud/global/images/family/debian-12-arm64',
+            dest_image: 'debian-12-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13',
+            dest_image: 'debian-13-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+        ],
+      },
+    },
+  ],
+  uploads: [],
+ };
+
+local build_artifactplugins_yum = buildpackagejob {
+  local tl = self,
+  package:: error 'must set package in build_and_upload_artifactplugins',
+  gcs_dir:: error 'must set gcs_dir in build_and_upload_artifactplugins',
+  builds: ['el8', 'el8-arm64', 'el9', 'el9-arm64','el10', 'el10-arm64'],
+
+  local artifact_x86_images = [
+    'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+  ],
+
+  local artifact_arm_images = [
+    'projects/guest-package-builder/global/images/rhel-8-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
+  ],
+
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'registry-image',
+          source: { repository: 'busybox' },
+        },
+        outputs: [{ name: 'build-id-dir' }],
+        run: {
+          path: 'sh',
+          args: [
+            '-exc',
+            'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id',
+          ],
+        },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-9',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
+            dest_image: 'rhel-9-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-9-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-9-arm64',
+            dest_image: 'rhel-9-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el9.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-8',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
+            dest_image: 'rhel-8-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.x86_64.rpm',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-8-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-8-arm64',
+            dest_image: 'rhel-8-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el8.aarch64.rpm',
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+        ],
+      },
+    },
+  ],
+  uploads: [],
+};
+
+
 local build_and_upload_oslogin = buildpackagejob {
   local tl = self,
   package:: error 'must set package in build_and_upload_oslogin',
@@ -941,36 +1128,13 @@ local build_and_upload_oslogin = buildpackagejob {
       gcs_dir: 'oslogin-stbl',
       repo_name: 'guest-oslogin',
     },
-    buildpackagejob {
+    build_artifactplugins_yum {
       package: 'artifact-registry-yum-plugin',
-      builds: ['el10', 'el10-arm64'],
       gcs_dir: 'yum-plugin-artifact-registry',
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version))-g1.el10.aarch64.rpm"',
-          os_type: 'EL10_YUM',
-          pkg_inside_name: 'dnf-plugin-artifact-registry',
-          pkg_name: 'artifact-registry-dnf-plugin',
-          pkg_version: '((.:package-version))',
-          reponame: 'dnf-plugin-artifact-registry-el10',
-          sbom_file: 'gs://gcp-guest-package-uploads/yum-plugin-artifact-registry/dnf-plugin-artifact-registry-((.:package-version)).sbom.json',
-        },
-      ],
     },
-    buildpackagejob {
+    build_artifactplugins_apt {
       package: 'artifact-registry-apt-transport',
-      builds: ['deb13', 'deb13-arm64'],
-      uploads: [
-        uploadpackageversiontask {
-          gcs_files: '"gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_arm64.deb"',
-          os_type: 'DEBIAN_ALL_APT',
-          pkg_inside_name: 'apt-transport-artifact-registry',
-          pkg_name: 'artifact-registry-apt-transport',
-          pkg_version: '((.:package-version))',
-          reponame: 'apt-transport-artifact-registry',
-          sbom_file: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry-((.:package-version)).sbom.json',
-        },
-      ],
+      gcs_dir: 'artifact-registry-apt-transport',
     },
     build_goo {
       name: 'build-googet',
