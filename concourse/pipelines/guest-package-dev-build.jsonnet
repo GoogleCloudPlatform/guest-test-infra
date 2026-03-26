@@ -955,6 +955,59 @@ local build_artifactplugins_yum = buildpackagejob {
         ],
       },
     },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: [
+          {
+            task: '%s-image-tests-amd64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-images=%s' % commaSeparatedString(artifact_x86_images),
+                  '-filter=^(packagevalidation)$',
+                  '-test_projects=guest-package-builder',
+                  '-parallel_count=5',
+                ],
+              },
+            },
+            attempts: 3,
+          },
+          {
+            task: '%s-image-tests-arm64' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              inputs: [{ name: 'guest-test-infra' }],
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=asia-east1-a,us-central1-a,us-central1-f,europe-west1-b,us-central1-b,asia-east1-c',
+                  '-images=%s' % commaSeparatedString(artifact_arm_images),
+                  '-filter=^(packagevalidation)$',
+                  '-test_projects=guest-package-builder',
+                  '-parallel_count=5',
+                  '-arm64_shape=c4a-standard-1',
+                ],
+              },
+            },
+            attempts: 3,
+          },
+        ],
+      },
+    },
   ],
   uploads: [],
 };
