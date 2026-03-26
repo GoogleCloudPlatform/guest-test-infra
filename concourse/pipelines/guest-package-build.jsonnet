@@ -1335,7 +1335,7 @@ local build_guest_agent = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86ImagesToTest),
                   '-filter=^(%s)$' % allCITSuites,
@@ -1357,7 +1357,7 @@ local build_guest_agent = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86PartnerImagesToTest),
                   '-filter=^(%s)$' % allCITSuites,
@@ -1379,7 +1379,7 @@ local build_guest_agent = buildpackagejob {
                 path: '/manager',
                 args: [
                   '-project=guest-package-builder',
-                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
+                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
                   '-x86_shape=e2-standard-4',
                   '-timeout=45m',
                   '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
