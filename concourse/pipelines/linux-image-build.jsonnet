@@ -598,7 +598,7 @@ local imggroup = {
   local rhel_10_eus_lvm_images = [
     'rhel-10-0-eus-lvm',
     'rhel-10-0-eus-lvm-byos',
-    'rhel-10-0-eus-lvm-arm64'
+    'rhel-10-0-eus-lvm-arm64',
     'rhel-10-0-eus-lvm-byos-arm64',
   ],
   local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images +rhel_10_eus_images + rhel_10_eus_lvm_images,
