@@ -1305,6 +1305,7 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         fail_fast: true,
+        limit: 15,
         steps: std.flattenArrays([
           [
             {
