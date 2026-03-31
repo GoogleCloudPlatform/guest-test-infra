@@ -798,7 +798,11 @@ local build_guest_agent = buildpackagejob {
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
 
-  local allCITSuites = 'cvm|loadbalancer|guestagent|hostnamevalidation|network|nicsetup|packagevalidation|ssh|metadata|mdsroutes|vmspec|compatmanager|pluginmanager|mdsmtls|wsfc',
+  local defaultZones = "asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d",
+  // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
+  local defaultArmZones = "asia-east1-a,us-central1-a,us-central1-f,europe-west1-b,us-central1-b,asia-east1-c",
+
+  local allCITSuites = ['cvm','loadbalancer','guestagent','hostnamevalidation','network','nicsetup','packagevalidation','ssh','metadata','mdsroutes','vmspec','compatmanager','pluginmanager','mdsmtls','wsfc'],
 
   local x86WindowsImagesToTest = [
     'projects/guest-package-builder/global/images/windows-server-2016-dc-((.:build-id))',
@@ -1301,123 +1305,150 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         fail_fast: true,
-        steps: [
-          {
-            task: '%s-oslogin-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=oslogin-cit',
+        limit: 15,
+        steps: std.flattenArrays([
+          [
+            {
+              local img = x86ImagesToTest[idx],
+              task: '%s-%s-oslogin' % [tl.package, img],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=oslogin-cit',
                   '-zone=us-central1-a',
-                  '-parallel_count=5',
-                  '-images=%s' % commaSeparatedString(x86ImagesToTest),
+                  '-parallel_count=1',
+                  '-images=%s' % img,
                   '-filter=oslogin',
-                ],
+                  ],
+                },
               },
-            },
-            attempts: 3,
-          },
-          {
-            task: '%s-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              attempts: 3,
+            }
+            for idx in std.range(0, std.length(x86ImagesToTest) - 1)
+          ],
+          [
+            {
+              local img = x86ImagesToTest[i],
+              local suite = allCITSuites[j],
+              task: '%s-%s-%s' % [tl.package, img, suite],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=guest-package-builder',
+                    '-zones=%s' % defaultZones,
+                    '-timeout=45m',
+                    '-images=%s' % img,
+                    '-filter=^(%s)$' % suite,
+                    '-parallel_count=1',
+                  ],
+                },
               },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
-                  '-timeout=45m',
-                  '-images=%s' % commaSeparatedString(x86ImagesToTest),
-                  '-filter=^(%s)$' % allCITSuites,
-                  '-parallel_count=15',
-                ],
+              attempts: 3,
+            }
+            for i in std.range(0, std.length(x86ImagesToTest) - 1)
+            for j in std.range(0, std.length(allCITSuites) - 1)
+          ],
+          [
+            {
+              local img = x86PartnerImagesToTest[i],
+              local suite = allCITSuites[j],
+              task: '%s-%s-%s' % [tl.package, img, suite],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=guest-package-builder',
+                    '-zones=%s' % defaultZones,
+                    '-timeout=45m',
+                    '-images=%s' % img,
+                    '-filter=^(%s)$' % suite,
+                    '-parallel_count=1',
+                  ],
+                },
               },
-            },
-            attempts: 3,
-          },
-          {
-            task: '%s-partner-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              attempts: 3,
+            }
+            for i in std.range(0, std.length(x86PartnerImagesToTest) - 1)
+            for j in std.range(0, std.length(allCITSuites) - 1)
+          ],
+          [
+            {
+              local img = x86WindowsImagesToTest[i],
+              local suite = allCITSuites[j],
+              task: '%s-%s-%s' % [tl.package, img, suite],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    '-project=guest-package-builder',
+                    '-zones=%s' % defaultZones,
+                    '-x86_shape=e2-standard-4',
+                    '-timeout=45m',
+                    '-images=%s' % img,
+                    '-filter=^(%s)$' % suite,
+                    '-parallel_count=1',
+                  ],
+                },
               },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
-                  '-timeout=45m',
-                  '-images=%s' % commaSeparatedString(x86PartnerImagesToTest),
-                  '-filter=^(%s)$' % allCITSuites,
-                  '-parallel_count=15',
-                ],
+              attempts: 3,
+            }
+            for i in std.range(0, std.length(x86WindowsImagesToTest) - 1)
+            for j in std.range(0, std.length(allCITSuites) - 1)
+          ],
+          [
+            {
+              local img = arm64ImagesToTest[i],
+              local suite = allCITSuites[j],
+              task: '%s-%s-%s' % [tl.package, img, suite],
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+                },
+                run: {
+                  path: '/manager',
+                  args: [
+                    // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
+                    // to the same project runner is running in.
+                    '-project=guest-package-builder',
+                    '-zones=%s' % defaultArmZones,
+                    '-timeout=45m',
+                    '-images=%s' % commaSeparatedString(arm64ImagesToTest),
+                    '-filter=^(%s)$' % suite,
+                    '-parallel_count=1',
+                    '-arm64_shape=c4a-standard-1',
+                  ],
+                },
               },
-            },
-            attempts: 3,
-          },
-          {
-            task: '%s-windows-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zones=asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d',
-                  '-x86_shape=e2-standard-4',
-                  '-timeout=45m',
-                  '-images=%s' % commaSeparatedString(x86WindowsImagesToTest),
-                  '-filter=^(%s)$' % allCITSuites,
-                  '-parallel_count=15',
-                ],
-              },
-            },
-            attempts: 3,
-          },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
-                  // to the same project runner is running in.
-                  '-project=guest-package-builder',
-                  // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
-                  '-zones=asia-east1-a,us-central1-a,us-central1-f,europe-west1-b,us-central1-b,asia-east1-c',
-                  '-timeout=45m',
-                  '-images=%s' % commaSeparatedString(arm64ImagesToTest),
-                  '-filter=^(%s)$' % allCITSuites,
-                  '-parallel_count=15',
-                  '-arm64_shape=c4a-standard-1',
-                ],
-              },
-            },
-            attempts: 3,
-          },
-        ],
+              attempts: 3,
+            }
+            for i in std.range(0, std.length(arm64ImagesToTest) - 1)
+            for j in std.range(0, std.length(allCITSuites) - 1)
+          ],
+        ]),
       },
     },
   ],
