@@ -798,6 +798,11 @@ local build_guest_agent = buildpackagejob {
   uploads: [],
   builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
 
+  local imageFamily(imagePath) = (
+    local parts = std.split(imagePath, '/');
+    std.strReplace(parts[std.length(parts) - 1], '-((.:build-id))', '')
+  ),
+
   local defaultZones = "asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d",
   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
   local defaultArmZones = "asia-east1-a,us-central1-a,us-central1-f,europe-west1-b,us-central1-b,asia-east1-c",
@@ -1305,12 +1310,12 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         fail_fast: true,
-        limit: 15,
+        limit: 60,
         steps: std.flattenArrays([
           [
             {
               local img = x86ImagesToTest[idx],
-              task: '%s-%s-oslogin' % [tl.package, img],
+              task: '%s-%s-oslogin' % [tl.package, imageFamily(img)],
               config: {
                 platform: 'linux',
                 image_resource: {
@@ -1321,10 +1326,10 @@ local build_guest_agent = buildpackagejob {
                   path: '/manager',
                   args: [
                     '-project=oslogin-cit',
-                  '-zone=us-central1-a',
-                  '-parallel_count=1',
-                  '-images=%s' % img,
-                  '-filter=oslogin',
+                    '-zone=us-central1-a',
+                    '-parallel_count=1',
+                    '-images=%s' % img,
+                    '-filter=oslogin',
                   ],
                 },
               },
@@ -1336,7 +1341,7 @@ local build_guest_agent = buildpackagejob {
             {
               local img = x86ImagesToTest[i],
               local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, img, suite],
+              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
               config: {
                 platform: 'linux',
                 image_resource: {
@@ -1364,7 +1369,7 @@ local build_guest_agent = buildpackagejob {
             {
               local img = x86PartnerImagesToTest[i],
               local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, img, suite],
+              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
               config: {
                 platform: 'linux',
                 image_resource: {
@@ -1392,7 +1397,7 @@ local build_guest_agent = buildpackagejob {
             {
               local img = x86WindowsImagesToTest[i],
               local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, img, suite],
+              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
               config: {
                 platform: 'linux',
                 image_resource: {
@@ -1421,7 +1426,7 @@ local build_guest_agent = buildpackagejob {
             {
               local img = arm64ImagesToTest[i],
               local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, img, suite],
+              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
               config: {
                 platform: 'linux',
                 image_resource: {
@@ -1436,7 +1441,7 @@ local build_guest_agent = buildpackagejob {
                     '-project=guest-package-builder',
                     '-zones=%s' % defaultArmZones,
                     '-timeout=45m',
-                    '-images=%s' % commaSeparatedString(arm64ImagesToTest),
+                    '-images=%s' % img,
                     '-filter=^(%s)$' % suite,
                     '-parallel_count=1',
                     '-arm64_shape=c4a-standard-1',
