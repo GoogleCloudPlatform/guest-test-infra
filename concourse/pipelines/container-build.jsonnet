@@ -155,6 +155,11 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
     BuildContainerImage('fly-validate-pipelines', false) { passed: 'build-jsonnet-go' },
     BuildContainerImage('pytest', false),
 
+    // Target repo is not `gcp-guest`
+    BuildContainerImage('wrapper', false) {
+      repo: 'gcr.io/compute-image-tools-test',
+    },
+
     // Non-standard dockerfile location and public image.
     BuildContainerImage('registry-image-forked', false) {
       dockerfile: 'dockerfiles/alpine/Dockerfile',
