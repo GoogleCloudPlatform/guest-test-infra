@@ -76,6 +76,7 @@ local base_buildpackagejob = {
   spec_name:: '',
   test_suite:: '',
   abbr_name:: '',
+  image_group:: '',
 
   default_trigger_steps:: [
     {
@@ -134,7 +135,7 @@ local base_buildpackagejob = {
   ] else [],
 
   // Start of output.
-  name: 'build-' + tl.package,
+  name: if tl.image_group == '' then 'build-' + tl.package else 'build-' + tl.package + '-' + tl.image_group,
 
   parallel_triggers:: [
     // Prep build variables and content.
@@ -795,13 +796,25 @@ local build_guest_agent = buildpackagejob {
   local tl = self,
 
   package:: error 'must set package in build_guest_agent',
+  image_group:: error 'must set image_group in guest agent build job. Must be one of "el", "deb", or "goo".',
   uploads: [],
-  builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64', 'goo'],
 
   local imageFamily(imagePath) = (
     local parts = std.split(imagePath, '/');
     std.strReplace(parts[std.length(parts) - 1], '-((.:build-id))', '')
   ),
+
+  local debBuilds = ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64'],
+  local elBuilds = ['el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
+  local gooBuilds = ['goo'],
+  builds: if tl.image_group == 'el' then
+    elBuilds
+  else if tl.image_group == 'deb' then
+    debBuilds
+  else if tl.image_group == 'goo' then
+    gooBuilds
+  else
+    [],
 
   local defaultZones = "asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d",
   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
@@ -816,25 +829,7 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/windows-server-2025-dc-((.:build-id))',
   ],
 
-  local x86PartnerImagesToTest = [
-    'projects/guest-package-builder/global/images/oracle-linux-8-((.:build-id))',
-    'projects/guest-package-builder/global/images/oracle-linux-9-((.:build-id))',
-    'projects/guest-package-builder/global/images/oracle-linux-10-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-10-opti-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-10-((.:build-id))',
-    'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
-    'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
-    'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
-    'projects/guest-package-builder/global/images/sles-16-((.:build-id))',
-  ],
-
-  local x86ImagesToTest = [
-    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
-    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
-    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+  local x86ELImagesToTest = [
     'projects/guest-package-builder/global/images/centos-stream-10-((.:build-id))',
     'projects/guest-package-builder/global/images/centos-stream-9-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
@@ -847,13 +842,29 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-9-6-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-byos-((.:build-id))',
-  ],
+    'projects/guest-package-builder/global/images/oracle-linux-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/oracle-linux-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/oracle-linux-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-10-opti-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-10-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-15-((.:build-id))',
+    'projects/guest-package-builder/global/images/sles-16-((.:build-id))',
+  ]
+  
+  local x86DebImagesToTest = [
+    'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+  ]
 
-  local arm64ImagesToTest = [
+  local arm64ELImagesToTest = [
     'projects/guest-package-builder/global/images/centos-stream-10-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/centos-stream-9-arm64-((.:build-id))',
-    'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
-    'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
@@ -863,8 +874,29 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-10-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/rocky-linux-10-opti-arm64-((.:build-id))',
+  ]
+
+  local arm64DebImagesToTest = [
+    'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
     'projects/guest-package-builder/global/images/ubuntu-2404-lts-arm64-((.:build-id))',
-  ],
+  ]
+
+  // List of images to test is dependent on the image group.
+  local x86ImagesToTest = if tl.image_group == 'goo' then
+    x86WindowsImagesToTest
+  else if tl.image_group == 'el' then
+    x86ELImagesToTest
+  else if tl.image_group == 'deb' then
+    x86DebImagesToTest
+  else [],
+
+  // List of images to test is dependent on the image group.
+  local arm64ImagesToTest =  if tl.image_group == 'el' then
+    arm64ELImagesToTest
+  else if tl.image_group == 'deb' then
+    arm64DebImagesToTest
+  else [],
 
   // The guest agent has additional testing steps to build derivative images then run CIT against them.
   extra_tasks: [
@@ -890,7 +922,7 @@ local build_guest_agent = buildpackagejob {
     { get: 'compute-image-tools' },
     {
       in_parallel: {
-        steps: [
+        steps: if tl.image_group == 'goo' then [
           buildpackageimagetaskwindows {
             image_name: 'windows-2016',
             source_image: 'projects/windows-cloud/global/images/family/windows-2016',
@@ -917,6 +949,7 @@ local build_guest_agent = buildpackagejob {
             dest_image: 'windows-server-2025-dc-((.:build-id))',
             gcs_package_path: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo","gs://gcp-guest-package-uploads/%s/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo",gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-sysprep.noarch.20260206.01@1.goo' % [tl.package, tl.package],
           },
+        ] else if tl.image_group == 'deb' then [
           buildpackageimagetask {
             image_name: 'debian-11',
             source_image: 'projects/debian-cloud/global/images/family/debian-11',
@@ -1021,6 +1054,7 @@ local build_guest_agent = buildpackagejob {
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
           },
+        ] else if tl.image_group == 'el' then [
           buildpackageimagetask {
             image_name: 'rhel-8',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
@@ -1310,7 +1344,7 @@ local build_guest_agent = buildpackagejob {
     {
       in_parallel: {
         fail_fast: true,
-        limit: 60,
+        limit: 20,
         steps: std.flattenArrays([
           [
             {
@@ -1367,63 +1401,6 @@ local build_guest_agent = buildpackagejob {
           ],
           [
             {
-              local img = x86PartnerImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86PartnerImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-          [
-            {
-              local img = x86WindowsImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-x86_shape=e2-standard-4',
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86WindowsImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-          [
-            {
               local img = arm64ImagesToTest[i],
               local suite = allCITSuites[j],
               task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
@@ -1464,7 +1441,8 @@ local build_and_upload_guest_agent = build_guest_agent {
 
   package:: error 'must set package in build_and_upload_guest_agent',
 
-  uploads: [
+  uploads: 
+    if tl.image_group == 'deb' then [
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb"' % [tl.package],
       os_type: 'BUSTER_APT',
@@ -1501,6 +1479,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       reponame: 'google-guest-agent-trixie',
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
     },
+    ] else if tl.image_group == 'el' then [
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.x86_64.rpm","gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el8.aarch64.rpm"' % [tl.package, tl.package],
       os_type: 'EL8_YUM',
@@ -1528,6 +1507,7 @@ local build_and_upload_guest_agent = build_guest_agent {
       reponame: 'google-guest-agent-el10',
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
     },
+    ] else if tl.image_group == 'goo' then [
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo"' % [tl.package],
       os_type: 'WINDOWS_ALL_GOOGET',
@@ -2258,6 +2238,17 @@ local build_artifactplugins_yum = buildpackagejob {
     build_and_upload_guest_agent {
       package: 'guest-agent',
       extra_repo: 'google-guest-agent',
+      image_group: 'deb',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent',
+      extra_repo: 'google-guest-agent',
+      image_group: 'el',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent',
+      extra_repo: 'google-guest-agent',
+      image_group: 'goo',
     },
     build_and_upload_guest_agent {
       package: 'guest-agent-stable',
@@ -2265,6 +2256,23 @@ local build_artifactplugins_yum = buildpackagejob {
       gcs_dir: 'guest-agent-stable',
       extra_repo: 'google-guest-agent',
       repo_name: 'guest-agent',
+      image_group: 'deb',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent-stable',
+      trigger: false,
+      gcs_dir: 'guest-agent-stable',
+      extra_repo: 'google-guest-agent',
+      repo_name: 'guest-agent',
+      image_group: 'el',
+    },
+    build_and_upload_guest_agent {
+      package: 'guest-agent-stable',
+      trigger: false,
+      gcs_dir: 'guest-agent-stable',
+      extra_repo: 'google-guest-agent',
+      repo_name: 'guest-agent',
+      image_group: 'goo',
     },
     build_guest_agent {
       package: 'guest-agent-dev',
@@ -2697,13 +2705,17 @@ local build_artifactplugins_yum = buildpackagejob {
     {
       name: 'guest-agent',
       jobs: [
-        'build-guest-agent',
+        'build-guest-agent-deb',
+        'build-guest-agent-el',
+        'build-guest-agent-goo',
       ],
     },
     {
       name: 'guest-agent-stable',
       jobs: [
-        'build-guest-agent-stable',
+        'build-guest-agent-stable-deb',
+        'build-guest-agent-stable-el',
+        'build-guest-agent-stable-goo',
       ],
     },
     {
