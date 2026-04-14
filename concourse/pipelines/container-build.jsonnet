@@ -301,7 +301,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
               platform: 'linux',
               image_resource: {
                 type: 'registry-image',
-                source: { repository: 'golang', tag: 'bullseye' },
+                source: { repository: 'golang', tag: 'latest' },
               },
               inputs: [{ name: 'compute-daisy', path: '.' }],
               outputs: [{ name: arch }],
