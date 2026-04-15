@@ -338,7 +338,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
               path: '/daisy_test_runner',
               args: [
                 '-projects=compute-image-test-pool-001',
-                '-zone=us-central1-c',
+                '-zone=us-central1-a',
                 'compute-daisy/daisy_integration_tests/daisy_e2e.test.gotmpl',
               ],
             },
@@ -361,7 +361,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
               path: '/daisy',
               args: [
                 '-project=compute-image-test-pool-001',
-                '-zone=us-central1-c',
+                '-zone=us-central1-a',
                 'compute-daisy/daisy_integration_tests/can_retrieve_sources.wf.json',
               ],
             },
