@@ -333,7 +333,7 @@ local imgpublishjob = {
   else false,
 
   citfilter:: common.default_linux_image_build_cit_filter,
-  cit_extra_args:: [],
+  cit_extra_args:: ['-arm64_shape=c4a-standard-1'],
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
   oslogin_test_project:: common.default_oslogin_test_project,
