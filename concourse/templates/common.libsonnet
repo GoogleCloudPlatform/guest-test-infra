@@ -113,7 +113,7 @@
     shasum_destination: shasum_destination,
   },
 
-  default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|lvmvalidation|licensevalidation|network|rhel|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec|mdsmtls|mdsroutes|nicsetup|packagemanager|pluginmanager|compatmanager)$',
+  default_linux_image_build_cit_filter:: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|lvmvalidation|licensevalidation|network|rhel|security|hotattach|lssd|disk|packagevalidation|ssh|metadata|vmspec|mdsmtls|mdsroutes|packagemanager|pluginmanager|compatmanager)$',
   default_cit_project:: 'gcp-guest',
   default_oslogin_cit_filter:: '^(oslogin)$',
   default_oslogin_test_project:: 'oslogin-cit',
