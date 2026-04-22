@@ -15,9 +15,13 @@ FROM gcr.io/gcp-guest/gotest
 
 # gcsfuse install instructions:
 #  https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -q -y qemu-utils gnupg ca-certificates \
-  && echo "deb https://packages.cloud.google.com/apt gcsfuse-bullseye main" > /etc/apt/sources.list.d/gcsfuse.list \
-  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-  && apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -q -y gcsfuse \
-  && rm -rf /var/cache/apt/archives
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends gnupg ca-certificates curl qemu-utils \
+    && curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/gcsfuse-keyring.gpg \
+    # Source the os-release file to load OS variables into the shell environment
+    && . /etc/os-release \
+    # Use the $VERSION_CODENAME instead of hardcoded names (e.g., 'trixie', 'bookworm')
+    && echo "deb [signed-by=/usr/share/keyrings/gcsfuse-keyring.gpg] https://packages.cloud.google.com/apt gcsfuse-$VERSION_CODENAME main" > /etc/apt/sources.list.d/gcsfuse.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends gcsfuse \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
