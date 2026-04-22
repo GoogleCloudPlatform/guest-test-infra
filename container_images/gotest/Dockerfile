@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:bookworm
+FROM golang:latest
 
 RUN apt-get update && apt-get -y install bash ca-certificates curl libssl-dev wget unzip grep && \
         rm -rf /var/cache/apt/archives
