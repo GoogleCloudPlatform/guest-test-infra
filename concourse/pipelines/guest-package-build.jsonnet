@@ -2491,7 +2491,7 @@ local build_artifactplugins_yum = buildpackagejob {
       type: 'git',
       source: {
         uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
-        branch: 'topic-stable',
+        branch: 'main',
         fetch_tags: true,
       },
     },
