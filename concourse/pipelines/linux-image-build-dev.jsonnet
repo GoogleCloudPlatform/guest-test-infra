@@ -477,7 +477,8 @@ local imggroup = {
 
 {
   local rhel_images = [
-    'rhel-10'
+    'rhel-10',
+    'rhel-10-2-beta',
     ],
 
   // Start of output.
