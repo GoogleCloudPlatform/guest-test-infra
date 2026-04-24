@@ -209,6 +209,7 @@ local rhelimgbuildjob = imgbuildjob {
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   is_arm:: std.member(tl.image, '-arm64'),
+  is_beta: std.member(tl.image, '-beta'),
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
@@ -237,12 +238,14 @@ local rhelimgbuildjob = imgbuildjob {
   local rhui_package_name_base = 'google-rhui-client-rhel',
   local rhui_package_name_tenth_point_release =
     if tl.is_sap && std.length(el_release_components) > 2  && el_release_components[2] == '10' then '10' else '',
+  local rhui_package_name_beta =
+    if tl.is_beta then '-beta' else '',
   local rhui_package_name_eus =
     if tl.is_eus then '-eus' else '',
   local rhui_package_name_sap =
     if tl.is_sap then '-sap' else '',
 
-  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_tenth_point_release + rhui_package_name_eus + rhui_package_name_sap,
+  rhui_package_name:: rhui_package_name_base + tl.major_release + rhui_package_name_tenth_point_release + rhui_package_name_beta + rhui_package_name_eus + rhui_package_name_sap,
 
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
