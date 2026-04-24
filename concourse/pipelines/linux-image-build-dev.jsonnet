@@ -209,7 +209,6 @@ local rhelimgbuildjob = imgbuildjob {
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   is_arm:: std.member(tl.image, '-arm64'),
-  is_beta: std.member(tl.image, '-beta'),
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
@@ -218,6 +217,8 @@ local rhelimgbuildjob = imgbuildjob {
 
   local arch = if tl.is_arm then 'aarch64' else 'x86_64',
   local el_release_components = std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
+  local is_beta = std.member(tl.image, '-beta'),
+
 
   disk_name::
     if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
@@ -239,7 +240,7 @@ local rhelimgbuildjob = imgbuildjob {
   local rhui_package_name_tenth_point_release =
     if tl.is_sap && std.length(el_release_components) > 2  && el_release_components[2] == '10' then '10' else '',
   local rhui_package_name_beta =
-    if tl.is_beta then '-beta' else '',
+    if is_beta then '-beta' else '',
   local rhui_package_name_eus =
     if tl.is_eus then '-eus' else '',
   local rhui_package_name_sap =
