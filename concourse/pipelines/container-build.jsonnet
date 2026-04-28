@@ -99,19 +99,16 @@ local DeprecateOldImagesTask(image_url, input_name) = {
     platform: 'linux',
     image_resource: {
       type: 'registry-image',
-      source: {
-        // need gcrane to run tagger functionality in deprecate-images.sh
-        repository: 'gcr.io/go-containerregistry/gcrane',
-        tag: 'latest'
+      source: { 
+        repository: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+        tag: 'latest' 
       },
     },
     inputs: [{ name: input_name }],
-    params: {
-      DRY_RUN: "false", // Enable live tagging in the pipeline
-    },
+    params: { DRY_RUN: "false" },
     run: {
-      path: './%s/concourse/scripts/deprecate-images.sh' % input_name,
-      args: [image_url],
+      path: 'bash',
+      args: ['./%s/concourse/scripts/deprecate-images.sh' % input_name, image_url],
     },
   },
 };

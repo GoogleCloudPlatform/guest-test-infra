@@ -1,7 +1,8 @@
 #!/bin/bash
+
 ##
 # deprecate-images.sh
-# Tags older images in GCR/AR as deprecated, keeping only the latest.
+# Tags older images in GCR/AR as deprecated using gcloud.
 ##
 
 set -euo pipefail
@@ -22,7 +23,7 @@ fi
 echo "Scanning $IMAGE_URL for older versions..."
 
 # Get all SHAs, sorted by upload time descending, skipping the first (latest) one.
-OLD_SHAS=$(gcrane ls "$IMAGE_URL" --json | jq -r '.manifest | to_entries | sort_by(.value.timeUploadedMs | tonumber) | reverse | .[1:] | .[].key' || echo "")
+OLD_SHAS=$(gcloud container images list-tags "$IMAGE_URL" --format='json' | jq -r 'sort_by(.timestamp.datetime) | reverse | .[1:] | .[].digest' || echo "")
 
 if [[ -z "$OLD_SHAS" ]]; then
   echo "No older images found for $IMAGE_URL. Skipping."
@@ -39,7 +40,8 @@ for sha_with_prefix in $OLD_SHAS; do
     count=$((count + 1))
   else
     echo "Tagging $IMAGE_URL@$sha_with_prefix as $TAG"
-    gcrane tag "$IMAGE_URL@$sha_with_prefix" "$TAG"
+    # gcloud requires the full image:tag or image@digest as the source/destination
+    gcloud container images add-tag "${IMAGE_URL}@${sha_with_prefix}" "${IMAGE_URL}:${TAG}" --quiet
     count=$((count + 1))
   fi
 done
