@@ -23,8 +23,7 @@ fi
 echo "Scanning $IMAGE_URL for older versions..."
 
 # Get all SHAs, sorted by upload time descending, skipping the first (latest) one.
-OLD_SHAS=$(gcloud container images list-tags "$IMAGE_URL" --format='json' | jq -r 'sort_by(.timestamp.datetime) | reverse | .[1:] | .[].digest' || echo "")
-
+OLD_SHAS=$(gcloud container images list-tags "$IMAGE_URL" --format='get(digest)' --sort-by='~timestamp' | sed '1d')
 if [[ -z "$OLD_SHAS" ]]; then
   echo "No older images found for $IMAGE_URL. Skipping."
   exit 0
@@ -41,7 +40,7 @@ for sha_with_prefix in $OLD_SHAS; do
   else
     echo "Tagging $IMAGE_URL@$sha_with_prefix as $TAG"
     # gcloud requires the full image:tag or image@digest as the source/destination
-    gcloud container images add-tag "${IMAGE_URL}@${sha_with_prefix}" "${IMAGE_URL}:${TAG}" --quiet
+    gcloud container images add-tag "${IMAGE_URL}@${sha_with_prefix}" "${IMAGE_URL}:${TAG}"
     count=$((count + 1))
   fi
 done
