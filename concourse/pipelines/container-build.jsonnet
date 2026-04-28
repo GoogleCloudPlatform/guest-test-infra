@@ -93,6 +93,29 @@ local buildcontainerimgjob = {
         ] + job.post_steps,
 };
 
+local DeprecateOldImagesTask(image_url, input_name) = {
+  task: 'deprecate-old-images',
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: {
+        // need gcrane to run tagger functionality in deprecate-images.sh
+        repository: 'gcr.io/go-containerregistry/gcrane',
+        tag: 'latest'
+      },
+    },
+    inputs: [{ name: input_name }],
+    params: {
+      DRY_RUN: "false", // Enable live tagging in the pipeline
+    },
+    run: {
+      path: './%s/concourse/scripts/deprecate-images.sh' % input_name,
+      args: [image_url],
+    },
+  },
+};
+
 // Function for our builds in guest-test-infra/container_images
 local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
   repo:: 'gcr.io/gcp-guest',
@@ -101,6 +124,11 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
   destination: '%s/%s' % [self.repo, image],
   context: 'guest-test-infra/container_images/' + image,
   public_image_tag: public_image_tag,
+  
+  // use script in post steps to tag old images as deprecated
+  post_steps+: [
+    DeprecateOldImagesTask(self.destination, self.input)
+  ],
 };
 
 // Start of output.
