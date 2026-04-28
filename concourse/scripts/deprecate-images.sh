@@ -2,7 +2,7 @@
 
 ##
 # deprecate-images.sh
-# Tags older images in GCR/AR as deprecated using gcloud.
+# Tags older images in GCR/AR as deprecated using gcloud, keeping only the latest.
 ##
 
 set -euo pipefail
