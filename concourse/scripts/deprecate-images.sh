@@ -40,7 +40,7 @@ for sha_with_prefix in $OLD_SHAS; do
   else
     echo "Tagging $IMAGE_URL@$sha_with_prefix as $TAG"
     # gcloud requires the full image:tag or image@digest as the source/destination
-    gcloud container images add-tag "${IMAGE_URL}@${sha_with_prefix}" "${IMAGE_URL}:${TAG}"
+    gcloud container images add-tag "${IMAGE_URL}@${sha_with_prefix}" "${IMAGE_URL}:${TAG}" --quiet
     count=$((count + 1))
   fi
 done
