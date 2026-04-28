@@ -105,7 +105,7 @@ local DeprecateOldImagesTask(image_url, input_name) = {
       },
     },
     inputs: [{ name: input_name }],
-    params: { DRY_RUN: "false" },
+    params: { DRY_RUN: "false" }, // Enable live tagging in the pipeline
     run: {
       path: 'bash',
       args: ['./%s/concourse/scripts/deprecate-images.sh' % input_name, image_url],
