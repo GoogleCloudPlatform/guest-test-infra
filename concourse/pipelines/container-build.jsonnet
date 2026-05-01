@@ -104,7 +104,7 @@ local DeprecateOldImagesTask(image_url) = {
         tag: 'latest' 
       },
     },
-    inputs: [{ name: guest-test-infra }],
+    inputs: [{ name: 'guest-test-infra' }],
     params: { DRY_RUN: "false" }, // Enable live tagging in the pipeline
     run: {
       path: 'bash',
