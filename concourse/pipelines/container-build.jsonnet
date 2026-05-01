@@ -222,6 +222,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       dockerfile: 'compute-image-tools/gce_windows_upgrade_tests.Dockerfile',
       image: 'gce_windows_upgrade_tests',
       input: 'compute-image-tools',
+      extra_resources: ['guest-test-infra'],
       public_image_tag: false,
       post_steps+: [
         DeprecateOldImagesTask(self.destination)
@@ -233,6 +234,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       dockerfile: 'Dockerfile',
       input: 'cloud-image-tests',
       image: 'cloud-image-tests',
+      extra_resources: ['guest-test-infra'],
       public_image_tag: false,
       post_steps: [
         {
@@ -285,6 +287,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       dockerfile: 'compute-daisy/daisy_test_runner.Dockerfile',
       image: 'daisy-test-runner',
       input: 'compute-daisy',
+      extra_resources: ['guest-test-infra'],
       public_image_tag: false,
       post_steps+: [
         DeprecateOldImagesTask(self.destination)
@@ -296,7 +299,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       image: 'daisy',
       input: 'compute-daisy',
       passed: 'build-daisy-test-runner',
-      extra_resources: ['compute-image-tools-trigger'],
+      extra_resources: ['compute-image-tools-trigger', 'guest-test-infra'],
       public_image_tag: true,
       post_steps+: [
         DeprecateOldImagesTask(self.destination)
