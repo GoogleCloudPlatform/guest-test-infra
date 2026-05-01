@@ -223,6 +223,9 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       image: 'gce_windows_upgrade_tests',
       input: 'compute-image-tools',
       public_image_tag: false,
+      post_steps+: [
+        DeprecateOldImagesTask(self.destination, self.input)
+      ],
     },
     buildcontainerimgjob {
       context: 'cloud-image-tests',
@@ -272,6 +275,8 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
             commitish: 'cloud-image-tests/.git/ref',
           },
         },
+      ] + [
+        DeprecateOldImagesTask(self.destination, self.input)
       ],
     },
     buildcontainerimgjob {
@@ -281,6 +286,9 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       image: 'daisy-test-runner',
       input: 'compute-daisy',
       public_image_tag: false,
+      post_steps+: [
+        DeprecateOldImagesTask(self.destination, self.input)
+      ],
     },
     buildcontainerimgjob {
       context: 'compute-daisy',
@@ -290,6 +298,9 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       passed: 'build-daisy-test-runner',
       extra_resources: ['compute-image-tools-trigger'],
       public_image_tag: true,
+      post_steps+: [
+        DeprecateOldImagesTask(self.destination, self.input)
+      ],
       extra_steps:
         [
           // Add daisy workflows to compute-daisy.

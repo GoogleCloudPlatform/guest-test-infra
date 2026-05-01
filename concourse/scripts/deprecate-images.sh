@@ -23,7 +23,7 @@ fi
 echo "Scanning $IMAGE_URL for older versions..."
 
 # Get all SHAs, sorted by upload time descending, skipping the first (latest) one.
-OLD_SHAS=$(gcloud container images list-tags "$IMAGE_URL" --format='get(digest)' --sort-by='~timestamp' --filter="NOT tags:deprecated" | sed '1d')
+OLD_SHAS=$(gcloud container images list-tags "$IMAGE_URL" --format='get(digest)' --filter="NOT (tags:deprecated-public-image-* OR tags:latest OR tags:release)")
 if [[ -z "$OLD_SHAS" ]]; then
   echo "No older images found for $IMAGE_URL. Skipping."
   exit 0
