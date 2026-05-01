@@ -93,7 +93,7 @@ local buildcontainerimgjob = {
         ] + job.post_steps,
 };
 
-local DeprecateOldImagesTask(image_url, input_name) = {
+local DeprecateOldImagesTask(image_url) = {
   task: 'deprecate-old-images',
   config: {
     platform: 'linux',
@@ -104,11 +104,11 @@ local DeprecateOldImagesTask(image_url, input_name) = {
         tag: 'latest' 
       },
     },
-    inputs: [{ name: input_name }],
+    inputs: [{ name: guest-test-infra }],
     params: { DRY_RUN: "false" }, // Enable live tagging in the pipeline
     run: {
       path: 'bash',
-      args: ['./%s/concourse/scripts/deprecate-images.sh' % input_name, image_url],
+      args: ['./guest-test-infra/concourse/scripts/deprecate-images.sh', image_url],
     },
   },
 };
@@ -124,7 +124,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
   
   // use script in post steps to tag old images as deprecated
   post_steps+: [
-    DeprecateOldImagesTask(self.destination, self.input)
+    DeprecateOldImagesTask(self.destination)
   ],
 };
 
@@ -224,7 +224,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       input: 'compute-image-tools',
       public_image_tag: false,
       post_steps+: [
-        DeprecateOldImagesTask(self.destination, self.input)
+        DeprecateOldImagesTask(self.destination)
       ],
     },
     buildcontainerimgjob {
@@ -276,7 +276,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
           },
         },
       ] + [
-        DeprecateOldImagesTask(self.destination, self.input)
+        DeprecateOldImagesTask(self.destination)
       ],
     },
     buildcontainerimgjob {
@@ -287,7 +287,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       input: 'compute-daisy',
       public_image_tag: false,
       post_steps+: [
-        DeprecateOldImagesTask(self.destination, self.input)
+        DeprecateOldImagesTask(self.destination)
       ],
     },
     buildcontainerimgjob {
@@ -299,7 +299,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       extra_resources: ['compute-image-tools-trigger'],
       public_image_tag: true,
       post_steps+: [
-        DeprecateOldImagesTask(self.destination, self.input)
+        DeprecateOldImagesTask(self.destination)
       ],
       extra_steps:
         [
