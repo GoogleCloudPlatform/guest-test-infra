@@ -275,8 +275,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
             commitish: 'cloud-image-tests/.git/ref',
           },
         },
-      ],
-      post_steps+: [
+      ] + [
         DeprecateOldImagesTask(self.destination, self.input)
       ],
     },
