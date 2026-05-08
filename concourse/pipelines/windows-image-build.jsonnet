@@ -550,7 +550,8 @@ local imgpublishjob = {
     else false,
 
   // Run tests on the testing stage
-  runtests:: if job.env == 'testing' then true
+  runtests:: if job.env == 'testing' &&
+  std.length(std.findSubstr("install-media", job.image)) == 0  then true
     else false,
 
   // Start of job.
