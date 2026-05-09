@@ -36,6 +36,10 @@
     },
     "spec_name": {
       "Required": false
+    },
+    "zone": {
+      "Value": "us-central1-a",
+      "Description": "zone"
     }
   },
   "Steps": {
@@ -50,13 +54,14 @@
           "repo_name": "${repo_name}",
           "git_ref": "${git_ref}",
           "extra_repo": "${extra_repo}",
-	  "extra_repo_owner": "${extra_repo_owner}",
+          "extra_repo_owner": "${extra_repo_owner}",
           "extra_git_ref": "${extra_git_ref}",
           "build_dir": "${build_dir}",
           "version": "${version}",
+          "zone": "${zone}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}",
-	  "lkg_gcs_path": "${lkg_gcs_path}",
-	  "spec_name": "${spec_name}"
+          "lkg_gcs_path": "${lkg_gcs_path}",
+          "spec_name": "${spec_name}"
         }
       }
     }

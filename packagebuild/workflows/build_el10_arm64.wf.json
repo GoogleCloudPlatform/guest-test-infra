@@ -33,6 +33,10 @@
       "Value": "projects/rhel-cloud/global/images/family/rhel-10-arm64",
       "Description": "Source image to use for package build instance",
       "Required": false
+    },
+    "zone": {
+      "Value": "europe-west4-a",
+      "Description": "zone"
     }
   },
   "Steps": {
@@ -52,7 +56,7 @@
           "build_dir": "${build_dir}",
           "machine_type": "c4a-standard-2",
           "disk_type": "hyperdisk-balanced",
-          "zone": "us-central1-a",
+          "zone": "${zone}",
           "version": "${version}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}"
         }
