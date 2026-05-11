@@ -31,6 +31,10 @@
     },
     "target_version": {
       "Required": false
+    },
+    "zone": {
+      "Value": "us-central1-a",
+      "Description": "zone"
     }
   },
   "Steps": {
@@ -49,6 +53,7 @@
           "extra_git_ref": "${extra_git_ref}",
           "build_dir": "${build_dir}",
           "version": "${version}",
+          "zone": "${zone}",
           "sbom_util_gcs_root": "${sbom_util_gcs_root}",
           "target_version": "bullseye"
         }
