@@ -462,6 +462,7 @@ local buildpackageimagetask = {
   machine_type:: 'e2-medium',
   worker_image:: 'projects/compute-image-tools/global/images/family/debian-11-worker',
   disk_type:: 'pd-ssd',
+  zone:: 'us-central1-a',
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
@@ -477,7 +478,7 @@ local buildpackageimagetask = {
       path: '/daisy',
       args: [
         '-project=guest-package-builder',
-        '-zone=us-central1-a',
+        '-zone=' + tl.zone,
         '-var:source_image=' + tl.source_image,
         '-var:gcs_package_path=' + tl.gcs_package_path,
         '-var:dest_image=' + tl.dest_image,
@@ -805,7 +806,15 @@ local build_guest_agent = buildpackagejob {
 
   local defaultZones = "asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d",
   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
-  local defaultArmZones = "asia-east1-a,us-central1-a,us-central1-f,europe-west1-b,us-central1-b,asia-east1-c",
+  local armBuildZones = ['europe-west4-a','europe-west1-b', 'asia-east1-a', 'asia-east1-c', 'asia-northeast1-b', 'us-east1-c'],
+  // Deterministically maps an image name to one of the armBuildZones using a codepoint sum modulo.
+  // This allows staggering builds across zones instead of having a hardcoded list.
+  local pickArmZone(imageName) = (
+    local sum = std.sum([std.codepoint(c) for c in std.stringChars(imageName)]);
+    armBuildZones[sum % std.length(armBuildZones)]
+  ),
+  // Comma separated string of armBuildZones for the -zones flag.
+  local armBuildZonesString = commaSeparatedString(armBuildZones),
 
   local allCITSuites = ['cvm','loadbalancer','guestagent','hostnamevalidation','network','nicsetup','packagevalidation','ssh','metadata','mdsroutes','vmspec','compatmanager','pluginmanager','mdsmtls','wsfc'],
 
@@ -937,6 +946,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('debian-12-arm64'),
           },
           buildpackageimagetask {
             image_name: 'debian-13',
@@ -952,6 +962,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('debian-13-arm64'),
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
@@ -975,6 +986,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('ubuntu-pro-1804-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-pro-2004-lts',
@@ -990,6 +1002,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('ubuntu-pro-2004-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-2204-lts',
@@ -1005,6 +1018,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('ubuntu-2204-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-2404-lts-amd64',
@@ -1020,6 +1034,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('ubuntu-2404-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-8',
@@ -1067,6 +1082,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rocky-linux-8-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-8-arm64',
@@ -1076,6 +1092,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rhel-8-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-9',
@@ -1127,6 +1144,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rhel-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'centos-stream-9-arm64',
@@ -1136,6 +1154,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('centos-stream-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9',
@@ -1152,6 +1171,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rocky-linux-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9-optimized-gcp',
@@ -1168,6 +1188,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rocky-linux-9-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'centos-stream-10',
@@ -1184,6 +1205,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('centos-stream-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'oracle-linux-10',
@@ -1214,6 +1236,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rhel-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-10-byos-arm64',
@@ -1223,6 +1246,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rhel-10-byos-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-10',
@@ -1239,6 +1263,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rocky-linux-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-10-optimized-gcp',
@@ -1255,6 +1280,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickArmZone('rocky-linux-10-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'sles-12',
@@ -1439,7 +1465,7 @@ local build_guest_agent = buildpackagejob {
                     // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
                     // to the same project runner is running in.
                     '-project=guest-package-builder',
-                    '-zones=%s' % defaultArmZones,
+                    '-zones=%s' % armBuildZonesString,
                     '-timeout=45m',
                     '-images=%s' % img,
                     '-filter=^(%s)$' % suite,
