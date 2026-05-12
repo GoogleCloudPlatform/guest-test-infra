@@ -1337,151 +1337,140 @@ local build_guest_agent = buildpackagejob {
       in_parallel: {
         fail_fast: true,
         limit: 60,
-        steps: std.flattenArrays([
-          [
-            {
-              local img = x86ImagesToTest[idx],
-              task: '%s-%s-oslogin' % [tl.package, imageFamily(img)],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=oslogin-cit',
-                    '-zone=us-central1-a',
-                    '-parallel_count=1',
-                    '-images=%s' % img,
-                    '-filter=oslogin',
-                  ],
-                },
+        steps: [
+          {
+            across: [
+              { var: 'img', values: x86ImagesToTest },
+            ],
+            task: '%s-oslogin-tests' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
               },
-              attempts: 3,
-            }
-            for idx in std.range(0, std.length(x86ImagesToTest) - 1)
-          ],
-          [
-            {
-              local img = x86ImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=oslogin-cit',
+                  '-zone=us-central1-a',
+                  '-parallel_count=1',
+                  '-images=((.:img))',
+                  '-filter=oslogin',
+                ],
               },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86ImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-          [
-            {
-              local img = x86PartnerImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
+            },
+            attempts: 3,
+          },
+          {
+            across: [
+              { var: 'img', values: x86ImagesToTest },
+              { var: 'suite', values: allCITSuites },
+            ],
+            task: '%s-linux-suites' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
               },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86PartnerImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-          [
-            {
-              local img = x86WindowsImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-x86_shape=e2-standard-4',
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=%s' % defaultZones,
+                  '-timeout=45m',
+                  '-images=((.:img))',
+                  '-filter=^(((.:suite)))$',
+                  '-parallel_count=1',
+                ],
               },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86WindowsImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-          [
-            {
-              local img = arm64ImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
-                    // to the same project runner is running in.
-                    '-project=guest-package-builder',
-                    '-zones=%s' % armBuildZonesString,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                    '-arm64_shape=c4a-standard-1',
-                  ],
-                },
+            },
+            attempts: 3,
+          },
+          {
+            across: [
+              { var: 'img', values: x86PartnerImagesToTest },
+              { var: 'suite', values: allCITSuites },
+            ],
+            task: '%s-partner-suites' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
               },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(arm64ImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
-          ],
-        ]),
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=%s' % defaultZones,
+                  '-timeout=45m',
+                  '-images=((.:img))',
+                  '-filter=^(((.:suite)))$',
+                  '-parallel_count=1',
+                ],
+              },
+            },
+            attempts: 3,
+          },
+          {
+            across: [
+              { var: 'img', values: x86WindowsImagesToTest },
+              { var: 'suite', values: allCITSuites },
+            ],
+            task: '%s-windows-suites' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=%s' % defaultZones,
+                  '-x86_shape=e2-standard-4',
+                  '-timeout=45m',
+                  '-images=((.:img))',
+                  '-filter=^(((.:suite)))$',
+                  '-parallel_count=1',
+                ],
+              },
+            },
+            attempts: 3,
+          },
+          {
+            across: [
+              { var: 'img', values: arm64ImagesToTest },
+              { var: 'suite', values: allCITSuites },
+            ],
+            task: '%s-arm64-suites' % [tl.package],
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+              },
+              run: {
+                path: '/manager',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zones=%s' % armBuildZonesString,
+                  '-timeout=45m',
+                  '-images=((.:img))',
+                  '-filter=^(((.:suite)))$',
+                  '-parallel_count=1',
+                  '-arm64_shape=c4a-standard-1',
+                ],
+              },
+            },
+            attempts: 3,
+          },
+        ],
       },
-    },
+    }
   ],
 };
 
