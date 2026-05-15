@@ -63,6 +63,8 @@ local imgbuildjob = {
   workflow:: error 'must set workflow in imgbuildjob',
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
+  install_machine_type:: 'c3-standard-4',
+  bootstrap_machine_type:: 'c3-standard-4',
 
   // Start of job.
   on_success: {
@@ -239,6 +241,8 @@ local sqlimgbuildjob = {
   workflow:: error 'must set workflow in sqlimgbuildjob',
   sql_version:: error 'must set sql_version in sqlbuildjob',
   ssms_version:: error 'must set ssms_version in sqlbuildjob',
+  install_machine_type:: 'c3-standard-4',
+  bootstrap_machine_type:: 'c3-standard-4',
 
   // Start of job.
   name: 'build-' + job.image + '-testing',
@@ -361,7 +365,8 @@ local sqlimgbuildjob = {
           'ssms_exe=((.:ssms-version))',
           'timeout=4h',
           'sbom_util_gcs_root=((.:sbom-util-secret))',
-        ],
+        ] + (if job.install_machine_type != '' then ['install_machine_type=' + job.install_machine_type] else [])
+          + (if job.bootstrap_machine_type != '' then ['bootstrap_machine_type=' + job.bootstrap_machine_type] else []),
       },
     },
   ],
@@ -372,6 +377,8 @@ local windowsinstallmediaimgbuildjob = {
 
   image:: error 'must set image in windowsinstallmediaimgbuildjob',
   workflow:: error 'must set workflow in windowsinstallmediaimgbuildjob',
+  install_machine_type:: 'c3-standard-4',
+  bootstrap_machine_type:: 'c3-standard-4',
 
   // Start of job.
   name: 'build-' + job.image + '-testing',
@@ -494,6 +501,9 @@ local windowsinstallmediaimgbuildjob = {
         updates_path_2019: '((.:updates_path_2019))',
         updates_path_2016: '((.:updates_path_2016))',
         updates_path_2012r2: '((.:updates_path_2012r2))',
+        vars+: [
+        ] + (if job.install_machine_type != '' then ['install_machine_type=' + job.install_machine_type] else [])
+          + (if job.bootstrap_machine_type != '' then ['bootstrap_machine_type=' + job.bootstrap_machine_type] else []),
       },
     },
   ],

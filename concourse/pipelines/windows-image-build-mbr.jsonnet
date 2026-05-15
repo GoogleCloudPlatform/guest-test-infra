@@ -21,6 +21,8 @@ local imgbuildjob = {
   workflow:: error 'must set workflow in imgbuildjob',
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
+  install_machine_type:: 'c3-standard-4',
+  bootstrap_machine_type:: 'c3-standard-4',
 
   // Start of job.
   name: 'build-' + job.image,
@@ -146,7 +148,8 @@ local imgbuildjob = {
           'updates=((.:windows-updates))',
           'google_cloud_repo=stable',
           'sbom_util_gcs_root=((.:sbom-util-secret))',
-        ],
+        ] + (if job.install_machine_type != '' then ['install_machine_type=' + job.install_machine_type] else [])
+          + (if job.bootstrap_machine_type != '' then ['bootstrap_machine_type=' + job.bootstrap_machine_type] else []),
       },
     },
   ],
