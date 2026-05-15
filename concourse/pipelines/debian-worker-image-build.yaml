@@ -83,6 +83,7 @@ jobs:
       wf: "debian/debian_11_worker.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      zone: "europe-west1-b"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -133,6 +134,7 @@ jobs:
       wf: "debian/debian_12_worker.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      zone: "europe-west4-b"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -183,6 +185,7 @@ jobs:
       wf: "debian/debian_12_worker_arm64.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      zone: "europe-west4-b"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -233,6 +236,7 @@ jobs:
       wf: "debian/debian_13_worker.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      zone: "asia-east1-a"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
@@ -283,6 +287,7 @@ jobs:
       wf: "debian/debian_13_worker_arm64.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
+      zone: "us-central1-b"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
