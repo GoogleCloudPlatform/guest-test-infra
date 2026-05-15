@@ -287,7 +287,7 @@ jobs:
       wf: "debian/debian_13_worker_arm64.wf.json"
       gcs_url: ((.:gcs-url))
       build_date: ((.:build-date))
-      zone: "us-central1-b"
+      zone: "europe-west4-b"
   on_success:
     task: success
     file: guest-test-infra/concourse/tasks/publish-job-result.yaml
