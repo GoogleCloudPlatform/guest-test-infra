@@ -29,7 +29,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local prepublishtesttask = common.imagetesttask {
-  zone: 'us-west1-a',
+  zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
   filter: '(shapevalidation)', // TODO enable oslogin
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
@@ -451,7 +451,7 @@ local imgpublishjob = {
                   {
                     task: 'image-test-' + tl.image,
                     config: common.imagetesttask {
-                      zone: 'europe-west1-b',
+                      zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
                       filter: tl.citfilter,
                       project: tl.cit_project,
                       test_projects: tl.cit_test_projects,
@@ -463,7 +463,7 @@ local imgpublishjob = {
                   {
                     task: 'oslogin-test-' + tl.image,
                     config: common.imagetesttask {
-                      zone: 'us-west1-a',
+                      zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
                       filter: tl.oslogin_cit_filter,
                       project: tl.oslogin_test_project,
                       test_projects: tl.oslogin_test_project,

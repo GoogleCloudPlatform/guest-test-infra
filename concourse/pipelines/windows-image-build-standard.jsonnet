@@ -10,6 +10,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetesttask = common.imagetesttask {
+  zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
   filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|shapevalidation|packageupgrade|packagevalidation|ssh|winrm|metadata|sql|windowscontainers)$',
   extra_args: [ '-x86_shape=n1-standard-4', '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
