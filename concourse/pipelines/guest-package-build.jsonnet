@@ -2,6 +2,59 @@ local underscore(input) = std.strReplace(input, '-', '_');
 local commaSeparatedString(inputArray) = std.join(',', inputArray);
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
+local armBuildZones = ['europe-west4-a', 'europe-west1-b', 'asia-east1-a', 'asia-east1-c', 'asia-northeast1-b', 'us-east1-c'];
+local x86BuildZones = ['us-central1-a', 'us-central1-b', 'us-central1-c', 'us-central1-f', 'us-east1-b', 'us-east1-c', 'us-east1-d', 'us-west1-a', 'us-west1-b', 'us-west1-c', 'asia-east1-a'];
+local defaultTestProjects = ['compute-image-test-pool-002', 'compute-image-test-pool-003', 'compute-image-test-pool-004', 'compute-image-test-pool-005'];
+
+local pickZone(imageName) = (
+  local isArm = std.member(imageName, 'arm');
+  local zones = if isArm then armBuildZones else x86BuildZones;
+  local sum = std.sum([std.codepoint(c) for c in std.stringChars(imageName)]);
+  zones[sum % std.length(zones)]
+);
+
+local cloudimageteststask(
+  package,
+  suffix,
+  images,
+  tests,
+  project='guest-package-builder',
+  test_projects=null,
+  zones=null,
+  timeout='45m',
+  parallel_count=15,
+  extra_args=[]
+) = {
+  local isArm = std.member(suffix, 'arm') || (std.length(images) > 0 && std.member(images[0], 'arm')),
+  local resolvedZones = if zones != null then zones else (if isArm then armBuildZones else x86BuildZones),
+
+  task: '%s-image-tests-%s' % [package, suffix],
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+    },
+    [if isArm then "inputs"]: [{ name: 'guest-test-infra' }],
+    run: {
+      path: '/manager',
+      args: [
+        '-project=' + project,
+        '-zone_override=false',
+        '-zones=' + commaSeparatedString(resolvedZones),
+        '-images=' + commaSeparatedString(images),
+        '-filter=^(' + std.join('|', tests) + ')$',
+        '-parallel_count=%d' % parallel_count,
+      ] + (if test_projects != null then ['-test_projects=' + commaSeparatedString(test_projects)] else [])
+        + (if timeout != null then ['-timeout=' + timeout] else [])
+        + extra_args,
+    },
+  },
+  attempts: 3,
+};
+
+
+
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
   local tl = self,
@@ -531,6 +584,11 @@ local build_guest_configs = buildpackagejob {
   package:: error 'must set package for build_guest_configs',
   builds: ['deb12', 'deb13', 'el8', 'el9', 'el10'],
   gcs_dir: 'google-compute-engine',
+
+  local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
+  local armTests = ['cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
+
+
   uploads: [
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb"',
@@ -616,12 +674,14 @@ local build_guest_configs = buildpackagejob {
             source_image: 'projects/debian-cloud/global/images/family/debian-11',
             dest_image: 'debian-11-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('debian-11'),
           },
           buildpackageimagetask {
             image_name: 'debian-12',
             source_image: 'projects/bct-prod-images/global/images/family/debian-12',
             dest_image: 'debian-12-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('debian-12'),
           },
           buildpackageimagetask {
             image_name: 'debian-12-arm64',
@@ -631,6 +691,7 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('debian-12-arm64'),
           },
           buildpackageimagetask {
             image_name: 'debian-13',
@@ -638,6 +699,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'debian-13-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-13-worker',
+            zone: pickZone('debian-13'),
           },
           buildpackageimagetask {
             image_name: 'debian-13-arm64',
@@ -647,12 +709,14 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-13-worker-arm64',
+            zone: pickZone('debian-13-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-8',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
             dest_image: 'rhel-8-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
+            zone: pickZone('rhel-8'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-8-optimized-gcp-arm64',
@@ -662,18 +726,21 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('rocky-linux-8-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-8',
             source_image: 'projects/rocky-linux-cloud/global/images/family/rocky-linux-8',
             dest_image: 'rocky-linux-8-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el8.noarch.rpm',
+            zone: pickZone('rocky-linux-8'),
           },
           buildpackageimagetask {
             image_name: 'rhel-9',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-9',
             dest_image: 'rhel-9-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
+            zone: pickZone('rhel-9'),
           },
           buildpackageimagetask {
             image_name: 'rhel-9-arm64',
@@ -683,6 +750,7 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('rhel-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-10',
@@ -690,6 +758,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rhel-10-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el10.noarch.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            zone: pickZone('rhel-10'),
           },
           buildpackageimagetask {
             image_name: 'rhel-10-arm64',
@@ -699,6 +768,7 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('rhel-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9',
@@ -706,6 +776,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rocky-linux-9-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            zone: pickZone('rocky-linux-9'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9-optimized-gcp',
@@ -713,6 +784,7 @@ local build_guest_configs = buildpackagejob {
             dest_image: 'rocky-linux-9-optimized-gcp-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine-((.:package-version))-g1.el9.noarch.rpm',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
+            zone: pickZone('rocky-linux-9-optimized-gcp'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9-optimized-gcp-arm64',
@@ -722,6 +794,7 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('rocky-linux-9-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9-arm64',
@@ -731,6 +804,7 @@ local build_guest_configs = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+            zone: pickZone('rocky-linux-9-arm64'),
           },
         ],
       },
@@ -739,53 +813,30 @@ local build_guest_configs = buildpackagejob {
       in_parallel: {
         fail_fast: true,
         steps: [
-          {
-            task: '%s-image-tests-amd64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zone_override=false',
-                  '-zones=us-west1-a,us-east1-b,us-west1-b,us-west1-c,us-east1-c,us-east1-d',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-images=projects/guest-package-builder/global/images/debian-11-((.:build-id)),projects/guest-package-builder/global/images/debian-12-((.:build-id)),projects/guest-package-builder/global/images/debian-13-((.:build-id)),projects/guest-package-builder/global/images/rhel-8-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
-                  '-filter=^(packagemanager|networkinterfacenaming|cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-            attempts: 3,
-          },
-          {
-            task: '%s-image-tests-arm64' % [tl.package],
-            config: {
-              platform: 'linux',
-              image_resource: {
-                type: 'registry-image',
-                source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-              },
-              inputs: [{ name: 'guest-test-infra' }],
-              run: {
-                path: '/manager',
-                args: [
-                  '-project=guest-package-builder',
-                  '-zones=europe-west4-b,asia-southeast1-b,europe-west4-c,asia-southeast1-c,europe-west4-a',
-                  '-zone_override=false',
-                  '-images=projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id)),projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id)),projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
-                  '-filter=^(cvm|loadbalancer|guestagent|hostnamevalidation|network|packagevalidation|ssh|metadata|mdsroutes|vmspec)$',
-                  '-test_projects=compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
-                  '-parallel_count=15',
-                ],
-              },
-            },
-            attempts: 3,
-          },
+          cloudimageteststask(tl.package, 'debian-amd64', [
+            'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
+            'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+            'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+          ], x86Tests, test_projects=defaultTestProjects),
+          cloudimageteststask(tl.package, 'el-amd64', [
+            'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
+            'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
+            'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+            'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
+            'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+            'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+          ], x86Tests, test_projects=defaultTestProjects),
+          cloudimageteststask(tl.package, 'debian-arm64', [
+            'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
+            'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+          ], armTests, test_projects=defaultTestProjects),
+          cloudimageteststask(tl.package, 'el-arm64', [
+            'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
+            'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
+            'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
+            'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
+            'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
+          ], armTests, test_projects=defaultTestProjects),
         ],
       },
     },
@@ -806,13 +857,6 @@ local build_guest_agent = buildpackagejob {
 
   local defaultZones = "asia-east1-a,us-west1-a,us-east1-b,us-west1-c,us-east1-c,us-east1-d",
   // https://cloud.google.com/compute/docs/regions-zones?_gl=1*nkhh8z*_ga*MjAyNTMyOTIwMi4xNzU0OTU1Njcz*_ga_WH2QY8WWF5*czE3NTUwMjkyODMkbzE3JGcxJHQxNzU1MDI5Mzk5JGo1NCRsMCRoMA..#available
-  local armBuildZones = ['europe-west4-a','europe-west1-b', 'asia-east1-a', 'asia-east1-c', 'asia-northeast1-b', 'us-east1-c'],
-  // Deterministically maps an image name to one of the armBuildZones using a codepoint sum modulo.
-  // This allows staggering builds across zones instead of having a hardcoded list.
-  local pickArmZone(imageName) = (
-    local sum = std.sum([std.codepoint(c) for c in std.stringChars(imageName)]);
-    armBuildZones[sum % std.length(armBuildZones)]
-  ),
   // Comma separated string of armBuildZones for the -zones flag.
   local armBuildZonesString = commaSeparatedString(armBuildZones),
 
@@ -946,7 +990,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('debian-12-arm64'),
+            zone: pickZone('debian-12-arm64'),
           },
           buildpackageimagetask {
             image_name: 'debian-13',
@@ -962,7 +1006,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('debian-13-arm64'),
+            zone: pickZone('debian-13-arm64'),
           },
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
@@ -986,7 +1030,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('ubuntu-pro-1804-lts-arm64'),
+            zone: pickZone('ubuntu-pro-1804-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-pro-2004-lts',
@@ -1002,7 +1046,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('ubuntu-pro-2004-lts-arm64'),
+            zone: pickZone('ubuntu-pro-2004-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-2204-lts',
@@ -1018,7 +1062,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('ubuntu-2204-lts-arm64'),
+            zone: pickZone('ubuntu-2204-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'ubuntu-2404-lts-amd64',
@@ -1034,7 +1078,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('ubuntu-2404-lts-arm64'),
+            zone: pickZone('ubuntu-2404-lts-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-8',
@@ -1082,7 +1126,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rocky-linux-8-optimized-gcp-arm64'),
+            zone: pickZone('rocky-linux-8-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-8-arm64',
@@ -1092,7 +1136,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rhel-8-arm64'),
+            zone: pickZone('rhel-8-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-9',
@@ -1144,7 +1188,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rhel-9-arm64'),
+            zone: pickZone('rhel-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'centos-stream-9-arm64',
@@ -1154,7 +1198,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('centos-stream-9-arm64'),
+            zone: pickZone('centos-stream-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9',
@@ -1171,7 +1215,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rocky-linux-9-arm64'),
+            zone: pickZone('rocky-linux-9-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-9-optimized-gcp',
@@ -1188,7 +1232,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rocky-linux-9-optimized-gcp-arm64'),
+            zone: pickZone('rocky-linux-9-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'centos-stream-10',
@@ -1205,7 +1249,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('centos-stream-10-arm64'),
+            zone: pickZone('centos-stream-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'oracle-linux-10',
@@ -1236,7 +1280,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rhel-10-arm64'),
+            zone: pickZone('rhel-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rhel-10-byos-arm64',
@@ -1246,7 +1290,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rhel-10-byos-arm64'),
+            zone: pickZone('rhel-10-byos-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-10',
@@ -1263,7 +1307,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rocky-linux-10-arm64'),
+            zone: pickZone('rocky-linux-10-arm64'),
           },
           buildpackageimagetask {
             image_name: 'rocky-linux-10-optimized-gcp',
@@ -1280,7 +1324,7 @@ local build_guest_agent = buildpackagejob {
             machine_type: 'c4a-standard-2',
             disk_type: 'hyperdisk-balanced',
             worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
-            zone: pickArmZone('rocky-linux-10-optimized-gcp-arm64'),
+            zone: pickZone('rocky-linux-10-optimized-gcp-arm64'),
           },
           buildpackageimagetask {
             image_name: 'sles-12',
@@ -1339,145 +1383,63 @@ local build_guest_agent = buildpackagejob {
         limit: 60,
         steps: std.flattenArrays([
           [
-            {
-              local img = x86ImagesToTest[idx],
-              task: '%s-%s-oslogin' % [tl.package, imageFamily(img)],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=oslogin-cit',
-                    '-zone=us-central1-a',
-                    '-parallel_count=1',
-                    '-images=%s' % img,
-                    '-filter=oslogin',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for idx in std.range(0, std.length(x86ImagesToTest) - 1)
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-oslogin',
+              images=[img],
+              tests=['oslogin'],
+              project='oslogin-cit',
+              zones=['us-central1-a'],
+              timeout=null,
+              parallel_count=1
+            )
+            for img in x86ImagesToTest
           ],
           [
-            {
-              local img = x86ImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86ImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1
+            )
+            for img in x86ImagesToTest
+            for suite in allCITSuites
           ],
           [
-            {
-              local img = x86PartnerImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86PartnerImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1
+            )
+            for img in x86PartnerImagesToTest
+            for suite in allCITSuites
           ],
           [
-            {
-              local img = x86WindowsImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    '-project=guest-package-builder',
-                    '-zones=%s' % defaultZones,
-                    '-x86_shape=e2-standard-4',
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(x86WindowsImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1,
+              extra_args=['-x86_shape=e2-standard-4']
+            )
+            for img in x86WindowsImagesToTest
+            for suite in allCITSuites
           ],
           [
-            {
-              local img = arm64ImagesToTest[i],
-              local suite = allCITSuites[j],
-              task: '%s-%s-%s' % [tl.package, imageFamily(img), suite],
-              config: {
-                platform: 'linux',
-                image_resource: {
-                  type: 'registry-image',
-                  source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
-                },
-                run: {
-                  path: '/manager',
-                  args: [
-                    // Override project to run tests in by providing -test_projects flag otherwise CIT defaults
-                    // to the same project runner is running in.
-                    '-project=guest-package-builder',
-                    '-zones=%s' % armBuildZonesString,
-                    '-timeout=45m',
-                    '-images=%s' % img,
-                    '-filter=^(%s)$' % suite,
-                    '-parallel_count=1',
-                    '-arm64_shape=c4a-standard-1',
-                  ],
-                },
-              },
-              attempts: 3,
-            }
-            for i in std.range(0, std.length(arm64ImagesToTest) - 1)
-            for j in std.range(0, std.length(allCITSuites) - 1)
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1,
+              extra_args=['-arm64_shape=c4a-standard-1']
+            )
+            for img in arm64ImagesToTest
+            for suite in allCITSuites
           ],
         ]),
       },
