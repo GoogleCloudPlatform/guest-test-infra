@@ -829,14 +829,14 @@ local build_guest_configs = buildpackagejob {
           cloudimageteststask(tl.package, 'debian-arm64', [
             'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1']),
           cloudimageteststask(tl.package, 'el-arm64', [
             'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1']),
         ],
       },
     },
