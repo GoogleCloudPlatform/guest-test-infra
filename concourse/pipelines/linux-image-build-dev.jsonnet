@@ -207,7 +207,7 @@ local rhelimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal', '-unsigned']),
 
   is_arm:: std.member(tl.image, '-arm64'),
   is_byos:: std.member(tl.image, '-byos'),
