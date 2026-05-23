@@ -24,12 +24,6 @@ local imagetestc3 = common.imagetesttask {
   extra_args: [ '-x86_shape=c3-standard-4', '-timeout=60m' ],
 };
 
-local prepublishtesttask = common.imagetesttask {
-  zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
-  filter: '(shapevalidation)',
-  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))', '-timeout=60m' ],
-};
-
 local imgbuildjob = {
   local job = self,
 
