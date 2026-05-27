@@ -482,10 +482,10 @@ local imggroup = {
 
 {
   local rhel_images = [
-    'rhel-10-gvnic-baremetal-unsigned',
-    'rhel-10-gvnic-baremetal-unsigned-byos',
-    'rhel-10-lvm-gvnic-baremetal-unsigned',
-    'rhel-10-lvm-gvnic-baremetal-unsigned-byos',
+    'rhel-10-gvnic-baremetal',
+    'rhel-10-gvnic-baremetal-byos',
+    'rhel-10-lvm-gvnic-baremetal',
+    'rhel-10-lvm-gvnic-baremetal-byos',
     'rhel-10-2-beta',
     ],
 
