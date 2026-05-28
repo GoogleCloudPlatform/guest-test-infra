@@ -213,7 +213,7 @@ local rhelimgbuildjob = imgbuildjob {
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
-  is_oot_driver:: std.member(tl.image, '--gvnic-baremetal'),
+  is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
   is_sap:: std.member(tl.image, '-sap'),
   is_unsigned_oot_driver:: std.member(tl.image, '-unsigned'),
   use_dynamic_template:: true,
