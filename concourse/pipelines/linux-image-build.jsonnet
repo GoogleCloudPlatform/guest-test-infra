@@ -239,12 +239,13 @@ local rhelimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
 
   is_arm:: std.member(tl.image, '-arm64'),
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
+  is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
   is_sap:: std.member(tl.image, '-sap'),
   use_dynamic_template:: true,
 
@@ -311,6 +312,7 @@ local rhelimgbuildjob = imgbuildjob {
       'is_arm=' + std.toString(tl.is_arm),
       'is_byos=' + std.toString(tl.is_byos),
       'is_lvm=' + std.toString(tl.is_lvm),
+      'is_oot_driver=' + std.toString(tl.is_oot_driver),
       'is_sap=' + std.toString(tl.is_sap),
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
@@ -606,12 +608,16 @@ local imggroup = {
     'rhel-10-0-eus-arm64',
     'rhel-10-0-eus-byos',
     'rhel-10-0-eus-byos-arm64',
+    'rhel-10-2-eus-gvnic-baremetal',
+    'rhel-10-2-eus-gvnic-baremetal-byos',
   ],
   local rhel_10_eus_lvm_images = [
     'rhel-10-0-eus-lvm',
     'rhel-10-0-eus-lvm-byos',
     'rhel-10-0-eus-lvm-arm64',
     'rhel-10-0-eus-lvm-byos-arm64',
+    'rhel-10-2-eus-lvm-gvnic-baremetal',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos',
   ],
   local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images +rhel_10_eus_images + rhel_10_eus_lvm_images,
 
