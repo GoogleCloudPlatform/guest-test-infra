@@ -287,6 +287,8 @@ local rhelimgbuildjob = imgbuildjob {
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
     ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.major_release == '10' then ['is_oot_driver=' + std.toString(tl.is_oot_driver)] else [])
+    + (if tl.major_release == '10' then ['is_unsigned_oot_driver=' + std.toString(tl.is_unsigned_oot_driver)] else [])
   },
 
 };

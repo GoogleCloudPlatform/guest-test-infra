@@ -312,11 +312,11 @@ local rhelimgbuildjob = imgbuildjob {
       'is_arm=' + std.toString(tl.is_arm),
       'is_byos=' + std.toString(tl.is_byos),
       'is_lvm=' + std.toString(tl.is_lvm),
-      'is_oot_driver=' + std.toString(tl.is_oot_driver),
       'is_sap=' + std.toString(tl.is_sap),
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
     ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.major_release == '10' then ['is_oot_driver=' + std.toString(tl.is_oot_driver)] else [])
   },
 };
 
