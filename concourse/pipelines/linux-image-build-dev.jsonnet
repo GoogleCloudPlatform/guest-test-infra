@@ -22,7 +22,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local prepublishtesttask = common.imagetesttask {
-  zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
+  zones: ['us-west1-a', 'us-west1-c'],
   filter: '(shapevalidation)',
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
