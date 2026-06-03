@@ -542,8 +542,6 @@ local imggroup = {
     'rhel-8-lvm-byos-arm64',
   ],
   local rhel_8_sap_images = [
-    'rhel-8-6-sap',
-    'rhel-8-6-sap-byos',
     'rhel-8-8-sap',
     'rhel-8-8-sap-byos',
     'rhel-8-10-sap',
@@ -560,8 +558,6 @@ local imggroup = {
     'rhel-9-byos-arm64',
   ],
   local rhel_9_sap_images = [
-    'rhel-9-0-sap',
-    'rhel-9-0-sap-byos',
     'rhel-9-2-sap',
     'rhel-9-2-sap-byos',
     'rhel-9-4-sap',
@@ -570,20 +566,12 @@ local imggroup = {
     'rhel-9-6-sap-byos',
   ],
   local rhel_9_eus_images = [
-    'rhel-9-4-eus',
-    'rhel-9-4-eus-arm64',
-    'rhel-9-4-eus-byos',
-    'rhel-9-4-eus-byos-arm64',
     'rhel-9-6-eus',
     'rhel-9-6-eus-arm64',
     'rhel-9-6-eus-byos',
     'rhel-9-6-eus-byos-arm64',
   ],
   local rhel_9_eus_lvm_images = [
-    'rhel-9-4-eus-lvm', 
-    'rhel-9-4-eus-lvm-byos',
-    'rhel-9-4-eus-lvm-arm64',
-    'rhel-9-4-eus-lvm-byos-arm64',
     'rhel-9-6-eus-lvm',
     'rhel-9-6-eus-lvm-byos',
     'rhel-9-6-eus-lvm-arm64',
