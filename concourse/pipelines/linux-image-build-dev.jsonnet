@@ -437,6 +437,7 @@ local imgpublishjob = {
                 test_projects: tl.cit_test_projects,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
+                zone: tl.zone,
               },
               attempts: 1,
             },
