@@ -332,6 +332,7 @@ local imgpublishjob = {
 
   image:: error 'must set image in imgpublishjob',
   image_prefix:: self.image,
+  zone:: get_zone(self.image),
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
@@ -458,6 +459,7 @@ local imgpublishjob = {
       job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
+      zone: tl.zone,
     },
   },
   on_failure: {
@@ -467,6 +469,7 @@ local imgpublishjob = {
       job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
+      zone: tl.zone,
     },
   },
 };
