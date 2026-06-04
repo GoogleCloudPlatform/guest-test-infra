@@ -119,7 +119,7 @@
   default_oslogin_test_project:: 'oslogin-cit',
   default_cit_test_projects: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
   default_cit_zone:: 'us-central1-b',
-  default_cit_zones:: ['us-central1-a', 'us-central1-b', 'us-central1-f', 'us-east1-b', 'us-east1-c', 'us-east1-d', 'us-west1-a', 'us-west1-b', 'us-west1-c'],
+  default_cit_zones:: ['us-central1-a', 'us-central1-b', 'us-central1-f', 'us-east1-b', 'us-east1-c', 'us-east1-d', 'us-west1-a', 'us-west1-c'],
 
   imagetesttask:: {
     local task = self,
