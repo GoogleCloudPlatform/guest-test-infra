@@ -9,6 +9,13 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
+local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
+local arm_build_zones = ['us-central1-b', 'europe-west4-a', 'europe-west4-b'];
+local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
+local get_zone(image) =
+  local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
+  zones[std.mod(string_hash(image), std.length(zones))];
+
 local trim_strings(s, trim) =
   if std.length(trim) == 0 then
     s
@@ -34,6 +41,7 @@ local imgbuildjob = {
 
   image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
+  zone:: get_zone(self.image),
   workflow_dir:: error 'must set workflow_dir in imgbuildjob',
   workflow::
     if tl.use_dynamic_template then
@@ -42,6 +50,7 @@ local imgbuildjob = {
       '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
   build_task:: imgbuildtask {
     workflow: tl.workflow,
+    zone: tl.zone,
     vars+: ['google_cloud_repo=stable'],
   },
   extra_tasks:: [],
