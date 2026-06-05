@@ -216,7 +216,7 @@ local rhelimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal', '-unsigned']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
 
   is_arm:: std.member(tl.image, '-arm64'),
   is_byos:: std.member(tl.image, '-byos'),
@@ -224,7 +224,6 @@ local rhelimgbuildjob = imgbuildjob {
   is_lvm:: std.member(tl.image, '-lvm'),
   is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
   is_sap:: std.member(tl.image, '-sap'),
-  is_unsigned_oot_driver:: std.member(tl.image, '-unsigned'),
   use_dynamic_template:: true,
 
   local arch = if tl.is_arm then 'aarch64' else 'x86_64',
@@ -295,7 +294,6 @@ local rhelimgbuildjob = imgbuildjob {
       'version_lock=' + tl.version_lock,
     ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
     + (if tl.major_release == '10' then ['is_oot_driver=' + std.toString(tl.is_oot_driver)] else [])
-    + (if tl.major_release == '10' then ['is_unsigned_oot_driver=' + std.toString(tl.is_unsigned_oot_driver)] else [])
   },
 
 };
