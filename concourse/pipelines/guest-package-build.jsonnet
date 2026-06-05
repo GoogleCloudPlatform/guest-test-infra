@@ -894,7 +894,6 @@ local build_guest_agent = buildpackagejob {
     'projects/guest-package-builder/global/images/rhel-8-8-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-10-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
-    'projects/guest-package-builder/global/images/rhel-9-0-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-2-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-4-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-6-sap-ha-((.:build-id))',
@@ -1160,12 +1159,6 @@ local build_guest_agent = buildpackagejob {
             image_name: 'rhel-9-2-sap-ha',
             source_image: 'projects/rhel-sap-cloud/global/images/family/rhel-9-2-sap-ha',
             dest_image: 'rhel-9-2-sap-ha-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'rhel-9-0-sap-ha',
-            source_image: 'projects/rhel-sap-cloud/global/images/family/rhel-9-0-sap-ha',
-            dest_image: 'rhel-9-0-sap-ha-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
@@ -1552,7 +1545,6 @@ local build_and_upload_oslogin = buildpackagejob {
     'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
-    'projects/guest-package-builder/global/images/rhel-8-6-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-8-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-10-sap-ha-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
@@ -1644,12 +1636,6 @@ local build_and_upload_oslogin = buildpackagejob {
             image_name: 'rhel-8',
             source_image: 'projects/rhel-cloud/global/images/family/rhel-8',
             dest_image: 'rhel-8-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm',
-          },
-          buildpackageimagetask {
-            image_name: 'rhel-8-6-sap-ha',
-            source_image: 'projects/rhel-sap-cloud/global/images/family/rhel-8-6-sap-ha',
-            dest_image: 'rhel-8-6-sap-ha-((.:build-id))',
             gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version))-g1.el8.x86_64.rpm',
           },
           buildpackageimagetask {
