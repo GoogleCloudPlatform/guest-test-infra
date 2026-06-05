@@ -9,7 +9,7 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
-local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
+local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-northeast1-b'];
 local arm_build_zones = ['europe-west4-a', 'europe-west4-b'];
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
