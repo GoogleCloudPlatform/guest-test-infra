@@ -564,6 +564,8 @@ local imggroup = {
     'rhel-9-4-sap-byos',
     'rhel-9-6-sap',
     'rhel-9-6-sap-byos',
+    'rhel-9-8-sap',
+    'rhel-9-8-sap-byos',
   ],
   local rhel_9_eus_images = [
     'rhel-9-6-eus',
@@ -598,6 +600,8 @@ local imggroup = {
   local rhel_10_sap_images = [
     'rhel-10-0-sap',
     'rhel-10-0-sap-byos',
+    'rhel-10-2-sap',
+    'rhel-10-2-sap-byos',
   ],
   local rhel_10_eus_images = [
     'rhel-10-0-eus',
