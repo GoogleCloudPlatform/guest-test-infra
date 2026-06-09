@@ -19,7 +19,7 @@ local imagetestn1 = common.imagetesttask {
 };
 
 local imagetestc3 = common.imagetesttask {
-  zones: ['us-central1-a', 'us-central1-b', 'us-central1-f'],
+  zones: ['asia-east1-a', 'europe-north1-b', 'us-west1-c'],
   filter: '^(livemigrate|suspendresume|imageboot|network|hotattach|lssd|disk)$',
   extra_args: [ '-x86_shape=c3-standard-4', '-timeout=60m' ],
 };
