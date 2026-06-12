@@ -9,6 +9,13 @@ local lego = import '../templates/lego.libsonnet';
 local envs = ['testing'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
+local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-northeast1-b'];
+local arm_build_zones = ['europe-west4-a', 'europe-west4-b'];
+local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
+local get_zone(image) =
+  local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
+  zones[std.mod(string_hash(image), std.length(zones))];
+
 local trim_strings(s, trim) =
   if std.length(trim) == 0 then
     s
@@ -22,6 +29,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local prepublishtesttask = common.imagetesttask {
+  zones: ['us-west1-a', 'us-west1-c'],
   filter: '(shapevalidation)',
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
@@ -33,6 +41,7 @@ local imgbuildjob = {
 
   image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
+  zone:: get_zone(self.image),
   workflow_dir:: error 'must set workflow_dir in imgbuildjob',
   workflow::
     if tl.use_dynamic_template then
@@ -41,6 +50,7 @@ local imgbuildjob = {
       '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image)],
   build_task:: imgbuildtask {
     workflow: tl.workflow,
+    zone: tl.zone,
     vars+: ['google_cloud_repo=stable'],
   },
   extra_tasks:: [],
@@ -206,12 +216,13 @@ local rhelimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
 
   is_arm:: std.member(tl.image, '-arm64'),
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
+  is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
   is_sap:: std.member(tl.image, '-sap'),
   use_dynamic_template:: true,
 
@@ -282,6 +293,7 @@ local rhelimgbuildjob = imgbuildjob {
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
     ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.major_release == '10' then ['is_oot_driver=' + std.toString(tl.is_oot_driver)] else [])
   },
 
 };
@@ -318,6 +330,7 @@ local imgpublishjob = {
 
   image:: error 'must set image in imgpublishjob',
   image_prefix:: self.image,
+  zone:: get_zone(self.image),
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
@@ -422,6 +435,7 @@ local imgpublishjob = {
                 test_projects: tl.cit_test_projects,
                 images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                 extra_args:: tl.cit_extra_args,
+                zone: tl.zone,
               },
               attempts: 1,
             },
@@ -444,6 +458,7 @@ local imgpublishjob = {
       job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
+      zone: tl.zone,
     },
   },
   on_failure: {
@@ -453,6 +468,7 @@ local imgpublishjob = {
       job: 'publish-to-%s-%s' % [tl.env, tl.image],
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
+      zone: tl.zone,
     },
   },
 };

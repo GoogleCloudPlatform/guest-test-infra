@@ -13,19 +13,15 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 // Templates.
 local imagetestn1 = common.imagetesttask {
-  zone: 'europe-west1-b',
+  zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
   filter: '^(cvm|livemigrate|suspendresume|loadbalancer|guestagent|hostnamevalidation|imageboot|licensevalidation|network|security|hotattach|lssd|disk|packagevalidation|ssh|winrm|metadata|sql|mdsmtls|mdsroutes|packagemanager|compatmanager|packageupgrade)$',
   extra_args: [ '-x86_shape=n1-standard-4', '-timeout=60m'],
 };
 
 local imagetestc3 = common.imagetesttask {
+  zones: ['asia-northeast1-b', 'europe-north1-b', 'us-west1-c'],
   filter: '^(livemigrate|suspendresume|imageboot|network|hotattach|lssd|disk)$',
   extra_args: [ '-x86_shape=c3-standard-4', '-timeout=60m' ],
-};
-
-local prepublishtesttask = common.imagetesttask {
-  filter: '(shapevalidation)',
-  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))', '-timeout=60m' ],
 };
 
 local imgbuildjob = {

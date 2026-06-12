@@ -246,11 +246,11 @@ var _ = Describe("In", func() {
 		It("works", func() {
 			Expect(actualErr).ToNot(HaveOccurred())
 
-			lstat, err := os.Lstat(rootfsPath("usr", "libexec", "git-core", "git"))
+			lstat, err := os.Lstat(rootfsPath("hardlink-test", "hardlink-file"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(lstat.Mode() & os.ModeSymlink).To(BeZero())
 
-			stat, err := os.Stat(rootfsPath("usr", "libexec", "git-core", "git"))
+			stat, err := os.Stat(rootfsPath("hardlink-test", "hardlink-file"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stat.Mode() & os.ModeSymlink).To(BeZero())
 		})

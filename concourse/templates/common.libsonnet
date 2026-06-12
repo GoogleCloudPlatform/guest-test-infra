@@ -119,6 +119,7 @@
   default_oslogin_test_project:: 'oslogin-cit',
   default_cit_test_projects: 'compute-image-test-pool-002,compute-image-test-pool-003,compute-image-test-pool-004,compute-image-test-pool-005',
   default_cit_zone:: 'us-central1-b',
+  default_cit_zones:: ['us-central1-a', 'us-central1-b', 'us-central1-f', 'us-east1-b', 'us-east1-c', 'us-east1-d', 'us-west1-a', 'us-west1-c'],
 
   imagetesttask:: {
     local task = self,
@@ -126,7 +127,8 @@
     exclude:: if task.filter == '' then error 'must set one of filter or exclude in imagetesttask' else '',
     filter:: if task.exclude == '' then error 'must set one of filter or exclude in imagetesttask' else '',
     project:: tl.default_cit_project,
-    zone:: tl.default_cit_zone,
+    zone:: '',  // Deprecated: use zones instead.
+    zones:: if task.zone != '' then [task.zone] else tl.default_cit_zones,
     test_projects:: tl.default_cit_test_projects,
     extra_args:: [],
     platform: 'linux',
@@ -138,7 +140,7 @@
       path: '/manager',
       args: [
         '-project=%s' % task.project,
-        '-zone=%s' % task.zone,
+        '-zones=%s' % std.join(',', task.zones),
         '-test_projects=%s' % task.test_projects,
         '-exclude=%s' % task.exclude,
         '-filter=%s' % task.filter,

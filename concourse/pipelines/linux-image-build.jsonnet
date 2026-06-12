@@ -10,7 +10,7 @@ local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
-local arm_build_zones = ['us-central1-b', 'europe-west4-a', 'europe-west4-b'];
+local arm_build_zones = ['us-west1-a', 'europe-west4-a', 'europe-west4-b'];
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
   local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
@@ -29,7 +29,7 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 local prepublishtesttask = common.imagetesttask {
-  zone: 'us-west1-a',
+  zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
   filter: '(shapevalidation)', // TODO enable oslogin
   extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
 };
@@ -239,12 +239,13 @@ local rhelimgbuildjob = imgbuildjob {
 
   workflow_dir: 'enterprise_linux',
   sbom_util_secret_name:: 'sbom-util-secret',
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
 
   is_arm:: std.member(tl.image, '-arm64'),
   is_byos:: std.member(tl.image, '-byos'),
   is_eus:: std.member(tl.image, '-eus'),
   is_lvm:: std.member(tl.image, '-lvm'),
+  is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
   is_sap:: std.member(tl.image, '-sap'),
   use_dynamic_template:: true,
 
@@ -315,6 +316,7 @@ local rhelimgbuildjob = imgbuildjob {
       'rhui_package_name=' + tl.rhui_package_name,
       'version_lock=' + tl.version_lock,
     ] + (if tl.major_release != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.major_release == '10' then ['is_oot_driver=' + std.toString(tl.is_oot_driver)] else [])
   },
 };
 
@@ -451,7 +453,7 @@ local imgpublishjob = {
                   {
                     task: 'image-test-' + tl.image,
                     config: common.imagetesttask {
-                      zone: 'europe-west1-b',
+                      zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
                       filter: tl.citfilter,
                       project: tl.cit_project,
                       test_projects: tl.cit_test_projects,
@@ -463,7 +465,7 @@ local imgpublishjob = {
                   {
                     task: 'oslogin-test-' + tl.image,
                     config: common.imagetesttask {
-                      zone: 'us-west1-a',
+                      zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
                       filter: tl.oslogin_cit_filter,
                       project: tl.oslogin_test_project,
                       test_projects: tl.oslogin_test_project,
@@ -540,8 +542,6 @@ local imggroup = {
     'rhel-8-lvm-byos-arm64',
   ],
   local rhel_8_sap_images = [
-    'rhel-8-6-sap',
-    'rhel-8-6-sap-byos',
     'rhel-8-8-sap',
     'rhel-8-8-sap-byos',
     'rhel-8-10-sap',
@@ -558,34 +558,34 @@ local imggroup = {
     'rhel-9-byos-arm64',
   ],
   local rhel_9_sap_images = [
-    'rhel-9-0-sap',
-    'rhel-9-0-sap-byos',
     'rhel-9-2-sap',
     'rhel-9-2-sap-byos',
     'rhel-9-4-sap',
     'rhel-9-4-sap-byos',
     'rhel-9-6-sap',
     'rhel-9-6-sap-byos',
+    'rhel-9-8-sap',
+    'rhel-9-8-sap-byos',
   ],
   local rhel_9_eus_images = [
-    'rhel-9-4-eus',
-    'rhel-9-4-eus-arm64',
-    'rhel-9-4-eus-byos',
-    'rhel-9-4-eus-byos-arm64',
     'rhel-9-6-eus',
     'rhel-9-6-eus-arm64',
     'rhel-9-6-eus-byos',
     'rhel-9-6-eus-byos-arm64',
+    'rhel-9-8-eus',
+    'rhel-9-8-eus-arm64',
+    'rhel-9-8-eus-byos',
+    'rhel-9-8-eus-byos-arm64',
   ],
   local rhel_9_eus_lvm_images = [
-    'rhel-9-4-eus-lvm', 
-    'rhel-9-4-eus-lvm-byos',
-    'rhel-9-4-eus-lvm-arm64',
-    'rhel-9-4-eus-lvm-byos-arm64',
     'rhel-9-6-eus-lvm',
     'rhel-9-6-eus-lvm-byos',
     'rhel-9-6-eus-lvm-arm64',
     'rhel-9-6-eus-lvm-byos-arm64',
+    'rhel-9-8-eus-lvm',
+    'rhel-9-8-eus-lvm-arm64',
+    'rhel-9-8-eus-lvm-byos',
+    'rhel-9-8-eus-lvm-byos-arm64',
   ],
   local rhel_10_base_images = [
     'rhel-10',
@@ -600,18 +600,32 @@ local imggroup = {
   local rhel_10_sap_images = [
     'rhel-10-0-sap',
     'rhel-10-0-sap-byos',
+    'rhel-10-2-sap',
+    'rhel-10-2-sap-byos',
   ],
   local rhel_10_eus_images = [
     'rhel-10-0-eus',
     'rhel-10-0-eus-arm64',
     'rhel-10-0-eus-byos',
     'rhel-10-0-eus-byos-arm64',
+    'rhel-10-2-eus',
+    'rhel-10-2-eus-arm64',
+    'rhel-10-2-eus-byos',
+    'rhel-10-2-eus-byos-arm64',
+    'rhel-10-2-eus-gvnic-baremetal',
+    'rhel-10-2-eus-gvnic-baremetal-byos',
   ],
   local rhel_10_eus_lvm_images = [
     'rhel-10-0-eus-lvm',
     'rhel-10-0-eus-lvm-byos',
     'rhel-10-0-eus-lvm-arm64',
     'rhel-10-0-eus-lvm-byos-arm64',
+    'rhel-10-2-eus-lvm',
+    'rhel-10-2-eus-lvm-arm64',
+    'rhel-10-2-eus-lvm-byos',
+    'rhel-10-2-eus-lvm-byos-arm64',
+    'rhel-10-2-eus-lvm-gvnic-baremetal',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos',
   ],
   local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images +rhel_10_eus_images + rhel_10_eus_lvm_images,
 
