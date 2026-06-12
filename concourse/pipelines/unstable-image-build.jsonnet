@@ -1,7 +1,3 @@
-// to start off: figure out how to fetch image from completed linux/windows image build
-// from there: create tasks to publish image to GCP project
-// LAST STEP: add image modification step.
-
 // Imports
 local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
@@ -157,7 +153,6 @@ local imgpublishtask = arle.gcepublishtask {
 
   target_project:: error 'must set target_project in imgpublishtask',
 
-  // append project flag to the base arguments in gcepublishtask
   run+: {
     args: [
       '-work_project=' + tl.target_project,
@@ -182,7 +177,6 @@ local imgpublishjob(image) = {
   // Start of job
   name: 'publish-unstable-%s-%s' % [tl.env, tl.image_name],
   plan: [
-    // STEP 1: Trigger + fetch image data
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -210,7 +204,6 @@ local imgpublishjob(image) = {
       load_var: 'publish-version',
       file: 'publish-version/version',
     },
-    // STEP 2: Actual publishing task
     {
       task: 'unstable-gce-image-publish-' + image.name,
       config: imgpublishtask {
@@ -223,7 +216,6 @@ local imgpublishjob(image) = {
       },
     },
   ],
-  // STEP 3: Report success/failure metrics
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
