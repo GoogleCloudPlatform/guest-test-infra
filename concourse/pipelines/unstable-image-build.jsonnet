@@ -116,27 +116,14 @@ local imgbuildjob = {
   },
 };
 
-// Task template that extends gcepublishtask to target a custom GCP project
-local imgpublishtask = arle.gcepublishtask {
-  local tl = self,
-
-  target_project:: error 'must set target_project in imgpublishtask',
-
-  run+: {
-    args: [
-      '-work_project=' + tl.target_project,
-    ] + super.args,
-  },
-};
-
-local imgpublishjob(image) = {
+local imgpublishjob = {
   local tl = self,  // tl = Top Level
 
-  env:: 'test',
-  image_name:: image.name,
-  image_prefix:: if image.os_type == 'debian' then common.debian_image_prefixes[image.name] else image.name,
-  workflow_dir:: if image.os_type == 'debian' then 'debian' else 'enterprise_linux',
-  workflow:: if image.os_type != 'windows'
+  env:: 'package',
+  image_name:: self.image.name,
+  image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
+  workflow_dir:: self.image.workflow_dir,
+  workflow:: if self.image.os_type != 'windows'
     then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_prefix)]
     else '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.publish.json'],
   gcs:: 'gs://%s/%s' % [tl.gcs_bucket, tl.gcs_dir],
@@ -174,14 +161,13 @@ local imgpublishjob(image) = {
       file: 'publish-version/version',
     },
     {
-      task: 'unstable-gce-image-publish-' + image.name,
-      config: imgpublishtask {
-        environment: 'test',
+      task: 'unstable-gce-image-publish-' + tl.image_name,
+      config: arle.gcepublishtask {
+        environment: tl.env,
         publish_version: 'v((.:source-version))',
         source_gcs_path: tl.gcs,
         source_version: 'v((.:source-version))',
         wf: tl.workflow,
-        target_project: target_project,
       },
     },
   ],
