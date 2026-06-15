@@ -5,7 +5,6 @@ local daisy = import '../templates/daisy.libsonnet';
 
 // Helper functions to fetch resources and tasks
 local underscore(input) = std.strReplace(input, '-', '_');
-local prod_bucket = 'artifact-releaser-prod-rtp';
 local target_project = 'gce-unstable-pkg-test-images';
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
@@ -19,12 +18,12 @@ local getimgresource(image) = (
   if image.os_type == 'debian' then
     common.gcsimgresource {
       image: image.name,
-      bucket: prod_bucket,
+      bucket: common.prod_bucket,
       regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
     }
   else
     common.GcsImgResource(image.name, image.gcs_dir) {
-      bucket: prod_bucket,
+      bucket: common.prod_bucket,
     }
 );
 
@@ -35,14 +34,14 @@ local imgbuildtask = daisy.daisyimagetask {
 };
 
 // Start of job
-local imgbuildjob(image) = {
+local imgbuildjob = {
   local tl = self,
 
-  image_name:: image.name,
-  image_prefix:: if image.os_type == 'debian' then common.debian_image_prefixes[image.name] else image.name,
-  workflow_dir:: image.workflow_dir,
-  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_prefix)],
-  zone:: get_zone(image.name),
+  image_name:: self.image.name,
+  image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
+  workflow_dir:: self.image.workflow_dir,
+  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_name)],
+  zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
@@ -75,10 +74,10 @@ local imgbuildjob(image) = {
       vars: { prefix: tl.image_prefix, id: '((.:id))' },
     },
     {
-      put: image.name + '-gcs',
+      put: tl.image_name + '-gcs',
       trigger: true,
       params: { file: 'build-id-dir/%s*' % tl.image_prefix },
-      get_params: { skip_download: true },
+      get_params: { skip_download: 'true' },
     },
     {
       load_var: 'gcs-url',
@@ -101,7 +100,7 @@ local imgbuildjob(image) = {
     task: 'build-success-metric',
     config: common.publishresulttask {
       pipeline: 'unstable-image-build',
-      job: tl.name,
+      job: tl.image_name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -110,7 +109,7 @@ local imgbuildjob(image) = {
     task: 'build-failure-metric',
     config: common.publishresulttask {
       pipeline: 'unstable-image-build',
-      job: tl.name,
+      job: tl.image_name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
     },
@@ -140,9 +139,9 @@ local imgpublishjob(image) = {
   workflow:: if image.os_type != 'windows'
     then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_prefix)]
     else '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.publish.json'],
-  gcs_dir:: image.gcs_dir,
-  gcs_bucket:: prod_bucket,
   gcs:: 'gs://%s/%s' % [tl.gcs_bucket, tl.gcs_dir],
+  gcs_dir:: self.image.gcs_dir,
+  gcs_bucket:: common.prod_bucket,
 
   // Start of job
   name: 'publish-unstable-%s-%s' % [tl.env, tl.image_name],
@@ -158,13 +157,13 @@ local imgpublishjob(image) = {
       file: 'timestamp/timestamp-ms',
     },
     {
-      get: image.name + '-gcs',
+      get: tl.image_name + '-gcs',
       trigger: true,
-      params: { skip_download: true },
+      params: { skip_download: 'true' },
     },
     {
       load_var: 'source-version',
-      file: image.name + '-gcs/version',
+      file: tl.image_name + '-gcs/version',
     },
     {
       task: 'generate-version',
@@ -404,10 +403,14 @@ local imgpublishjob(image) = {
     for img in all_images
   ],
   jobs: [
-    imgbuildjob(img)
-    for img in all_images
+    imgbuildjob {
+      image: image,
+    }
+    for image in all_images
   ] + [
-    imgpublishjob(img)
-    for img in all_images
+    imgpublishjob {
+      image: image,
+    }
+    for image in all_images
   ],
 }
