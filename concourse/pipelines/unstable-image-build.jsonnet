@@ -48,7 +48,7 @@ local imgbuildjob = {
   },
 
   // Start of job
-  name: 'build-unstable-%s' % [tl.image_prefix],
+  name: 'build-release-package-testing-%s' % tl.image_name,
   plan: [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
@@ -131,7 +131,7 @@ local imgpublishjob = {
   gcs_bucket:: common.prod_bucket,
 
   // Start of job
-  name: 'publish-unstable-%s-%s' % [tl.env, tl.image_name],
+  name: 'publish-to-release-package-testing-%s-%s' % [tl.env, tl.image_name],
   plan: [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
@@ -161,7 +161,7 @@ local imgpublishjob = {
       file: 'publish-version/version',
     },
     {
-      task: 'unstable-gce-image-publish-' + tl.image_name,
+      task: 'publish-release-package-testing-' + tl.image_name,
       config: arle.gcepublishtask {
         environment: tl.env,
         publish_version: 'v((.:source-version))',
