@@ -28,26 +28,10 @@ local getimgresource(image) = (
     }
 );
 
-local getshasumresource(image) = (
-  if image.os_type == 'debian' then
-    common.gcsshasumresource {
-      image: image.name,
-      image_prefix: common.debian_image_prefixes[image.name],
-      shasum_destination: 'debian',
-    }
-  else
-    common.gcsshasumresource {
-      image: image.name,
-      shasum_destination: image.gcs_dir,
-    }
-);
-
-
 // Task template to build with UNSTABLE guest packages
 local imgbuildtask = daisy.daisyimagetask {
   google_cloud_repo: 'unstable',
   gcs_url: '((.:gcs-url))',
-  shasum_destination: '((.:shasum-destination))',
 };
 
 // Start of job
@@ -99,20 +83,6 @@ local imgbuildjob(image) = {
     {
       load_var: 'gcs-url',
       file: '%s-gcs/url' % tl.image_name,
-    },
-    {
-      task: 'generate-build-id-shasum',
-      file: 'guest-test-infra/concourse/tasks/generate-build-id-shasum.yaml',
-      vars: { prefix: tl.image_prefix, id: '((.:id))' },
-    },
-    {
-      put: tl.image_name + '-shasum',
-      params: { file: 'build-id-dir-shasum/%s*' % tl.image_prefix },
-      get_params: { skip_download: true },
-    },
-    {
-      load_var: 'shasum-destination',
-      file: '%s-shasum/url' % tl.image_name,
     },
     {
       task: 'generate-build-date',
@@ -431,9 +401,6 @@ local imgpublishjob(image) = {
     common.gitresource { name: 'guest-test-infra' },
   ] + [
     getimgresource(img)
-    for img in all_images
-  ] + [
-    getshasumresource(img)
     for img in all_images
   ],
   jobs: [
