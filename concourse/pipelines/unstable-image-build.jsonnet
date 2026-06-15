@@ -29,7 +29,6 @@ local getimgresource(image) = (
 
 // Task template to build with UNSTABLE guest packages
 local imgbuildtask = daisy.daisyimagetask {
-  google_cloud_repo: 'unstable',
   gcs_url: '((.:gcs-url))',
 };
 
@@ -45,6 +44,7 @@ local imgbuildjob = {
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
+    vars+: ['google-cloud-repo=unstable'],
   },
 
   // Start of job
