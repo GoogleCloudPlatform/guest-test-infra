@@ -26,6 +26,20 @@ local getimgresource(image) = (
       bucket: common.prod_bucket,
     }
 );
+local getunstableimgresource(image) = (
+  if image.os_type == 'debian' then
+    common.gcsimgresource {
+      image: image.name,
+      name: '%s-unstable-gcs' % [self.image],
+      bucket: common.prod_bucket,
+      regexp: 'debian-unstable/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+    }
+  else
+    common.GcsImgResource(image.name, image.gcs_dir + '-unstable') {
+      name: '%s-unstable-gcs' % [self.image],
+      bucket: common.prod_bucket,
+    }
+);
 
 // Task template to build with UNSTABLE guest packages
 local imgbuildtask = daisy.daisyimagetask {
@@ -53,6 +67,11 @@ local imgbuildjob = {
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
+      get: '%s-gcs' % [tl.image_name],
+      trigger: true,
+      params: { skip_download: true },
+    },
+    {
       task: 'generate-timestamp',
       file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
     },
@@ -74,14 +93,13 @@ local imgbuildjob = {
       vars: { prefix: tl.image_prefix, id: '((.:id))' },
     },
     {
-      put: tl.image_name + '-gcs',
-      trigger: true,
+      put: '%s-unstable-gcs' % [tl.image_name],
       params: { file: 'build-id-dir/%s*' % tl.image_prefix },
       get_params: { skip_download: 'true' },
     },
     {
       load_var: 'gcs-url',
-      file: '%s-gcs/url' % tl.image_name,
+      file: '%s-unstable-gcs/url' % tl.image_name,
     },
     {
       task: 'generate-build-date',
@@ -144,13 +162,13 @@ local imgpublishjob = {
       file: 'timestamp/timestamp-ms',
     },
     {
-      get: tl.image_name + '-gcs',
+      get: '%s-unstable-gcs' % [tl.image_name],
       trigger: true,
       params: { skip_download: 'true' },
     },
     {
       load_var: 'source-version',
-      file: tl.image_name + '-gcs/version',
+      file: tl.image_name + '-unstable-gcs/version',
     },
     {
       task: 'generate-version',
@@ -389,7 +407,12 @@ local imgpublishjob = {
     common.gitresource { name: 'compute-image-tools' },
     common.gitresource { name: 'guest-test-infra' },
   ] + [
+    // Tracking public releases
     getimgresource(img)
+    for img in all_images
+  ] + [
+    // Tracking unstable releases
+    getunstableimgresource(img)
     for img in all_images
   ],
   jobs: [
