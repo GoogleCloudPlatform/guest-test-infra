@@ -182,7 +182,7 @@ local imgpublishjob = {
       task: 'publish-release-package-testing-' + tl.image_name,
       config: arle.gcepublishtask {
         environment: tl.env,
-        publish_version: 'v((.:source-version))',
+        publish_version: 'v((.:publish-version))',
         source_gcs_path: tl.gcs,
         source_version: 'v((.:source-version))',
         wf: tl.workflow,
@@ -192,7 +192,7 @@ local imgpublishjob = {
   on_success: {
     task: 'publish-success-metric',
     config: common.publishresulttask {
-      pipeline: 'unstable-image-build',
+      pipeline: 'release-package-testing-image-build',
       job: tl.name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -201,7 +201,7 @@ local imgpublishjob = {
   on_failure: {
     task: 'publish-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'unstable-image-build',
+      pipeline: 'release-package-testing-image-build',
       job: tl.name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
