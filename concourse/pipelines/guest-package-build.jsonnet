@@ -842,6 +842,7 @@ local build_guest_configs = buildpackagejob {
               'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
             ],
             tests=['networkconfig'],
+            project='compute-image-test-pool-001',
             test_projects=['compute-image-test-pool-001'], // This is the only project with the necessary reservation.
             extra_args=[
               '-accelerator_type=nvidia-h200-141gb',
