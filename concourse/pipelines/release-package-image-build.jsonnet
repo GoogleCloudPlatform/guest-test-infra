@@ -218,10 +218,10 @@ local imggroup = {
 
     name: error 'must set name in imggroup',
     jobs: [
-      'build-' + image
+      'build-release-package-testing-' + image
       for image in tl.images
     ] + [
-      'publish-to-%s-%s' % [tl.env, image]
+      'publish-to-release-package-testing-%s-%s' % [tl.env, image]
       for image in tl.images
     ],
   };
