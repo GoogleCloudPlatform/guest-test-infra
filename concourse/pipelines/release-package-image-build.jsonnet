@@ -117,7 +117,7 @@ local imgbuildjob = {
   on_success: {
     task: 'build-success-metric',
     config: common.publishresulttask {
-      pipeline: 'unstable-image-build',
+      pipeline: 'release-package-image-build',
       job: tl.image_name,
       result_state: 'success',
       start_timestamp: '((.:start-timestamp-ms))',
@@ -126,7 +126,7 @@ local imgbuildjob = {
   on_failure: {
     task: 'build-failure-metric',
     config: common.publishresulttask {
-      pipeline: 'unstable-image-build',
+      pipeline: 'release-package-image-build',
       job: tl.image_name,
       result_state: 'failure',
       start_timestamp: '((.:start-timestamp-ms))',
