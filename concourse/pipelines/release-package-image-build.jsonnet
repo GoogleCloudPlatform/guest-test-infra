@@ -49,12 +49,14 @@ local imgbuildtask = daisy.daisyimagetask {
 // Start of job
 local imgbuildjob = {
   local tl = self,
+  local rhel_release_components = std.split(tl.image_name, '-'),
 
   image_name:: self.image.name,
   image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
   workflow_dir:: self.image.workflow_dir,
   workflow:: if self.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.wf.json']
     else if self.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, tl.image_name]
+    else if self.image.workflow_dir == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
     else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_prefix)],
   zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
