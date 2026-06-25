@@ -417,12 +417,12 @@ local imgpublishjob = {
   ],
   jobs: [
     imgbuildjob {
-      image: image,
+      image:: image,
     }
     for image in all_images
   ] + [
     imgpublishjob {
-      image: image,
+      image:: image,
     }
     for image in all_images
   ],
