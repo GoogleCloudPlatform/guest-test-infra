@@ -50,7 +50,6 @@ local cloudimageteststask(
         + extra_args,
     },
   },
-  attempts: 3,
 };
 
 
@@ -519,7 +518,6 @@ local buildpackageimagetask = {
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
-  attempts: 3,
   config: {
     platform: 'linux',
     image_resource: {
@@ -837,6 +835,25 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
           ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1']),
+          cloudimageteststask(tl.package,
+            'a3-ultra',
+            images=[
+              'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+              'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+            ],
+            tests=['networkconfig'],
+            project='compute-image-test-pool-001',
+            test_projects=['compute-image-test-pool-001'], // This is the only project with the necessary reservation.
+            extra_args=[
+              '-accelerator_type=nvidia-h200-141gb',
+              '-networkutils_nic_types=GVNIC:2,MRDMA:8',
+              '-reservation_urls=nvidia-h200-8mx2qd0luip8o',
+              '-use_reservations=true',
+              '-x86_shape=a3-ultragpu-8g',
+            ],
+            parallel_count=1,
+            zones=['europe-west1-b'],
+          ),
         ],
       },
     },
@@ -1788,7 +1805,6 @@ local build_and_upload_oslogin = buildpackagejob {
                 ],
               },
             },
-            attempts: 3,
           },
           {
             task: 'oslogin-image-tests-arm64',
@@ -1810,7 +1826,6 @@ local build_and_upload_oslogin = buildpackagejob {
                 ],
               },
             },
-            attempts: 3,
           },
         ],
       },
@@ -1983,7 +1998,6 @@ extra_tasks: [
                 ],
               },
             },
-            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -2007,7 +2021,6 @@ extra_tasks: [
                 ],
               },
             },
-            attempts: 3,
           },
         ],
       },
@@ -2144,7 +2157,6 @@ local build_artifactplugins_yum = buildpackagejob {
                 ],
               },
             },
-            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -2168,7 +2180,6 @@ local build_artifactplugins_yum = buildpackagejob {
                 ],
               },
             },
-            attempts: 3,
           },
         ],
       },

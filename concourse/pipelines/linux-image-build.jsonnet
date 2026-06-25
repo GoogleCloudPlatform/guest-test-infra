@@ -10,7 +10,7 @@ local envs = ['testing', 'prod'];
 local underscore(input) = std.strReplace(input, '-', '_');
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
-local arm_build_zones = ['us-central1-b', 'europe-west4-a', 'europe-west4-b'];
+local arm_build_zones = ['us-west1-a', 'europe-west4-a', 'europe-west4-b'];
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
   local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
@@ -564,6 +564,8 @@ local imggroup = {
     'rhel-9-4-sap-byos',
     'rhel-9-6-sap',
     'rhel-9-6-sap-byos',
+    'rhel-9-8-sap',
+    'rhel-9-8-sap-byos',
   ],
   local rhel_9_eus_images = [
     'rhel-9-6-eus',
@@ -598,6 +600,8 @@ local imggroup = {
   local rhel_10_sap_images = [
     'rhel-10-0-sap',
     'rhel-10-0-sap-byos',
+    'rhel-10-2-sap',
+    'rhel-10-2-sap-byos',
   ],
   local rhel_10_eus_images = [
     'rhel-10-0-eus',
