@@ -69,7 +69,7 @@ local imgbuildjob = {
     {
       get: '%s-gcs' % [tl.image_name],
       trigger: true,
-      params: { skip_download: true },
+      params: { skip_download: 'true' },
     },
     {
       task: 'generate-timestamp',
