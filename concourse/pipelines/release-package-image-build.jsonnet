@@ -163,6 +163,7 @@ local imgpublishjob = {
     },
     {
       get: '%s-unstable-gcs' % [tl.image_name],
+      passed: ['build-release-package-testing-%s' % tl.image_name],
       trigger: true,
       params: { skip_download: 'true' },
     },
@@ -208,6 +209,22 @@ local imgpublishjob = {
     },
   },
 };
+
+local imggroup = {
+    local tl = self,
+
+    images:: error 'must set images in imggroup',
+    env:: 'package',
+
+    name: error 'must set name in imggroup',
+    jobs: [
+      'build-' + image
+      for image in tl.images
+    ] + [
+      'publish-to-%s-%s' % [tl.env, image]
+      for image in tl.images
+    ],
+  };
 
 // Start of output
 {
@@ -426,4 +443,20 @@ local imgpublishjob = {
     }
     for image in all_images
   ],
+  groups: [
+    imggroup { name: 'centos', images: [img.name for img in centos_images] },
+    imggroup { name: 'debian', images: [img.name for img in debian_images] },
+    imggroup { name: 'rhel-8-base', images: rhel_8_base_image_names },
+    imggroup { name: 'rhel-8-sap', images: rhel_8_sap_image_names },
+    imggroup { name: 'rhel-9-base', images: rhel_9_base_image_names },
+    imggroup { name: 'rhel-9-sap', images: rhel_9_sap_image_names },
+    imggroup { name: 'rhel-9-eus', images: rhel_9_eus_image_names },
+    imggroup { name: 'rhel-9-eus-lvm', images: rhel_9_eus_lvm_image_names },
+    imggroup { name: 'rhel-10-base', images: rhel_10_base_image_names },
+    imggroup { name: 'rhel-10-sap', images: rhel_10_sap_image_names },
+    imggroup { name: 'rhel-10-eus', images: rhel_10_eus_image_names },
+    imggroup { name: 'rhel-10-eus-lvm', images: rhel_10_eus_lvm_image_names },
+    imggroup { name: 'windows', images: windows_image_names },
+    imggroup { name: 'windows-sql', images: sql_image_names },
+  ]
 }
