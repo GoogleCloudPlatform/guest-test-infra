@@ -340,10 +340,12 @@ local imggroup = {
     { name: name, os_type: 'rhel', gcs_dir: 'rhel', workflow_dir: 'enterprise_linux' }
     for name in rhel_image_names
   ],
-  local windows_image_names = [
+  local windows_client_image_names = [
     'windows-11-23h2-ent-x64', // EOL after Nov 10, 2026
     'windows-11-24h2-ent-x64', // EOL after Oct 12, 2027
     'windows-11-25h2-ent-x64',
+  ],
+  local windows_server_image_names = [
     'windows-server-2016-dc',
     'windows-server-2016-dc-core',
     'windows-server-2019-dc',
@@ -353,17 +355,20 @@ local imggroup = {
     'windows-server-2025-dc',
     'windows-server-2025-dc-core',
   ],
+  local windows_image_names = windows_client_image_names + windows_server_image_names,
   local windows_images = [
     { name: name, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' }
     for name in windows_image_names
   ],
-  local sql_image_names = [
+  local sql_2016_image_names = [
     'sql-2016-enterprise-windows-2016-dc',
     'sql-2016-enterprise-windows-2019-dc',
     'sql-2016-standard-windows-2016-dc',
     'sql-2016-standard-windows-2019-dc',
     'sql-2016-web-windows-2016-dc',
     'sql-2016-web-windows-2019-dc',
+  ],
+  local sql_2017_image_names = [
     'sql-2017-enterprise-windows-2016-dc',
     'sql-2017-enterprise-windows-2019-dc',
     'sql-2017-enterprise-windows-2022-dc',
@@ -378,6 +383,8 @@ local imggroup = {
     'sql-2017-web-windows-2019-dc',
     'sql-2017-web-windows-2022-dc',
     'sql-2017-web-windows-2025-dc',
+  ],
+  local sql_2019_image_names = [
     'sql-2019-enterprise-windows-2019-dc',
     'sql-2019-enterprise-windows-2022-dc',
     'sql-2019-enterprise-windows-2025-dc',
@@ -387,6 +394,8 @@ local imggroup = {
     'sql-2019-web-windows-2019-dc',
     'sql-2019-web-windows-2022-dc',
     'sql-2019-web-windows-2025-dc',
+  ],
+  local sql_2022_image_names = [
     'sql-2022-enterprise-windows-2019-dc',
     'sql-2022-enterprise-windows-2022-dc',
     'sql-2022-enterprise-windows-2025-dc',
@@ -396,6 +405,8 @@ local imggroup = {
     'sql-2022-web-windows-2019-dc',
     'sql-2022-web-windows-2022-dc',
     'sql-2022-web-windows-2025-dc',
+  ],
+  local sql_2025_image_names = [
     'sql-2025-enterprise-windows-2025-dc',
     'sql-2025-enterprise-windows-2022-dc',
     'sql-2025-enterprise-windows-2019-dc',
@@ -403,6 +414,7 @@ local imggroup = {
     'sql-2025-standard-windows-2022-dc',
     'sql-2025-standard-windows-2019-dc',
   ],
+  local sql_image_names = sql_2016_image_names + sql_2017_image_names + sql_2019_image_names + sql_2022_image_names + sql_2025_image_names,
   local sql_images = [
     { name: name, os_type: 'windows', gcs_dir: 'sqlserver-uefi', workflow_dir: 'sqlserver' }
     for name in sql_image_names
@@ -458,7 +470,12 @@ local imggroup = {
     imggroup { name: 'rhel-10-sap', images: rhel_10_sap_image_names },
     imggroup { name: 'rhel-10-eus', images: rhel_10_eus_image_names },
     imggroup { name: 'rhel-10-eus-lvm', images: rhel_10_eus_lvm_image_names },
-    imggroup { name: 'windows', images: windows_image_names },
-    imggroup { name: 'windows-sql', images: sql_image_names },
+    imggroup { name: 'windows-client', images: windows_client_image_names },
+    imggroup { name: 'windows-server', images: windows_server_image_names },
+    imggroup { name: 'windows-sql-2016', images: sql_2016_image_names },
+    imggroup { name: 'windows-sql-2017', images: sql_2017_image_names },
+    imggroup { name: 'windows-sql-2019', images: sql_2019_image_names },
+    imggroup { name: 'windows-sql-2022', images: sql_2022_image_names },
+    imggroup { name: 'windows-sql-2025', images: sql_2025_image_names },
   ]
 }
