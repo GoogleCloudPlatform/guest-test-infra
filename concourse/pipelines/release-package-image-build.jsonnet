@@ -53,12 +53,14 @@ local imgbuildjob = {
   image_name:: self.image.name,
   image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
   workflow_dir:: self.image.workflow_dir,
-  workflow:: '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_name)],
+  workflow:: if self.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.wf.json']
+    else if self.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, tl.image_name]
+    else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_prefix)],
   zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
-    vars+: ['google-cloud-repo=unstable'],
+    vars+: ['google_cloud_repo=unstable'],
   },
 
   // Start of job
@@ -234,7 +236,7 @@ local imggroup = {
     for name in ['debian-11', 'debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64']
   ],
   local centos_images = [
-    { name: name, os_type: 'centos', gcs_dir: 'centos', workflow_dir: 'enterprise-linux' }
+    { name: name, os_type: 'centos', gcs_dir: 'centos', workflow_dir: 'enterprise_linux' }
     for name in ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64']
   ],
   local rhel_8_base_image_names = [
