@@ -40,6 +40,11 @@ local imgbuildjob = {
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
+      get: job.image + '-gcs',
+      trigger: true,
+      params: { skip_download: 'true' },
+    },
+    {
       task: 'generate-timestamp',
       file: 'guest-test-infra/concourse/tasks/generate-timestamp.yaml',
     },
@@ -401,7 +406,7 @@ local ImgGroup(name, images) = {
         // Publish jobs
         [
           ImgPublishJob(image, 'package', 'windows', 'windows-uefi')
-          for image in windows_server_images
+          for image in windows_client_images + windows_server_images
         ],
 
   groups: [
