@@ -60,16 +60,13 @@ local imgbuildjob = {
   workflow_dir:: tl.image.workflow_dir,
   workflow:: 
     if tl.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, hyphenate(tl.image_name) + '-uefi.wf.json']
-    else if tl.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, hyphenate(tl.image_name)]
     else if tl.image.os_type == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
     else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_name)],
   zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
-    vars+: [
-      (if tl.image.workflow_dir != 'sqlserver' then ['google_cloud_repo=unstable'] else [])
-    ],
+    vars+: ['google_cloud_repo=unstable'],
   },
   extra_tasks:: [],
 
@@ -270,38 +267,6 @@ local windowsbuildjob(image, iso_secret, updates_secret) = imgbuildjob {
   ]},
 };
 
-local sqlbuildjob(image, base_image, sql_version, ssms_version) = imgbuildjob {
-  local tl = self,
-
-  image:: { name: image, os_type: 'windows', gcs_dir: 'sqlserver-uefi', workflow_dir: 'sqlserver' },
-  base_image:: base_image,
-  sql_version:: sql_version,
-  ssms_version:: ssms_version,
-
-  extra_tasks: [
-    {
-      task: 'get-sql-server-media-secret',
-      config: gcp_secret_manager.getsecrettask { secret_name: tl.sql_version },
-    },
-    {
-      load_var: 'sql-server-media',
-      file: 'gcp-secret-manager/' + tl.sql_version,
-    },
-    {
-      task: 'get-ssms-secret',
-      config: gcp_secret_manager.getsecrettask { secret_name: tl.ssms_version },
-    },
-    {
-      load_var: 'ssms-version',
-      file: 'gcp-secret-manager/' + tl.ssms_version,
-    },
-  ],
-  build_task+: { vars+: [
-    'sql_server_media=((.:sql-server-media))',
-    'ssms_exe=((.:ssms-version))',
-  ]},
-};
-
 local imgpublishjob = {
   local tl = self,  // tl = Top Level
 
@@ -311,7 +276,7 @@ local imgpublishjob = {
   workflow_dir:: self.image.workflow_dir,
   workflow:: if self.image.os_type != 'windows'
     then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_name)]
-    else '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.publish.json'],
+    else '%s/%s' % [tl.workflow_dir, hyphenate(tl.image_name) + '-uefi.publish.json'],
   gcs:: 'gs://%s/%s' % [tl.gcs_bucket, tl.gcs_dir],
   gcs_dir:: self.image.gcs_dir,
   gcs_bucket:: common.prod_bucket,
@@ -532,67 +497,8 @@ local imggroup = {
     { name: name, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' }
     for name in windows_image_names
   ],
-  local sql_2016_image_names = [
-    'sql-2016-enterprise-windows-2016-dc',
-    'sql-2016-enterprise-windows-2019-dc',
-    'sql-2016-standard-windows-2016-dc',
-    'sql-2016-standard-windows-2019-dc',
-    'sql-2016-web-windows-2016-dc',
-    'sql-2016-web-windows-2019-dc',
-  ],
-  local sql_2017_image_names = [
-    'sql-2017-enterprise-windows-2016-dc',
-    'sql-2017-enterprise-windows-2019-dc',
-    'sql-2017-enterprise-windows-2022-dc',
-    'sql-2017-enterprise-windows-2025-dc',
-    'sql-2017-express-windows-2016-dc',
-    'sql-2017-express-windows-2019-dc',
-    'sql-2017-standard-windows-2016-dc',
-    'sql-2017-standard-windows-2019-dc',
-    'sql-2017-standard-windows-2022-dc',
-    'sql-2017-standard-windows-2025-dc',
-    'sql-2017-web-windows-2016-dc',
-    'sql-2017-web-windows-2019-dc',
-    'sql-2017-web-windows-2022-dc',
-    'sql-2017-web-windows-2025-dc',
-  ],
-  local sql_2019_image_names = [
-    'sql-2019-enterprise-windows-2019-dc',
-    'sql-2019-enterprise-windows-2022-dc',
-    'sql-2019-enterprise-windows-2025-dc',
-    'sql-2019-standard-windows-2019-dc',
-    'sql-2019-standard-windows-2022-dc',
-    'sql-2019-standard-windows-2025-dc',
-    'sql-2019-web-windows-2019-dc',
-    'sql-2019-web-windows-2022-dc',
-    'sql-2019-web-windows-2025-dc',
-  ],
-  local sql_2022_image_names = [
-    'sql-2022-enterprise-windows-2019-dc',
-    'sql-2022-enterprise-windows-2022-dc',
-    'sql-2022-enterprise-windows-2025-dc',
-    'sql-2022-standard-windows-2019-dc',
-    'sql-2022-standard-windows-2022-dc',
-    'sql-2022-standard-windows-2025-dc',
-    'sql-2022-web-windows-2019-dc',
-    'sql-2022-web-windows-2022-dc',
-    'sql-2022-web-windows-2025-dc',
-  ],
-  local sql_2025_image_names = [
-    'sql-2025-enterprise-windows-2025-dc',
-    'sql-2025-enterprise-windows-2022-dc',
-    'sql-2025-enterprise-windows-2019-dc',
-    'sql-2025-standard-windows-2025-dc',
-    'sql-2025-standard-windows-2022-dc',
-    'sql-2025-standard-windows-2019-dc',
-  ],
-  local sql_image_names = sql_2016_image_names + sql_2017_image_names + sql_2019_image_names + sql_2022_image_names + sql_2025_image_names,
-  local sql_images = [
-    { name: name, os_type: 'windows', gcs_dir: 'sqlserver-uefi', workflow_dir: 'sqlserver' }
-    for name in sql_image_names
-  ],
   
-  local all_images = debian_images + centos_images + rhel_images + windows_images + sql_images,
+  local all_images = debian_images + centos_images + rhel_images + windows_images,
 
   resource_types: [
     {
@@ -644,56 +550,6 @@ local imggroup = {
     windowsbuildjob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
     windowsbuildjob('windows-server-2016-dc-core', 'win2016-64', 'windows_gcs_updates_server2016'),
   ] + [
-    // Build Windows Client images
-    sqlbuildjob('sql-2016-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2016-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2016-standard-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2016-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2016-web-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2016-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
-
-    sqlbuildjob('sql-2017-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-enterprise-windows-2025-dc', 'windows-server-2025-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-express-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-express', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-express-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-express', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-standard-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2017-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-web-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2017-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2017-web', 'windows_gcs_ssms_exe'),
-
-    sqlbuildjob('sql-2019-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-enterprise-windows-2025-dc', 'windows-server-2025-dc', 'sql-2019-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2019-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2019-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2019-web', 'windows_gcs_ssms_exe'),
-
-    sqlbuildjob('sql-2022-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-enterprise-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-enterprise', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-standard', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-web-windows-2022-dc', 'windows-server-2022-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-    sqlbuildjob('sql-2022-web-windows-2025-dc', 'windows-server-2025-dc', 'sql-2022-web', 'windows_gcs_ssms_exe'),
-
-	  sqlbuildjob('sql-2025-standard-windows-2025-dc', 'windows-server-2025-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
-	  sqlbuildjob('sql-2025-standard-windows-2022-dc', 'windows-server-2022-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
-	  sqlbuildjob('sql-2025-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2025-standard', 'windows_gcs_ssms_exe'),
-	  sqlbuildjob('sql-2025-enterprise-windows-2025-dc', 'windows-server-2025-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
-	  sqlbuildjob('sql-2025-enterprise-windows-2022-dc', 'windows-server-2022-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
-	  sqlbuildjob('sql-2025-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2025-enterprise', 'windows_gcs_ssms_exe'),
-  ] + [
     // Publish images
     imgpublishjob { image:: image }
     for image in all_images
@@ -716,10 +572,5 @@ local imggroup = {
     imggroup { name: 'windows-server-2019', images: windows_2019_image_names },
     imggroup { name: 'windows-server-2022', images: windows_2022_image_names },
     imggroup { name: 'windows-server-2025', images: windows_2025_image_names },
-    imggroup { name: 'windows-sql-2016', images: sql_2016_image_names },
-    imggroup { name: 'windows-sql-2017', images: sql_2017_image_names },
-    imggroup { name: 'windows-sql-2019', images: sql_2019_image_names },
-    imggroup { name: 'windows-sql-2022', images: sql_2022_image_names },
-    imggroup { name: 'windows-sql-2025', images: sql_2025_image_names },
   ]
 }
