@@ -150,8 +150,7 @@ local imgbuildjob = {
 local centosbuildjob = imgbuildjob {
   local tl = self,
 
-  workflow_dir:: tl.workflow_dir,
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+  isopath:: trim_strings(tl.image.name, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
   extra_tasks: [
     {
@@ -169,15 +168,15 @@ local centosbuildjob = imgbuildjob {
 local rhelbuildjob = imgbuildjob {
   local tl = self,
 
-  workflow_dir:: tl.workflow_dir,
-  isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
+  isopath:: trim_strings(tl.image.name, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
+  rhel_release_components:: std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
 
-  is_arm:: std.member(tl.image, '-arm64'),
-  is_byos:: std.member(tl.image, '-byos'),
-  is_eus:: std.member(tl.image, '-eus'),
-  is_lvm:: std.member(tl.image, '-lvm'),
-  is_oot_driver:: std.member(tl.image, '-gvnic-baremetal'),
-  is_sap:: std.member(tl.image, '-sap'),
+  is_arm:: std.member(tl.image.name, '-arm64'),
+  is_byos:: std.member(tl.image.name, '-byos'),
+  is_eus:: std.member(tl.image.name, '-eus'),
+  is_lvm:: std.member(tl.image.name, '-lvm'),
+  is_oot_driver:: std.member(tl.image.name, '-gvnic-baremetal'),
+  is_sap:: std.member(tl.image.name, '-sap'),
 
   disk_name:: if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
   disk_type:: if tl.is_arm then 'hyperdisk-balanced' else 'pd-ssd',
@@ -185,8 +184,6 @@ local rhelbuildjob = imgbuildjob {
   machine_type:: if tl.is_arm then 'c4a-standard-4' else 'e2-standard-4',
   worker_image:: if tl.is_arm then 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64'
     else 'projects/compute-image-tools/global/images/family/debian-12-worker',
-  
-  local rhel_release_components = std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
 
   extra_tasks: [
     {
@@ -210,17 +207,17 @@ local rhelbuildjob = imgbuildjob {
     'is_byos=' + std.toString(tl.is_byos),
     'is_lvm=' + std.toString(tl.is_lvm),
     'is_sap=' + std.toString(tl.is_sap),
-  ] + (if rhel_release_components[1] != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
-    + (if rhel_release_components[1] == '10' then ['is_oot_driver' + std.toString(tl.is_oot_driver)] else [])
+  ] + (if tl.rhel_release_components[1] != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.rhel_release_components[1] == '10' then ['is_oot_driver' + std.toString(tl.is_oot_driver)] else [])
   },
 };
 
 local windowsbuildjob(image, iso_secret, updates_secret) = imgbuildjob {
   local tl = self,
 
-  image:: tl.image,
-  iso_secret:: tl.iso_secret,
-  updates_secret:: tl.updates_secret,
+  image:: { name: image, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' },
+  iso_secret:: iso_secret,
+  updates_secret:: updates_secret,
 
   extra_tasks: [
     {
@@ -276,10 +273,10 @@ local windowsbuildjob(image, iso_secret, updates_secret) = imgbuildjob {
 local sqlbuildjob(image, base_image, sql_version, ssms_version) = imgbuildjob {
   local tl = self,
 
-  image:: tl.image,
-  base_image:: tl.base_image,
-  sql_version:: tl.sql_version,
-  ssms_version:: tl.ssms_version,
+  image:: { name: image, os_type: 'windows', gcs_dir: 'sqlserver-uefi', workflow_dir: 'sqlserver' },
+  base_image:: base_image,
+  sql_version:: sql_version,
+  ssms_version:: ssms_version,
 
   extra_tasks: [
     {
@@ -292,7 +289,7 @@ local sqlbuildjob(image, base_image, sql_version, ssms_version) = imgbuildjob {
     },
     {
       task: 'get-ssms-secret',
-      config: gcp_secret_manager.getsecrettask { secret: tl.ssms_version },
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.ssms_version },
     },
     {
       load_var: 'ssms-version',
