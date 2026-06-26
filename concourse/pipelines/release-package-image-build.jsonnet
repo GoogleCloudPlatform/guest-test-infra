@@ -2,9 +2,11 @@
 local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // Helper functions to fetch resources and tasks
 local underscore(input) = std.strReplace(input, '-', '_');
+local hyphenate(input) = std.strReplace(input, '_', '-');
 local target_project = 'gce-unstable-pkg-test-images';
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
@@ -13,6 +15,9 @@ local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.st
 local get_zone(image) =
   local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
   zones[std.mod(string_hash(image), std.length(zones))];
+local trim_strings(s, trim) =
+  if std.length(trim) == 0 then s
+  else trim_strings(std.strReplace(s, trim[0], ''), trim[1:]);
 
 local getimgresource(image) = (
   if image.os_type == 'debian' then
@@ -49,20 +54,22 @@ local imgbuildtask = daisy.daisyimagetask {
 // Start of job
 local imgbuildjob = {
   local tl = self,
-  local rhel_release_components = std.split(tl.image_name, '-'),
 
-  image_name:: self.image.name,
-  image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
-  workflow_dir:: self.image.workflow_dir,
-  workflow:: if self.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.wf.json']
-    else if self.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, tl.image_name]
-    else if self.image.workflow_dir == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
-    else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_prefix)],
+  image_name:: tl.image.name,
+  image_prefix:: if tl.image.os_type == 'debian' then common.debian_image_prefixes[tl.image.name] else tl.image.name,
+  workflow_dir:: tl.image.workflow_dir,
+  workflow:: 
+    if tl.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, hyphenate(tl.image_name) + '-uefi.wf.json']
+    else if tl.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, hyphenate(tl.image_name)]
+    else if tl.image.os_type == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
+    else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_name)],
   zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
-    vars+: ['google_cloud_repo=unstable'],
+    vars+: [
+      (if tl.image.workflow_dir != 'sqlserver' then ['google_cloud_repo=unstable'] else [])
+    ],
   },
 
   // Start of job
@@ -146,7 +153,7 @@ local imgpublishjob = {
   image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
   workflow_dir:: self.image.workflow_dir,
   workflow:: if self.image.os_type != 'windows'
-    then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_prefix)]
+    then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_name)]
     else '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.publish.json'],
   gcs:: 'gs://%s/%s' % [tl.gcs_bucket, tl.gcs_dir],
   gcs_dir:: self.image.gcs_dir,
