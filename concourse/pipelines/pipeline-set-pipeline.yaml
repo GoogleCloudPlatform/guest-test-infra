@@ -60,5 +60,5 @@ jobs:
     file: rendered/container-build.json
   - set_pipeline: artifact-releaser-test
     file: rendered/artifact-releaser-test.json
-  - set_pipeline: release-package-image-build
-    file: rendered/release-package-image-build.json
+  - set_pipeline: release-package-linux-build
+    file: rendered/release-package-linux-build.json
