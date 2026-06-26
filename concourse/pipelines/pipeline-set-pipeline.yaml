@@ -62,3 +62,5 @@ jobs:
     file: rendered/artifact-releaser-test.json
   - set_pipeline: release-package-linux-build
     file: rendered/release-package-linux-build.json
+  - set_pipeline: release-package-windows-build
+    file: rendered/release-package-windows-build.json
