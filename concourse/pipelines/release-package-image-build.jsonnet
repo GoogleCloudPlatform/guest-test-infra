@@ -2,9 +2,11 @@
 local arle = import '../templates/arle.libsonnet';
 local common = import '../templates/common.libsonnet';
 local daisy = import '../templates/daisy.libsonnet';
+local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
 
 // Helper functions to fetch resources and tasks
 local underscore(input) = std.strReplace(input, '-', '_');
+local hyphenate(input) = std.strReplace(input, '_', '-');
 local target_project = 'gce-unstable-pkg-test-images';
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
@@ -13,6 +15,9 @@ local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.st
 local get_zone(image) =
   local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
   zones[std.mod(string_hash(image), std.length(zones))];
+local trim_strings(s, trim) =
+  if std.length(trim) == 0 then s
+  else trim_strings(std.strReplace(s, trim[0], ''), trim[1:]);
 
 local getimgresource(image) = (
   if image.os_type == 'debian' then
@@ -49,21 +54,21 @@ local imgbuildtask = daisy.daisyimagetask {
 // Start of job
 local imgbuildjob = {
   local tl = self,
-  local rhel_release_components = std.split(tl.image_name, '-'),
 
-  image_name:: self.image.name,
-  image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
-  workflow_dir:: self.image.workflow_dir,
-  workflow:: if self.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.wf.json']
-    else if self.image.workflow_dir == 'sqlserver' then '%s/%s.wf.json' % [tl.workflow_dir, tl.image_name]
-    else if self.image.workflow_dir == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
-    else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_prefix)],
+  image_name:: tl.image.name,
+  image_prefix:: if tl.image.os_type == 'debian' then common.debian_image_prefixes[tl.image.name] else tl.image.name,
+  workflow_dir:: tl.image.workflow_dir,
+  workflow:: 
+    if tl.image.workflow_dir == 'windows' then '%s/%s' % [tl.workflow_dir, hyphenate(tl.image_name) + '-uefi.wf.json']
+    else if tl.image.os_type == 'rhel' then '%s/rhel_%s_consolidated.wf.json' % [tl.workflow_dir, tl.rhel_release_components[1]]
+    else '%s/%s.wf.json' % [tl.workflow_dir, underscore(tl.image_name)],
   zone:: get_zone(tl.image_name),
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
     vars+: ['google_cloud_repo=unstable'],
   },
+  extra_tasks:: [],
 
   // Start of job
   name: 'build-release-package-testing-%s' % tl.image_name,
@@ -113,6 +118,7 @@ local imgbuildjob = {
       load_var: 'build-date',
       file: 'publish-version/version',
     },
+  ] + tl.extra_tasks + [
     {
       task: 'daisy-build-' + tl.image_name,
       config: tl.build_task,
@@ -138,6 +144,129 @@ local imgbuildjob = {
   },
 };
 
+local centosbuildjob = imgbuildjob {
+  local tl = self,
+
+  isopath:: trim_strings(tl.image.name, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
+
+  extra_tasks: [
+    {
+      task: 'get-iso-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
+    },
+    {
+      load_var: 'iso-secret',
+      file: 'gcp-secret-manager/' + tl.isopath,
+    }
+  ],
+  build_task+: { vars+: ['installer_iso=((.:iso-secret))'] },
+};
+
+local rhelbuildjob = imgbuildjob {
+  local tl = self,
+
+  isopath:: trim_strings(tl.image.name, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
+  rhel_release_components:: std.split(trim_strings(tl.isopath, ['-arm64']), '-'),
+
+  is_arm:: std.member(tl.image.name, '-arm64'),
+  is_byos:: std.member(tl.image.name, '-byos'),
+  is_eus:: std.member(tl.image.name, '-eus'),
+  is_lvm:: std.member(tl.image.name, '-lvm'),
+  is_oot_driver:: std.member(tl.image.name, '-gvnic-baremetal'),
+  is_sap:: std.member(tl.image.name, '-sap'),
+
+  disk_name:: if tl.is_arm then 'disk_export_hyperdisk' else 'disk_export',
+  disk_type:: if tl.is_arm then 'hyperdisk-balanced' else 'pd-ssd',
+  el_install_disk_size:: if tl.is_lvm then '50' else '20',
+  machine_type:: if tl.is_arm then 'c4a-standard-4' else 'e2-standard-4',
+  worker_image:: if tl.is_arm then 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64'
+    else 'projects/compute-image-tools/global/images/family/debian-12-worker',
+
+  extra_tasks: [
+    {
+      task: 'get-iso-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.isopath },
+    },
+    {
+      load_var: 'iso-secret',
+      file: 'gcp-secret-manager/' + tl.isopath,
+    },
+  ],
+  build_task+: { vars+: [
+    'installer_iso=((.:iso-secret))',
+    'el_install_disk_size=' + tl.el_install_disk_size,
+    'el_release=' + tl.isopath,
+    'disk_name=' + tl.disk_name,
+    'disk_type=' + tl.disk_type,
+    'machine_type=' + tl.machine_type,
+    'worker_image=' + tl.worker_image,
+    'is_arm=' + std.toString(tl.is_arm),
+    'is_byos=' + std.toString(tl.is_byos),
+    'is_lvm=' + std.toString(tl.is_lvm),
+    'is_sap=' + std.toString(tl.is_sap),
+  ] + (if tl.rhel_release_components[1] != '8' then ['is_eus=' + std.toString(tl.is_eus)] else [])
+    + (if tl.rhel_release_components[1] == '10' then ['is_oot_driver' + std.toString(tl.is_oot_driver)] else [])
+  },
+};
+
+local windowsbuildjob(image, iso_secret, updates_secret) = imgbuildjob {
+  local tl = self,
+
+  image:: { name: image, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' },
+  iso_secret:: iso_secret,
+  updates_secret:: updates_secret,
+
+  extra_tasks: [
+    {
+      task: 'get-iso-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.iso_secret },
+    },
+    {
+      load_var: 'windows-iso',
+      file: 'gcp-secret-manager/' + tl.iso_secret,
+    },
+    {
+      task: 'get-updates-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: tl.updates_secret },
+    },
+    {
+      load_var: 'windows-updates',
+      file: 'gcp-secret-manager/' + tl.updates_secret,
+    },
+    {
+      task: 'get-pwsh-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_pwsh' },
+    },
+    {
+      load_var: 'windows-gcs-pwsh',
+      file: 'gcp-secret-manager/windows_gcs_pwsh',
+    },
+    {
+      task: 'get-cloud-sdk-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_cloud_sdk' },
+    },
+    {
+      load_var: 'windows-cloud-sdk',
+      file: 'gcp-secret-manager/windows_gcs_cloud_sdk',
+    },
+    {
+      task: 'get-dotnet48-secret',
+      config: gcp_secret_manager.getsecrettask { secret_name: 'windows_gcs_dotnet48' },
+    },
+    {
+      load_var: 'windows-gcs-dotnet48',
+      file: 'gcp-secret-manager/windows_gcs_dotnet48',
+    },
+  ],
+  build_task+: { vars+: [
+    'cloudsdk=((.:windows-cloud-sdk))',
+    'dotnet48=((.:windows-gcs-dotnet48))',
+    'media=((.:windows-iso))',
+    'pwsh=((.:windows-gcs-pwsh))',
+    'updates=((.:windows-updates))',
+  ]},
+};
+
 local imgpublishjob = {
   local tl = self,  // tl = Top Level
 
@@ -146,8 +275,8 @@ local imgpublishjob = {
   image_prefix:: if self.image.os_type == 'debian' then common.debian_image_prefixes[self.image.name] else self.image.name,
   workflow_dir:: self.image.workflow_dir,
   workflow:: if self.image.os_type != 'windows'
-    then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_prefix)]
-    else '%s/%s' % [tl.workflow_dir, tl.image_name + '-uefi.publish.json'],
+    then '%s/%s.publish.json' % [tl.workflow_dir, underscore(tl.image_name)]
+    else '%s/%s' % [tl.workflow_dir, hyphenate(tl.image_name) + '-uefi.publish.json'],
   gcs:: 'gs://%s/%s' % [tl.gcs_bucket, tl.gcs_dir],
   gcs_dir:: self.image.gcs_dir,
   gcs_bucket:: common.prod_bucket,
@@ -347,82 +476,29 @@ local imggroup = {
     'windows-11-24h2-ent-x64', // EOL after Oct 12, 2027
     'windows-11-25h2-ent-x64',
   ],
-  local windows_server_image_names = [
+  local windows_2016_image_names = [
     'windows-server-2016-dc',
     'windows-server-2016-dc-core',
+  ],
+  local windows_2019_image_names = [
     'windows-server-2019-dc',
     'windows-server-2019-dc-core',
+  ],
+  local windows_2022_image_names = [
     'windows-server-2022-dc',
     'windows-server-2022-dc-core',
+  ],
+  local windows_2025_image_names = [
     'windows-server-2025-dc',
     'windows-server-2025-dc-core',
   ],
-  local windows_image_names = windows_client_image_names + windows_server_image_names,
+  local windows_image_names = windows_client_image_names + windows_2016_image_names + windows_2019_image_names + windows_2022_image_names + windows_2025_image_names,
   local windows_images = [
     { name: name, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' }
     for name in windows_image_names
   ],
-  local sql_2016_image_names = [
-    'sql-2016-enterprise-windows-2016-dc',
-    'sql-2016-enterprise-windows-2019-dc',
-    'sql-2016-standard-windows-2016-dc',
-    'sql-2016-standard-windows-2019-dc',
-    'sql-2016-web-windows-2016-dc',
-    'sql-2016-web-windows-2019-dc',
-  ],
-  local sql_2017_image_names = [
-    'sql-2017-enterprise-windows-2016-dc',
-    'sql-2017-enterprise-windows-2019-dc',
-    'sql-2017-enterprise-windows-2022-dc',
-    'sql-2017-enterprise-windows-2025-dc',
-    'sql-2017-express-windows-2016-dc',
-    'sql-2017-express-windows-2019-dc',
-    'sql-2017-standard-windows-2016-dc',
-    'sql-2017-standard-windows-2019-dc',
-    'sql-2017-standard-windows-2022-dc',
-    'sql-2017-standard-windows-2025-dc',
-    'sql-2017-web-windows-2016-dc',
-    'sql-2017-web-windows-2019-dc',
-    'sql-2017-web-windows-2022-dc',
-    'sql-2017-web-windows-2025-dc',
-  ],
-  local sql_2019_image_names = [
-    'sql-2019-enterprise-windows-2019-dc',
-    'sql-2019-enterprise-windows-2022-dc',
-    'sql-2019-enterprise-windows-2025-dc',
-    'sql-2019-standard-windows-2019-dc',
-    'sql-2019-standard-windows-2022-dc',
-    'sql-2019-standard-windows-2025-dc',
-    'sql-2019-web-windows-2019-dc',
-    'sql-2019-web-windows-2022-dc',
-    'sql-2019-web-windows-2025-dc',
-  ],
-  local sql_2022_image_names = [
-    'sql-2022-enterprise-windows-2019-dc',
-    'sql-2022-enterprise-windows-2022-dc',
-    'sql-2022-enterprise-windows-2025-dc',
-    'sql-2022-standard-windows-2019-dc',
-    'sql-2022-standard-windows-2022-dc',
-    'sql-2022-standard-windows-2025-dc',
-    'sql-2022-web-windows-2019-dc',
-    'sql-2022-web-windows-2022-dc',
-    'sql-2022-web-windows-2025-dc',
-  ],
-  local sql_2025_image_names = [
-    'sql-2025-enterprise-windows-2025-dc',
-    'sql-2025-enterprise-windows-2022-dc',
-    'sql-2025-enterprise-windows-2019-dc',
-    'sql-2025-standard-windows-2025-dc',
-    'sql-2025-standard-windows-2022-dc',
-    'sql-2025-standard-windows-2019-dc',
-  ],
-  local sql_image_names = sql_2016_image_names + sql_2017_image_names + sql_2019_image_names + sql_2022_image_names + sql_2025_image_names,
-  local sql_images = [
-    { name: name, os_type: 'windows', gcs_dir: 'sqlserver-uefi', workflow_dir: 'sqlserver' }
-    for name in sql_image_names
-  ],
   
-  local all_images = debian_images + centos_images + rhel_images + windows_images + sql_images,
+  local all_images = debian_images + centos_images + rhel_images + windows_images,
 
   resource_types: [
     {
@@ -449,14 +525,33 @@ local imggroup = {
     for img in all_images
   ],
   jobs: [
-    imgbuildjob {
-      image:: image,
-    }
-    for image in all_images
+    // Build CentOS images
+    centosbuildjob { image:: image }
+    for image in centos_images
   ] + [
-    imgpublishjob {
-      image:: image,
-    }
+    // Build Debian images. Requires no modifications so using base job template.
+    imgbuildjob { image:: image }
+    for image in debian_images
+  ] + [
+    // Build RHEL images
+    rhelbuildjob { image:: image }
+    for image in rhel_images
+  ] + [
+    // Build Windows Server images
+    windowsbuildjob('windows-11-23h2-ent-x64', 'win11-23h2-64', 'windows_gcs_updates_client11-23h2-64'),
+    windowsbuildjob('windows-11-24h2-ent-x64', 'win11-24h2-64', 'windows_gcs_updates_client11-24h2-64'),
+    windowsbuildjob('windows-11-25h2-ent-x64', 'win11-25h2-64', 'windows_gcs_updates_client11-25h2-64'),
+    windowsbuildjob('windows-server-2025-dc', 'win2025-64', 'windows_gcs_updates_server2025'),
+    windowsbuildjob('windows-server-2025-dc-core', 'win2025-64', 'windows_gcs_updates_server2025'),
+    windowsbuildjob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
+    windowsbuildjob('windows-server-2022-dc-core', 'win2022-64', 'windows_gcs_updates_server2022'),
+    windowsbuildjob('windows-server-2019-dc', 'win2019-64', 'windows_gcs_updates_server2019'),
+    windowsbuildjob('windows-server-2019-dc-core', 'win2019-64', 'windows_gcs_updates_server2019'),
+    windowsbuildjob('windows-server-2016-dc', 'win2016-64', 'windows_gcs_updates_server2016'),
+    windowsbuildjob('windows-server-2016-dc-core', 'win2016-64', 'windows_gcs_updates_server2016'),
+  ] + [
+    // Publish images
+    imgpublishjob { image:: image }
     for image in all_images
   ],
   groups: [
@@ -473,11 +568,9 @@ local imggroup = {
     imggroup { name: 'rhel-10-eus', images: rhel_10_eus_image_names },
     imggroup { name: 'rhel-10-eus-lvm', images: rhel_10_eus_lvm_image_names },
     imggroup { name: 'windows-client', images: windows_client_image_names },
-    imggroup { name: 'windows-server', images: windows_server_image_names },
-    imggroup { name: 'windows-sql-2016', images: sql_2016_image_names },
-    imggroup { name: 'windows-sql-2017', images: sql_2017_image_names },
-    imggroup { name: 'windows-sql-2019', images: sql_2019_image_names },
-    imggroup { name: 'windows-sql-2022', images: sql_2022_image_names },
-    imggroup { name: 'windows-sql-2025', images: sql_2025_image_names },
+    imggroup { name: 'windows-server-2016', images: windows_2016_image_names },
+    imggroup { name: 'windows-server-2019', images: windows_2019_image_names },
+    imggroup { name: 'windows-server-2022', images: windows_2022_image_names },
+    imggroup { name: 'windows-server-2025', images: windows_2025_image_names },
   ]
 }
