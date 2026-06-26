@@ -514,17 +514,23 @@ local imggroup = {
     'windows-11-24h2-ent-x64', // EOL after Oct 12, 2027
     'windows-11-25h2-ent-x64',
   ],
-  local windows_server_image_names = [
+  local windows_2016_image_names = [
     'windows-server-2016-dc',
     'windows-server-2016-dc-core',
+  ],
+  local windows_2019_image_names = [
     'windows-server-2019-dc',
     'windows-server-2019-dc-core',
+  ],
+  local windows_2022_image_names = [
     'windows-server-2022-dc',
     'windows-server-2022-dc-core',
+  ],
+  local windows_2025_image_names = [
     'windows-server-2025-dc',
     'windows-server-2025-dc-core',
   ],
-  local windows_image_names = windows_client_image_names + windows_server_image_names,
+  local windows_image_names = windows_client_image_names + windows_2016_image_names + windows_2019_image_names + windows_2022_image_names + windows_2025_image_names,
   local windows_images = [
     { name: name, os_type: 'windows', gcs_dir: 'windows-uefi', workflow_dir: 'windows' }
     for name in windows_image_names
@@ -709,7 +715,10 @@ local imggroup = {
     imggroup { name: 'rhel-10-eus', images: rhel_10_eus_image_names },
     imggroup { name: 'rhel-10-eus-lvm', images: rhel_10_eus_lvm_image_names },
     imggroup { name: 'windows-client', images: windows_client_image_names },
-    imggroup { name: 'windows-server', images: windows_server_image_names },
+    imggroup { name: 'windows-server-2016', images: windows_2016_image_names },
+    imggroup { name: 'windows-server-2019', images: windows_2019_image_names },
+    imggroup { name: 'windows-server-2022', images: windows_2022_image_names },
+    imggroup { name: 'windows-server-2025', images: windows_2025_image_names },
     imggroup { name: 'windows-sql-2016', images: sql_2016_image_names },
     imggroup { name: 'windows-sql-2017', images: sql_2017_image_names },
     imggroup { name: 'windows-sql-2019', images: sql_2019_image_names },
