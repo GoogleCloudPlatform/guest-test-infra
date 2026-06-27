@@ -53,7 +53,7 @@ local imgbuildjob = {
     ] else [],
 
   // Start of job
-  name: 'build-release-package-testing-%s' + self.image,
+  name: 'build-release-package-testing-' + self.image,
   plan: tl.daily_task + [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
