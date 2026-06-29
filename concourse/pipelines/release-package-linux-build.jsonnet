@@ -554,7 +554,7 @@ local imggroup = {
                common.gcsimgresource {
                  image: image,
                  name: '%s-unstable-gcs' % [self.image],
-                 regexp: 'debian/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
+                 regexp: 'debian-unstable/%s-v([0-9]+).tar.gz' % common.debian_image_prefixes[self.image],
                }
                for image in debian_images
              ] + [
@@ -600,7 +600,7 @@ local imggroup = {
     imgpublishjob {
       image: image,
       env: 'package',
-      gcs_dir: 'debian',
+      gcs_dir: 'debian-unstable',
       workflow_dir: 'debian',
 
       // Debian tarballs and images use a longer name, but jobs use the shorter name.
@@ -612,7 +612,7 @@ local imggroup = {
     imgpublishjob {
       image: image,
       env: 'package',
-      gcs_dir: 'rhel',
+      gcs_dir: 'rhel-unstable',
       workflow_dir: 'enterprise_linux',
     }
     for image in rhel_images
@@ -621,7 +621,7 @@ local imggroup = {
     imgpublishjob {
       image: image,
       env: 'package',
-      gcs_dir: 'centos',
+      gcs_dir: 'centos-unstable',
       workflow_dir: 'enterprise_linux',
     }
     for image in centos_images
