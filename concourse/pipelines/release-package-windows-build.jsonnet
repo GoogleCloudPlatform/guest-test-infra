@@ -405,7 +405,7 @@ local ImgGroup(name, images) = {
         ] +
         // Publish jobs
         [
-          ImgPublishJob(image, 'package', 'windows', 'windows-uefi')
+          ImgPublishJob(image, 'package', 'windows', 'windows-uefi-unstable')
           for image in windows_client_images + windows_server_images
         ],
 
