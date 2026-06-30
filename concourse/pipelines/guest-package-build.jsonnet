@@ -1008,12 +1008,6 @@ local build_guest_agent = buildpackagejob {
           // TODO(b/431239519): We're temporarily force installing debian packages for testing on ubuntu images.
           // Update this once we have right packages.
           buildpackageimagetask {
-            image_name: 'ubuntu-pro-1604-lts',
-            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1604-lts',
-            dest_image: 'ubuntu-pro-1604-lts-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
-          },
-          buildpackageimagetask {
             image_name: 'ubuntu-pro-1804-lts',
             source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts',
             dest_image: 'ubuntu-pro-1804-lts-((.:build-id))',
