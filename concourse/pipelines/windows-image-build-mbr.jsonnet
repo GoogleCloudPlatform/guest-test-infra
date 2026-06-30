@@ -226,7 +226,6 @@ local imgpublishjob = {
         config: imagetesttask {
           images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % job.image_prefix,
         },
-        attempts: 3,
       },
     ]
   else [],
