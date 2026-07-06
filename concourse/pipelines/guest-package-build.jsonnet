@@ -1351,18 +1351,6 @@ local build_guest_agent = buildpackagejob {
             gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
           },
           buildpackageimagetask {
-            image_name: 'sles-15-sp4-sap',
-            source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp4-sap',
-            dest_image: 'sles-15-sp4-sap-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'sles-15-sp4-byos',
-            source_image: 'projects/suse-byos-cloud/global/images/family/sles-15-sp4-byos',
-            dest_image: 'sles-15-sp4-byos-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el9.x86_64.rpm' % [tl.package],
-          },
-          buildpackageimagetask {
             image_name: 'sles-15-sp5-sap',
             source_image: 'projects/suse-sap-cloud/global/images/family/sles-15-sp5-sap',
             dest_image: 'sles-15-sp5-sap-((.:build-id))',
