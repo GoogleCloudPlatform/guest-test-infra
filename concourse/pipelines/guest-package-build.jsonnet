@@ -50,6 +50,7 @@ local cloudimageteststask(
         + extra_args,
     },
   },
+  attempts: 3,
 };
 
 
@@ -518,6 +519,7 @@ local buildpackageimagetask = {
 
   // Start of output.
   task: 'build-derivative-%s-image' % tl.image_name,
+  attempts: 3,
   config: {
     platform: 'linux',
     image_resource: {
@@ -1799,6 +1801,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: 'oslogin-image-tests-arm64',
@@ -1820,6 +1823,7 @@ local build_and_upload_oslogin = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
@@ -1992,6 +1996,7 @@ extra_tasks: [
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -2015,6 +2020,7 @@ extra_tasks: [
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
@@ -2151,6 +2157,7 @@ local build_artifactplugins_yum = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
           {
             task: '%s-image-tests-arm64' % [tl.package],
@@ -2174,6 +2181,7 @@ local build_artifactplugins_yum = buildpackagejob {
                 ],
               },
             },
+            attempts: 3,
           },
         ],
       },
