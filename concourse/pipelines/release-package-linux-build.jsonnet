@@ -43,18 +43,10 @@ local imgbuildjob = {
     vars+: ['google_cloud_repo=unstable'],
   },
   extra_tasks:: [],
-  daily:: true,
-  daily_task:: if self.daily then
-    [
-      {
-        get: 'daily-time',
-        trigger: true,
-      },
-    ] else [],
 
   // Start of job
   name: 'build-release-package-testing-' + self.image,
-  plan: tl.daily_task + [
+  plan: [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -537,11 +529,6 @@ local imggroup = {
     },
   ],
   resources: [
-               {
-                 name: 'daily-time',
-                 type: 'time',
-                 source: { interval: '24h', start: '5:00 AM', stop: '5:30 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
-               },
                common.gitresource { name: 'compute-image-tools' },
                common.gitresource { name: 'guest-test-infra' },
              ] + [

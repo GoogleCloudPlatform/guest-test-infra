@@ -26,17 +26,10 @@ local imgbuildjob = {
   workflow:: error 'must set workflow in imgbuildjob',
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
-  daily:: true,
-  daily_task:: if self.daily then [
-    {
-      get: 'daily-time',
-      trigger: true,
-    },
-  ] else [],
 
   // Start of job.
   name: 'build-release-package-testing-' + job.image,
-  plan: job.daily_task + [
+  plan: [
     { get: 'compute-image-tools' },
     { get: 'guest-test-infra' },
     {
@@ -355,11 +348,6 @@ local ImgGroup(name, images) = {
     },
   ],
   resources: [
-               {
-                 name: 'daily-time',
-                 type: 'time',
-                 source: { interval: '24h', start: '6:30 AM', stop: '7:00 AM', location: 'America/Los_Angeles', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], initial_version: true },
-               },
                common.GitResource('compute-image-tools'),
                common.GitResource('guest-test-infra'),
              ] +
