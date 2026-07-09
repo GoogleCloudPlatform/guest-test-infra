@@ -758,14 +758,6 @@ local ImgGroup(name, images, environments) = {
     'windows-server-2025-dc',
     'windows-server-2025-dc-core',
   ],
-  local sql_2016_images = [
-    'sql-2016-enterprise-windows-2016-dc',
-    'sql-2016-enterprise-windows-2019-dc',
-    'sql-2016-standard-windows-2016-dc',
-    'sql-2016-standard-windows-2019-dc',
-    'sql-2016-web-windows-2016-dc',
-    'sql-2016-web-windows-2019-dc',
-  ],
   local sql_2017_images = [
     'sql-2017-enterprise-windows-2016-dc',
     'sql-2017-enterprise-windows-2019-dc',
@@ -819,7 +811,7 @@ local ImgGroup(name, images, environments) = {
   local windows_client_images = windows_11_images,
   local windows_server_images = windows_2016_images + windows_2019_images
                               + windows_2022_images + windows_2025_images,
-  local sql_images = sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images + sql_2025_images,
+  local sql_images = sql_2017_images + sql_2019_images + sql_2022_images + sql_2025_images,
 
   resource_types: [
     {
@@ -894,13 +886,6 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-server-2016-dc-core', 'win2016-64', 'windows_gcs_updates_server2016'),
 
           // SQL derivative builds
-
-          SQLImgBuildJob('sql-2016-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-enterprise', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-standard-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-standard-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-standard', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-web-windows-2016-dc', 'windows-server-2016-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
-          SQLImgBuildJob('sql-2016-web-windows-2019-dc', 'windows-server-2019-dc', 'sql-2016-web', 'windows_gcs_ssms_exe'),
 
           SQLImgBuildJob('sql-2017-enterprise-windows-2016-dc', 'windows-server-2016-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
           SQLImgBuildJob('sql-2017-enterprise-windows-2019-dc', 'windows-server-2019-dc', 'sql-2017-enterprise', 'windows_gcs_ssms_exe'),
@@ -984,7 +969,6 @@ local ImgGroup(name, images, environments) = {
     ImgGroup('windows-2019', windows_2019_images, server_envs),
     ImgGroup('windows-2022', windows_2022_images, server_envs),
     ImgGroup('windows-2025', windows_2025_images, server_envs),
-    ImgGroup('sql-2016', sql_2016_images, sql_envs),
     ImgGroup('sql-2017', sql_2017_images, sql_envs),
     ImgGroup('sql-2019', sql_2019_images, sql_envs),
     ImgGroup('sql-2022', sql_2022_images, sql_envs),
