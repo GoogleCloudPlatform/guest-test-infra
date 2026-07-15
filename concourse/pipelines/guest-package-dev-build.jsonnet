@@ -1654,7 +1654,7 @@ local build_test_publish_guest_agent_dev(package_name, repo='', extra='') = [
     },
   ] +
     //Build guest-agent-dev
-    build_test_publish_guest_agent(
+    build_test_publish_guest_agent_dev(
       package_name='guest-agent-dev', 
       repo='guest-agent', 
       extra='google-guest-agent'
