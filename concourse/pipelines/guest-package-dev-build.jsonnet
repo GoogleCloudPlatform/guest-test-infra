@@ -8,6 +8,26 @@ local imageFamily(imagePath) = (
   std.strReplace(parts[std.length(parts) - 1], '-((.:build-id))', '')
 );
 
+// task which generates timestamps used in metric publishing steps. common between build and promote jobs.
+local generatetimestamptask = {
+  task: 'generate-timestamp',
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'bash' },
+    },
+    outputs: [{ name: 'timestamp' }],
+    run: {
+      path: '/usr/local/bin/bash',
+      args: [
+        '-c',
+        'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
+      ],
+    },
+  },
+};
+
 local cloudimageteststask(
   package,
   suffix,
@@ -440,26 +460,6 @@ local publishresulttask = {
         '--result-state=' + tl.result,
         '--start-timestamp=((.:start-timestamp-ms))',
         '--metric-path=concourse/job/duration',
-      ],
-    },
-  },
-};
-
-// task which generates timestamps used in metric publishing steps. common between build and promote jobs.
-local generatetimestamptask = {
-  task: 'generate-timestamp',
-  config: {
-    platform: 'linux',
-    image_resource: {
-      type: 'registry-image',
-      source: { repository: 'bash' },
-    },
-    outputs: [{ name: 'timestamp' }],
-    run: {
-      path: '/usr/local/bin/bash',
-      args: [
-        '-c',
-        'timestamp=$((${EPOCHREALTIME/./}/1000)); echo $(($timestamp/1000)) | tee timestamp/timestamp; echo $timestamp | tee timestamp/timestamp-ms',
       ],
     },
   },
