@@ -1392,14 +1392,14 @@ local gated_package_publish_job = {
         steps: tl.uploads,
       },
     },
-    {
-      put: '%s-tag' % tl.package,
-      params: {
-        name: tl.package + '-linux-gcs/version',
-        tag: tl.package + '-linux-gcs/version',
-        commitish: '%s/.git/ref' % tl.package,
-      },
-    },
+    // {
+    //   put: '%s-tag' % tl.package,
+    //   params: {
+    //     name: tl.package + '-linux-gcs/version',
+    //     tag: tl.package + '-linux-gcs/version',
+    //     commitish: '%s/.git/ref' % tl.package,
+    //   },
+    // },
   ],
   on_success: publishresulttask { result: 'success', package: tl.package },
   on_failure: publishresulttask { result: 'failure', package: tl.package },
@@ -1440,7 +1440,6 @@ local test_guest_agent_linux_dev = gated_package_test_job {
       },
     },
     { load_var: 'build-id', file: 'build-id-dir/build-id' },
-    { get: 'compute-image-tools' },
 
     // Build Derivative Images (Trimmed to Deb13 and RHEL10)
     {
@@ -1543,7 +1542,7 @@ local test_guest_agent_windows_dev = gated_package_test_job {
       },
     },
     { load_var: 'build-id', file: 'build-id-dir/build-id' },
-    { get: 'compute-image-tools' },
+
     {
       in_parallel: {
         steps: [
