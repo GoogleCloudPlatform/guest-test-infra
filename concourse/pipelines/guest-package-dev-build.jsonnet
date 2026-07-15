@@ -1,6 +1,415 @@
 local underscore(input) = std.strReplace(input, '-', '_');
 local commaSeparatedString(inputArray) = std.join(',', inputArray);
 local gcp_secret_manager = import '../templates/gcp-secret-manager.libsonnet';
+local armBuildZones = ['europe-west4-a', 'europe-west1-b', 'asia-east1-a', 'asia-east1-c', 'asia-northeast1-b', 'us-east1-c'];
+local x86BuildZones = ['us-central1-a', 'us-central1-b', 'us-central1-c', 'us-central1-f', 'us-east1-b', 'us-east1-c', 'us-east1-d', 'us-west1-a', 'us-west1-b', 'us-west1-c', 'asia-east1-a'];
+local imageFamily(imagePath) = (
+  local parts = std.split(imagePath, '/');
+  std.strReplace(parts[std.length(parts) - 1], '-((.:build-id))', '')
+);
+
+local cloudimageteststask(
+  package,
+  suffix,
+  images,
+  tests,
+  project='guest-package-builder',
+  test_projects=null,
+  zones=null,
+  timeout='45m',
+  parallel_count=15,
+  extra_args=[]
+) = {
+  local isArm = std.member(suffix, 'arm') || (std.length(images) > 0 && std.member(images[0], 'arm')),
+  local resolvedZones = if zones != null then zones else (if isArm then armBuildZones else x86BuildZones),
+
+  task: '%s-image-tests-%s' % [package, suffix],
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image',
+      source: { repository: 'gcr.io/compute-image-tools/cloud-image-tests' },
+    },
+    [if isArm then "inputs"]: [{ name: 'guest-test-infra' }],
+    run: {
+      path: '/manager',
+      args: [
+        '-project=' + project,
+        '-zone_override=false',
+        '-zones=' + commaSeparatedString(resolvedZones),
+        '-images=' + commaSeparatedString(images),
+        '-filter=^(' + std.join('|', tests) + ')$',
+        '-parallel_count=%d' % parallel_count,
+      ] + (if test_projects != null then ['-test_projects=' + commaSeparatedString(test_projects)] else [])
+        + (if timeout != null then ['-timeout=' + timeout] else [])
+        + extra_args,
+    },
+  },
+  attempts: 3,
+};
+
+local gated_package_build_job = {
+  local tl = self,
+  package:: error 'must set package in build job',
+  platform:: error 'must set platform (linux or windows)',
+  repo_name:: tl.package,
+  gcs_dir:: tl.package,
+  builds:: error 'must set builds',
+  build_dir:: '',
+  
+  name: 'build-' + tl.package + '-' + tl.platform,
+  plan: [
+    { get: tl.package, trigger: true, params: { skip_download: true } },
+    { get: 'guest-test-infra' },
+    generatetimestamptask,
+    { load_var: 'start-timestamp-ms', file: 'timestamp/timestamp-ms' },
+    { load_var: 'commit-sha', file: '%s/.git/ref' % tl.package },
+    
+    // Generate Version String
+    {
+      task: 'generate-package-version',
+      config: {
+        platform: 'linux',
+        image_resource: { type: 'registry-image', source: { repository: 'alpine/git' } },
+        inputs: [{ name: tl.package, path: 'repo' }],
+        outputs: [{ name: 'package-version' }],
+        run: {
+          path: 'ash',
+          args: [
+            '-exc',
+            std.lines([
+              'latest=$(cd repo;git tag -l "20*"|tail -1)',
+              'latest_date=${latest/.*}',
+              'todays_date=$(date "+%Y%m%d")',
+              'latest_build=0',
+              'if [[ $latest_date == $todays_date ]]; then',
+              '  latest_build=${latest/*.}',
+              '  latest_build=$((latest_build+1))',
+              'fi',
+              'printf "%s.%02d\\n" "${todays_date}" "${latest_build}" | tee package-version/version',
+            ]),
+          ],
+        },
+      },
+    },
+    { load_var: 'package-version', file: 'package-version/version' },
+    
+    // Write version to GCS to pass state to the Test job
+    {
+      put: tl.package + '-' + tl.platform + '-gcs',
+      params: { file: 'package-version/version' },
+      get_params: { skip_download: 'true' },
+    },
+    
+    {
+      in_parallel: {
+        steps: [
+          {
+            task: 'guest-package-dev-build-%s-%s' % [tl.package, build],
+            config: {
+              platform: 'linux',
+              image_resource: { type: 'registry-image', source: { repository: 'gcr.io/compute-image-tools/daisy' } },
+              inputs: [{ name: 'guest-test-infra' }],
+              run: {
+                path: '/daisy',
+                args: [
+                  '-project=guest-package-builder',
+                  '-zone=us-west1-a',
+                  '-var:repo_owner=GoogleCloudPlatform',
+                  '-var:repo_name=' + tl.repo_name,
+                  '-var:git_ref=((.:commit-sha))',
+                  '-var:version=((.:package-version))',
+                  '-var:gcs_path=gs://gcp-guest-package-uploads/' + tl.gcs_dir,
+                  '-var:build_dir=' + tl.build_dir,
+                  'guest-test-infra/packagebuild/workflows/build_%s.wf.json' % underscore(build),
+                ],
+              },
+            },
+          }
+          for build in tl.builds
+        ],
+      },
+    },
+  ],
+  on_success: publishresulttask { result: 'success', package: tl.package },
+  on_failure: publishresulttask { result: 'failure', package: tl.package },
+};
+
+// Successful gated_package_build_job gets passed to testing
+local gated_package_test_job = {
+  local tl = self,
+  package:: error 'must set package in test job',
+  platform:: error 'must set platform (linux or windows)',
+  extra_tasks:: [],
+  
+  name: 'test-' + tl.package + '-' + tl.platform,
+  plan: [
+    { get: 'compute-image-tools' },
+    { get: 'guest-test-infra' },
+    {
+      get: tl.package + '-' + tl.platform + '-gcs',
+      passed: ['build-' + tl.package + '-' + tl.platform],
+      trigger: true, // Auto-trigger when build succeeds
+      params: { skip_download: 'true' },
+    },
+    { load_var: 'package-version', file: tl.package + '-' + tl.platform + '-gcs/version' },
+  ] + tl.extra_tasks,
+  on_success: publishresulttask { result: 'success', package: tl.package },
+  on_failure: publishresulttask { result: 'failure', package: tl.package },
+};
+
+// Successful gated_package_test_job gets passed to publish
+local gated_package_publish_job = {
+  local tl = self,
+  package:: error 'must set package in publish job',
+  uploads:: error 'must set uploads',
+  
+  name: 'publish-' + tl.package,
+  plan: [
+    { get: tl.package },
+    {
+      in_parallel: [
+        {
+          get: tl.package + '-linux-gcs',
+          passed: ['test-' + tl.package + '-linux'],
+          params: { skip_download: 'true' },
+        },
+        {
+          get: tl.package + '-windows-gcs',
+          passed: ['test-' + tl.package + '-windows'],
+          params: { skip_download: 'true' },
+        },
+      ],
+    },
+    { load_var: 'package-version', file: tl.package + '-linux-gcs/version' },
+    {
+      in_parallel: {
+        fail_fast: true,
+        steps: tl.uploads,
+      },
+    },
+    {
+      put: '%s-tag' % tl.package,
+      params: {
+        name: tl.package + '-linux-gcs/version',
+        tag: tl.package + '-linux-gcs/version',
+        commitish: '%s/.git/ref' % tl.package,
+      },
+    },
+  ],
+  on_success: publishresulttask { result: 'success', package: tl.package },
+  on_failure: publishresulttask { result: 'failure', package: tl.package },
+};
+
+local build_guest_agent_linux_dev = gated_package_build_job {
+  package: 'guest-agent',
+  platform: 'linux',
+  builds: ['deb13', 'deb13-arm64', 'el10', 'el10-arm64'], 
+};
+
+local test_guest_agent_linux_dev = gated_package_test_job {
+  local tl = self,
+  package: 'guest-agent',
+  platform: 'linux',
+
+  // Trimmed test suites for quicker validation
+  local devCITSuites = ['packagevalidation', 'ssh', 'guestagent'], 
+
+  local x86ImagesToTest = [
+    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+  ],
+
+  local arm64ImagesToTest = [
+    'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
+  ],
+
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: { type: 'registry-image', source: { repository: 'busybox' } },
+        outputs: [{ name: 'build-id-dir' }],
+        run: { path: 'sh', args: ['-exc', 'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id'] },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+
+    // Build Derivative Images (Trimmed to Deb13 and RHEL10)
+    {
+      in_parallel: {
+        steps: [
+          buildpackageimagetask {
+            image_name: 'debian-13',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13',
+            dest_image: 'debian-13-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'debian-13-arm64',
+            source_image: 'projects/debian-cloud/global/images/family/debian-13-arm64',
+            dest_image: 'debian-13-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10',
+            dest_image: 'rhel-10-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm' % [tl.package],
+          },
+          buildpackageimagetask {
+            image_name: 'rhel-10-arm64',
+            source_image: 'projects/rhel-cloud/global/images/family/rhel-10-arm64',
+            dest_image: 'rhel-10-arm64-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm' % [tl.package],
+            machine_type: 'c4a-standard-2',
+            disk_type: 'hyperdisk-balanced',
+            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker-arm64',
+          },
+        ],
+      },
+    },
+
+    // Run CIT Tests
+    {
+      in_parallel: {
+        fail_fast: true,
+        limit: 20,
+        steps: std.flattenArrays([
+          [
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1
+            )
+            for img in x86ImagesToTest
+            for suite in devCITSuites
+          ],
+          [
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1,
+              extra_args=['-arm64_shape=c4a-standard-1']
+            )
+            for img in arm64ImagesToTest
+            for suite in devCITSuites
+          ],
+        ]),
+      },
+    },
+  ],
+};
+
+local build_guest_agent_windows_dev = gated_package_build_job {
+  package: 'guest-agent',
+  platform: 'windows',
+  builds: ['goo'],
+};
+
+local test_guest_agent_windows_dev = gated_package_test_job {
+  local tl = self,
+  package: 'guest-agent',
+  platform: 'windows',
+
+  local devCITSuites = ['packagevalidation', 'ssh', 'guestagent'],
+
+  local x86WindowsImagesToTest = [
+    'projects/guest-package-builder/global/images/windows-server-2022-dc-((.:build-id))',
+  ],
+
+  extra_tasks: [
+    {
+      task: 'generate-build-id',
+      config: {
+        platform: 'linux',
+        image_resource: { type: 'registry-image', source: { repository: 'busybox' } },
+        outputs: [{ name: 'build-id-dir' }],
+        run: { path: 'sh', args: ['-exc', 'buildid=$(date "+%s"); echo ' + tl.package + '-$buildid | tee build-id-dir/build-id'] },
+      },
+    },
+    { load_var: 'build-id', file: 'build-id-dir/build-id' },
+    { get: 'compute-image-tools' },
+    {
+      in_parallel: {
+        steps: [
+          buildpackageimagetaskwindows {
+            image_name: 'windows-2022',
+            source_image: 'projects/windows-cloud/global/images/family/windows-2022',
+            dest_image: 'windows-server-2022-dc-((.:build-id))',
+            gcs_package_path: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo","gs://gcp-guest-package-uploads/%s/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo",gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-sysprep.noarch.20260206.01@1.goo' % [tl.package, tl.package],
+          },
+        ],
+      },
+    },
+    {
+      in_parallel: {
+        fail_fast: true,
+        limit: 10,
+        steps: std.flattenArrays([
+          [
+            cloudimageteststask(
+              package=tl.package,
+              suffix=imageFamily(img) + '-' + suite,
+              images=[img],
+              tests=[suite],
+              parallel_count=1,
+              extra_args=['-x86_shape=e2-standard-4']
+            )
+            for img in x86WindowsImagesToTest
+            for suite in devCITSuites
+          ],
+        ]),
+      },
+    },
+  ],
+};
+
+local publish_guest_agent_dev = gated_package_publish_job {
+  local tl = self,
+  package: 'guest-agent',
+  platforms: ['linux', 'windows'],
+  uploads: [
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb","gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_arm64.deb"' % [tl.package, tl.package],
+      os_type: 'TRIXIE_APT',
+      pkg_inside_name: 'google-guest-agent',
+      pkg_name: 'guest-agent',
+      pkg_version: '((.:package-version))',
+      reponame: 'google-guest-agent-trixie',
+      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.x86_64.rpm","gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version))-g1.el10.aarch64.rpm"' % [tl.package, tl.package],
+      os_type: 'EL10_YUM',
+      pkg_inside_name: 'google-guest-agent',
+      pkg_name: 'guest-agent',
+      pkg_version: '((.:package-version))',
+      reponame: 'google-guest-agent-el10',
+      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-guest-agent-((.:package-version)).sbom.json' % [tl.package],
+    },
+    uploadpackageversiontask {
+      gcs_files: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo"' % [tl.package],
+      os_type: 'WINDOWS_ALL_GOOGET',
+      pkg_inside_name: 'google-compute-engine-windows',
+      pkg_name: 'google-compute-engine-windows',
+      pkg_version: '((.:package-version))',
+      reponame: 'google-compute-engine-windows',
+      sbom_file: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows-((.:package-version)).sbom.json' % [tl.package],
+    },
+  ],
+};
+
 
 // task which publishes a 'result' metric per job, with either success or failure value.
 local publishresulttask = {
@@ -276,6 +685,7 @@ local uploadpackageversiontask = {
   reponame:: error 'must set reponame in uploadpackageversiontask',
   sbom_file:: error 'must set sbom_file in uploadpackageversiontask',
   topic:: 'projects/artifact-releaser-prod/topics/artifact-registry-package-upload-prod',
+  dry_run:: true, // Set to true for dev pipeline
 
 
   task: 'upload-' + tl.pkg_name + '-' + tl.os_type,
@@ -286,7 +696,7 @@ local uploadpackageversiontask = {
       source: { repository: 'google/cloud-sdk', tag: 'alpine' },
     },
     run: {
-      path: 'gcloud',
+      path: if tl.dry_run then 'echo' else 'gcloud', // echo for dry run
       args: [
         'pubsub',
         'topics',
@@ -1204,6 +1614,27 @@ local build_and_upload_oslogin = buildpackagejob {
   ],
 };
 
+local build_test_publish_guest_agent_dev(package_name, repo='', extra='') = [
+  build_guest_agent_linux_dev {
+    package: package_name,
+    repo_name: if repo != '' then repo else package_name,
+    extra_repo: extra,
+  },
+  test_guest_agent_linux_dev {
+    package: package_name,
+  },
+  build_guest_agent_windows_dev {
+    package: package_name,
+    repo_name: if repo != '' then repo else package_name,
+    extra_repo: extra,
+  },
+  test_guest_agent_windows_dev {
+    package: package_name,
+  },
+  publish_guest_agent_dev {
+    package: package_name,
+  }
+];
 
 // Start of output
 {
@@ -1221,12 +1652,14 @@ local build_and_upload_oslogin = buildpackagejob {
       extra_repo: 'google-guest-agent',
       repo_name: 'guest-agent',
     },
-    build_guest_agent {
-      package: 'guest-agent-dev',
-      repo_name: 'guest-agent',
-      extra_repo: 'google-guest-agent',
-      extended_tasks: [],
-    },
+  ] +
+    //Build guest-agent-dev
+    build_test_publish_guest_agent(
+      package_name='guest-agent-dev', 
+      repo='guest-agent', 
+      extra='google-guest-agent'
+    ) 
+  + [
     build_and_upload_oslogin {
       package: 'guest-oslogin',
       gcs_dir: 'oslogin',
@@ -1338,6 +1771,22 @@ local build_and_upload_oslogin = buildpackagejob {
         uri: 'https://github.com/GoogleCloudPlatform/guest-agent.git',
         branch: 'dev',
         fetch_tags: false,
+      },
+    },
+    {
+      name: 'guest-agent-dev-linux-gcs',
+      type: 'gcs',
+      source: {
+        bucket: 'gcp-guest-package-uploads',
+        regexp: 'guest-agent-dev/linux/version-(.*)',
+      },
+    },
+    {
+      name: 'guest-agent-dev-windows-gcs',
+      type: 'gcs',
+      source: {
+        bucket: 'gcp-guest-package-uploads',
+        regexp: 'guest-agent-dev/windows/version-(.*)',
       },
     },
     {
@@ -1535,7 +1984,11 @@ local build_and_upload_oslogin = buildpackagejob {
     {
       name: 'guest-agent-dev',
       jobs: [
-        'build-guest-agent-dev',
+        'build-guest-agent-dev-linux',
+        'test-guest-agent-dev-linux',
+        'build-guest-agent-dev-windows',
+        'test-guest-agent-dev-windows',
+        'publish-guest-agent-dev',
       ],
     },
     {
