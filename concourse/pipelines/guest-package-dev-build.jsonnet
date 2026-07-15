@@ -28,6 +28,40 @@ local generatetimestamptask = {
   },
 };
 
+// task which publishes a 'result' metric per job, with either success or failure value.
+local publishresulttask = {
+  local tl = self,
+
+  result:: error 'must set result in publishresulttask',
+  package:: error 'must set package in publishresulttask',
+
+  // start of output.
+  task: tl.result,
+  config: {
+    platform: 'linux',
+    image_resource: {
+      type: 'registry-image-private',
+      source: {
+        repository: 'gcr.io/gcp-guest/concourse-metrics',
+        google_auth: true,
+      },
+    },
+    run: {
+      path: '/publish-job-result',
+      args: [
+        '--project-id=gcp-guest',
+        '--zone=us-west1-a',
+        '--pipeline=guest-package-build-dev',
+        '--job=build-' + tl.package,
+        '--task=publish-job-result',
+        '--result-state=' + tl.result,
+        '--start-timestamp=((.:start-timestamp-ms))',
+        '--metric-path=concourse/job/duration',
+      ],
+    },
+  },
+};
+
 local cloudimageteststask(
   package,
   suffix,
@@ -428,41 +462,6 @@ local publish_guest_agent_dev = gated_package_publish_job {
       sbom_file: 'gs://gcp-guest-package-uploads/%s/google-compute-engine-windows-((.:package-version)).sbom.json' % [tl.package],
     },
   ],
-};
-
-
-// task which publishes a 'result' metric per job, with either success or failure value.
-local publishresulttask = {
-  local tl = self,
-
-  result:: error 'must set result in publishresulttask',
-  package:: error 'must set package in publishresulttask',
-
-  // start of output.
-  task: tl.result,
-  config: {
-    platform: 'linux',
-    image_resource: {
-      type: 'registry-image-private',
-      source: {
-        repository: 'gcr.io/gcp-guest/concourse-metrics',
-        google_auth: true,
-      },
-    },
-    run: {
-      path: '/publish-job-result',
-      args: [
-        '--project-id=gcp-guest',
-        '--zone=us-west1-a',
-        '--pipeline=guest-package-build-dev',
-        '--job=build-' + tl.package,
-        '--task=publish-job-result',
-        '--result-state=' + tl.result,
-        '--start-timestamp=((.:start-timestamp-ms))',
-        '--metric-path=concourse/job/duration',
-      ],
-    },
-  },
 };
 
 // job which builds a package - environments to build and individual upload tasks are passed in
