@@ -167,7 +167,7 @@ local promote_arle_autopush_stable = {
   universes:: ['cloud-apt', 'cloud-yum', 'cloud-yuck'],
   env:: 'stable',
   topic:: 'projects/artifact-releaser-autopush/topics/gcp-guest-package-upload-autopush',
-  artopic:: 'projects/artifact-releaser-autopush/subscriptions/artifact-registry-package-upload-autopush',
+  artopic:: 'projects/artifact-releaser-autopush/topics/artifact-registry-package-upload-autopush',
   ostypes:: ['EL8_YUM', 'BULLSEYE_APT'],
 
   name: 'promote-arle-autopush-stable',
@@ -208,7 +208,7 @@ local promote_arle_autopush_stable = {
             },
           }
           for i in std.range(0, std.length(tl.repos) - 1)
-        ] + 
+        ] +
         [
           {
             task: 'promote-registry-autopush-stable',
@@ -220,15 +220,15 @@ local promote_arle_autopush_stable = {
               },
               run: {
                 path: 'gcloud',
-	        args: [
-		  'pubsub',
-		  'topics',
-		  'publish',
-		  tl.artopic,
-		  '--message',
-		  '{"type": "uploadToArtifactReleaser", "request": {"ostype": "%s", "pkgname": "some-pkg", "pkgversion": "some-version", "reponame": "some-repo"}}' %
-		  [tl.ostypes[i]],
-	        ],
+                args: [
+                  'pubsub',
+                  'topics',
+                  'publish',
+                  tl.artopic,
+                  '--message',
+                  '{"type": "uploadToArtifactReleaser", "request": {"ostype": "%s", "pkgname": "some-pkg", "pkgversion": "some-version", "reponame": "some-repo"}}' %
+                  [tl.ostypes[i]],
+                ],
               },
             },
           }
@@ -419,19 +419,8 @@ local pkggroup = {
     'sql-2022-web-windows-2019-dc',
     'sql-2022-web-windows-2022-dc',
   ],
-  local mirantis_images = [
-    'windows-server-2019-dc-for-containers',
-    'windows-server-2019-dc-core-for-containers',
-  ],
-  local docker_ce_images = [
-    'windows-server-2019-dc-for-containers-ce',
-    'windows-server-2019-dc-core-for-containers-ce',
-  ],
   local windows_install_media_images = [
     'windows-install-media',
-  ],
-  local prerelease_images = [
-    'sql-2022-preview-windows-2022-dc',
   ],
   local windows_client_images = windows_10_images + windows_11_images,
   local windows_server_images = windows_2012_images + windows_2016_images + windows_2019_images
@@ -439,40 +428,34 @@ local pkggroup = {
   local sql_images = sql_2014_images + sql_2016_images + sql_2017_images + sql_2019_images + sql_2022_images,
 
   // Package builds and file endings.
-  local guest_agent_builds = ['deb10', 'deb11-arm64', 'el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
+  local guest_agent_builds = ['deb10', 'deb11-arm64', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
   local guest_agent_file_endings = [
     '-g1_amd64.deb',
     '-g1_arm64.deb',
-    '-g1.el7.x86_64.rpm',
     '-g1.el8.x86_64.rpm',
     '-g1.el8.aarch64.rpm',
     '-g1.el9.x86_64.rpm',
     '-g1.el9.aarch64.rpm',
   ],
-  local oslogin_builds = ['deb10', 'deb11', 'deb11-arm64', 'deb12', 'deb12-arm64', 'el7', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
+  local oslogin_builds = ['deb11', 'deb12', 'deb12-arm64', 'el8', 'el8-arch64', 'el9', 'el9-arch64'],
   local oslogin_file_endings = [
-    '-g1+deb10_amd64.deb',
     '-g1+deb11_amd64.deb',
-    '-g1+deb11_arm64.deb',
     '-g1+deb12_amd64.deb',
     '-g1+deb12_arm64.deb',
-    '-g1.el7.x86_64.rpm',
     '-g1.el8.x86_64.rpm',
     '-g1.el8.aarch64.rpm',
     '-g1.el9.x86_64.rpm',
     '-g1.el9.aarch64.rpm',
   ],
-  local guest_diskexpand_builds = ['deb10', 'el7', 'el8', 'el9'],
+  local guest_diskexpand_builds = ['deb10', 'el8', 'el9'],
   local guest_diskexpand_file_endings = [
     '-g1_all.deb',
-    '-g1.el7.noarch.rpm',
     '-g1.el8.noarch.rpm',
     '-g1.el9.noarch.rpm',
   ],
-  local guest_config_builds = ['deb10', 'el7', 'el8', 'el9'],
+  local guest_config_builds = ['deb10', 'el8', 'el9'],
   local guest_config_file_endings = [
     '-g1_all.deb',
-    '-g1.el7.noarch.rpm',
     '-g1.el8.noarch.rpm',
     '-g1.el9.noarch.rpm',
   ],
@@ -575,8 +558,8 @@ local pkggroup = {
              [common.gcsimgresource {
                image: image,
                gcs_dir: 'windows-uefi',
-             } for image in windows_client_images + windows_server_images + mirantis_images + docker_ce_images] +
-             [common.gcsimgresource { image: image, gcs_dir: 'sqlserver-uefi' } for image in sql_images + prerelease_images] +
+             } for image in windows_client_images + windows_server_images] +
+             [common.gcsimgresource { image: image, gcs_dir: 'sqlserver-uefi' } for image in sql_images] +
              [common.gcsimgresource { image: image, gcs_dir: 'windows-install-media' } for image in windows_install_media_images],
 
   jobs: [
@@ -706,33 +689,6 @@ local pkggroup = {
           arle_publish_images_autopush {
             image: image,
             is_windows: true,
-            gcs_dir: 'sqlserver-uefi',
-            workflow_dir: 'sqlserver',
-          }
-          for image in prerelease_images
-        ] +
-        [
-          arle_publish_images_autopush {
-            image: image,
-            is_windows: true,
-            gcs_dir: 'windows-uefi',
-            workflow_dir: 'windows_container',
-          }
-          for image in docker_ce_images
-        ] +
-        [
-          arle_publish_images_autopush {
-            image: image,
-            is_windows: true,
-            gcs_dir: 'windows-uefi',
-            workflow_dir: 'windows_container',
-          }
-          for image in mirantis_images
-        ] +
-        [
-          arle_publish_images_autopush {
-            image: image,
-            is_windows: true,
             gcs_dir: 'windows-install-media',
             workflow_dir: 'windows',
           }
@@ -748,8 +704,6 @@ local pkggroup = {
     imggroup { name: 'windows-client', images: windows_client_images },
     imggroup { name: 'windows-server', images: windows_server_images },
     imggroup { name: 'windows-sql', images: sql_images },
-    imggroup { name: 'windows-container', images: docker_ce_images + mirantis_images },
-    imggroup { name: 'windows-prerelease', images: prerelease_images },
     imggroup { name: 'windows-install-media', images: windows_install_media_images },
 
     // Package groups
