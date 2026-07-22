@@ -15,7 +15,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.65.0 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
@@ -27,7 +26,7 @@ require (
 	github.com/docker/go v1.5.1-1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
@@ -53,7 +52,6 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
