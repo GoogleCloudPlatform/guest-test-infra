@@ -364,6 +364,72 @@ local imgpublishjob = {
             file: 'publish-version/version',
           },
         ] +
+        // Publish temp image to run a simple boot test against.
+        [
+          {
+            load_var: 'gcs-url',
+            file: '%s-unstable-gcs/url' % tl.image,
+          },
+          {
+            task: 'publish-qual-image-' + tl.image,
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: {
+                  repository: 'google/cloud-sdk',
+                  tag: 'alpine',
+                },
+              },
+              run: {
+                path: 'gcloud',
+                args: [
+                  'compute',
+                  'images',
+                  'create',
+                  'qual-image-%s-((.:publish-version))' % tl.image,
+                  '--project=gce-unstable-pkg-qualification',
+                  '--source-uri=((.:gcs-url))',
+                  '--guest-os-features=UEFI_COMPATIBLE,GVNIC,IDPF,VIRTIO_SCSI_MULTIQUEUE',
+                ],
+              },
+            },
+          },
+          {
+            task: 'boot-test-qual-image-' + tl.image,
+            config: common.imagetesttask {
+              filter: '^(imageboot)$',
+              project: 'gce-unstable-pkg-qualification',
+              test_projects: 'gce-unstable-pkg-qualification',
+              images: 'projects/gce-unstable-pkg-qualification/global/images/qual-image-%s-((.:publish-version))' % tl.image,
+              extra_args:: if std.member(tl.image, '-arm64') then ['-arm64_shape=c4a-standard-1'] else [],
+            },
+            ensure: {
+              task: 'delete-qual-image-' + tl.image,
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: {
+                    repository: 'google/cloud-sdk',
+                    tag: 'alpine',
+                  },
+                },
+                run: {
+                  path: 'gcloud',
+                  args: [
+                    'compute',
+                    'images',
+                    'delete',
+                    'qual-image-%s-((.:publish-version))' % tl.image,
+                    '--project=gce-unstable-pkg-qualification',
+                    '--quiet',
+                  ],
+                },
+              },
+            },
+          },
+        ] +
         [
           {
             task: 'publish-release-package-testing-' + tl.image,
