@@ -167,9 +167,6 @@ local centosimgbuildjob = imgbuildjob {
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550']),
 
-  local is_arm = std.member(tl.image, '-arm64'),
-  machine_type:: if is_arm then 'c4a-standard-4' else 'e2-standard-4',
-
   // Add tasks to obtain ISO location and sbom util source
   // Store those in .:iso-secret and .:sbom-util-secret
   extra_tasks: [
@@ -196,7 +193,6 @@ local centosimgbuildjob = imgbuildjob {
     vars+: [
       'installer_iso=((.:iso-secret))',
       'sbom_util_gcs_root=((.:sbom-util-secret))',
-      'machine_type=' + tl.machine_type,
     ],
   },
 };
@@ -206,9 +202,6 @@ local debianimgbuildjob = imgbuildjob {
 
   workflow_dir: 'debian',
   sbom_util_secret_name:: 'sbom-util-secret',
-
-  local is_arm = std.member(tl.image, '-arm64'),
-  machine_type:: if is_arm then 'c4a-standard-4' else 'e2-standard-4',
 
   // Add tasks to obtain sbom util source
   // Store in .:sbom-util-secret
@@ -227,7 +220,6 @@ local debianimgbuildjob = imgbuildjob {
   build_task+: {
     vars+: [
       'sbom_util_gcs_root=((.:sbom-util-secret))',
-      'build_machine_type=' + tl.machine_type,
     ],
   },
 };
