@@ -411,9 +411,7 @@ local imgpublishjob = {
               project: 'gce-unstable-pkg-qualification',
               test_projects: 'gce-unstable-pkg-qualification',
               images: 'projects/gce-unstable-pkg-qualification/global/images/qual-image-%s-((.:publish-version))' % tl.image,
-              extra_args::
-                ['-gcs_path=gs://gce-unstable-pkg-qualification-daisy-bkt'] +
-                (if std.member(tl.image, '-arm64') then ['-arm64_shape=c4a-standard-1'] else []),
+              extra_args:: if std.member(tl.image, '-arm64') then ['-arm64_shape=c4a-standard-1'] else [],
             },
             ensure: {
               task: 'delete-qual-image-' + tl.image,
