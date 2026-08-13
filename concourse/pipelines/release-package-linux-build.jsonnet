@@ -400,6 +400,7 @@ local imgpublishjob = {
                   '--project=gce-unstable-pkg-qualification',
                   '--source-uri=((.:gcs-url))',
                   '--guest-os-features=UEFI_COMPATIBLE,GVNIC,IDPF,VIRTIO_SCSI_MULTIQUEUE',
+                  '--architecture=%s' % (if std.member(tl.image, '-arm64') then 'ARM64' else 'X86_64'),
                 ],
               },
             },
