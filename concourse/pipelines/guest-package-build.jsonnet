@@ -2486,9 +2486,9 @@ local build_artifactplugins_yum = buildpackagejob {
       name: 'google-guest-agent-tag',
       type: 'github-release',
       source: {
-        uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
-        branch: 'main',
-        fetch_tags: true,
+        owner: 'GoogleCloudPlatform',
+        repository: 'google-guest-agent',
+        access_token: '((github-token.token))', 
       },
     },
     {
