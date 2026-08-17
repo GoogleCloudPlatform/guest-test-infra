@@ -302,7 +302,16 @@ local buildpackagejob = base_buildpackagejob {
         commitish: '%s/.git/ref' % tl.package,
       },
     },
-  ],
+  ] + (if tl.extra_repo != '' then [
+    {
+      put: '%s-tag' % tl.extra_repo,
+      params: {
+        name: 'package-version/version',
+        tag: 'package-versino/version',
+        commitish: '%s/.git/ref' % tl.extra_repo,
+      },
+    },
+  ] else []),
 
   // Publish success/failure metrics.
   on_success: publishresulttask {
@@ -2469,6 +2478,15 @@ local build_artifactplugins_yum = buildpackagejob {
         uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
         branch: 'main',
         fetch_tags: false,
+      },
+    },
+    {
+      name: 'google-guest-agent-tag',
+      type: 'github-release',
+      source: {
+        uri: 'https://github.com/GoogleCloudPlatform/google-guest-agent.git',
+        branch: 'main',
+        fetch_tags: true,
       },
     },
     {
