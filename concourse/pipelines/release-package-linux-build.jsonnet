@@ -321,6 +321,12 @@ local imgpublishjob = {
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
   gcs_bucket:: common.prod_bucket,
 
+  qual_machine_shapes::
+    if std.member(tl.image, '-arm64') then
+      ['c4a-standard-1']
+    else
+      ['n1-standard-4', 'e2-standard-4', 'c3-standard-4', 'e4-standard-4'],
+
   // Start of job.
   name: 'publish-to-release-package-testing-%s-%s' % [tl.env, tl.image],
   plan: [
@@ -406,13 +412,20 @@ local imgpublishjob = {
             },
           },
           {
-            task: 'boot-test-qual-image-' + tl.image,
-            config: common.imagetesttask {
-              filter: '^(imageboot)$',
-              project: 'gce-unstable-pkg-qualification',
-              test_projects: 'gce-unstable-pkg-qualification',
-              images: 'projects/gce-unstable-pkg-qualification/global/images/qual-image-%s-((.:publish-version))' % tl.image,
-              extra_args:: if std.member(tl.image, '-arm64') then ['-arm64_shape=c4a-standard-1'] else ['-x86_shape=c3-standard-4'],
+            in_parallel: {
+              steps: [
+                {
+                  task: 'boot-test-qual-image-%s-%s' % [tl.image, shape],
+                  config: common.imagetesttask {
+                    filter: '^(imageboot)$',
+                    project: 'gce-unstable-pkg-qualification',
+                    test_projects: 'gce-unstable-pkg-qualification',
+                    images: 'projects/gce-unstable-pkg-qualification/global/images/qual-image-%s-((.:publish-version))' % tl.image,
+                    extra_args:: [(if std.member(tl.image, '-arm64') then '-arm64_shape=' else '-x86_shape=') + shape],
+                  },
+                }
+                for shape in tl.qual_machine_shapes
+              ],
             },
             ensure: {
               task: 'delete-qual-image-' + tl.image,
