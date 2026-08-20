@@ -325,7 +325,7 @@ local imgpublishjob = {
     if std.member(tl.image, '-arm64') then
       ['c4a-standard-1']
     else
-      ['n1-standard-4', 'e2-standard-4', 'c3-standard-4', 'e4-standard-4'],
+      ['n1-standard-4', 'e2-standard-4', 'c3-standard-4', 'n4-standard-4'],
 
   // Start of job.
   name: 'publish-to-release-package-testing-%s-%s' % [tl.env, tl.image],
