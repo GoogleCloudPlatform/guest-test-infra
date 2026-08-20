@@ -203,6 +203,7 @@ local imgpublishjob = {
   gcs_sbom_bucket:: common.sbom_bucket,
   generate_shasum:: true,
   topic:: common.prod_topic,
+  qual_machine_shapes:: ['n1-standard-4', 'e2-standard-4', 'c3-standard-4', 'n4-standard-4'],
 
   // Start of job.
   name: 'publish-to-release-package-testing-%s-%s' % [job.env, job.image],
@@ -251,6 +252,80 @@ local imgpublishjob = {
               },
             ] else []
         ) +
+        // Temporary publish for qualification testing.
+        [
+          {
+            load_var: 'gcs-url',
+            file: '%s-unstable-gcs/url' % job.image,
+          },
+          {
+            task: 'publish-qual-image-' + job.image,
+            config: {
+              platform: 'linux',
+              image_resource: {
+                type: 'registry-image',
+                source: {
+                  repository: 'google/cloud-sdk',
+                  tag: 'alpine',
+                },
+              },
+              run: {
+                path: 'gcloud',
+                args: [
+                  'compute',
+                  'images',
+                  'create',
+                  'qual-image-%s-((.:publish-version))' % job.image,
+                  '--project=gce-unstable-pkg-qualification',
+                  '--source-uri=((.:gcs-url))',
+                  '--guest-os-features=MULTI_IP_SUBNET,UEFI_COMPATIBLE,GVNIC,VIRTIO_SCSI_MULTIQUEUE,WINDOWS',
+                  '--architecture=X86_64',
+                ],
+              },
+            },
+          },
+          {
+            in_parallel: {
+              steps: [
+                {
+                  task: 'boot-test-qual-image-%s-%s' % [job.image, shape],
+                  config: common.imagetesttask {
+                    filter: '^(imageboot)$',
+                    project: 'gce-unstable-pkg-qualification',
+                    test_projects: 'gce-unstable-pkg-qualification',
+                    images: 'projects/gce-unstable-pkg-qualification/global/images/qual-image-%s-((.:publish-version))' % job.image,
+                    extra_args:: ['-x86_shape=' + shape],
+                  },
+                }
+                for shape in job.qual_machine_shapes
+              ],
+            },
+            ensure: {
+              task: 'delete-qual-image-' + job.image,
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: {
+                    repository: 'google/cloud-sdk',
+                    tag: 'alpine',
+                  },
+                },
+                run: {
+                  path: 'gcloud',
+                  args: [
+                    'compute',
+                    'images',
+                    'delete',
+                    'qual-image-%s-((.:publish-version))' % job.image,
+                    '--project=gce-unstable-pkg-qualification',
+                    '--quiet',
+                  ],
+                },
+              },
+            },
+          },
+        ] +
         [
           {
             task: 'publish-release-package-testing-' + job.image,
