@@ -329,6 +329,7 @@ local imgpublishjob = {
   workflow_dir:: error 'must set workflow_dir in imgpublishjob',
 
   image:: error 'must set image in imgpublishjob',
+  source_image:: self.image,
   image_prefix:: self.image,
   zone:: get_zone(self.image),
 
@@ -338,7 +339,7 @@ local imgpublishjob = {
 
   // Publish to testing after build
   passed:: if tl.env == 'testing' then
-    'build-' + tl.image,
+    'build-' + tl.source_image,
 
   trigger:: if tl.env == 'testing' then true
   else false,
@@ -371,32 +372,32 @@ local imgpublishjob = {
           // all the "get" steps must happen before loading them, otherwise concourse seems to
           // erase all the other "get" steps
           {
-            get: tl.image + '-gcs',
+            get: tl.source_image + '-gcs',
             passed: [tl.passed],
             trigger: tl.trigger,
             params: { skip_download: 'true' },
           },
           {
-            get: tl.image + '-sbom',
+            get: tl.source_image + '-sbom',
             passed: [tl.passed],
             params: { skip_download: 'true' },
           },
           {
-            get: tl.image + '-shasum',
+            get: tl.source_image + '-shasum',
             passed: [tl.passed],
             params: { skip_download: 'true' },
           },
           {
             load_var: 'sbom-destination',
-            file: '%s-sbom/url' % tl.image,
+            file: '%s-sbom/url' % tl.source_image,
           },
           {
             load_var: 'shasum-destination',
-            file: '%s-shasum/url' % tl.image,
+            file: '%s-shasum/url' % tl.source_image,
           },
           {
             load_var: 'source-version',
-            file: tl.image + '-gcs/version',
+            file: tl.source_image + '-gcs/version',
           },
           {
             task: 'generate-version',
@@ -488,12 +489,22 @@ local imggroup = {
     'publish-to-%s-%s' % [env, image]
     for env in tl.envs
     for image in tl.images
+  ] + [
+    // Include dual publishing to '-gvnic-baremetal' & '-oot-gve'
+    'publish-to-%s-%s' % [env, std.strReplace(image, '-gvnic-baremetal', '-oot-gve')]
+    for env in tl.envs
+    for image in tl.images
+    if std.member(image, '-gvnic-baremetal')
   ],
 };
 
 {
   local rhel_images = [
     'rhel-10-2-beta',
+    'rhel-10-2-eus-gvnic-baremetal',
+    'rhel-10-2-eus-gvnic-baremetal-byos',
+    'rhel-10-2-eus-lvm-gvnic-baremetal',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos',
     ],
 
   // Start of output.
@@ -536,6 +547,20 @@ local imggroup = {
           }
           for env in envs
           for image in rhel_images
+        ] +
+        [
+          // Additional oot-gve publish jobs for baremetal images
+          imgpublishjob {
+            image: std.strReplace(image, '-gvnic-baremetal', '-oot-gve'),
+            source_image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+            runtests: false,
+          }
+          for env in envs
+          for image in rhel_images
+          if std.member(image, '-gvnic-baremetal')
         ],
   groups: [
      imggroup{
