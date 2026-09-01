@@ -680,13 +680,6 @@ local build_guest_configs = buildpackagejob {
       in_parallel: {
         steps: [
           buildpackageimagetask {
-            image_name: 'debian-11',
-            source_image: 'projects/debian-cloud/global/images/family/debian-11',
-            dest_image: 'debian-11-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
-            zone: pickZone('debian-11'),
-          },
-          buildpackageimagetask {
             image_name: 'debian-12',
             source_image: 'projects/bct-prod-images/global/images/family/debian-12',
             dest_image: 'debian-12-((.:build-id))',
@@ -824,7 +817,6 @@ local build_guest_configs = buildpackagejob {
         fail_fast: true,
         steps: [
           cloudimageteststask(tl.package, 'debian-amd64', [
-            'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
             'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
             'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
           ], x86Tests, test_projects=defaultTestProjects),
@@ -914,7 +906,6 @@ local build_guest_agent = buildpackagejob {
   ],
 
   local x86ImagesToTest = [
-    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
     'projects/guest-package-builder/global/images/centos-stream-10-((.:build-id))',
@@ -997,12 +988,6 @@ local build_guest_agent = buildpackagejob {
             source_image: 'projects/windows-cloud/global/images/family/windows-2025',
             dest_image: 'windows-server-2025-dc-((.:build-id))',
             gcs_package_path: '"gs://gcp-guest-package-uploads/%s/google-compute-engine-windows.x86_64.((.:package-version)).0@1.goo","gs://gcp-guest-package-uploads/%s/google-compute-engine-metadata-scripts.x86_64.((.:package-version)).0@1.goo",gs://gcp-guest-package-uploads/compute-image-windows/google-compute-engine-sysprep.noarch.20260206.01@1.goo' % [tl.package, tl.package],
-          },
-          buildpackageimagetask {
-            image_name: 'debian-11',
-            source_image: 'projects/debian-cloud/global/images/family/debian-11',
-            dest_image: 'debian-11-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/%s/google-guest-agent_((.:package-version))-g1_amd64.deb' % [tl.package],
           },
           buildpackageimagetask {
             image_name: 'debian-12',
@@ -1552,7 +1537,6 @@ local build_and_upload_oslogin = buildpackagejob {
   },
 
   local oslogin_x86_images = [
-    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
     'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
@@ -1605,12 +1589,6 @@ local build_and_upload_oslogin = buildpackagejob {
       in_parallel: {
         fail_fast: true,
         steps: [
-          buildpackageimagetask {
-            image_name: 'debian-11',
-            source_image: 'projects/debian-cloud/global/images/family/debian-11',
-            dest_image: 'debian-11-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb',
-          },
           buildpackageimagetask {
             image_name: 'debian-12',
             source_image: 'projects/debian-cloud/global/images/family/debian-12',
@@ -1893,7 +1871,6 @@ local build_artifactplugins_apt = buildpackagejob {
   builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64'],
 
   local artifact_x86_images = [
-    'projects/guest-package-builder/global/images/debian-11-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
     'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
   ],
@@ -1928,13 +1905,6 @@ extra_tasks: [
       in_parallel: {
         fail_fast: true,
         steps: [
-           buildpackageimagetask {
-            image_name: 'debian-11',
-            source_image: 'projects/debian-cloud/global/images/family/debian-11',
-            dest_image: 'debian-11-((.:build-id))',
-            gcs_package_path: 'gs://gcp-guest-package-uploads/artifact-registry-apt-transport/apt-transport-artifact-registry_((.:package-version))-g1_amd64.deb',
-            worker_image: 'projects/compute-image-tools/global/images/family/debian-12-worker',
-          },
           buildpackageimagetask {
             image_name: 'debian-12',
             source_image: 'projects/debian-cloud/global/images/family/debian-12',
