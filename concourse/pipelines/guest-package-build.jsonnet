@@ -523,7 +523,7 @@ local buildpackageimagetask = {
   dest_image:: error 'must set dest_image in buildpackageimagetask',
   gcs_package_path:: error 'must set gcs_package_path in buildpackageimagetask',
   machine_type:: 'e2-medium',
-  worker_image:: 'projects/compute-image-tools/global/images/family/debian-11-worker',
+  worker_image:: 'projects/compute-image-tools/global/images/family/debian-13-worker',
   disk_type:: 'pd-ssd',
   zone:: 'us-central1-a',
 
