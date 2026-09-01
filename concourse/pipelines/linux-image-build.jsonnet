@@ -525,7 +525,7 @@ local imggroup = {
 };
 
 {
-  local debian_images = ['debian-11', 'debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64'],
+  local debian_images = ['debian-12', 'debian-12-arm64', 'debian-13', 'debian-13-arm64'],
   local centos_images = ['centos-stream-9', 'centos-stream-9-arm64', 'centos-stream-10', 'centos-stream-10-arm64'],
   // Each rhel image group includes PAYG, BYOS, and LVM variation. 
   local rhel_8_base_images = [
