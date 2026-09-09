@@ -329,7 +329,9 @@ local imgpublishjob = {
   workflow_dir:: error 'must set workflow_dir in imgpublishjob',
 
   image:: error 'must set image in imgpublishjob',
+  source_image:: self.image,
   image_prefix:: self.image,
+  zone:: get_zone(self.source_image),
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
@@ -337,9 +339,9 @@ local imgpublishjob = {
 
   // Publish to testing after build
   passed:: if tl.env == 'testing' then
-    'build-' + tl.image
+    'build-' + tl.source_image
   else if tl.env == 'prod' then
-    'publish-to-testing-' + tl.image,
+    'publish-to-testing-' + tl.source_image,
 
   trigger:: if tl.env == 'testing' then true
   else false,
@@ -374,32 +376,32 @@ local imgpublishjob = {
           // all the "get" steps must happen before loading them, otherwise concourse seems to
           // erase all the other "get" steps
           {
-            get: tl.image + '-gcs',
+            get: tl.source_image + '-gcs',
             passed: [tl.passed],
             trigger: tl.trigger,
             params: { skip_download: 'true' },
           },
           {
-            get: tl.image + '-sbom',
+            get: tl.source_image + '-sbom',
             passed: [tl.passed],
             params: { skip_download: 'true' },
           },
           {
-            get: tl.image + '-shasum',
+            get: tl.source_image + '-shasum',
             passed: [tl.passed],
             params: { skip_download: 'true' },
           },
           {
             load_var: 'sbom-destination',
-            file: '%s-sbom/url' % tl.image,
+            file: '%s-sbom/url' % tl.source_image,
           },
           {
             load_var: 'shasum-destination',
-            file: '%s-shasum/url' % tl.image,
+            file: '%s-shasum/url' % tl.source_image,
           },
           {
             load_var: 'source-version',
-            file: tl.image + '-gcs/version',
+            file: tl.source_image + '-gcs/version',
           },
           {
             task: 'generate-version',
@@ -410,6 +412,29 @@ local imgpublishjob = {
             file: 'publish-version/version',
           },
         ] +
+        // Clone GCS artifacts for renamed/dual release images
+        (if tl.source_image != tl.image then
+          [
+            {
+              task: 'clone-gcs-tarball-for-renamed-image',
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'google/cloud-sdk', tag: 'slim' },
+                },
+                run: {
+                  path: 'bash',
+                  args: [
+                    '-c',
+                    'gsutil cp %s/%s-v((.:source-version)).tar.gz %s/%s-v((.:source-version)).tar.gz' % [tl.gcs, tl.source_image, tl.gcs, tl.image],
+                  ],
+                },
+              },
+            }
+          ]
+        else
+          []) +
         // Run prepublish tests and invoke ARLE in prod
         if tl.env == 'prod' then
         [
@@ -522,6 +547,12 @@ local imggroup = {
     'publish-to-%s-%s' % [env, image]
     for env in tl.envs
     for image in tl.images
+  ] + [
+    // Include dual publishing to '-gvnic-baremetal' & '-oot-gve'
+    'publish-to-%s-%s' % [env, std.strReplace(image, '-gvnic-baremetal', '-oot-gve')]
+    for env in tl.envs
+    for image in tl.images
+    if std.member(image, '-gvnic-baremetal') && env == 'prod'
   ],
 };
 
@@ -714,6 +745,20 @@ local imggroup = {
           }
           for env in envs
           for image in rhel_images
+        ] +
+        [
+          // Additional oot-gve publish jobs for baremetal images
+          imgpublishjob {
+            image: std.strReplace(image, '-gvnic-baremetal', '-oot-gve'),
+            source_image: image,
+            env: env,
+            gcs_dir: 'rhel',
+            workflow_dir: 'enterprise_linux',
+            runtests: false,
+          }
+          for env in envs
+          for image in rhel_images
+          if std.member(image, '-gvnic-baremetal') && env == 'prod'
         ] +
         [
           // CentOS publish jobs
