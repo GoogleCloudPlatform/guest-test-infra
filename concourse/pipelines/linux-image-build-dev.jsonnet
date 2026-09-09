@@ -423,9 +423,13 @@ local imgpublishjob = {
                   path: 'bash',
                   args: [
                     '-c',
-                    'gsutil cp %s/%s-v((.:source-version)).tar.gz %s/%s-v((.:source-version)).tar.gz; ' % [tl.gcs, tl.source_image, tl.gcs, tl.image] +
-                    'gsutil cp %s/%s-v((.:source-version)).txt %s/%s-v((.:source-version)).txt; ' % [tl.gcs, tl.source_image, tl.gcs, tl.image] +
-                    'gsutil cp %s/%s-v((.:source-version)).sbom.json %s/%s-v((.:source-version)).sbom.json' % [tl.gcs, tl.source_image, tl.gcs, tl.image],
+                    'gsutil cp %s/%s-v((.:source-version)).tar.gz %s/%s-v((.:source-version)).tar.gz && ' % [tl.gcs, tl.source_image, tl.gcs, tl.image] +
+                    'SRC_SBOM="((.:sbom-destination))" && ' +
+                    'DEST_SBOM=$(echo "$SRC_SBOM" | sed "s/%s/%s/g") && ' % [tl.source_image, tl.image] +
+                    'gsutil cp "$SRC_SBOM" "$DEST_SBOM" && ' +
+                    'SRC_SHASUM="((.:shasum-destination))" && ' +
+                    'DEST_SHASUM=$(echo "$SRC_SHASUM" | sed "s/%s/%s/g") && ' % [tl.source_image, tl.image] +
+                    'gsutil cp "$SRC_SHASUM" "$DEST_SHASUM"'
                   ],
                 },
               },
