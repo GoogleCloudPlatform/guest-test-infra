@@ -331,7 +331,7 @@ local imgpublishjob = {
   image:: error 'must set image in imgpublishjob',
   source_image:: self.image,
   image_prefix:: self.image,
-  zone:: get_zone(self.image),
+  zone:: get_zone(self.source_image),
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
@@ -408,6 +408,31 @@ local imgpublishjob = {
             file: 'publish-version/version',
           },
         ] +
+        // Clone GCS artifacts for renamed/dual release images
+        (if tl.source_image != tl.image then
+          [
+            {
+              task: 'clone-gcs-tarball-for-renamed-image',
+              config: {
+                platform: 'linux',
+                image_resource: {
+                  type: 'registry-image',
+                  source: { repository: 'google/cloud-sdk', tag: 'slim' },
+                },
+                run: {
+                  path: 'bash',
+                  args: [
+                    '-c',
+                    'gsutil cp %s/%s-v((.:source-version)).tar.gz %s/%s-v((.:source-version)).tar.gz; ' % [tl.gcs, tl.source_image, tl.gcs, tl.image] +
+                    'gsutil cp %s/%s-v((.:source-version)).txt %s/%s-v((.:source-version)).txt; ' % [tl.gcs, tl.source_image, tl.gcs, tl.image] +
+                    'gsutil cp %s/%s-v((.:source-version)).sbom.json %s/%s-v((.:source-version)).sbom.json' % [tl.gcs, tl.source_image, tl.gcs, tl.image],
+                  ],
+                },
+              },
+            }
+          ]
+        else
+          []) +
         // Publish direct to GCE for nonprod
         [
             {
