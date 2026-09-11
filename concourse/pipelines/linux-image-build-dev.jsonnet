@@ -15,13 +15,13 @@ local oot_gve_zones = ['us-south1-d', 'us-south1-e'];
 local is_oot_gve(image) = std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve');
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
-  local zones = if std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve') then 
-                  oot_gve_zones
-                else if std.member(image, '-arm64') then 
-                  arm_build_zones 
-                else 
-                  build_zones;
+  local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
   zones[std.mod(string_hash(image), std.length(zones))];
+local get_test_zone(image) = 
+  if is_oot_gve(image) then 
+    oot_gve_zones[std.mod(string_hash(image), std.length(oot_gve_zones))] 
+  else 
+    get_zone(image);
 
 local trim_strings(s, trim) =
   if std.length(trim) == 0 then
@@ -338,7 +338,7 @@ local imgpublishjob = {
   image:: error 'must set image in imgpublishjob',
   source_image:: self.image,
   image_prefix:: self.image,
-  zone:: get_zone(self.source_image),
+  zone:: get_test_zone(self.source_image),
 
   gcs:: 'gs://%s/%s' % [self.gcs_bucket, self.gcs_dir],
   gcs_dir:: error 'must set gcs directory in imgpublishjob',
@@ -353,10 +353,10 @@ local imgpublishjob = {
 
   citfilter:: common.default_linux_image_build_cit_filter,
   cit_extra_args:: ['-timeout=30m', '-parallel_count=20'] + 
-                  if is_oot_gve(self.image) then 
+                  (if is_oot_gve(self.image) then 
                     ['-x86_shape=u4s-standard-4'] 
                   else 
-                    ['-arm64_shape=c4a-standard-1'],
+                    ['-arm64_shape=c4a-standard-1']),
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
