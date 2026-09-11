@@ -11,9 +11,16 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-northeast1-b'];
 local arm_build_zones = ['europe-west4-a', 'europe-west4-b'];
+local oot_gve_zones = ['us-south1-d', 'us-south1-e'];
+local is_oot_gve(image) = std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve');
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
-  local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
+  local zones = if std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve') then 
+                  oot_gve_zones
+                else if std.member(image, '-arm64') then 
+                  arm_build_zones 
+                else 
+                  build_zones;
   zones[std.mod(string_hash(image), std.length(zones))];
 
 local trim_strings(s, trim) =
@@ -345,7 +352,11 @@ local imgpublishjob = {
   else false,
 
   citfilter:: common.default_linux_image_build_cit_filter,
-  cit_extra_args:: ['-timeout=30m','-parallel_count=20','-arm64_shape=c4a-standard-1'],
+  cit_extra_args:: ['-timeout=30m', '-parallel_count=20'] + 
+                  if is_oot_gve(self.image) then 
+                    ['-x86_shape=u4s-standard-4'] 
+                  else 
+                    ['-arm64_shape=c4a-standard-1'],
   cit_project:: common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
