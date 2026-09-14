@@ -357,7 +357,7 @@ local imgpublishjob = {
                     ['-x86_shape=u4s-standard-4'] 
                   else 
                     ['-arm64_shape=c4a-standard-1']),
-  cit_project:: common.default_cit_project,
+  cit_project:: if is_oot_gve(self.image) then oot_gve_zones[std.mod(string_hash(self.image), std.length(oot_gve_zones))] else common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
   // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
