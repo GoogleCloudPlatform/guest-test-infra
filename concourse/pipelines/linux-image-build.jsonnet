@@ -29,12 +29,6 @@ local imgbuildtask = daisy.daisyimagetask {
   shasum_destination: '((.:shasum-destination))',
 };
 
-local prepublishtesttask = common.imagetesttask {
-  zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
-  filter: '(shapevalidation)', // TODO enable oslogin
-  extra_args: [ '-shapevalidation_test_filter=^(([A-Z][0-3])|(N4))' ],
-};
-
 local imgbuildjob = {
   local tl = self,
 
