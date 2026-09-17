@@ -1530,7 +1530,7 @@ local build_and_upload_oslogin = buildpackagejob {
   local tl = self,
   package:: error 'must set package in build_and_upload_oslogin',
   gcs_dir:: error 'must set gcs_dir in build_and_upload_oslogin',
-  builds: ['deb11', 'deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
+  builds: ['deb12', 'deb12-arm64', 'deb13', 'deb13-arm64', 'el8', 'el8-arm64', 'el9', 'el9-arm64', 'el10', 'el10-arm64'],
   source_images: {
     'el10': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus',
     'el10-arm64': 'projects/rhel-cloud/global/images/family/rhel-10-0-eus-arm64',
@@ -1806,15 +1806,6 @@ local build_and_upload_oslogin = buildpackagejob {
     },
   ],
   uploads: [
-    uploadpackageversiontask {
-      gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb11_amd64.deb"',
-      os_type: 'BULLSEYE_APT',
-      pkg_inside_name: 'google-compute-engine-oslogin',
-      pkg_name: 'guest-oslogin',
-      pkg_version: '((.:package-version))',
-      reponame: 'gce-google-compute-engine-oslogin-bullseye',
-      sbom_file: 'gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin-((.:package-version)).sbom.json',
-    },
     uploadpackageversiontask {
       gcs_files: '"gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_amd64.deb","gs://gcp-guest-package-uploads/oslogin/google-compute-engine-oslogin_((.:package-version))-g1+deb12_arm64.deb"',
       os_type: 'BOOKWORM_APT',
