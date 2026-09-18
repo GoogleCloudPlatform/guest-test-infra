@@ -19,7 +19,7 @@ local get_zone(image) =
   zones[std.mod(string_hash(image), std.length(zones))];
 local get_test_zone(image) = 
   if is_oot_gve(image) then 
-    oot_gve_zones[std.mod(string_hash(image), std.length(oot_gve_zones))] 
+    oot_gve_zones
   else 
     get_zone(image);
 
@@ -248,7 +248,7 @@ local rhelimgbuildjob = imgbuildjob {
 
   local rhui_package_name_base = 'google-rhui-client-rhel',
   local rhui_package_name_tenth_point_release =
-    if tl.is_sap && std.length(el_release_components) > 2  && el_release_components[2] == '10' then '10' else '',
+    if tl.is_sap && std.length(el_release_components) > 2 && el_release_components[2] == '10' then '10' else '',
   local rhui_package_name_eus =
     if tl.is_eus then '-eus' else '',
   local rhui_package_name_sap =
@@ -345,13 +345,12 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  citfilter:: common.default_linux_image_build_cit_filter,
-  cit_extra_args:: ['-timeout=30m', '-parallel_count=20'] + 
-                  (if is_oot_gve(self.image) then 
-                    ['-x86_shape=u4s-standard-4'] 
-                  else 
-                    ['-arm64_shape=c4a-standard-1']),
+  local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|lssd|packagevalidation|ssh|metadata|mdsmtls|packagemanager|pluginmanager|compatmanager)$',
+  local oot_gve_machine_types = ['u4c-standard-120-metal', 'u4s-standard-4'],
   local test_projects_arr = std.split(common.default_cit_test_projects, ','),
+  
+  citfilter:: if is_oot_gve(self.image) then oot_gve_linux_image_build_cit_filter else common.default_linux_image_build_cit_filter,
+  cit_extra_args:: ['-timeout=30m', '-parallel_count=20', '-arm64_shape=c4a-standard-1'],
   cit_project:: if is_oot_gve(self.image) then test_projects_arr[std.mod(string_hash(self.image), std.length(test_projects_arr))] else common.default_cit_project,
   cit_test_projects:: common.default_cit_test_projects,
 
@@ -462,20 +461,42 @@ local imgpublishjob = {
 		+
         // Run post-publish tests in 'publish-to-testing-' jobs.
         if tl.runtests then
-          [
-            {
-              task: 'image-test-' + tl.image,
-              config: common.imagetesttask {
-                filter: tl.citfilter,
-                project: tl.cit_project,
-                test_projects: tl.cit_test_projects,
-                images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
-                extra_args:: tl.cit_extra_args,
-                zone: tl.zone,
+          (if is_oot_gve(tl.image) then
+            [
+              {
+                task: 'image-test-' + tl.image + '-' + shape,
+                config: common.imagetesttask {
+                  filter: tl.citfilter,
+                  project: tl.cit_project,
+                  test_projects: tl.cit_test_projects,
+                  images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
+                  extra_args:: [
+                    '-timeout=30m', 
+                    '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then '1' else '20'), 
+                    '-x86_shape=' + shape, 
+                    '-zones=' + std.join(',', oot_gve_zones)
+                  ],
+                  zones: tl.zone,
+                },
+                attempts: 1,
+              }
+              for shape in oot_gve_machine_types
+            ]
+          else
+            [
+              {
+                task: 'image-test-' + tl.image,
+                config: common.imagetesttask {
+                  filter: tl.citfilter,
+                  project: tl.cit_project,
+                  test_projects: tl.cit_test_projects,
+                  images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
+                  extra_args:: tl.cit_extra_args,
+                  zone: tl.zone,
+                },
+                attempts: 1,
               },
-              attempts: 1,
-            },
-          ] + [
+            ]) + [
             {
               task: 'extra-image-test-' + tl.image + '-' + testtask.task,
               config: testtask {
