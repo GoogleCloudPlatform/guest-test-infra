@@ -346,8 +346,23 @@ local imgpublishjob = {
   else false,
 
   local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|ssh|mdsmtls|packagemanager|pluginmanager)$',
-  local oot_gve_machine_types = ['u4c-standard-120-metal', 'u4s-standard-4'],
+  local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|mdsmtls|packagemanager)$',
+  local oot_gve_high_cpu_filter = '^(ssh|pluginmanager)$',
+  local oot_gve_machine_types = ['u4s-standard-4', 'u4c-standard-120-metal'],
   local test_projects_arr = std.split(common.default_cit_test_projects, ','),
+
+  local oot_test_sets = [
+    { 
+      tier: 'low-cpu', 
+      filter: oot_gve_low_cpu_filter, 
+      parallel_count: '3',
+    },
+    { 
+      tier: 'high-cpu', 
+      filter: oot_gve_high_cpu_filter, 
+      parallel_count: '1',
+    },
+  ],
   
   citfilter:: if is_oot_gve(self.image) then oot_gve_linux_image_build_cit_filter else common.default_linux_image_build_cit_filter,
   cit_extra_args:: ['-timeout=30m', '-parallel_count=20', '-arm64_shape=c4a-standard-1'],
@@ -464,15 +479,15 @@ local imgpublishjob = {
           (if is_oot_gve(tl.image) then
             [
               {
-                task: 'image-test-' + tl.image + '-' + shape,
+                task: 'image-test-' + tl.image + '-' + shape + '-' + set.tier,
                 config: common.imagetesttask {
-                  filter: tl.citfilter,
+                  filter: set.filter,
                   project: tl.cit_project,
                   test_projects: tl.cit_test_projects,
                   images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                   extra_args:: [
                     '-timeout=30m', 
-                    '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then '1' else '20'), 
+                    '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then set.parallel_count else '20'), 
                     '-x86_shape=' + shape, 
                     '-zones=' + std.join(',', oot_gve_zones)
                   ],
@@ -481,6 +496,7 @@ local imgpublishjob = {
                 attempts: 1,
               }
               for shape in oot_gve_machine_types
+              for set in oot_test_sets
             ]
           else
             [
