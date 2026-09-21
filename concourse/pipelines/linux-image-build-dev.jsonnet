@@ -19,7 +19,7 @@ local get_zone(image) =
   zones[std.mod(string_hash(image), std.length(zones))];
 local get_test_zone(image) = 
   if is_oot_gve(image) then 
-    oot_gve_zones
+    oot_gve_zones[std.mod(string_hash(image), std.length(oot_gve_zones))] 
   else 
     get_zone(image);
 
@@ -476,7 +476,7 @@ local imgpublishjob = {
                     '-x86_shape=' + shape, 
                     '-zones=' + std.join(',', oot_gve_zones)
                   ],
-                  zones: tl.zone,
+                  zones: oot_gve_zones,
                 },
                 attempts: 1,
               }
