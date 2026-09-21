@@ -483,7 +483,7 @@ local imgpublishjob = {
                 config: common.imagetesttask {
                   filter: set.filter,
                   project: tl.cit_project,
-                  test_projects: tl.cit_test_projects,
+                  test_projects: tl.cit_project,
                   images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                   extra_args:: [
                     '-timeout=30m', 
