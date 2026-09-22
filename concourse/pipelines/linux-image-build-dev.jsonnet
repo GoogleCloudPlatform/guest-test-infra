@@ -345,8 +345,8 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|ssh|mdsmtls|packagemanager|pluginmanager)$',
-  local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|mdsmtls|packagemanager)$',
+  local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|ssh|packagemanager|pluginmanager)$',
+  local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|packagemanager)$',
   local oot_gve_high_cpu_filter = '^(ssh|pluginmanager)$',
   local oot_gve_machine_types = ['u4s-standard-4', 'u4c-standard-120-metal'],
   local test_projects_arr = std.split(common.default_cit_test_projects, ','),
