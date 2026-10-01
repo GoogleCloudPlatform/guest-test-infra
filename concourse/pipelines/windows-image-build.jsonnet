@@ -741,6 +741,7 @@ local ImgGroup(name, images, environments) = {
     'windows-11-23h2-ent-x64', // remove after Nov 10, 2026
     'windows-11-24h2-ent-x64', // remove after Oct 12, 2027
     'windows-11-25h2-ent-x64',
+    'windows-11-26h2-ent-x64',
   ],
   local windows_2016_images = [
     'windows-server-2016-dc',
@@ -876,6 +877,7 @@ local ImgGroup(name, images, environments) = {
           ImgBuildJob('windows-11-23h2-ent-x64', 'win11-23h2-64', 'windows_gcs_updates_client11-23h2-64'),
           ImgBuildJob('windows-11-24h2-ent-x64', 'win11-24h2-64', 'windows_gcs_updates_client11-24h2-64'),
           ImgBuildJob('windows-11-25h2-ent-x64', 'win11-25h2-64', 'windows_gcs_updates_client11-25h2-64'),
+          ImgBuildJob('windows-11-26h2-ent-x64', 'win11-26h2-64', 'windows_gcs_updates_client11-26h2-64'),
           ImgBuildJob('windows-server-2025-dc', 'win2025-64', 'windows_gcs_updates_server2025'),
           ImgBuildJob('windows-server-2025-dc-core', 'win2025-64', 'windows_gcs_updates_server2025'),
           ImgBuildJob('windows-server-2022-dc', 'win2022-64', 'windows_gcs_updates_server2022'),
