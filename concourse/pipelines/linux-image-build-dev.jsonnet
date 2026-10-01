@@ -349,7 +349,13 @@ local imgpublishjob = {
   local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|packagemanager)$',
   local oot_gve_high_cpu_filter = '^(ssh|pluginmanager)$',
   local oot_gve_machine_types = ['u4s-standard-4', 'u4c-standard-120-metal'],
-  local test_projects_arr = std.split(common.default_cit_test_projects, ','),
+  // Map oot gve images to specific test projects due to capacity contraints
+  local oot_gve_image_projects = {
+    'rhel-10-2-eus-gvnic-baremetal': 'compute-image-test-pool-002',
+    'rhel-10-2-eus-gvnic-baremetal-byos': 'compute-image-test-pool-003',
+    'rhel-10-2-eus-lvm-gvnic-baremetal': 'compute-image-test-pool-004',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos': 'compute-image-test-pool-005',
+  },
 
   local oot_test_sets = [
     { 
@@ -364,10 +370,10 @@ local imgpublishjob = {
     },
   ],
   
-  citfilter:: if is_oot_gve(self.image) then oot_gve_linux_image_build_cit_filter else common.default_linux_image_build_cit_filter,
+  citfilter:: if is_oot_gve(self.source_image) then oot_gve_linux_image_build_cit_filter else common.default_linux_image_build_cit_filter,
   cit_extra_args:: ['-timeout=30m', '-parallel_count=20', '-arm64_shape=c4a-standard-1'],
-  cit_project:: if is_oot_gve(self.image) then test_projects_arr[std.mod(string_hash(self.image), std.length(test_projects_arr))] else common.default_cit_project,
-  cit_test_projects:: common.default_cit_test_projects,
+  cit_project:: if is_oot_gve(self.source_image) then oot_gve_image_projects[self.source_image] else common.default_cit_project,
+  cit_test_projects:: if is_oot_gve(self.source_image) then oot_gve_image_projects[self.source_image] else common.default_cit_test_projects,
 
   // Rather than modifying the default CIT invocation above, it's also possible to specify a extra CIT invocations.
   // The images field will be overriden with the image under test.
@@ -483,13 +489,12 @@ local imgpublishjob = {
                 config: common.imagetesttask {
                   filter: set.filter,
                   project: tl.cit_project,
-                  test_projects: tl.cit_project,
+                  test_projects: tl.cit_test_projects,
                   images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                   extra_args:: [
                     '-timeout=30m', 
                     '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then set.parallel_count else '20'), 
                     '-x86_shape=' + shape, 
-                    '-zones=' + std.join(',', oot_gve_zones)
                   ],
                   zones: oot_gve_zones,
                 },
@@ -574,6 +579,9 @@ local imggroup = {
   local rhel_images = [
     'rhel-10-2-beta',
     'rhel-10-2-eus-gvnic-baremetal',
+    'rhel-10-2-eus-gvnic-baremetal-byos',
+    'rhel-10-2-eus-lvm-gvnic-baremetal',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos',
     ],
 
   // Start of output.
