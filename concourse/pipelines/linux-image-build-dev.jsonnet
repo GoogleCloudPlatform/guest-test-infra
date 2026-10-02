@@ -361,7 +361,7 @@ local imgpublishjob = {
     { 
       tier: 'low-cpu', 
       filter: oot_gve_low_cpu_filter, 
-      parallel_count: '3',
+      parallel_count: '2',
     },
     { 
       tier: 'high-cpu', 
