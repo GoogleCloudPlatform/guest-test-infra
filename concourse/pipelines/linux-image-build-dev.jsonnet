@@ -348,7 +348,7 @@ local imgpublishjob = {
   local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|ssh|packagemanager|pluginmanager)$',
   local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|packagemanager)$',
   local oot_gve_high_cpu_filter = '^(ssh|pluginmanager)$',
-  local oot_gve_machine_types = ['u4s-standard-4', 'u4c-standard-120-metal'],
+  local oot_gve_machine_types = ['u4s-standard-4', 'u4c-highcpu-120-lssd-metal'],
   // Map oot gve images to specific test projects due to capacity contraints
   local oot_gve_image_projects = {
     'rhel-10-2-eus-gvnic-baremetal': 'compute-image-test-pool-002',
@@ -493,7 +493,7 @@ local imgpublishjob = {
                   images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
                   extra_args:: [
                     '-timeout=30m', 
-                    '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then set.parallel_count else '20'), 
+                    '-parallel_count=' + (if shape == 'u4c-highcpu-120-lssd-metal' then set.parallel_count else '20'), 
                     '-x86_shape=' + shape, 
                   ],
                   zones: oot_gve_zones,
