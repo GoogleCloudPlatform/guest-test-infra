@@ -12,10 +12,17 @@ local underscore(input) = std.strReplace(input, '-', '_');
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
 // ARM builds on c3-standard-4.
 local arm_build_zones = ['us-central1-a', 'us-east1-b', 'europe-west4-a', 'europe-west4-b'];
+local oot_gve_zones = ['us-south1-d', 'us-south1-e'];
+local is_oot_gve(image) = std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve');
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
 local get_zone(image) =
   local zones = if std.member(image, '-arm64') then arm_build_zones else build_zones;
   zones[std.mod(string_hash(image), std.length(zones))];
+local get_test_zone(image) = 
+  if is_oot_gve(image) then 
+    oot_gve_zones[std.mod(string_hash(image), std.length(oot_gve_zones))] 
+  else 
+    get_zone(image);
 
 local trim_strings(s, trim) =
   if std.length(trim) == 0 then
@@ -340,10 +347,35 @@ local imgpublishjob = {
   trigger:: if tl.env == 'testing' then true
   else false,
 
-  citfilter:: common.default_linux_image_build_cit_filter,
+  local oot_gve_linux_image_build_cit_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|ssh|packagemanager|pluginmanager)$',
+  local oot_gve_low_cpu_filter = '^(guestagent|hostnamevalidation|lvmvalidation|licensevalidation|rhel|security|hotattach|packagevalidation|packagemanager)$',
+  local oot_gve_high_cpu_filter = '^(ssh|pluginmanager)$',
+  local oot_gve_machine_types = ['u4s-standard-4', 'u4c-standard-120-metal'],
+  // Map oot gve images to specific test projects due to capacity contraints
+  local oot_gve_image_projects = {
+    'rhel-10-2-eus-gvnic-baremetal': 'compute-image-test-pool-002',
+    'rhel-10-2-eus-gvnic-baremetal-byos': 'compute-image-test-pool-003',
+    'rhel-10-2-eus-lvm-gvnic-baremetal': 'compute-image-test-pool-004',
+    'rhel-10-2-eus-lvm-gvnic-baremetal-byos': 'compute-image-test-pool-005',
+  },
+
+  local oot_test_sets = [
+    { 
+      tier: 'low-cpu', 
+      filter: oot_gve_low_cpu_filter, 
+      parallel_count: '3',
+    },
+    { 
+      tier: 'high-cpu', 
+      filter: oot_gve_high_cpu_filter, 
+      parallel_count: '1',
+    },
+  ],
+
+  citfilter:: if is_oot_gve(self.source_image) then oot_gve_linux_image_build_cit_filter else common.default_linux_image_build_cit_filter,
   cit_extra_args:: ['-arm64_shape=c4a-standard-1'],
-  cit_project:: common.default_cit_project,
-  cit_test_projects:: common.default_cit_test_projects,
+  cit_project:: if is_oot_gve(self.source_image) then oot_gve_image_projects[self.source_image] else common.default_cit_project,
+  cit_test_projects:: if is_oot_gve(self.source_image) then oot_gve_image_projects[self.source_image] else common.default_cit_test_projects,
   oslogin_test_project:: common.default_oslogin_test_project,
   oslogin_cit_filter:: common.default_oslogin_cit_filter,
 
@@ -465,37 +497,58 @@ local imgpublishjob = {
 		+
         // Run post-publish tests in 'publish-to-testing-' jobs.
         if tl.runtests then
-          [
-            { 
-              in_parallel: {
-                fail_fast: true,
-                steps: [
-                  {
-                    task: 'image-test-' + tl.image,
-                    config: common.imagetesttask {
-                      zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
-                      filter: tl.citfilter,
-                      project: tl.cit_project,
-                      test_projects: tl.cit_test_projects,
-                      images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                      extra_args:: tl.cit_extra_args,
-                    },
-                  },
-                  {
-                    task: 'oslogin-test-' + tl.image,
-                    config: common.imagetesttask {
-                      zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
-                      filter: tl.oslogin_cit_filter,
-                      project: tl.oslogin_test_project,
-                      test_projects: tl.oslogin_test_project,
-                      images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
-                      extra_args:: tl.cit_extra_args,
-                    },
-                  },
-                ]
+          (if is_oot_gve(tl.image) then
+            [
+              {
+                task: 'image-test-' + tl.image + '-' + shape + '-' + set.tier,
+                config: common.imagetesttask {
+                  filter: set.filter,
+                  project: tl.cit_project,
+                  test_projects: tl.cit_test_projects,
+                  images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
+                  extra_args:: [
+                    '-timeout=30m', 
+                    '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then set.parallel_count else '20'), 
+                    '-x86_shape=' + shape, 
+                  ],
+                  zones: oot_gve_zones,
+                },
               }
-            },
-          ] + [
+              for shape in oot_gve_machine_types
+              for set in oot_test_sets
+            ]
+          else
+            [
+              { 
+                in_parallel: {
+                  fail_fast: true,
+                  steps: [
+                    {
+                      task: 'image-test-' + tl.image,
+                      config: common.imagetesttask {
+                        zones: ['europe-west1-b', 'europe-west1-c', 'europe-west1-d'],
+                        filter: tl.citfilter,
+                        project: tl.cit_project,
+                        test_projects: tl.cit_test_projects,
+                        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                        extra_args:: tl.cit_extra_args,
+                      },
+                    },
+                    {
+                      task: 'oslogin-test-' + tl.image,
+                      config: common.imagetesttask {
+                        zones: ['us-west1-a', 'us-west1-b', 'us-west1-c'],
+                        filter: tl.oslogin_cit_filter,
+                        project: tl.oslogin_test_project,
+                        test_projects: tl.oslogin_test_project,
+                        images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
+                        extra_args:: tl.cit_extra_args,
+                      },
+                    },
+                  ]
+                }
+              },
+            ]) + [
             {
               task: 'extra-image-test-' + tl.image + '-' + testtask.task,
               config: testtask {
@@ -650,7 +703,7 @@ local imggroup = {
     'rhel-10-2-eus-lvm-gvnic-baremetal',
     'rhel-10-2-eus-lvm-gvnic-baremetal-byos',
   ],
-  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images +rhel_10_eus_images + rhel_10_eus_lvm_images,
+  local rhel_images = rhel_8_base_images + rhel_8_sap_images + rhel_9_base_images + rhel_9_sap_images + rhel_9_eus_images + rhel_9_eus_lvm_images + rhel_10_base_images + rhel_10_sap_images + rhel_10_eus_images + rhel_10_eus_lvm_images,
 
   // Start of output.
   resource_types: [
