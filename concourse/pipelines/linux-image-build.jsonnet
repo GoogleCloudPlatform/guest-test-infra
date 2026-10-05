@@ -363,7 +363,7 @@ local imgpublishjob = {
     { 
       tier: 'low-cpu', 
       filter: oot_gve_low_cpu_filter, 
-      parallel_count: '3',
+      parallel_count: '2',
     },
     { 
       tier: 'high-cpu', 
@@ -505,7 +505,7 @@ local imgpublishjob = {
                   filter: set.filter,
                   project: tl.cit_project,
                   test_projects: tl.cit_test_projects,
-                  images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))-dev' % tl.image_prefix,
+                  images: 'projects/bct-prod-images/global/images/%s-((.:publish-version))' % tl.image_prefix,
                   extra_args:: [
                     '-timeout=30m', 
                     '-parallel_count=' + (if shape == 'u4c-standard-120-metal' then set.parallel_count else '20'), 
