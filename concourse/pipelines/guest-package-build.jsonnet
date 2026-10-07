@@ -590,7 +590,7 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb12', 'deb13', 'el8', 'el9', 'el10','ubu1804','ubu2004','ubu2204','ubu2404','ubu2604'],
+  builds: ['deb12', 'deb13', 'el8', 'el9', 'el10'],
   gcs_dir: 'google-compute-engine',
 
   local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
