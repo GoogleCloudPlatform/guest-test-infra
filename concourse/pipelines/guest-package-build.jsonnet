@@ -590,7 +590,7 @@ local buildpackageimagetaskcos = {
 local build_guest_configs = buildpackagejob {
   local tl = self,
   package:: error 'must set package for build_guest_configs',
-  builds: ['deb12', 'deb13', 'el8', 'el9', 'el10'],
+  builds: ['deb12', 'deb13', 'el8', 'el9', 'el10','ubu1804','ubu2004','ubu2204','ubu2404','ubu2604'],
   gcs_dir: 'google-compute-engine',
 
   local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
@@ -677,6 +677,41 @@ local build_guest_configs = buildpackagejob {
     {
       in_parallel: {
         steps: [
+          buildpackageimagetask {
+            image_name: 'ubuntu-pro-1804',
+            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-1804-lts',
+            dest_image: 'ubuntu-pro-1804-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('ubuntu-pro-1804'),
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-pro-2004',
+            source_image: 'projects/ubuntu-os-pro-cloud/global/images/family/ubuntu-pro-2004-lts',
+            dest_image: 'ubuntu-pro-2004-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('ubuntu-pro-2004'),
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-2204',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts',
+            dest_image: 'ubuntu-2204-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('ubuntu-2204'),
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-2404',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2404-lts',
+            dest_image: 'ubuntu-2404-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('ubuntu-2404'),
+          },
+          buildpackageimagetask {
+            image_name: 'ubuntu-2604',
+            source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-2604-lts',
+            dest_image: 'ubuntu-2604-((.:build-id))',
+            gcs_package_path: 'gs://gcp-guest-package-uploads/google-compute-engine/google-compute-engine_((.:package-version))-g1_all.deb',
+            zone: pickZone('ubuntu-2604'),
+          },
           buildpackageimagetask {
             image_name: 'debian-12',
             source_image: 'projects/bct-prod-images/global/images/family/debian-12',
@@ -825,6 +860,13 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+          ], x86Tests, test_projects=defaultTestProjects),
+          cloudimageteststask(tl.package, 'ubuntu-amd64', [
+            'projects/guest-package-builder/global/images/ubuntu-pro-1804-((.:build-id))',
+            'projects/guest-package-builder/global/images/ubuntu-pro-2004-((.:build-id))',
+            'projects/guest-package-builder/global/images/ubuntu-2204-((.:build-id))',
+            'projects/guest-package-builder/global/images/ubuntu-2404-((.:build-id))',
+            'projects/guest-package-builder/global/images/ubuntu-2604-((.:build-id))',
           ], x86Tests, test_projects=defaultTestProjects),
           cloudimageteststask(tl.package, 'debian-arm64', [
             'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
