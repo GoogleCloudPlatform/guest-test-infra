@@ -905,7 +905,7 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects),
+          ], x86Tests, test_projects=defaultTestProjects, parallel_count=7),
           cloudimageteststask(tl.package, 'ubuntu-amd64', [
             'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-pro-2004-lts-((.:build-id))',
@@ -930,7 +930,7 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1']),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=7),
           cloudimageteststask(tl.package,
             'a3-ultra',
             images=[
