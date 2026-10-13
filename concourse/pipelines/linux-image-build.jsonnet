@@ -11,7 +11,7 @@ local underscore(input) = std.strReplace(input, '-', '_');
 
 local build_zones = ['us-central1-b', 'europe-west1-b', 'europe-west4-b', 'asia-east1-a'];
 // ARM builds on c3-standard-4.
-local arm_build_zones = ['us-central1-a', 'us-east1-b', 'europe-west4-a', 'europe-west4-b'];
+local arm_build_zones = ['us-east1-b', 'europe-west4-a', 'europe-west4-b'];
 local oot_gve_zones = ['us-south1-d', 'us-south1-e'];
 local is_oot_gve(image) = std.member(image, '-gvnic-baremetal') || std.member(image, '-oot-gve');
 local string_hash(s) = std.foldl(function(acc, c) acc + std.codepoint(c), std.stringChars(s), 0);
