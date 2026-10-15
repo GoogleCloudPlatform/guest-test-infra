@@ -897,7 +897,7 @@ local build_guest_configs = buildpackagejob {
           cloudimageteststask(tl.package, 'debian-amd64', [
             'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
             'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects),
+          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5),
           cloudimageteststask(tl.package, 'el-amd64', [
             'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
@@ -905,32 +905,32 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects, parallel_count=7),
+          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5),
           cloudimageteststask(tl.package, 'ubuntu-amd64', [
             'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-pro-2004-lts-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2204-lts-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2604-lts-amd64-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects, parallel_count=7,),
+          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5,),
           cloudimageteststask(tl.package, 'ubuntu-arm64', [
             'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-pro-2004-lts-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2204-lts-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2404-lts-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2604-lts-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=7),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=5),
           cloudimageteststask(tl.package, 'debian-arm64', [
             'projects/guest-package-builder/global/images/debian-12-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/debian-13-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1']),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=5),
           cloudimageteststask(tl.package, 'el-arm64', [
             'projects/guest-package-builder/global/images/rocky-linux-8-optimized-gcp-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
-          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=7),
+          ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=5),
           cloudimageteststask(tl.package,
             'a3-ultra',
             images=[
