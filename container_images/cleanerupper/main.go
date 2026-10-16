@@ -48,7 +48,7 @@ var (
 	snapshots           = flag.Bool("snapshots", false, "clean snapshots")
 	guestPolicies       = flag.Bool("guest_policies", false, "clean guest policies")
 	osPolicyAssignments = flag.Bool("ospolicy_assignments", false, "clean ospolicy assignments")
-	deprecatedImages    = flag.Bool("deprecated_iamges", false, "clean deprecated images regardless of -duration")
+	deprecatedImages    = flag.Bool("deprecated_images", false, "clean deprecated images regardless of -duration")
 
 	now = time.Now()
 )
