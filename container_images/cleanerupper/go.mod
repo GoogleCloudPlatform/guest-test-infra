@@ -4,8 +4,8 @@ go 1.25.8
 
 require (
 	cloud.google.com/go/osconfig v1.22.0
-	github.com/GoogleCloudPlatform/cloud-image-tests v0.0.0-20260727225133-6b206073f1c5
-	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20260720193028-0629d202da48
+	github.com/GoogleCloudPlatform/cloud-image-tests v0.0.0-20261014180307-f983c3eefcf8
+	github.com/GoogleCloudPlatform/compute-daisy v0.0.0-20260430051430-8b2c1c280cc2
 	google.golang.org/api v0.290.0
 )
 
@@ -26,9 +26,9 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.69.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0 // indirect
-	go.opentelemetry.io/otel v1.44.0 // indirect
-	go.opentelemetry.io/otel/metric v1.44.0 // indirect
-	go.opentelemetry.io/otel/trace v1.44.0 // indirect
+	go.opentelemetry.io/otel v1.45.0 // indirect
+	go.opentelemetry.io/otel/metric v1.45.0 // indirect
+	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
