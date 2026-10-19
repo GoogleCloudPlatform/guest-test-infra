@@ -595,6 +595,29 @@ local build_guest_configs = buildpackagejob {
 
   local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
   local armTests = ['cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
+  // networkinterfacenaming/TestIDPFNICNamingScheme needs a c3-standard-192-metal VM, which is chronically stocked
+  // out. It is excluded from the regular x86 tasks (CIT does not create the VM for an excluded test) and run by the
+  // dedicated idpf-nicnaming-amd64 task below against a reservation.
+  local x86ExtraArgs = ['-exclude_discrete_tests=^TestIDPFNICNamingScheme$'],
+
+  local debianX86Images = [
+    'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
+    'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
+  ],
+  local elX86Images = [
+    'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
+    'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
+    'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
+  ],
+  local ubuntuX86Images = [
+    'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
+    'projects/guest-package-builder/global/images/ubuntu-2604-lts-amd64-((.:build-id))',
+  ],
+  local x86Images = debianX86Images + elX86Images + ubuntuX86Images,
 
 
   uploads: [
@@ -862,23 +885,9 @@ local build_guest_configs = buildpackagejob {
       in_parallel: {
         fail_fast: true,
         steps: [
-          cloudimageteststask(tl.package, 'debian-amd64', [
-            'projects/guest-package-builder/global/images/debian-12-((.:build-id))',
-            'projects/guest-package-builder/global/images/debian-13-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5),
-          cloudimageteststask(tl.package, 'el-amd64', [
-            'projects/guest-package-builder/global/images/rhel-8-((.:build-id))',
-            'projects/guest-package-builder/global/images/rocky-linux-8-((.:build-id))',
-            'projects/guest-package-builder/global/images/rhel-9-((.:build-id))',
-            'projects/guest-package-builder/global/images/rocky-linux-9-((.:build-id))',
-            'projects/guest-package-builder/global/images/rocky-linux-9-optimized-gcp-((.:build-id))',
-            'projects/guest-package-builder/global/images/rhel-10-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5),
-          cloudimageteststask(tl.package, 'ubuntu-amd64', [
-            'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-((.:build-id))',
-            'projects/guest-package-builder/global/images/ubuntu-2404-lts-amd64-((.:build-id))',
-            'projects/guest-package-builder/global/images/ubuntu-2604-lts-amd64-((.:build-id))',
-          ], x86Tests, test_projects=defaultTestProjects, parallel_count=5,),
+          cloudimageteststask(tl.package, 'debian-amd64', debianX86Images, x86Tests, test_projects=defaultTestProjects, extra_args=x86ExtraArgs, parallel_count=5),
+          cloudimageteststask(tl.package, 'el-amd64', elX86Images, x86Tests, test_projects=defaultTestProjects, extra_args=x86ExtraArgs, parallel_count=5),
+          cloudimageteststask(tl.package, 'ubuntu-amd64', ubuntuX86Images, x86Tests, test_projects=defaultTestProjects, extra_args=x86ExtraArgs, parallel_count=5),
           cloudimageteststask(tl.package, 'ubuntu-arm64', [
             'projects/guest-package-builder/global/images/ubuntu-pro-1804-lts-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/ubuntu-2404-lts-arm64-((.:build-id))',
@@ -895,6 +904,19 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
           ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=5),
+          // networkinterfacenaming/TestIDPFNICNamingScheme only: its c3-standard-192-metal VM is pinned to the open
+          // c3-standard-192-metal reservation in compute-image-test-pool-001 (europe-west4-c) and serialized because
+          // the reservation holds a single VM. TestNICNamingScheme is covered by the regular x86 tasks above.
+          cloudimageteststask(tl.package, 'idpf-nicnaming-amd64', x86Images, ['networkinterfacenaming'],
+            project='compute-image-test-pool-001',
+            test_projects=['compute-image-test-pool-001'], // This is the only project with the c3-standard-192-metal reservation.
+            zones=['europe-west4-c'],
+            parallel_count=1,
+            extra_args=[
+              '-networkinterfacenaming_metal_zone=europe-west4-c',
+              '-exclude_discrete_tests=^TestNICNamingScheme$',
+            ],
+          ),
           cloudimageteststask(tl.package,
             'a3-ultra',
             images=[
