@@ -618,6 +618,13 @@ local build_guest_configs = buildpackagejob {
     'projects/guest-package-builder/global/images/ubuntu-2604-lts-amd64-((.:build-id))',
   ],
   local x86Images = debianX86Images + elX86Images + ubuntuX86Images,
+  // Images without the IDPF guest OS feature; networkinterfacenaming/TestIDPFNICNamingScheme is disabled on them.
+  local nonIdpfX86Images = ['debian-12', 'ubuntu-pro-1804-lts'],
+  local idpfX86Images = [
+    img
+    for img in x86Images
+    if !std.member([std.endsWith(img, '/' + name + '-((.:build-id))') for name in nonIdpfX86Images], true)
+  ],
 
 
   uploads: [
@@ -904,10 +911,11 @@ local build_guest_configs = buildpackagejob {
             'projects/guest-package-builder/global/images/rocky-linux-9-arm64-((.:build-id))',
             'projects/guest-package-builder/global/images/rhel-10-arm64-((.:build-id))',
           ], armTests, test_projects=defaultTestProjects, extra_args=['-arm64_shape=c4a-standard-1'], parallel_count=5),
-          // networkinterfacenaming/TestIDPFNICNamingScheme only: its c3-standard-192-metal VM is pinned to the open
-          // c3-standard-192-metal reservation in compute-image-test-pool-001 (europe-west4-c) and serialized because
-          // the reservation holds a single VM. TestNICNamingScheme is covered by the regular x86 tasks above.
-          cloudimageteststask(tl.package, 'idpf-nicnaming-amd64', x86Images, ['networkinterfacenaming'],
+          // networkinterfacenaming/TestIDPFNICNamingScheme only, on images with the IDPF guest OS feature: its
+          // c3-standard-192-metal VM is pinned to the open c3-standard-192-metal reservation in
+          // compute-image-test-pool-001 (europe-west4-c) and serialized because the reservation holds a single VM.
+          // TestNICNamingScheme is covered by the regular x86 tasks above.
+          cloudimageteststask(tl.package, 'idpf-nicnaming-amd64', idpfX86Images, ['networkinterfacenaming'],
             project='compute-image-test-pool-001',
             test_projects=['compute-image-test-pool-001'], // This is the only project with the c3-standard-192-metal reservation.
             zones=['europe-west4-c'],
