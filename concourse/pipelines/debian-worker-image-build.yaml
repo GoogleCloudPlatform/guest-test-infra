@@ -11,6 +11,15 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
+- name: daily-time
+  type: time
+  source:
+    interval: 24h
+    start: 2:00 AM
+    stop: 2:30 AM
+    location: Europe/Warsaw
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+    initial_version: true
 - name: compute-image-tools
   type: git
   source:
@@ -46,6 +55,8 @@ jobs:
 # Build jobs
 - name: build-debian-12-worker
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-timestamp
@@ -97,6 +108,8 @@ jobs:
       start_timestamp: ((.:start-timestamp-ms))
 - name: build-debian-12-worker-arm64
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-timestamp
@@ -148,6 +161,8 @@ jobs:
       start_timestamp: ((.:start-timestamp-ms))
 - name: build-debian-13-worker
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-timestamp
@@ -199,6 +214,8 @@ jobs:
       start_timestamp: ((.:start-timestamp-ms))
 - name: build-debian-13-worker-arm64
   plan:
+  - get: daily-time
+    trigger: true
   - get: compute-image-tools
   - get: guest-test-infra
   - task: generate-timestamp
