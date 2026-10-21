@@ -40,6 +40,7 @@ local imgbuildjob = {
   local tl = self,
 
   use_dynamic_template:: false,
+  google_cloud_repo:: 'stable',
 
   image:: error 'must set image in imgbuildjob',
   image_prefix:: self.image,
@@ -53,7 +54,7 @@ local imgbuildjob = {
   build_task:: imgbuildtask {
     workflow: tl.workflow,
     zone: tl.zone,
-    vars+: ['google_cloud_repo=stable'],
+    vars+: ['google_cloud_repo=' + tl.google_cloud_repo],
   },
   extra_tasks:: [],
   daily:: true,
@@ -217,6 +218,7 @@ local debianimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'debian',
+  google_cloud_repo:: 'global',
   sbom_util_secret_name:: 'sbom-util-secret',
 
   // Add tasks to obtain sbom util source
