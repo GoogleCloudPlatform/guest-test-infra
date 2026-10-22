@@ -217,6 +217,7 @@ local rhelimgbuildjob = imgbuildjob {
   local tl = self,
 
   workflow_dir: 'enterprise_linux',
+  google_cloud_repo:: 'global',
   sbom_util_secret_name:: 'sbom-util-secret',
   isopath:: trim_strings(tl.image, ['-byos', '-eus', '-lvm', '-sap', '-nvidia-latest', '-nvidia-550', '-gvnic-baremetal']),
 
