@@ -31,6 +31,7 @@ local imgbuildjob = {
   workflow:: error 'must set workflow in imgbuildjob',
   iso_secret:: error 'must set iso_secret in imgbuildjob',
   updates_secret:: error 'must set updates_secret in imgbuildjob',
+  google_cloud_repo:: 'global',
   daily:: true,
   daily_task:: if self.daily then [
     {
@@ -198,7 +199,7 @@ local imgbuildjob = {
           'media=((.:windows-iso))',
           'pwsh=((.:windows-gcs-pwsh))',
           'updates=((.:windows-updates))',
-          'google_cloud_repo=stable',
+          'google_cloud_repo=' + job.google_cloud_repo,
           'sbom_util_gcs_root=((.:sbom-util-secret))',
         ],
       },
