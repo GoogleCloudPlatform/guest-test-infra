@@ -593,13 +593,15 @@ local build_guest_configs = buildpackagejob {
   builds: ['deb12', 'deb13', 'el8', 'el9', 'el10'],
   gcs_dir: 'google-compute-engine',
 
-  local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
-  local armTests = ['cvm', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
+  local x86Tests = ['packagemanager', 'networkinterfacenaming', 'cvm', 'disk', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'nicsetup', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
+  local armTests = ['cvm', 'disk', 'loadbalancer', 'guestagent', 'hostnamevalidation', 'network', 'nicsetup', 'packagevalidation', 'ssh', 'metadata', 'mdsroutes', 'vmspec'],
   // networkinterfacenaming/TestIDPFNICNamingScheme needs a c3-standard-192-metal VM, which is chronically stocked
   // out. It is excluded from the regular networkinterfacenaming tasks (CIT does not create the VM for an excluded
   // test) and run by the dedicated idpf-nicnaming-amd64 task below against a reservation.
   local nicNamingX86ExtraArgs = ['-exclude_discrete_tests=^TestIDPFNICNamingScheme$'],
   local x86SuiteExtraArgs(suite) = if suite == 'networkinterfacenaming' then nicNamingX86ExtraArgs else [],
+  // disk/TestBlockDeviceNaming uses c3-standard-4 on x86_64, which is unavailable in asia-east1-a.
+  local x86SuiteZones(suite) = if suite == 'disk' then [z for z in x86BuildZones if z != 'asia-east1-a'] else null,
   local armSuiteExtraArgs(suite) = ['-arm64_shape=c4a-standard-1'],
 
   local x86Images = [
@@ -944,7 +946,7 @@ local build_guest_configs = buildpackagejob {
           ],
           [
             cloudimageteststask(tl.package, imageFamily(img) + '-' + suite, [img], [suite],
-              test_projects=defaultTestProjects, extra_args=x86SuiteExtraArgs(suite), parallel_count=1)
+              test_projects=defaultTestProjects, zones=x86SuiteZones(suite), extra_args=x86SuiteExtraArgs(suite), parallel_count=1)
             for img in x86Images
             for suite in x86Tests
           ],
