@@ -166,6 +166,19 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       },
     },
     common.GitResource('compute-daisy'),
+    {
+      // Weekly rebuild of the CIT container to pick up base image and Go updates.
+      name: 'weekly-time',
+      type: 'time',
+      source: {
+        days: ['Tuesday'],
+        start: '9:00 AM',
+        stop: '10:00 AM',
+        location: 'Europe/Warsaw',
+        // Without an initial version, jobs using this input can't run until the first window.
+        initial_version: true,
+      },
+    },
   ],
   jobs: [
     BuildContainerImage('build-essential', false),
@@ -234,7 +247,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       dockerfile: 'Dockerfile',
       input: 'cloud-image-tests',
       image: 'cloud-image-tests',
-      extra_resources: ['guest-test-infra'],
+      extra_resources: ['guest-test-infra', 'weekly-time'],
       public_image_tag: false,
       post_steps: [
         {
