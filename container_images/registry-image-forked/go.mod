@@ -9,7 +9,7 @@ require (
 	github.com/google/go-containerregistry v0.22.1
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.36.2
-	github.com/simonshyu/notary-gcr v0.0.0-20220601090547-d99a631aa58b
+	github.com/simonshyu/notary-gcr v0.0.0-20211109021545-380a129b0e83
 	github.com/sirupsen/logrus v1.10.2
 	github.com/vbauerster/mpb v3.4.0+incompatible
 )
@@ -26,7 +26,6 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.20.4 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.16 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/miekg/pkcs11 v1.1.2 // indirect
@@ -35,7 +34,6 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
-	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
