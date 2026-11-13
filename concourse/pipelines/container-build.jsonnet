@@ -72,6 +72,15 @@ local buildcontainerimgjob = {
           { get: resource, trigger: true }
           for resource in job.extra_resources
         ] +
+        [
+          // Weekly rebuild. Jobs gated on another job wait for that job's
+          // weekly build, so they build on top of the refreshed image.
+          {
+            get: 'weekly-time',
+            trigger: true,
+            [if job.passed != '' then 'passed']: [job.passed],
+          },
+        ] +
         job.extra_steps +
         [
           {
@@ -167,7 +176,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
     },
     common.GitResource('compute-daisy'),
     {
-      // Weekly rebuild of the CIT container to pick up base image and Go updates.
+      // Weekly rebuild of all container images to pick up base image and Go updates.
       name: 'weekly-time',
       type: 'time',
       source: {
@@ -247,7 +256,7 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
       dockerfile: 'Dockerfile',
       input: 'cloud-image-tests',
       image: 'cloud-image-tests',
-      extra_resources: ['guest-test-infra', 'weekly-time'],
+      extra_resources: ['guest-test-infra'],
       public_image_tag: false,
       post_steps: [
         {
