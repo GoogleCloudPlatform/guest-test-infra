@@ -23,6 +23,18 @@ const whiteoutPrefix = ".wh."
 const whiteoutOpaqueDir = whiteoutPrefix + whiteoutPrefix + ".opq"
 
 func unpackImage(dest string, img v1.Image, debug bool, out io.Writer) error {
+	if err := os.MkdirAll(dest, 0755); err != nil {
+		return err
+	}
+	absDest, err := filepath.Abs(dest)
+	if err != nil {
+		return err
+	}
+	dest, err = filepath.EvalSymlinks(absDest)
+	if err != nil {
+		return err
+	}
+
 	layers, err := img.Layers()
 	if err != nil {
 		return err
@@ -72,30 +84,26 @@ func unpackImage(dest string, img v1.Image, debug bool, out io.Writer) error {
 	return nil
 }
 
-func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
-	if err := os.MkdirAll(dest, 0755); err != nil {
-		return err
-	}
-	absDest, err := filepath.Abs(dest)
-	if err != nil {
-		return err
-	}
-	dest, err = filepath.EvalSymlinks(absDest)
-	if err != nil {
-		return err
-	}
-
+func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) (retErr error) {
 	r, err := layer.Compressed()
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() {
+		if err := r.Close(); err != nil && retErr == nil {
+			retErr = err
+		}
+	}()
 
 	gr, err := gzip.NewReader(bar.ProxyReader(r))
 	if err != nil {
 		return err
 	}
-	defer gr.Close()
+	defer func() {
+		if err := gr.Close(); err != nil && retErr == nil {
+			retErr = err
+		}
+	}()
 
 	tr := tar.NewReader(gr)
 
@@ -113,7 +121,7 @@ func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
 			continue
 		}
 
-		dir, path, base, isRoot, err := resolvePathInDest(dest, hdr.Name)
+		res, err := resolvePathInDest(dest, hdr.Name)
 		if err != nil {
 			return err
 		}
@@ -124,8 +132,8 @@ func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
 
 		log.Debug("unpacking")
 
-		if base == whiteoutOpaqueDir {
-			fi, err := os.Lstat(dir)
+		if res.base == whiteoutOpaqueDir {
+			fi, err := os.Lstat(res.dir)
 			if err != nil {
 				if os.IsNotExist(err) {
 					continue
@@ -136,20 +144,20 @@ func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
 				continue
 			}
 
-			log.Debugf("removing contents of %s", dir)
+			log.Debugf("removing contents of %s", res.dir)
 
-			if err := removeDirContents(dir, fi.Mode()); err != nil {
+			if err := removeDirContents(res.dir, fi.Mode()); err != nil {
 				return err
 			}
 
 			continue
-		} else if strings.HasPrefix(base, whiteoutPrefix) {
+		} else if strings.HasPrefix(res.base, whiteoutPrefix) {
 			// layer has marked a file as deleted
-			name := strings.TrimPrefix(base, whiteoutPrefix)
+			name := strings.TrimPrefix(res.base, whiteoutPrefix)
 			if name == "" || name == "." || name == ".." || strings.ContainsRune(name, os.PathSeparator) || strings.ContainsRune(name, '/') {
 				return fmt.Errorf("invalid whiteout entry %q", hdr.Name)
 			}
-			removedPath := filepath.Join(dir, name)
+			removedPath := filepath.Join(res.dir, name)
 			if !isWithinDest(dest, removedPath) || removedPath == dest {
 				return fmt.Errorf("whiteout entry %q escapes destination directory", hdr.Name)
 			}
@@ -163,7 +171,7 @@ func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
 			continue
 		}
 
-		if isRoot {
+		if res.isRoot {
 			if hdr.Typeflag == tar.TypeDir {
 				continue
 			}
@@ -184,34 +192,31 @@ func extractLayer(dest string, layer v1.Layer, bar *mpb.Bar, chown bool) error {
 			log.Debugf("hardlinking to %s", hdr.Linkname)
 		}
 
-		if fi, err := os.Lstat(path); err == nil {
+		if fi, err := os.Lstat(res.path); err == nil {
 			if !(fi.IsDir() && hdr.Typeflag == tar.TypeDir) {
 				log.Debugf("removing existing path")
-				if err := os.RemoveAll(path); err != nil {
+				if err := os.RemoveAll(res.path); err != nil {
 					return err
 				}
 			}
 		}
 
-		if err := extractEntry(hdr, dest, dir, path, tr, chown); err != nil {
+		if err := extractEntry(hdr, dest, res.dir, res.path, tr, chown); err != nil {
 			log.Debugf("extracting")
 			return err
 		}
 	}
 
-	err = gr.Close()
-	if err != nil {
-		return err
-	}
-
-	err = r.Close()
-	if err != nil {
-		return err
-	}
-
 	bar.SetTotal(bar.Current(), true)
 
 	return nil
+}
+
+type resolvedPath struct {
+	dir    string
+	path   string
+	base   string
+	isRoot bool
 }
 
 func cleanTarPath(name string) (string, error) {
@@ -234,31 +239,31 @@ func isWithinDest(dest, target string) bool {
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator)))
 }
 
-func resolvePathInDest(dest, tarName string) (dir, path, base string, isRoot bool, err error) {
+func resolvePathInDest(dest, tarName string) (resolvedPath, error) {
 	clean, err := cleanTarPath(tarName)
 	if err != nil {
-		return "", "", "", false, err
+		return resolvedPath{}, err
 	}
 	if clean == "." {
-		return dest, dest, ".", true, nil
+		return resolvedPath{dir: dest, path: dest, base: ".", isRoot: true}, nil
 	}
 
 	relDir := filepath.Dir(clean)
-	base = filepath.Base(clean)
+	base := filepath.Base(clean)
 
-	dir, err = securejoin.SecureJoin(dest, relDir)
+	dir, err := securejoin.SecureJoin(dest, relDir)
 	if err != nil {
-		return "", "", "", false, fmt.Errorf("resolve parent directory for %q: %w", tarName, err)
+		return resolvedPath{}, fmt.Errorf("resolve parent directory for %q: %w", tarName, err)
 	}
 	if !isWithinDest(dest, dir) {
-		return "", "", "", false, fmt.Errorf("tar entry %q parent escapes destination directory", tarName)
+		return resolvedPath{}, fmt.Errorf("tar entry %q parent escapes destination directory", tarName)
 	}
 
-	path = filepath.Join(dir, base)
+	path := filepath.Join(dir, base)
 	if !isWithinDest(dest, path) || path == dest {
-		return "", "", "", false, fmt.Errorf("tar entry %q escapes destination directory", tarName)
+		return resolvedPath{}, fmt.Errorf("tar entry %q escapes destination directory", tarName)
 	}
-	return dir, path, base, false, nil
+	return resolvedPath{dir: dir, path: path, base: base}, nil
 }
 
 func removeDirContents(dir string, mode os.FileMode) error {
@@ -289,14 +294,14 @@ func extractEntry(hdr *tar.Header, dest, dir, path string, input io.Reader, chow
 
 	switch hdr.Typeflag {
 	case tar.TypeLink:
-		_, targetPath, _, targetIsRoot, err := resolvePathInDest(dest, hdr.Linkname)
+		target, err := resolvePathInDest(dest, hdr.Linkname)
 		if err != nil {
 			return fmt.Errorf("resolve hardlink target for %q: %w", hdr.Name, err)
 		}
-		if targetIsRoot {
+		if target.isRoot {
 			return fmt.Errorf("hardlink %q cannot target destination root", hdr.Name)
 		}
-		if err := os.Link(targetPath, path); err != nil {
+		if err := os.Link(target.path, path); err != nil {
 			return err
 		}
 
@@ -311,7 +316,7 @@ func extractEntry(hdr *tar.Header, dest, dir, path string, input io.Reader, chow
 		}
 
 	case tar.TypeReg, tar.TypeRegA:
-		file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileMode.Perm())
+		file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, fileMode.Perm())
 		if err != nil {
 			return err
 		}

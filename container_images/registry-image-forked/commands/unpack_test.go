@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
@@ -343,13 +344,6 @@ func TestExtractLayer_HardlinkContainment(t *testing.T) {
 				{name: "rootlink", typeflag: tar.TypeLink, linkname: "."},
 			},
 		},
-		{
-			name: "hardlink through escaping symlink",
-			entries: []tarEntry{
-				{name: "escape", typeflag: tar.TypeSymlink, linkname: siblingDir},
-				{name: "stolen", typeflag: tar.TypeLink, linkname: "escape/secret"},
-			},
-		},
 	}
 
 	for _, tc := range tests {
@@ -364,6 +358,46 @@ func TestExtractLayer_HardlinkContainment(t *testing.T) {
 				t.Fatalf("unexpected hardlink created at dest/stolen: err=%v", err)
 			}
 		})
+	}
+}
+
+func TestExtractLayer_HardlinkThroughEscapingSymlinkScopedToDest(t *testing.T) {
+	base := t.TempDir()
+	siblingDir := filepath.Join(base, "rootfs2")
+	if err := os.MkdirAll(siblingDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	siblingVictim := filepath.Join(siblingDir, "secret")
+	if err := os.WriteFile(siblingVictim, []byte("secret"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(base, "rootfs")
+	img := makeImage(t, []tarEntry{
+		{name: "rootfs2/secret", typeflag: tar.TypeReg, body: "inside"},
+		{name: "escape", typeflag: tar.TypeSymlink, linkname: "../rootfs2"},
+		{name: "stolen", typeflag: tar.TypeLink, linkname: "escape/secret"},
+	})
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(dest, "stolen"))
+	if err != nil {
+		t.Fatalf("ReadFile(dest/stolen): %v", err)
+	}
+	if string(got) != "inside" {
+		t.Fatalf("dest/stolen content = %q, want %q", string(got), "inside")
+	}
+
+	gotSibling, err := os.ReadFile(siblingVictim)
+	if err != nil || string(gotSibling) != "secret" {
+		t.Fatalf("sibling victim = (%q, %v), want (%q, nil)", string(gotSibling), err, "secret")
+	}
+	fi, err := os.Lstat(siblingVictim)
+	if err != nil || fi.Mode().Perm() != 0600 {
+		t.Fatalf("sibling victim mode = (%o, %v), want (0600, nil)", fi.Mode().Perm(), err)
 	}
 }
 
@@ -514,12 +548,18 @@ func TestCleanTarPath(t *testing.T) {
 }
 
 func TestExtractLayer_ValidHardlinkWithinDest(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "rootfs")
+	base := t.TempDir()
+	outsideVictim := filepath.Join(base, "victim")
+	if err := os.WriteFile(outsideVictim, []byte("outside"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(base, "rootfs")
 	img := makeImage(t, []tarEntry{
 		{name: "orig", typeflag: tar.TypeReg, body: "hello"},
 		{name: "hard", typeflag: tar.TypeLink, linkname: "orig"},
-		{name: "sym", typeflag: tar.TypeSymlink, linkname: "/etc/hosts"},
-		{name: "hardsym", typeflag: tar.TypeLink, linkname: "sym"},
+		{name: "sym", typeflag: tar.TypeSymlink, linkname: outsideVictim},
+		{name: "hardsym", typeflag: tar.TypeLink, linkname: "sym", mode: 0777},
 	})
 
 	if err := unpackImage(dest, img, true, io.Discard); err != nil {
@@ -531,7 +571,203 @@ func TestExtractLayer_ValidHardlinkWithinDest(t *testing.T) {
 		t.Fatalf("hard = (%q, %v), want (%q, nil)", string(got), err, "hello")
 	}
 	target, err := os.Readlink(filepath.Join(dest, "hardsym"))
-	if err != nil || target != "/etc/hosts" {
-		t.Fatalf("Readlink(hardsym) = (%q, %v), want (%q, nil)", target, err, "/etc/hosts")
+	if err != nil || target != outsideVictim {
+		t.Fatalf("Readlink(hardsym) = (%q, %v), want (%q, nil)", target, err, outsideVictim)
+	}
+
+	gotOutside, err := os.ReadFile(outsideVictim)
+	if err != nil || string(gotOutside) != "outside" {
+		t.Fatalf("outside victim content = (%q, %v), want (%q, nil)", string(gotOutside), err, "outside")
+	}
+	fi, err := os.Lstat(outsideVictim)
+	if err != nil || fi.Mode().Perm() != 0600 {
+		t.Fatalf("outside victim mode = (%o, %v), want (0600, nil)", fi.Mode().Perm(), err)
+	}
+}
+
+func TestExtractLayer_DirOverEscapingSymlink(t *testing.T) {
+	base := t.TempDir()
+	outsideDir := filepath.Join(base, "outside")
+	if err := os.MkdirAll(outsideDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(outsideDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	victim := filepath.Join(outsideDir, "victim")
+	if err := os.WriteFile(victim, []byte("original"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(base, "rootfs")
+	img := makeImage(t, []tarEntry{
+		{name: "link", typeflag: tar.TypeSymlink, linkname: outsideDir},
+		{name: "link/", typeflag: tar.TypeDir, mode: 0777},
+		{name: "link/victim", typeflag: tar.TypeReg, body: "inside"},
+	})
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	linkInfo, err := os.Lstat(filepath.Join(dest, "link"))
+	if err != nil {
+		t.Fatalf("Lstat(dest/link): %v", err)
+	}
+	if !linkInfo.IsDir() || linkInfo.Mode()&os.ModeSymlink != 0 {
+		t.Fatalf("dest/link mode = %v, want real directory", linkInfo.Mode())
+	}
+
+	gotInside, err := os.ReadFile(filepath.Join(dest, "link", "victim"))
+	if err != nil || string(gotInside) != "inside" {
+		t.Fatalf("dest/link/victim = (%q, %v), want (%q, nil)", string(gotInside), err, "inside")
+	}
+
+	outsideDirInfo, err := os.Lstat(outsideDir)
+	if err != nil || outsideDirInfo.Mode().Perm() != 0700 {
+		t.Fatalf("outsideDir mode = (%o, %v), want (0700, nil)", outsideDirInfo.Mode().Perm(), err)
+	}
+	gotOutside, err := os.ReadFile(victim)
+	if err != nil || string(gotOutside) != "original" {
+		t.Fatalf("outside victim content = (%q, %v), want (%q, nil)", string(gotOutside), err, "original")
+	}
+	victimInfo, err := os.Lstat(victim)
+	if err != nil || victimInfo.Mode().Perm() != 0600 {
+		t.Fatalf("outside victim mode = (%o, %v), want (0600, nil)", victimInfo.Mode().Perm(), err)
+	}
+}
+
+func TestExtractLayer_DirReplacedBySymlinkMidLayer(t *testing.T) {
+	base := t.TempDir()
+	outsideDir := filepath.Join(base, "outside")
+	outsideSub := filepath.Join(outsideDir, "sub")
+	if err := os.MkdirAll(outsideSub, 0755); err != nil {
+		t.Fatal(err)
+	}
+	victim := filepath.Join(outsideDir, "victim")
+	if err := os.WriteFile(victim, []byte("original"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	nested := filepath.Join(outsideSub, "nested")
+	if err := os.WriteFile(nested, []byte("nested"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	dest := filepath.Join(base, "rootfs")
+	img := makeImage(t, []tarEntry{
+		{name: "d/", typeflag: tar.TypeDir},
+		{name: "d/x", typeflag: tar.TypeReg, body: "x"},
+		{name: "d", typeflag: tar.TypeSymlink, linkname: outsideDir},
+		{name: "d/victim", typeflag: tar.TypeReg, body: "pwned"},
+		{name: "d/sub/.wh.nested", typeflag: tar.TypeReg},
+		{name: "d/sub/.wh..wh..opq", typeflag: tar.TypeReg},
+	})
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	gotVictim, err := os.ReadFile(victim)
+	if err != nil || string(gotVictim) != "original" {
+		t.Fatalf("outside victim = (%q, %v), want (%q, nil)", string(gotVictim), err, "original")
+	}
+	victimInfo, err := os.Lstat(victim)
+	if err != nil || victimInfo.Mode().Perm() != 0600 {
+		t.Fatalf("outside victim mode = (%o, %v), want (0600, nil)", victimInfo.Mode().Perm(), err)
+	}
+
+	gotNested, err := os.ReadFile(nested)
+	if err != nil || string(gotNested) != "nested" {
+		t.Fatalf("outside nested = (%q, %v), want (%q, nil)", string(gotNested), err, "nested")
+	}
+	nestedInfo, err := os.Lstat(nested)
+	if err != nil || nestedInfo.Mode().Perm() != 0600 {
+		t.Fatalf("outside nested mode = (%o, %v), want (0600, nil)", nestedInfo.Mode().Perm(), err)
+	}
+}
+
+func TestExtractLayer_Fifo(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fifos not supported on windows")
+	}
+	dest := filepath.Join(t.TempDir(), "rootfs")
+	img := makeImage(t, []tarEntry{
+		{name: "fifo", typeflag: tar.TypeFifo, mode: 0640},
+	})
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	fi, err := os.Lstat(filepath.Join(dest, "fifo"))
+	if err != nil {
+		t.Fatalf("Lstat(fifo): %v", err)
+	}
+	if fi.Mode()&os.ModeNamedPipe == 0 {
+		t.Fatalf("fifo mode = %v, want named pipe", fi.Mode())
+	}
+	if fi.Mode().Perm() != 0640 {
+		t.Fatalf("fifo perm = %o, want 0640", fi.Mode().Perm())
+	}
+}
+
+func TestExtractLayer_Setuid(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("setuid not supported on windows")
+	}
+	dest := filepath.Join(t.TempDir(), "rootfs")
+	img := makeImage(t, []tarEntry{
+		{name: "bin/su", typeflag: tar.TypeReg, body: "su", mode: 04755},
+	})
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	fi, err := os.Lstat(filepath.Join(dest, "bin", "su"))
+	if err != nil {
+		t.Fatalf("Lstat(bin/su): %v", err)
+	}
+	if fi.Mode()&os.ModeSetuid == 0 {
+		t.Fatalf("bin/su mode = %v, want setuid bit set", fi.Mode())
+	}
+	if fi.Mode().Perm() != 0755 {
+		t.Fatalf("bin/su perm = %o, want 0755", fi.Mode().Perm())
+	}
+}
+
+func TestExtractLayer_OpaqueWhiteoutReadOnlyDir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX read-only directory semantics differ on windows")
+	}
+	dest := filepath.Join(t.TempDir(), "rootfs")
+	roDir := filepath.Join(dest, "ro")
+	t.Cleanup(func() {
+		os.Chmod(roDir, 0755)
+	})
+
+	img := makeImage(t,
+		[]tarEntry{
+			{name: "ro/old", typeflag: tar.TypeReg, body: "old"},
+			{name: "ro/", typeflag: tar.TypeDir, mode: 0555},
+		},
+		[]tarEntry{
+			{name: "ro/.wh..wh..opq", typeflag: tar.TypeReg},
+		},
+	)
+
+	if err := unpackImage(dest, img, true, io.Discard); err != nil {
+		t.Fatalf("unpackImage() unexpected error: %v", err)
+	}
+
+	if _, err := os.Lstat(filepath.Join(roDir, "old")); !os.IsNotExist(err) {
+		t.Fatalf("ro/old should be deleted, got err=%v", err)
+	}
+	fi, err := os.Lstat(roDir)
+	if err != nil {
+		t.Fatalf("Lstat(ro): %v", err)
+	}
+	if fi.Mode().Perm() != 0555 {
+		t.Fatalf("ro perm = %o, want 0555", fi.Mode().Perm())
 	}
 }
