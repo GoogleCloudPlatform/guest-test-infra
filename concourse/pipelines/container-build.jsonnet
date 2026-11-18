@@ -195,7 +195,6 @@ local BuildContainerImage(image, public_image_tag) = buildcontainerimgjob {
     BuildContainerImage('gobuild', false),
     BuildContainerImage('gocheck', false),
     BuildContainerImage('cleanerupper', false),
-    BuildContainerImage('gointegtest', false),
     BuildContainerImage('gotest', false),
     BuildContainerImage('cli-tools-module-tests', false) { passed: 'build-gotest' },
     BuildContainerImage('jsonnet-go', false),
