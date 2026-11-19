@@ -74,12 +74,6 @@ The go runtime and a shell script for use in Prow gobuild presubmit jobs.
 The go runtime, golint, and a shell script for use in Prow gocheck presubmit
 jobs.
 
-### gointegtest
-
-The daisy binary, a go test output to jUnit formatter, and a shell script for
-use in Prow gointegtest jobs. These run a daisy workflow that creates VMs from
-various OS images, checks out the code test and runs unit tests tagged 'integ'.
-
 ### gotest
 
 The go runtime and a shell script for use in Prow gotest presubmit jobs.
@@ -104,8 +98,3 @@ repository.
 ### selinux-tools
 
 SELinux tools for building SELinux modules.
-
-### validate-integtest
-
-Tools and script to validate the output of the gointegtest workflow. No longer
-used.
