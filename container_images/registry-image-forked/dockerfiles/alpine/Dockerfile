@@ -39,7 +39,7 @@ ARG DOCKER_PUSH_REPO
 ARG GCR_PUSH_SERVICE_ACCOUNT_KEY
 ARG GCR_PUSH_REPO
 RUN set -e; for test in /tests/*.test; do \
-		$test -ginkgo.v; \
+		$test -test.v; \
 	done
 
 FROM resource
