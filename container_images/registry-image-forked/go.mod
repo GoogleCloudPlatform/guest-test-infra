@@ -10,7 +10,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.44.0
 	github.com/simonshyu/notary-gcr v0.0.0-20211109021545-380a129b0e83
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.2
 	github.com/vbauerster/mpb v3.4.0+incompatible
 )
 
